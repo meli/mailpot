@@ -1,5 +1,11 @@
 # Mailpot
-## flexible mailing list manager
+## WIP mailing list manager
+
+Crates:
+
+- `core`
+- `cli` a command line tool to manage lists
+- `rest-http` a REST http server to manage lists
 
 ```text
 % mpot help

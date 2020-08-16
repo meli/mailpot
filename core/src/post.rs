@@ -22,6 +22,7 @@ use melib::Address;
 
 #[derive(Debug)]
 pub enum PostAction {
+    Hold,
     Accept {
         recipients: Vec<Address>,
         digests: Vec<Address>,
@@ -37,8 +38,10 @@ pub enum PostAction {
 ///Post to be considered by the list's `PostFilter` stack.
 pub struct Post<'list> {
     pub list: &'list mut MailingList,
+    pub list_owners: Vec<ListOwner>,
     pub from: Address,
     pub memberships: &'list [ListMembership],
+    pub policy: Option<PostPolicy>,
     pub bytes: Vec<u8>,
     pub to: Vec<Address>,
     pub action: PostAction,
@@ -51,6 +54,7 @@ impl<'list> core::fmt::Debug for Post<'list> {
             .field("from", &self.from)
             .field("members", &format_args!("{}", self.memberships.len()))
             .field("bytes", &format_args!("{}", self.bytes.len()))
+            .field("policy", &self.policy)
             .field("to", &self.to.as_slice())
             .field("action", &self.action)
             .finish()
@@ -60,19 +64,43 @@ impl<'list> core::fmt::Debug for Post<'list> {
 ///Filter that modifies and/or verifies a post candidate. On rejection, return a string
 ///describing the error and optionally set `post.action` to `Reject` or `Defer`
 pub trait PostFilter {
-    fn feed<'list>(
+    fn feed<'p, 'list>(
         self: Box<Self>,
-        post: &'list mut Post<'list>,
-    ) -> std::result::Result<&'list mut Post<'list>, String>;
+        post: &'p mut Post<'list>,
+    ) -> std::result::Result<&'p mut Post<'list>, String>;
 }
 
 ///Check that submitter can post to list, for now it accepts everything.
 pub struct PostRightsCheck;
 impl PostFilter for PostRightsCheck {
-    fn feed<'list>(
+    fn feed<'p, 'list>(
         self: Box<Self>,
-        post: &'list mut Post<'list>,
-    ) -> std::result::Result<&'list mut Post<'list>, String> {
+        post: &'p mut Post<'list>,
+    ) -> std::result::Result<&'p mut Post<'list>, String> {
+        if let Some(ref policy) = post.policy {
+            if policy.announce_only {
+                let owner_addresses = post
+                    .list_owners
+                    .iter()
+                    .map(|lo| {
+                        let lm: ListMembership = lo.clone().into();
+                        lm.into_address()
+                    })
+                    .collect::<Vec<Address>>();
+                if !owner_addresses.iter().any(|addr| *addr == post.from) {
+                    return Err("You are not allowed to post on this list.".to_string());
+                }
+            } else if policy.subscriber_only {
+                let email_from = post.from.get_email();
+                if !post.memberships.iter().any(|lm| lm.address == email_from) {
+                    return Err("You are not subscribed to this list.".to_string());
+                }
+            } else if policy.approval_needed {
+                post.action = PostAction::Defer {
+                    reason: "Approval from the list's moderators is required.".to_string(),
+                };
+            }
+        }
         Ok(post)
     }
 }
@@ -80,10 +108,10 @@ impl PostFilter for PostRightsCheck {
 ///Ensure message contains only `\r\n` line terminators, required by SMTP.
 pub struct FixCRLF;
 impl PostFilter for FixCRLF {
-    fn feed<'list>(
+    fn feed<'p, 'list>(
         self: Box<Self>,
-        post: &'list mut Post<'list>,
-    ) -> std::result::Result<&'list mut Post<'list>, String> {
+        post: &'p mut Post<'list>,
+    ) -> std::result::Result<&'p mut Post<'list>, String> {
         use std::io::prelude::*;
         let mut new_vec = Vec::with_capacity(post.bytes.len());
         for line in post.bytes.lines() {
@@ -98,10 +126,10 @@ impl PostFilter for FixCRLF {
 ///Add `List-*` headers
 pub struct AddListHeaders;
 impl PostFilter for AddListHeaders {
-    fn feed<'list>(
+    fn feed<'p, 'list>(
         self: Box<Self>,
-        post: &'list mut Post<'list>,
-    ) -> std::result::Result<&'list mut Post<'list>, String> {
+        post: &'p mut Post<'list>,
+    ) -> std::result::Result<&'p mut Post<'list>, String> {
         let (mut headers, body) = melib::email::parser::mail(&post.bytes).unwrap();
         let list_id = post.list.list_id();
         headers.push((&b"List-ID"[..], list_id.as_bytes()));
@@ -142,10 +170,10 @@ impl PostFilter for AddListHeaders {
 ///Adds `Archived-At` field, if configured.
 pub struct ArchivedAtLink;
 impl PostFilter for ArchivedAtLink {
-    fn feed<'list>(
+    fn feed<'p, 'list>(
         self: Box<Self>,
-        post: &'list mut Post<'list>,
-    ) -> std::result::Result<&'list mut Post<'list>, String> {
+        post: &'p mut Post<'list>,
+    ) -> std::result::Result<&'p mut Post<'list>, String> {
         Ok(post)
     }
 }
@@ -154,10 +182,10 @@ impl PostFilter for ArchivedAtLink {
 ///will receive the post in `post.action` field.
 pub struct FinalizeRecipients;
 impl PostFilter for FinalizeRecipients {
-    fn feed<'list>(
+    fn feed<'p, 'list>(
         self: Box<Self>,
-        post: &'list mut Post<'list>,
-    ) -> std::result::Result<&'list mut Post<'list>, String> {
+        post: &'p mut Post<'list>,
+    ) -> std::result::Result<&'p mut Post<'list>, String> {
         let mut recipients = vec![];
         let mut digests = vec![];
         let email_from = post.from.get_email();

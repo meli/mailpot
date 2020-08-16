@@ -1,0 +1,23 @@
+[package]
+name = "mailpot"
+version = "0.1.0"
+authors = ["Manos Pitsidianakis <el13635@mail.ntua.gr>"]
+edition = "2018"
+license = "LICENSE"
+readme = "README.md"
+description = "mailing list manager"
+repository = "https://github.com/meli/mailpot"
+keywords = ["mail", "mailing-lists" ]
+categories = ["email"]
+
+[dependencies]
+chrono = { version = "0.4.15", features = ["serde", ] }
+error-chain = "0.12.4"
+diesel = { version = "1.4.5", features = ["sqlite", ] }
+melib = { version = "*", default-features = false, features = ["smtp", "unicode_algorithms"], path="../../meli/melib", branch = "master" }
+#melib = { version = "*", default-features = false, features = ["smtp", "unicode_algorithms"], git="https://github.com/meli/meli", branch = "master" }
+rusqlite = {version = "0.20.0"}
+serde = { version = "1.0.114" }
+serde_json = "1.0.57"
+toml = "^0.5"
+xdg = "2.1.0"

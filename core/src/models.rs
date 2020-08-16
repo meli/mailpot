@@ -18,12 +18,12 @@
  */
 
 use super::*;
-use rusqlite::Row;
-use std::convert::TryFrom;
+use schema::*;
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Insertable, Queryable, Deserialize, Serialize)]
+#[table_name = "mailing_lists"]
 pub struct MailingList {
-    pub pk: i64,
+    pub pk: i32,
     pub name: String,
     pub id: String,
     pub address: String,
@@ -49,20 +49,6 @@ impl std::fmt::Display for MailingList {
     }
 }
 
-impl TryFrom<&'_ Row<'_>> for MailingList {
-    type Error = rusqlite::Error;
-    fn try_from(row: &'_ Row<'_>) -> std::result::Result<MailingList, rusqlite::Error> {
-        Ok(MailingList {
-            pk: row.get("pk")?,
-            name: row.get("name")?,
-            id: row.get("id")?,
-            address: row.get("address")?,
-            description: row.get("description")?,
-            archive_url: row.get("archive_url")?,
-        })
-    }
-}
-
 impl MailingList {
     pub fn list_id(&self) -> String {
         format!("\"{}\" <{}>", self.name, self.address)
@@ -85,9 +71,10 @@ impl MailingList {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Insertable, Queryable, Deserialize, Serialize)]
+#[table_name = "membership"]
 pub struct ListMembership {
-    pub list: i64,
+    pub list: i32,
     pub address: String,
     pub name: Option<String>,
     pub digest: bool,
@@ -115,22 +102,6 @@ impl std::fmt::Display for ListMembership {
     }
 }
 
-impl TryFrom<&'_ Row<'_>> for ListMembership {
-    type Error = rusqlite::Error;
-    fn try_from(row: &'_ Row<'_>) -> std::result::Result<ListMembership, rusqlite::Error> {
-        Ok(ListMembership {
-            list: row.get("list")?,
-            address: row.get("address")?,
-            name: row.get("name")?,
-            digest: row.get("digest")?,
-            hide_address: row.get("hide_address")?,
-            receive_duplicates: row.get("receive_duplicates")?,
-            receive_own_posts: row.get("receive_own_posts")?,
-            receive_confirmation: row.get("receive_confirmation")?,
-        })
-    }
-}
-
 impl ListMembership {
     pub fn into_address(&self) -> melib::email::Address {
         use melib::email::Address;
@@ -140,6 +111,60 @@ impl ListMembership {
             melib::make_address!(name, self.address)
         } else {
             melib::make_address!("", self.address)
+        }
+    }
+}
+
+#[derive(Debug, Clone, Insertable, Queryable, Deserialize, Serialize)]
+#[table_name = "post_policy"]
+pub struct PostPolicy {
+    pub pk: i32,
+    pub list: i32,
+    pub announce_only: bool,
+    pub subscriber_only: bool,
+    pub approval_needed: bool,
+}
+
+impl std::fmt::Display for PostPolicy {
+    fn fmt(&self, fmt: &mut std::fmt::Formatter) -> std::fmt::Result {
+        write!(fmt, "{:?}", self)
+    }
+}
+
+#[derive(Debug, Clone, Insertable, Queryable, Deserialize, Serialize)]
+#[table_name = "list_owner"]
+pub struct ListOwner {
+    pub pk: i32,
+    pub list: i32,
+    pub address: String,
+    pub name: Option<String>,
+}
+
+impl std::fmt::Display for ListOwner {
+    fn fmt(&self, fmt: &mut std::fmt::Formatter) -> std::fmt::Result {
+        if let Some(ref name) = self.name {
+            write!(
+                fmt,
+                "[#{} {}] \"{}\" <{}>",
+                self.pk, self.list, name, self.address
+            )
+        } else {
+            write!(fmt, "[#{} {}] {}", self.pk, self.list, self.address)
+        }
+    }
+}
+
+impl From<ListOwner> for ListMembership {
+    fn from(val: ListOwner) -> ListMembership {
+        ListMembership {
+            list: val.list,
+            address: val.address,
+            name: val.name,
+            digest: false,
+            hide_address: false,
+            receive_duplicates: true,
+            receive_own_posts: false,
+            receive_confirmation: true,
         }
     }
 }

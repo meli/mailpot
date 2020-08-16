@@ -20,9 +20,12 @@
 // Create the Error, ErrorKind, ResultExt, and Result types
 error_chain! {
   foreign_links {
-       Sql(rusqlite::Error);
+       Db(diesel::ConnectionError);
+       Sql(diesel::result::Error);
        Io(::std::io::Error);
        Xdg(xdg::BaseDirectoriesError);
        Melib(melib::error::MeliError);
+       Configuration(toml::de::Error);
+       SerdeJson(serde_json::Error);
    }
 }

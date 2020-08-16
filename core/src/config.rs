@@ -19,9 +19,12 @@
 
 use super::errors::*;
 use chrono::prelude::*;
-use std::io::Write;
+use std::cell::RefCell;
+use std::io::{Read, Write};
 use std::os::unix::fs::PermissionsExt;
 use std::path::PathBuf;
+
+thread_local!(pub static CONFIG: RefCell<Configuration> = RefCell::new(Configuration::new()));
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(tag = "type", content = "value")]
@@ -32,10 +35,33 @@ pub enum SendMail {
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Configuration {
-    send_mail: SendMail,
+    pub send_mail: SendMail,
+    #[serde(default = "default_storage_fn")]
+    pub storage: String,
 }
 
 impl Configuration {
+    pub(crate) fn new() -> Self {
+        Configuration {
+            send_mail: SendMail::ShellCommand(String::new()),
+            storage: "sqlite3".into(),
+        }
+    }
+
+    pub fn init() -> Result<()> {
+        let path =
+            xdg::BaseDirectories::with_prefix("mailpot")?.place_config_file("config.toml")?;
+        let mut s = String::new();
+        let mut file = std::fs::File::open(&path)?;
+        file.read_to_string(&mut s)?;
+        let config: Configuration = toml::from_str(&s)?;
+        CONFIG.with(|f| {
+            *f.borrow_mut() = config;
+        });
+
+        Ok(())
+    }
+
     pub fn data_directory() -> Result<PathBuf> {
         Ok(xdg::BaseDirectories::with_prefix("mailpot")?.get_data_home())
     }
@@ -73,4 +99,8 @@ impl Configuration {
         let temp_path = std::env::temp_dir();
         Self::save_message_to_path(&msg, temp_path)
     }
+}
+
+fn default_storage_fn() -> String {
+    "sqlite3".to_string()
 }

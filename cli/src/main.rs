@@ -17,26 +17,16 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-// `error_chain!` can recurse deeply
-#![recursion_limit = "1024"]
+extern crate mailpot;
 
-#[macro_use]
-extern crate error_chain;
-#[macro_use]
-extern crate serde;
-use structopt::StructOpt;
-
-pub mod config;
-pub use config::*;
-pub mod models;
-pub mod post;
-pub use models::*;
-pub mod errors;
-pub use errors::*;
-pub mod db;
-pub use db::*;
-
+pub use mailpot::config::*;
+pub use mailpot::db::*;
+pub use mailpot::errors::*;
+pub use mailpot::models::*;
+pub use mailpot::post::*;
+pub use mailpot::*;
 use std::path::PathBuf;
+use structopt::StructOpt;
 
 #[derive(Debug, StructOpt)]
 #[structopt(
@@ -60,6 +50,8 @@ struct Opt {
 enum Command {
     ///Prints database filesystem location
     DbLocation,
+    ///Dumps database data to STDOUT
+    DumpDatabase,
     ///Lists all registered mailing lists
     ListLists,
     ///Mailing list management
@@ -129,10 +121,20 @@ fn run_app(opt: Opt) -> Result<()> {
     if opt.debug {
         println!("DEBUG: {:?}", &opt);
     }
+    Configuration::init()?;
     use Command::*;
     match opt.cmd {
         DbLocation => {
             println!("{}", Database::db_path()?.display());
+        }
+        DumpDatabase => {
+            let db = Database::open_or_create_db()?;
+            let lists = db.list_lists()?;
+            let mut stdout = std::io::stdout();
+            serde_json::to_writer_pretty(&mut stdout, &lists)?;
+            for l in &lists {
+                serde_json::to_writer_pretty(&mut stdout, &db.list_members(l.pk)?)?;
+            }
         }
         ListLists => {
             let db = Database::open_or_create_db()?;
