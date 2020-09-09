@@ -36,6 +36,7 @@ CREATE TABLE IF NOT EXISTS membership (
   list                    INTEGER NOT NULL,
   address                 TEXT NOT NULL,
   name                    TEXT,
+  BOOLEAN_TYPE(enabled) DEFAULT BOOLEAN_TRUE(),
   BOOLEAN_TYPE(digest) DEFAULT BOOLEAN_FALSE(),
   BOOLEAN_TYPE(hide_address) DEFAULT BOOLEAN_FALSE(),
   BOOLEAN_TYPE(receive_duplicates) DEFAULT BOOLEAN_TRUE(),

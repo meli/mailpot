@@ -77,8 +77,10 @@ impl PostFilter for PostRightsCheck {
         self: Box<Self>,
         post: &'p mut Post<'list>,
     ) -> std::result::Result<&'p mut Post<'list>, String> {
+        trace!("Running PostRightsCheck filter");
         if let Some(ref policy) = post.policy {
             if policy.announce_only {
+                trace!("post policy is announce_only");
                 let owner_addresses = post
                     .list_owners
                     .iter()
@@ -87,15 +89,23 @@ impl PostFilter for PostRightsCheck {
                         lm.into_address()
                     })
                     .collect::<Vec<Address>>();
+                trace!("Owner addresses are: {:#?}", &owner_addresses);
+                trace!("Envelope from is: {:?}", &post.from);
                 if !owner_addresses.iter().any(|addr| *addr == post.from) {
+                    trace!("Envelope From does not include any owner");
                     return Err("You are not allowed to post on this list.".to_string());
                 }
             } else if policy.subscriber_only {
+                trace!("post policy is subscriber_only");
                 let email_from = post.from.get_email();
+                trace!("post from is {:?}", &email_from);
+                trace!("post memberships are {:#?}", &post.memberships);
                 if !post.memberships.iter().any(|lm| lm.address == email_from) {
+                    trace!("Envelope from is not subscribed to this list");
                     return Err("You are not subscribed to this list.".to_string());
                 }
             } else if policy.approval_needed {
+                trace!("post policy says approval_needed");
                 post.action = PostAction::Defer {
                     reason: "Approval from the list's moderators is required.".to_string(),
                 };
@@ -112,6 +122,7 @@ impl PostFilter for FixCRLF {
         self: Box<Self>,
         post: &'p mut Post<'list>,
     ) -> std::result::Result<&'p mut Post<'list>, String> {
+        trace!("Running FixCRLF filter");
         use std::io::prelude::*;
         let mut new_vec = Vec::with_capacity(post.bytes.len());
         for line in post.bytes.lines() {
@@ -130,6 +141,7 @@ impl PostFilter for AddListHeaders {
         self: Box<Self>,
         post: &'p mut Post<'list>,
     ) -> std::result::Result<&'p mut Post<'list>, String> {
+        trace!("Running AddListHeaders filter");
         let (mut headers, body) = melib::email::parser::mail(&post.bytes).unwrap();
         let list_id = post.list.list_id();
         headers.push((&b"List-ID"[..], list_id.as_bytes()));
@@ -174,6 +186,7 @@ impl PostFilter for ArchivedAtLink {
         self: Box<Self>,
         post: &'p mut Post<'list>,
     ) -> std::result::Result<&'p mut Post<'list>, String> {
+        trace!("Running ArchivedAtLink filter");
         Ok(post)
     }
 }
@@ -186,14 +199,20 @@ impl PostFilter for FinalizeRecipients {
         self: Box<Self>,
         post: &'p mut Post<'list>,
     ) -> std::result::Result<&'p mut Post<'list>, String> {
+        trace!("Running FinalizeRecipients filter");
         let mut recipients = vec![];
         let mut digests = vec![];
         let email_from = post.from.get_email();
         for member in post.memberships {
+            trace!("examining member {:?}", &member);
+            if member.address != email_from {
+                trace!("member is submitter");
+            }
             if member.digest {
                 if (member.address == email_from && member.receive_own_posts)
                     || (member.address != email_from)
                 {
+                    trace!("Member gets digest");
                     digests.push(member.into_address());
                 }
                 continue;
@@ -201,6 +220,7 @@ impl PostFilter for FinalizeRecipients {
             if (member.address == email_from && member.receive_own_posts)
                 || (member.address != email_from)
             {
+                trace!("Member gets copy");
                 recipients.push(member.into_address());
             }
             // TODO:

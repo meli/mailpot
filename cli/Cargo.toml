@@ -18,3 +18,4 @@ path = "src/main.rs"
 [dependencies]
 mailpot = { version = "0.1.0", path = "../core" }
 structopt = "0.3.16"
+stderrlog = "0.4"

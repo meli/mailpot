@@ -32,6 +32,7 @@ CREATE TABLE IF NOT EXISTS membership (
   list                    INTEGER NOT NULL,
   address                 TEXT NOT NULL,
   name                    TEXT,
+  enabled BOOLEAN CHECK (enabled in (0, 1)) NOT NULL DEFAULT 1,
   digest BOOLEAN CHECK (digest in (0, 1)) NOT NULL DEFAULT 0,
   hide_address BOOLEAN CHECK (hide_address in (0, 1)) NOT NULL DEFAULT 0,
   receive_duplicates BOOLEAN CHECK (receive_duplicates in (0, 1)) NOT NULL DEFAULT 1,

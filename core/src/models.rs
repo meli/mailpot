@@ -20,6 +20,8 @@
 use super::*;
 use schema::*;
 
+use melib::email::Address;
+
 #[derive(Debug, Clone, Insertable, Queryable, Deserialize, Serialize)]
 #[table_name = "mailing_lists"]
 pub struct MailingList {
@@ -69,6 +71,10 @@ impl MailingList {
     pub fn list_archive(&self) -> Option<String> {
         self.archive_url.as_ref().map(|url| format!("<{}>", url))
     }
+
+    pub fn list_address(&self) -> Address {
+        Address::new(Some(self.name.clone()), self.address.clone())
+    }
 }
 
 #[derive(Debug, Clone, Insertable, Queryable, Deserialize, Serialize)]
@@ -82,36 +88,29 @@ pub struct ListMembership {
     pub receive_duplicates: bool,
     pub receive_own_posts: bool,
     pub receive_confirmation: bool,
+    pub enabled: bool,
 }
 
 impl std::fmt::Display for ListMembership {
     fn fmt(&self, fmt: &mut std::fmt::Formatter) -> std::fmt::Result {
-        if let Some(name) = self.name.as_ref() {
-            write!(
-                fmt,
-                "{} <{}> [digest: {}, hide_address: {}]",
-                name, self.address, self.digest, self.hide_address
-            )
-        } else {
-            write!(
-                fmt,
-                "{} [digest: {}, hide_address: {}]",
-                self.address, self.digest, self.hide_address
-            )
-        }
+        write!(
+            fmt,
+            "{} [digest: {}, hide_address: {} {}]",
+            self.into_address(),
+            self.digest,
+            self.hide_address,
+            if self.enabled {
+                "enabled"
+            } else {
+                "not enabled"
+            },
+        )
     }
 }
 
 impl ListMembership {
-    pub fn into_address(&self) -> melib::email::Address {
-        use melib::email::Address;
-        use melib::email::StrBuilder;
-        use melib::MailboxAddress;
-        if let Some(name) = self.name.as_ref() {
-            melib::make_address!(name, self.address)
-        } else {
-            melib::make_address!("", self.address)
-        }
+    pub fn into_address(&self) -> Address {
+        Address::new(self.name.clone(), self.address.clone())
     }
 }
 
@@ -142,15 +141,7 @@ pub struct ListOwner {
 
 impl std::fmt::Display for ListOwner {
     fn fmt(&self, fmt: &mut std::fmt::Formatter) -> std::fmt::Result {
-        if let Some(ref name) = self.name {
-            write!(
-                fmt,
-                "[#{} {}] \"{}\" <{}>",
-                self.pk, self.list, name, self.address
-            )
-        } else {
-            write!(fmt, "[#{} {}] {}", self.pk, self.list, self.address)
-        }
+        write!(fmt, "[#{} {}] {}", self.pk, self.list, self.into_address())
     }
 }
 
@@ -165,6 +156,20 @@ impl From<ListOwner> for ListMembership {
             receive_duplicates: true,
             receive_own_posts: false,
             receive_confirmation: true,
+            enabled: true,
         }
     }
+}
+
+impl ListOwner {
+    pub fn into_address(&self) -> Address {
+        Address::new(self.name.clone(), self.address.clone())
+    }
+}
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub enum ListRequest {
+    Subscribe,
+    Unsubscribe,
+    Other(String),
 }

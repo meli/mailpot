@@ -18,6 +18,7 @@
  */
 
 extern crate mailpot;
+extern crate stderrlog;
 
 pub use mailpot::config::*;
 pub use mailpot::db::*;
@@ -44,6 +45,15 @@ struct Opt {
     config: Option<PathBuf>,
     #[structopt(flatten)]
     cmd: Command,
+    /// Silence all output
+    #[structopt(short = "q", long = "quiet")]
+    quiet: bool,
+    /// Verbose mode (-v, -vv, -vvv, etc)
+    #[structopt(short = "v", long = "verbose", parse(from_occurrences))]
+    verbose: usize,
+    /// Timestamp (sec, ms, ns, none)
+    #[structopt(short = "t", long = "timestamp")]
+    ts: Option<stderrlog::Timestamp>,
 }
 
 #[derive(Debug, StructOpt)]
@@ -108,6 +118,8 @@ enum ListCommand {
         receive_duplicates: Option<bool>,
         #[structopt(long)]
         receive_own_posts: Option<bool>,
+        #[structopt(long)]
+        enabled: Option<bool>,
     },
     RemoveMember {
         #[structopt(long)]
@@ -144,6 +156,21 @@ fn run_app(opt: Opt) -> Result<()> {
             } else {
                 for l in lists {
                     println!("- {} {:?}", l.id, l);
+                    let list_owners = db.get_list_owners(l.pk)?;
+                    if list_owners.is_empty() {
+                        println!("\tList owners: None");
+                    } else {
+                        println!("\tList owners:");
+                        for o in db.get_list_owners(l.pk)? {
+                            println!("\t- {}", o);
+                        }
+                    }
+                    if let Some(s) = db.get_list_policy(l.pk)? {
+                        println!("\tList policy: {}", s);
+                    } else {
+                        println!("\tList policy: None");
+                    }
+                    println!("");
                 }
             }
         }
@@ -176,6 +203,7 @@ fn run_app(opt: Opt) -> Result<()> {
                     receive_confirmation,
                     receive_duplicates,
                     receive_own_posts,
+                    enabled,
                 } => {
                     db.add_member(
                         list.pk,
@@ -188,6 +216,7 @@ fn run_app(opt: Opt) -> Result<()> {
                             receive_confirmation: receive_confirmation.unwrap_or(true),
                             receive_duplicates: receive_duplicates.unwrap_or(true),
                             receive_own_posts: receive_own_posts.unwrap_or(false),
+                            enabled: enabled.unwrap_or(true),
                         },
                     )?;
                 }
@@ -260,6 +289,14 @@ fn run_app(opt: Opt) -> Result<()> {
 
 fn main() -> std::result::Result<(), i32> {
     let opt = Opt::from_args();
+    stderrlog::new()
+        .module(module_path!())
+        .module("mailpot")
+        .quiet(opt.quiet)
+        .verbosity(opt.verbose)
+        .timestamp(opt.ts.unwrap_or(stderrlog::Timestamp::Off))
+        .init()
+        .unwrap();
     if let Err(err) = run_app(opt) {
         println!("{}", err);
         std::process::exit(-1);

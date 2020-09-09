@@ -123,7 +123,7 @@ impl Database {
         let db_path = Self::db_path()?;
         let mut set_mode = false;
         if !db_path.exists() {
-            println!("Creating {} database in {}", DB_NAME, db_path.display());
+            info!("Creating {} database in {}", DB_NAME, db_path.display());
             set_mode = true;
         }
         let conn = SqliteConnection::establish(&db_path.to_str().unwrap())?;
@@ -152,32 +152,75 @@ impl Database {
     }
 
     pub fn post(&self, env: Envelope, raw: &[u8]) -> Result<()> {
+        trace!("Received envelope to post: {:#?}", &env);
         let mut lists = self.list_lists()?;
-        let tos = env
-            .to()
-            .iter()
-            .map(|addr| addr.get_email())
-            .collect::<Vec<String>>();
+        let tos = env.to().iter().cloned().collect::<Vec<_>>();
         if tos.is_empty() {
             return Err("Envelope To: field is empty!".into());
         }
         if env.from().is_empty() {
             return Err("Envelope From: field is empty!".into());
         }
+        for t in &tos {
+            if let Some((addr, subaddr)) = t.subaddress("+") {
+                lists.retain(|list| {
+                    if !addr.contains_address(&list.list_address()) {
+                        return true;
+                    }
+                    if let Err(err) = self.request(
+                        list,
+                        match subaddr.as_str() {
+                            "subscribe" | "request" if env.subject().trim() == "subscribe" => {
+                                ListRequest::Subscribe
+                            }
+                            "unsubscribe" | "request" if env.subject().trim() == "unsubscribe" => {
+                                ListRequest::Unsubscribe
+                            }
+                            "request" => ListRequest::Other(env.subject().trim().to_string()),
+                            _ => {
+                                trace!(
+                                    "unknown action = {} for addresses {:?} in list {}",
+                                    subaddr,
+                                    env.from(),
+                                    list
+                                );
+                                ListRequest::Other(subaddr.trim().to_string())
+                            }
+                        },
+                        &env,
+                        raw,
+                    ) {
+                        info!("Processing request returned error: {}", err);
+                    }
+                    false
+                });
+            }
+        }
 
-        lists.retain(|list| tos.iter().any(|a| a == &list.address));
+        lists.retain(|list| {
+            trace!(
+                "Is post related to list {}? {}",
+                &list,
+                tos.iter().any(|a| a.contains_address(&list.list_address()))
+            );
+
+            tos.iter().any(|a| a.contains_address(&list.list_address()))
+        });
         if lists.is_empty() {
-            return Err("Envelope To: field doesn't contain any known lists!".into());
+            return Ok(());
         }
 
         let mut configuration = crate::config::Configuration::new();
         crate::config::CONFIG.with(|f| {
             configuration = f.borrow().clone();
         });
+        trace!("Configuration is {:#?}", &configuration);
         use crate::post::{Post, PostAction};
         for mut list in lists {
+            trace!("Examining list {}", list.list_id());
             let filters = self.get_list_filters(&list);
             let memberships = self.list_members(list.pk)?;
+            trace!("List members {:#?}", &memberships);
             let mut post = Post {
                 policy: self.get_list_policy(list.pk)?,
                 list_owners: self.get_list_owners(list.pk)?,
@@ -191,10 +234,9 @@ impl Database {
             let result = filters
                 .into_iter()
                 .fold(Ok(&mut post), |p, f| p.and_then(|p| f.feed(p)));
-            eprintln!("result {:?}", result);
+            trace!("result {:#?}", result);
 
             let Post { bytes, action, .. } = post;
-            eprintln!("send_mail {:?}", &configuration.send_mail);
             match configuration.send_mail {
                 crate::config::SendMail::Smtp(ref smtp_conf) => {
                     let smtp_conf = smtp_conf.clone();
@@ -231,6 +273,82 @@ impl Database {
             }
         }
 
+        Ok(())
+    }
+
+    pub fn request(
+        &self,
+        list: &MailingList,
+        request: ListRequest,
+        env: &Envelope,
+        _raw: &[u8],
+    ) -> Result<()> {
+        match request {
+            ListRequest::Subscribe => {
+                trace!(
+                    "subscribe action for addresses {:?} in list {}",
+                    env.from(),
+                    list
+                );
+
+                let list_policy = self.get_list_policy(list.pk)?;
+                let approval_needed = list_policy
+                    .as_ref()
+                    .map(|p| p.approval_needed)
+                    .unwrap_or(false);
+                for f in env.from() {
+                    let membership = ListMembership {
+                        list: list.pk,
+                        address: f.get_email(),
+                        name: f.get_display_name(),
+                        digest: false,
+                        hide_address: false,
+                        receive_duplicates: true,
+                        receive_own_posts: false,
+                        receive_confirmation: true,
+                        enabled: !approval_needed,
+                    };
+                    if approval_needed {
+                        //FIXME: send notification to list-owner
+                    }
+                    if let Err(_err) = self.add_member(list.pk, membership) {
+                        //FIXME: send failure notice to f
+                    } else {
+                        //FIXME: send success notice
+                    }
+                }
+            }
+            ListRequest::Unsubscribe => {
+                trace!(
+                    "unsubscribe action for addresses {:?} in list {}",
+                    env.from(),
+                    list
+                );
+                for f in env.from() {
+                    if let Err(_err) = self.remove_member(list.pk, &f.get_email()) {
+                        //FIXME: send failure notice to f
+                    } else {
+                        //FIXME: send success notice to f
+                    }
+                }
+            }
+            ListRequest::Other(ref req) if req == "owner" => {
+                trace!(
+                    "list-owner mail action for addresses {:?} in list {}",
+                    env.from(),
+                    list
+                );
+                //FIXME: mail to list-owner
+            }
+            ListRequest::Other(ref req) => {
+                trace!(
+                    "unknown request action {} for addresses {:?} in list {}",
+                    req,
+                    env.from(),
+                    list
+                );
+            }
+        }
         Ok(())
     }
 }

@@ -20,6 +20,7 @@
 #![recursion_limit = "1024"]
 //#![warn(missing_docs)]
 
+use log::{info, trace};
 #[macro_use]
 extern crate error_chain;
 #[macro_use]

@@ -28,6 +28,7 @@ table! {
         receive_duplicates -> Bool,
         receive_own_posts -> Bool,
         receive_confirmation -> Bool,
+        enabled -> Bool,
     }
 }
 
