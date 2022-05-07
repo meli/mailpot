@@ -240,3 +240,20 @@ pub struct NewListPost<'s> {
     pub message_id: &'s str,
     pub message: &'s [u8],
 }
+
+#[derive(Clone, Debug, Deserialize, Serialize, PartialEq, Eq)]
+pub struct Post {
+    pub pk: i64,
+    pub list: i64,
+    pub address: String,
+    pub message_id: String,
+    pub message: Vec<u8>,
+    pub timestamp: u64,
+    pub datetime: String,
+}
+
+impl std::fmt::Display for Post {
+    fn fmt(&self, fmt: &mut std::fmt::Formatter) -> std::fmt::Result {
+        write!(fmt, "{:?}", self)
+    }
+}

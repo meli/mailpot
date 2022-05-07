@@ -62,7 +62,8 @@ CREATE TABLE IF NOT EXISTS post (
   address                 TEXT NOT NULL,
   message_id              TEXT NOT NULL,
   message                 BLOB NOT NULL,
-  FOREIGN KEY (list, address) REFERENCES membership(list, address) ON DELETE CASCADE
+  timestamp               INTEGER NOT NULL DEFAULT (unixepoch()),
+  datetime                TEXT NOT NULL DEFAULT (datetime())
 );
 
 CREATE TABLE IF NOT EXISTS post_event (

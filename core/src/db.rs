@@ -142,6 +142,39 @@ impl Database {
         Ok(ret)
     }
 
+    pub fn list_posts(
+        &self,
+        list_pk: i64,
+        date_range: Option<(String, String)>,
+    ) -> Result<Vec<DbVal<Post>>> {
+        let mut stmt = self
+            .connection
+            .prepare("SELECT * FROM post WHERE list = ?;")?;
+        let iter = stmt.query_map(rusqlite::params![&list_pk,], |row| {
+            let pk = row.get("pk")?;
+            Ok(DbVal(
+                Post {
+                    pk,
+                    list: row.get("list")?,
+                    address: row.get("address")?,
+                    message_id: row.get("message_id")?,
+                    message: row.get("message")?,
+                    timestamp: row.get("timestamp")?,
+                    datetime: row.get("datetime")?,
+                },
+                pk,
+            ))
+        })?;
+        let mut ret = vec![];
+        for post in iter {
+            let post = post?;
+            ret.push(post);
+        }
+
+        trace!("list_posts {:?}.", &ret);
+        Ok(ret)
+    }
+
     pub fn update_list(&self, _change_set: MailingListChangeset) -> Result<()> {
         /*
         diesel::update(mailing_lists::table)
@@ -416,13 +449,20 @@ impl Database {
     }
 
     pub fn insert_post(&self, list_pk: i64, message: &[u8], env: &Envelope) -> Result<i64> {
-        let address = env.from()[0].to_string();
+        let address = env.from()[0].get_email();
         let message_id = env.message_id_display();
         let mut stmt = self.connection.prepare(
-            "INSERT INTO post(list, address, message_id, message) VALUES(?, ?, ?, ?) RETURNING pk;",
+            "INSERT INTO post(list, address, message_id, message, datetime, timestamp) VALUES(?, ?, ?, ?, ?, ?) RETURNING pk;",
         )?;
         let pk = stmt.query_row(
-            rusqlite::params![&list_pk, &address, &message_id, &message],
+            rusqlite::params![
+                &list_pk,
+                &address,
+                &message_id,
+                &message,
+                &env.date,
+                &env.timestamp
+            ],
             |row| {
                 let pk: i64 = row.get("pk")?;
                 Ok(pk)
@@ -530,51 +570,52 @@ impl Database {
             trace!("result {:#?}", result);
 
             let Post { bytes, action, .. } = post;
-            match configuration.send_mail {
-                crate::config::SendMail::Smtp(ref smtp_conf) => {
-                    let smtp_conf = smtp_conf.clone();
-                    use melib::futures;
-                    use melib::smol;
-                    use melib::smtp::*;
-                    let mut conn = smol::future::block_on(smol::spawn(
-                        SmtpConnection::new_connection(smtp_conf.clone()),
-                    ))?;
-                    match action {
-                        PostAction::Accept => {
-                            let _post_pk = self.insert_post(list_ctx.list.pk, raw, env)?;
-                            for job in list_ctx.scheduled_jobs.iter() {
-                                if let crate::mail::MailJob::Send { recipients } = job {
-                                    if !recipients.is_empty() {
-                                        trace!("recipients: {:?}", &recipients);
+            match action {
+                PostAction::Accept => {
+                    let _post_pk = self.insert_post(list_ctx.list.pk, raw, env)?;
+                    for job in list_ctx.scheduled_jobs.iter() {
+                        if let crate::mail::MailJob::Send { recipients } = job {
+                            if !recipients.is_empty() {
+                                trace!("recipients: {:?}", &recipients);
+
+                                match &configuration.send_mail {
+                                    crate::config::SendMail::Smtp(ref smtp_conf) => {
+                                        let smtp_conf = smtp_conf.clone();
+                                        use melib::futures;
+                                        use melib::smol;
+                                        use melib::smtp::*;
+                                        let mut conn = smol::future::block_on(smol::spawn(
+                                            SmtpConnection::new_connection(smtp_conf.clone()),
+                                        ))?;
                                         futures::executor::block_on(conn.mail_transaction(
                                             &String::from_utf8_lossy(&bytes),
                                             Some(recipients),
                                         ))?;
-                                    } else {
-                                        trace!("list has no recipients");
                                     }
+                                    _ => {}
                                 }
+                            } else {
+                                trace!("list has no recipients");
                             }
-                            /* - FIXME Save digest metadata in database */
-                        }
-                        PostAction::Reject { reason } => {
-                            /* FIXME - Notify submitter */
-                            trace!("PostAction::Reject {{ reason: {} }}", reason);
-                            //futures::executor::block_on(conn.mail_transaction(&post.bytes, b)).unwrap();
-                            return Err(crate::ErrorKind::PostRejected(reason).into());
-                        }
-                        PostAction::Defer { reason } => {
-                            trace!("PostAction::Defer {{ reason: {} }}", reason);
-                            /* - FIXME Notify submitter
-                             * - FIXME Save in database */
-                        }
-                        PostAction::Hold => {
-                            trace!("PostAction::Hold");
-                            /* FIXME - Save in database */
                         }
                     }
+                    /* - FIXME Save digest metadata in database */
                 }
-                _ => {}
+                PostAction::Reject { reason } => {
+                    /* FIXME - Notify submitter */
+                    trace!("PostAction::Reject {{ reason: {} }}", reason);
+                    //futures::executor::block_on(conn.mail_transaction(&post.bytes, b)).unwrap();
+                    return Err(crate::ErrorKind::PostRejected(reason).into());
+                }
+                PostAction::Defer { reason } => {
+                    trace!("PostAction::Defer {{ reason: {} }}", reason);
+                    /* - FIXME Notify submitter
+                     * - FIXME Save in database */
+                }
+                PostAction::Hold => {
+                    trace!("PostAction::Hold");
+                    /* FIXME - Save in database */
+                }
             }
         }
 

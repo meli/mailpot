@@ -3,4 +3,5 @@ members = [
 	"core",
   "cli",
   "rest-http",
+  "archive-http",
 ]

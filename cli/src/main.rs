@@ -452,6 +452,9 @@ fn run_app(opt: Opt) -> Result<()> {
             std::io::stdin().read_to_string(&mut input)?;
             match Envelope::from_bytes(input.as_bytes(), None) {
                 Ok(env) => {
+                    if opt.debug {
+                        std::dbg!(&env);
+                    }
                     let db = Database::open_or_create_db()?;
                     db.post(&env, input.as_bytes(), dry_run)?;
                 }
