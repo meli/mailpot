@@ -19,3 +19,4 @@ path = "src/main.rs"
 mailpot = { version = "0.1.0", path = "../core" }
 structopt = "0.3.16"
 stderrlog = "^0.5"
+log = "0.4"

@@ -19,7 +19,13 @@
 
 // Create the Error, ErrorKind, ResultExt, and Result types
 error_chain! {
-  foreign_links {
+   errors {
+       PostRejected(reason: String) {
+           description("Post rejected")
+           display("Your post has been rejected: {}", reason)
+       }
+   }
+   foreign_links {
        Sql(rusqlite::Error);
        Io(::std::io::Error);
        Xdg(xdg::BaseDirectoriesError);

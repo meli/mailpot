@@ -24,6 +24,13 @@ use melib::email::Address;
 
 pub struct DbVal<T>(pub T, pub i64);
 
+impl<T> DbVal<T> {
+    #[inline(always)]
+    pub fn pk(&self) -> i64 {
+        self.1
+    }
+}
+
 impl<T> std::ops::Deref for DbVal<T> {
     type Target = T;
     fn deref(&self) -> &T {
@@ -61,7 +68,16 @@ where
     }
 }
 
-#[derive(Debug, Clone, Deserialize, Serialize)]
+impl<T> std::cmp::PartialEq for DbVal<T>
+where
+    T: std::cmp::PartialEq,
+{
+    fn eq(&self, other: &Self) -> bool {
+        self.0 == other.0
+    }
+}
+
+#[derive(Debug, PartialEq, Clone, Deserialize, Serialize)]
 pub struct MailingList {
     pub pk: i64,
     pub name: String,

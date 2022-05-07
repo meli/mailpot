@@ -190,13 +190,9 @@ impl PostFilter for FinalizeRecipients {
             // - check for duplicates (To,Cc,Bcc)
             // - send confirmation to submitter
         }
-        ctx.scheduled_jobs.push(MailJob::Send {
-            message_pk: post.pk,
-            recipients,
-        });
+        ctx.scheduled_jobs.push(MailJob::Send { recipients });
         if !digests.is_empty() {
             ctx.scheduled_jobs.push(MailJob::StoreDigest {
-                message_pk: post.pk,
                 recipients: digests,
             });
         }

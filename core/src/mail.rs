@@ -40,7 +40,6 @@ pub struct ListContext<'list> {
 
 ///Post to be considered by the list's `PostFilter` stack.
 pub struct Post {
-    pub pk: i64,
     pub from: Address,
     pub bytes: Vec<u8>,
     pub to: Vec<Address>,
@@ -50,7 +49,6 @@ pub struct Post {
 impl core::fmt::Debug for Post {
     fn fmt(&self, fmt: &mut core::fmt::Formatter) -> core::fmt::Result {
         fmt.debug_struct("Post")
-            .field("pk", &self.pk)
             .field("from", &self.from)
             .field("bytes", &format_args!("{} bytes", self.bytes.len()))
             .field("to", &self.to.as_slice())
@@ -61,25 +59,10 @@ impl core::fmt::Debug for Post {
 
 #[derive(Debug)]
 pub enum MailJob {
-    Send {
-        message_pk: i64,
-        recipients: Vec<Address>,
-    },
-    Relay {
-        message: Vec<u8>,
-        recipients: Vec<Address>,
-    },
-    Error {
-        description: String,
-    },
-    StoreDigest {
-        message_pk: i64,
-        recipients: Vec<Address>,
-    },
-    ConfirmSubscription {
-        recipient: Address,
-    },
-    ConfirmUnsubscription {
-        recipient: Address,
-    },
+    Send { recipients: Vec<Address> },
+    Relay { recipients: Vec<Address> },
+    Error { description: String },
+    StoreDigest { recipients: Vec<Address> },
+    ConfirmSubscription { recipient: Address },
+    ConfirmUnsubscription { recipient: Address },
 }

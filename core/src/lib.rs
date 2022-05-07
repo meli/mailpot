@@ -36,3 +36,7 @@ use models::*;
 pub mod errors;
 use errors::*;
 pub mod db;
+
+pub use config::{Configuration, SendMail};
+pub use db::Database;
+pub use errors::*;

@@ -22,7 +22,9 @@ use melib::Envelope;
 use models::changesets::*;
 use rusqlite::Connection as DbConnection;
 use rusqlite::OptionalExtension;
+use std::io::Write;
 use std::path::PathBuf;
+use std::process::{Command, Stdio};
 
 const DB_NAME: &str = "mpot.db";
 
@@ -109,6 +111,34 @@ impl Database {
         )?;
 
         trace!("create_list {:?}.", &ret);
+        Ok(ret)
+    }
+
+    pub fn set_list_policy(&self, list_pk: i64, policy: PostPolicy) -> Result<DbVal<PostPolicy>> {
+        let mut stmt = self.connection.prepare("INSERT OR REPLACE INTO post_policy(list, announce_only, subscriber_only, approval_needed) VALUES (?, ?, ?, ?) RETURNING *;")?;
+        let ret = stmt.query_row(
+            rusqlite::params![
+                &list_pk,
+                &policy.announce_only,
+                &policy.subscriber_only,
+                &policy.approval_needed,
+            ],
+            |row| {
+                let pk = row.get("pk")?;
+                Ok(DbVal(
+                    PostPolicy {
+                        pk,
+                        list: row.get("list")?,
+                        announce_only: row.get("announce_only")?,
+                        subscriber_only: row.get("subscriber_only")?,
+                        approval_needed: row.get("approval_needed")?,
+                    },
+                    pk,
+                ))
+            },
+        )?;
+
+        trace!("set_list_policy {:?}.", &ret);
         Ok(ret)
     }
 
@@ -314,6 +344,13 @@ impl Database {
     }
 
     pub fn db_path() -> Result<PathBuf> {
+        let mut config_path = None;
+        crate::config::CONFIG.with(|c| {
+            config_path = c.borrow().db_path.clone();
+        });
+        if let Some(db_path) = config_path {
+            return Ok(db_path);
+        }
         let name = DB_NAME;
         let data_dir = xdg::BaseDirectories::with_prefix("mailpot")?;
         Ok(data_dir.place_data_file(name)?)
@@ -330,14 +367,28 @@ impl Database {
 
     pub fn open_or_create_db() -> Result<Self> {
         let db_path = Self::db_path()?;
-        let mut set_mode = false;
+        let mut create = false;
         if !db_path.exists() {
             info!("Creating {} database in {}", DB_NAME, db_path.display());
-            set_mode = true;
+            create = true;
         }
-        let conn = DbConnection::open(&db_path.to_str().unwrap())?;
-        if set_mode {
+        if create {
             use std::os::unix::fs::PermissionsExt;
+            let mut child = Command::new("sqlite3")
+                .arg(&db_path)
+                .stdin(Stdio::piped())
+                .spawn()?;
+            let mut stdin = child.stdin.take().unwrap();
+            std::thread::spawn(move || {
+                stdin
+                    .write_all(include_bytes!("./schema.sql"))
+                    .expect("failed to write to stdin");
+            });
+            let output = child.wait_with_output()?;
+            if !output.status.success() {
+                return Err(format!("Could not initialize sqlite3 database at {}: sqlite3 returned exit code {} and stderr {}", db_path.display(), String::from_utf8_lossy(&output.stderr), output.status.code().unwrap_or_default()).into());
+            }
+
             let file = std::fs::File::open(&db_path)?;
             let metadata = file.metadata()?;
             let mut permissions = metadata.permissions();
@@ -345,6 +396,8 @@ impl Database {
             permissions.set_mode(0o600); // Read/write for owner only.
             file.set_permissions(permissions)?;
         }
+
+        let conn = DbConnection::open(&db_path.to_str().unwrap())?;
 
         Ok(Database { connection: conn })
     }
@@ -386,7 +439,7 @@ impl Database {
         Ok(pk)
     }
 
-    pub fn post(&self, env: Envelope, raw: &[u8], _dry_run: bool) -> Result<()> {
+    pub fn post(&self, env: &Envelope, raw: &[u8], _dry_run: bool) -> Result<()> {
         trace!("Received envelope to post: {:#?}", &env);
         let tos = env.to().to_vec();
         if tos.is_empty() {
@@ -422,7 +475,7 @@ impl Database {
                                 ListRequest::Other(subaddr.trim().to_string())
                             }
                         },
-                        &env,
+                        env,
                         raw,
                     ) {
                         info!("Processing request returned error: {}", err);
@@ -453,7 +506,6 @@ impl Database {
         use crate::mail::{ListContext, Post, PostAction};
         for mut list in lists {
             trace!("Examining list {}", list.list_id());
-            let post_pk = self.insert_post(list.pk, raw, &env)?;
             let filters = self.get_list_filters(&list);
             let memberships = self.list_members(list.pk)?;
             trace!("List members {:#?}", &memberships);
@@ -465,7 +517,6 @@ impl Database {
                 scheduled_jobs: vec![],
             };
             let mut post = Post {
-                pk: post_pk,
                 from: env.from()[0].clone(),
                 bytes: raw.to_vec(),
                 to: env.to().to_vec(),
@@ -490,29 +541,37 @@ impl Database {
                     ))?;
                     match action {
                         PostAction::Accept => {
+                            let _post_pk = self.insert_post(list_ctx.list.pk, raw, env)?;
                             for job in list_ctx.scheduled_jobs.iter() {
-                                if let crate::mail::MailJob::Send {
-                                    message_pk: _,
-                                    recipients,
-                                } = job
-                                {
-                                    futures::executor::block_on(conn.mail_transaction(
-                                        &String::from_utf8_lossy(&bytes),
-                                        Some(recipients),
-                                    ))?;
+                                if let crate::mail::MailJob::Send { recipients } = job {
+                                    if !recipients.is_empty() {
+                                        trace!("recipients: {:?}", &recipients);
+                                        futures::executor::block_on(conn.mail_transaction(
+                                            &String::from_utf8_lossy(&bytes),
+                                            Some(recipients),
+                                        ))?;
+                                    } else {
+                                        trace!("list has no recipients");
+                                    }
                                 }
                             }
-                            /* - Save digest metadata in database */
+                            /* - FIXME Save digest metadata in database */
                         }
-                        PostAction::Reject { reason: _ } => {
-                            /* - Notify submitter */
+                        PostAction::Reject { reason } => {
+                            /* FIXME - Notify submitter */
+                            trace!("PostAction::Reject {{ reason: {} }}", reason);
                             //futures::executor::block_on(conn.mail_transaction(&post.bytes, b)).unwrap();
+                            return Err(crate::ErrorKind::PostRejected(reason).into());
                         }
-                        PostAction::Defer { reason: _ } => {
-                            /* - Notify submitter
-                             * - Save in database */
+                        PostAction::Defer { reason } => {
+                            trace!("PostAction::Defer {{ reason: {} }}", reason);
+                            /* - FIXME Notify submitter
+                             * - FIXME Save in database */
                         }
-                        PostAction::Hold => { /* - Save in database */ }
+                        PostAction::Hold => {
+                            trace!("PostAction::Hold");
+                            /* FIXME - Save in database */
+                        }
                     }
                 }
                 _ => {}

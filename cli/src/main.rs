@@ -17,6 +17,7 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
+extern crate log;
 extern crate mailpot;
 extern crate stderrlog;
 
@@ -169,7 +170,12 @@ fn run_app(opt: Opt) -> Result<()> {
     if opt.debug {
         println!("DEBUG: {:?}", &opt);
     }
-    Configuration::init()?;
+    if let Some(config_path) = opt.config.as_ref() {
+        let config = Configuration::from_file(&config_path)?;
+        config.init_with()?;
+    } else {
+        Configuration::init()?;
+    }
     use Command::*;
     match opt.cmd {
         DbLocation => {
@@ -417,7 +423,7 @@ fn run_app(opt: Opt) -> Result<()> {
             archive_url,
         } => {
             let db = Database::open_or_create_db()?;
-            db.create_list(MailingList {
+            let new = db.create_list(MailingList {
                 pk: 0,
                 name,
                 id,
@@ -425,6 +431,14 @@ fn run_app(opt: Opt) -> Result<()> {
                 address,
                 archive_url,
             })?;
+            log::trace!("created new list {:#?}", new);
+            if !opt.quiet {
+                println!(
+                    "Created new list {:?} with primary key {}",
+                    new.id,
+                    new.pk()
+                );
+            }
         }
         Post { dry_run } => {
             if opt.debug {
@@ -439,7 +453,7 @@ fn run_app(opt: Opt) -> Result<()> {
             match Envelope::from_bytes(input.as_bytes(), None) {
                 Ok(env) => {
                     let db = Database::open_or_create_db()?;
-                    db.post(env, input.as_bytes(), dry_run)?;
+                    db.post(&env, input.as_bytes(), dry_run)?;
                 }
                 Err(err) => {
                     eprintln!("Could not parse message: {}", err);

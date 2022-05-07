@@ -1,0 +1,122 @@
+use mailin_embedded::{Handler, Server, SslConfig};
+use mailpot::{melib, models::*, Configuration, Database, SendMail};
+use std::thread;
+use tempfile::TempDir;
+
+const ADDRESS: &str = "127.0.0.1:8825";
+
+#[derive(Clone)]
+struct MyHandler {}
+impl Handler for MyHandler {}
+
+fn get_smtp_conf() -> melib::smtp::SmtpServerConf {
+    use melib::smtp::*;
+    SmtpServerConf {
+        hostname: "127.0.0.1".into(),
+        port: 8825,
+        envelope_from: "foo-chat@example.com".into(),
+        auth: SmtpAuth::None,
+        security: SmtpSecurity::None,
+        extensions: Default::default(),
+    }
+}
+
+#[test]
+fn test_smtp() {
+    stderrlog::new()
+        .quiet(false)
+        .verbosity(15)
+        .show_module_names(true)
+        .timestamp(stderrlog::Timestamp::Millisecond)
+        .init()
+        .unwrap();
+    let tmp_dir = TempDir::new().unwrap();
+
+    let _smtp_handle = thread::spawn(move || {
+        let handler = MyHandler {};
+        let mut server = Server::new(handler);
+
+        server
+            .with_name("example.com")
+            .with_ssl(SslConfig::None)
+            .unwrap()
+            .with_addr(ADDRESS)
+            .unwrap();
+        eprintln!("Running smtp server at {}", ADDRESS);
+        server.serve().expect("Could not run server");
+    });
+
+    let db_path = tmp_dir.path().join("mpot.db");
+    let mut config = Configuration::default();
+    config.send_mail = SendMail::Smtp(get_smtp_conf());
+    config.db_path = Some(db_path.clone());
+    config.init_with().unwrap();
+
+    assert_eq!(Database::db_path().unwrap(), db_path);
+
+    let db = Database::open_or_create_db().unwrap();
+    assert!(db.list_lists().unwrap().is_empty());
+    let foo_chat = db
+        .create_list(MailingList {
+            pk: 0,
+            name: "foobar chat".into(),
+            id: "foo-chat".into(),
+            address: "foo-chat@example.com".into(),
+            description: None,
+            archive_url: None,
+        })
+        .unwrap();
+
+    assert_eq!(foo_chat.pk(), 1);
+    let post_policy = db
+        .set_list_policy(
+            foo_chat.pk(),
+            PostPolicy {
+                pk: 0,
+                list: foo_chat.pk(),
+                announce_only: false,
+                subscriber_only: true,
+                approval_needed: false,
+            },
+        )
+        .unwrap();
+
+    assert_eq!(post_policy.pk(), 1);
+
+    let input_bytes = include_bytes!("./test_sample_longmessage.eml");
+    match melib::Envelope::from_bytes(input_bytes, None) {
+        Ok(envelope) => {
+            eprintln!("envelope {:?}", &envelope);
+            match db
+                .post(&envelope, input_bytes, /* dry_run */ false)
+                .unwrap_err()
+                .kind()
+            {
+                mailpot::ErrorKind::PostRejected(_reason) => {}
+                other => panic!("Got unexpected error: {}", other),
+            }
+
+            db.add_member(
+                foo_chat.pk(),
+                ListMembership {
+                    pk: 0,
+                    list: foo_chat.pk(),
+                    address: "japoeunp@hotmail.com".into(),
+                    name: Some("Jamaica Poe".into()),
+                    digest: false,
+                    hide_address: false,
+                    receive_duplicates: true,
+                    receive_own_posts: true,
+                    receive_confirmation: true,
+                    enabled: true,
+                },
+            )
+            .unwrap();
+            db.post(&envelope, input_bytes, /* dry_run */ false)
+                .unwrap();
+        }
+        Err(err) => {
+            panic!("Could not parse message: {}", err);
+        }
+    }
+}

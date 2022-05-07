@@ -22,7 +22,7 @@ use chrono::prelude::*;
 use std::cell::RefCell;
 use std::io::{Read, Write};
 use std::os::unix::fs::PermissionsExt;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 thread_local!(pub static CONFIG: RefCell<Configuration> = RefCell::new(Configuration::new()));
 
@@ -38,14 +38,40 @@ pub struct Configuration {
     pub send_mail: SendMail,
     #[serde(default = "default_storage_fn")]
     pub storage: String,
+    #[serde(default)]
+    pub db_path: Option<PathBuf>,
+}
+
+impl Default for Configuration {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl Configuration {
     pub(crate) fn new() -> Self {
         Configuration {
-            send_mail: SendMail::ShellCommand(String::new()),
+            send_mail: SendMail::ShellCommand("/usr/bin/false".to_string()),
             storage: "sqlite3".into(),
+            db_path: None,
         }
+    }
+
+    pub fn init_with(self) -> Result<()> {
+        CONFIG.with(|f| {
+            *f.borrow_mut() = self;
+        });
+
+        Ok(())
+    }
+
+    pub fn from_file<P: AsRef<Path>>(path: P) -> Result<Self> {
+        let path = path.as_ref();
+        let mut s = String::new();
+        let mut file = std::fs::File::open(path)?;
+        file.read_to_string(&mut s)?;
+        let config: Configuration = toml::from_str(&s)?;
+        Ok(config)
     }
 
     pub fn init() -> Result<()> {
@@ -54,15 +80,8 @@ impl Configuration {
         if !path.exists() {
             return Err(format!("Configuration file {} doesn't exist", path.display()).into());
         }
-        let mut s = String::new();
-        let mut file = std::fs::File::open(&path)?;
-        file.read_to_string(&mut s)?;
-        let config: Configuration = toml::from_str(&s)?;
-        CONFIG.with(|f| {
-            *f.borrow_mut() = config;
-        });
-
-        Ok(())
+        let config: Configuration = Self::from_file(&path)?;
+        config.init_with()
     }
 
     pub fn data_directory() -> Result<PathBuf> {
