@@ -1,13 +1,153 @@
-use mailin_embedded::{Handler, Server, SslConfig};
+use mailin_embedded::{Handler, Response, Server, SslConfig};
 use mailpot::{melib, models::*, Configuration, Database, SendMail};
+use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
 use std::thread;
 use tempfile::TempDir;
 
 const ADDRESS: &str = "127.0.0.1:8825";
+#[derive(Debug, Clone)]
+enum Message {
+    Helo,
+    Mail {
+        from: String,
+    },
+    Rcpt {
+        from: String,
+        to: Vec<String>,
+    },
+    DataStart {
+        from: String,
+        is8bit: bool,
+        to: Vec<String>,
+    },
+    Data {
+        from: String,
+        is8bit: bool,
+        to: Vec<String>,
+        buf: Vec<u8>,
+    },
+}
 
-#[derive(Clone)]
-struct MyHandler {}
-impl Handler for MyHandler {}
+#[derive(Debug, Clone)]
+struct MyHandler {
+    mails: Vec<((IpAddr, String), Message)>,
+}
+use mailin_embedded::response::{INTERNAL_ERROR, OK};
+
+impl Handler for MyHandler {
+    fn helo(&mut self, ip: IpAddr, domain: &str) -> Response {
+        eprintln!("helo ip {:?} domain {:?}", ip, domain);
+        self.mails.push(((ip, domain.to_string()), Message::Helo));
+        OK
+    }
+
+    fn mail(&mut self, ip: IpAddr, domain: &str, from: &str) -> Response {
+        eprintln!("mail() ip {:?} domain {:?} from {:?}", ip, domain, from);
+        if let Some((_, message)) = self
+            .mails
+            .iter_mut()
+            .find(|((i, d), _)| (i, d.as_str()) == (&ip, domain))
+        {
+            std::dbg!(&message);
+            if let Message::Helo = message {
+                *message = Message::Mail {
+                    from: from.to_string(),
+                };
+                return OK;
+            }
+        }
+        INTERNAL_ERROR
+    }
+
+    fn rcpt(&mut self, _to: &str) -> Response {
+        eprintln!("rcpt() to {:?}", _to);
+        if let Some((_, message)) = self.mails.last_mut() {
+            std::dbg!(&message);
+            if let Message::Mail { from } = message {
+                *message = Message::Rcpt {
+                    from: from.clone(),
+                    to: vec![_to.to_string()],
+                };
+                return OK;
+            } else if let Message::Rcpt { to, .. } = message {
+                to.push(_to.to_string());
+                return OK;
+            }
+        }
+        INTERNAL_ERROR
+    }
+
+    fn data_start(
+        &mut self,
+        _domain: &str,
+        _from: &str,
+        _is8bit: bool,
+        _to: &[String],
+    ) -> Response {
+        eprintln!(
+            "data_start() domain {:?} from {:?} is8bit {:?} to {:?}",
+            _domain, _from, _is8bit, _to
+        );
+        if let Some(((_, d), ref mut message)) = self.mails.last_mut() {
+            if d != _domain {
+                return INTERNAL_ERROR;
+            }
+            std::dbg!(&message);
+            if let Message::Rcpt { from, to } = message {
+                *message = Message::DataStart {
+                    from: from.to_string(),
+                    is8bit: _is8bit,
+                    to: _to.to_vec(),
+                };
+                return OK;
+            }
+        }
+        INTERNAL_ERROR
+    }
+
+    fn data(&mut self, _buf: &[u8]) -> Result<(), std::io::Error> {
+        if let Some(((_, _), ref mut message)) = self.mails.last_mut() {
+            if let Message::DataStart { from, is8bit, to } = message {
+                *message = Message::Data {
+                    from: from.to_string(),
+                    is8bit: *is8bit,
+                    to: to.clone(),
+                    buf: _buf.to_vec(),
+                };
+                return Ok(());
+            } else if let Message::Data { buf, .. } = message {
+                buf.extend(_buf.into_iter().copied());
+                return Ok(());
+            }
+        }
+        Ok(())
+    }
+
+    fn data_end(&mut self) -> Response {
+        eprintln!("datae_nd() ");
+        if let Some(((_, _), message)) = self.mails.pop() {
+            if let Message::Data {
+                from,
+                is8bit,
+                to,
+                buf,
+            } = message
+            {
+                match melib::Envelope::from_bytes(&buf, None) {
+                    Ok(env) => {
+                        std::dbg!(&env);
+                        std::dbg!(env.other_headers());
+                    }
+                    Err(err) => {
+                        eprintln!("envelope parse error {}", err);
+                    }
+                }
+                return OK;
+            }
+        }
+        INTERNAL_ERROR
+    }
+}
 
 fn get_smtp_conf() -> melib::smtp::SmtpServerConf {
     use melib::smtp::*;
@@ -33,7 +173,7 @@ fn test_smtp() {
     let tmp_dir = TempDir::new().unwrap();
 
     let _smtp_handle = thread::spawn(move || {
-        let handler = MyHandler {};
+        let handler = MyHandler { mails: vec![] };
         let mut server = Server::new(handler);
 
         server
@@ -103,6 +243,22 @@ fn test_smtp() {
                     list: foo_chat.pk(),
                     address: "japoeunp@hotmail.com".into(),
                     name: Some("Jamaica Poe".into()),
+                    digest: false,
+                    hide_address: false,
+                    receive_duplicates: true,
+                    receive_own_posts: true,
+                    receive_confirmation: true,
+                    enabled: true,
+                },
+            )
+            .unwrap();
+            db.add_member(
+                foo_chat.pk(),
+                ListMembership {
+                    pk: 0,
+                    list: foo_chat.pk(),
+                    address: "manos@example.com".into(),
+                    name: Some("Manos Hands".into()),
                     digest: false,
                     hide_address: false,
                     receive_duplicates: true,

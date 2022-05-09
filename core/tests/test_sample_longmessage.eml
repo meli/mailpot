@@ -55,67 +55,9 @@ Message-ID:
  <PS1PR0601MB36750BD00EA89E1482FA98A2D5140@PS1PR0601MB3675.apcprd06.prod.outlook.com>
 Accept-Language: en-US
 Content-Language: en-US
-X-MS-Has-Attach: yes
-X-MS-TNEF-Correlator:
-x-incomingtopheadermarker:
- OriginalChecksum:F29893979CC0F318539CFBE7837D9AF24B3138F68568814557FCEFB9E2B29E15;UpperCasedChecksum:CB03C669F747A2BC407B2616111C19885C665247F058AE9AD47D6DC952AF24E9;SizeAsReceived:9522;Count:41
-x-tmn: [HPDb9F9LlPS7iY6PEMh8e6LwL83jrjOM]
-x-ms-publictraffictype: Email
-x-incomingheadercount: 41
-x-eopattributedmessage: 0
-x-ms-office365-filtering-correlation-id: 0a5172b1-080b-416d-02f7-08d87c12af1f
-x-ms-exchange-slblob-mailprops:
- KvCwBtHRxSnRTX+Gpnu8+r+btrbXhe1bKafs2OYpwV7YwfwLb/Kzv7smCuCmdXmRrPzgGMsdYpxp7uj/VctABycvZi2vvqgq28FbUIjMoGSzyVRruEcuIfs/p5HNZHSknRDnAAcWyfC0VEBDrfm+s1P+je4N6M7rJOQHeYFM3PtZQ9ZL1GFMuISD/O4rxIj0BnUHlLsilauxhYsOQqJ0E9i4eZEKf8FgOeRP///nI7Umf8hLSSai2cpfufADqc5F0TZJPQnV6PcsxuMPv1LKsqSVRvFRkOaptmEJ3PbaivKUKj1ZYpkUe0wdg1ZgYEu9HxE85CYgg0S1t8tzHcQ6Z+uz9TByKEzsUIG6BotNgFwSfiMwuDQAH1XLrhcbpqa6/ECAekFN6X0p2LMj3sPumWYoBjlMronIBtjxSNLXu1/VypYME2g7Vamq7tRppJa6ZtjcjYZkKF3gGJUCKDVnN3dfeKSL6wE4D/aflJXISl8nT/f3dxxRoJAE4be8iiJcfyAmk01e4S8lJu3Ou0DMDoxqGiVpwzoExNa4Xwl9XmiTDH0vwzLLs2mBjq2UA1jTEirBuCLMw8KquRwqiti4q8ZwuhVRQSkRk7nyyHztPN0ratfQN77UffToJDFEE9Af9WxYlI6mjE+Vo//+bYGgT69xQrVIFe/Q
-x-ms-traffictypediagnostic: PU1APC01HT068:
-x-microsoft-antispam: BCL:0;
-x-microsoft-antispam-message-info:
- 63swzVCqv2rAYXNqhYzT9vSzRPp+cAVYyOvT2Mj05ccFhXJCE9VoIsVCJ7P/x8Afurj/cz8TTgCf3+ftdCAETm9BR3YRv501qxwuEpr9Y8138ZtYktHFtqLJQD6gAEUS2xqFOAX8GcGRbv4ivUE3Zc79/zO8aAyhrH1ztmCN3K0ZjGrV7ladXaKbbZ2LWPZKFQ+oJr2TuSluO0Jb9mF6gg==
-x-ms-exchange-antispam-messagedata:
- ++T5++BTJOqLy0e59PDE+TsDIv7T0HYmNmR7jarIfrS2AxJESyw+K6ssWdBC58WaXxw6w7E2gUNPe/NJWZKnKzAZ/Tq3AYzucFlqHOkFdQoxwWZoquUNffSRPAl8A2JyVME7XIVmlb5QSnawMNgM2Q==
-x-ms-exchange-transport-forked: True
 Content-Type: text/html
 Content-Transfer-Encoding: base64
 MIME-Version: 1.0
-X-OriginatorOrg: hotmail.com
-X-MS-Exchange-CrossTenant-AuthAs: Anonymous
-X-MS-Exchange-CrossTenant-AuthSource: PU1APC01FT013.eop-APC01.prod.protection.outlook.com
-X-MS-Exchange-CrossTenant-RMS-PersistedConsumerOrg: 00000000-0000-0000-0000-000000000000
-X-MS-Exchange-CrossTenant-Network-Message-Id: 0a5172b1-080b-416d-02f7-08d87c12af1f
-X-MS-Exchange-CrossTenant-originalarrivaltime: 29 Oct 2020 13:58:16.0996
- (UTC)
-X-MS-Exchange-CrossTenant-fromentityheader: Internet
-X-MS-Exchange-CrossTenant-id: 84df9e7f-e9f6-40af-b435-aaaaaaaaaaaa
-X-MS-Exchange-CrossTenant-rms-persistedconsumerorg: 00000000-0000-0000-0000-000000000000
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: PU1APC01HT068
-X-Spam-Status: No, score=1.1
-X-Spam-Score: 11
-X-Spam-Bar: +
-X-Ham-Report: Spam detection software, running on the system "violet.xenserver.co.uk",
- has NOT identified this incoming email as spam.  The original
- message has been attached to this so you can view it or label
- similar future email.  If you have any questions, see
- root\@localhost for details.
- Content preview:  ðŸ’¡in process of discussion !ðŸ’¡ / correspond displacement
-    - BZ07OPI7MTRFIW ðŸ’¡in process of discussion !ðŸ’¡ /
- Content analysis details:   (1.1 points, 5.0 required)
-  pts rule name              description
- ---- ---------------------- --------------------------------------------------
-  0.8 BAYES_50               BODY: Bayes spam probability is 40 to 60%
-                             [score: 0.5004569]
-  0.0 FREEMAIL_FROM          Sender email is commonly abused enduser mail
-                             provider
-                             [japoeunp[at]hotmail.com]
-  0.0 HTML_MESSAGE           BODY: HTML included in message
- -0.1 DKIM_VALID             Message has at least one valid DKIM or DK signature
-  0.1 DKIM_SIGNED            Message has a DKIM or DK signature, not necessarily
-                             valid
- -0.1 DKIM_VALID_AU          Message has a valid DKIM or DK signature from
-                             author's domain
- -0.1 DKIM_VALID_EF          Message has a valid DKIM or DK signature from
-                             envelope-from domain
- 0.0 LOTS_OF_MONEY           Huge... sums of money
- 0.5 KAM_NUMSUBJECT          Subject ends in numbers excluding current years
-X-Spam-Flag: NO
 
 PCFET0NUWVBFPjxodG1sPjxoZWFkPjx0aXRsZT5mb288L3RpdGxlPjwvaGVhZD48Ym9k
 eT48dGFibGUgY2xhc3M9ImZvbyI+PHRoZWFkPjx0cj48dGQ+Zm9vPC90ZD48L3RoZWFk
