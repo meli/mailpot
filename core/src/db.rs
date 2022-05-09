@@ -570,9 +570,10 @@ impl Database {
             trace!("result {:#?}", result);
 
             let Post { bytes, action, .. } = post;
+            let post_env = melib::Envelope::from_bytes(&bytes, None)?;
             match action {
                 PostAction::Accept => {
-                    let _post_pk = self.insert_post(list_ctx.list.pk, raw, env)?;
+                    let _post_pk = self.insert_post(list_ctx.list.pk, &bytes, &post_env)?;
                     for job in list_ctx.scheduled_jobs.iter() {
                         if let crate::mail::MailJob::Send { recipients } = job {
                             if !recipients.is_empty() {
