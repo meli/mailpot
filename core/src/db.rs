@@ -155,7 +155,7 @@ impl Database {
     pub fn list_posts(
         &self,
         list_pk: i64,
-        date_range: Option<(String, String)>,
+        _date_range: Option<(String, String)>,
     ) -> Result<Vec<DbVal<Post>>> {
         let mut stmt = self
             .connection

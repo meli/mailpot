@@ -27,13 +27,12 @@ pub use mailpot::*;
 
 use askama::Template;
 use percent_encoding::percent_decode_str;
-use warp::reject;
 
 #[derive(Template)]
 #[template(path = "list.html")]
 struct ListTemplate<'a> {
     title: &'a str,
-    list: &'a DbVal<MailingList>,
+    _list: &'a DbVal<MailingList>,
     posts: Vec<DbVal<Post>>,
     body: &'a str,
 }
@@ -42,14 +41,14 @@ struct ListTemplate<'a> {
 #[template(path = "post.html")]
 struct PostTemplate<'a> {
     title: &'a str,
-    list: &'a DbVal<MailingList>,
-    post: DbVal<Post>,
+    _list: &'a DbVal<MailingList>,
+    _post: DbVal<Post>,
     body: &'a str,
-    from: &'a str,
-    to: &'a str,
+    _from: &'a str,
+    _to: &'a str,
     subject: &'a str,
-    in_reply_to: Option<String>,
-    references: Vec<String>,
+    _in_reply_to: Option<String>,
+    _references: Vec<String>,
 }
 
 use warp::Filter;
@@ -61,7 +60,7 @@ async fn main() {
         let posts = db.list_posts(list_pk, None).unwrap();
         let template = ListTemplate {
             title: &list.name,
-            list: &list,
+            _list: &list,
             posts,
             body: &list.description.clone().unwrap_or_default(),
         };
@@ -84,14 +83,14 @@ async fn main() {
             let body_text = body.text();
             let template = PostTemplate {
                 title: &list.name,
-                list: &list,
-                post,
+                _list: &list,
+                _post: post,
                 body: &body_text,
-                from: &envelope.field_from_to_string(),
-                to: &envelope.field_to_to_string(),
+                _from: &envelope.field_from_to_string(),
+                _to: &envelope.field_to_to_string(),
                 subject: &envelope.subject(),
-                in_reply_to: envelope.in_reply_to_display().map(|r| r.to_string()),
-                references: envelope
+                _in_reply_to: envelope.in_reply_to_display().map(|r| r.to_string()),
+                _references: envelope
                     .references()
                     .into_iter()
                     .map(|m| m.to_string())
