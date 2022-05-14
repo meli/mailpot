@@ -148,6 +148,30 @@ enum ListCommand {
         receive_confirmation: Option<bool>,
         enabled: Option<bool>,
     },
+    /// Add policy to list.
+    AddPolicy {
+        #[structopt(long)]
+        announce_only: bool,
+        #[structopt(long)]
+        subscriber_only: bool,
+        #[structopt(long)]
+        approval_needed: bool,
+    },
+    RemovePolicy {
+        #[structopt(long)]
+        pk: i64,
+    },
+    /// Add list owner to list.
+    AddListOwner {
+        #[structopt(long)]
+        address: String,
+        #[structopt(long)]
+        name: Option<String>,
+    },
+    RemoveListOwner {
+        #[structopt(long)]
+        pk: i64,
+    },
     /// Alias for update-membership --enabled true
     EnableMembership { address: String },
     /// Alias for update-membership --enabled false
@@ -286,8 +310,13 @@ fn run_app(opt: Opt) -> Result<()> {
                     let list_policy = db.get_list_policy(list.pk)?;
                     if list_owners.is_empty() {
                         println!("\tList has no owners: you should add at least one.");
+                    } else {
+                        for owner in list_owners {
+                            println!("\tList owner: {}.", owner);
+                        }
                     }
-                    if list_policy.is_none() {
+                    if let Some(list_policy) = list_policy {
+                        println!("\tList has post policy: {}.", list_policy);
                     } else {
                         println!("\tList has no post policy: you should add one.");
                     }
@@ -349,6 +378,39 @@ fn run_app(opt: Opt) -> Result<()> {
                         enabled,
                     };
                     db.update_member(changeset)?;
+                }
+                AddPolicy {
+                    announce_only,
+                    subscriber_only,
+                    approval_needed,
+                } => {
+                    let policy = PostPolicy {
+                        pk: 0,
+                        list: list.pk,
+                        announce_only,
+                        subscriber_only,
+                        approval_needed,
+                    };
+                    let new_val = db.set_list_policy(list.pk, policy)?;
+                    println!("Added new policy with pk = {}", new_val.pk());
+                }
+                RemovePolicy { pk } => {
+                    db.remove_list_policy(list.pk, pk)?;
+                    println!("Removed policy with pk = {}", pk);
+                }
+                AddListOwner { address, name } => {
+                    let list_owner = ListOwner {
+                        pk: 0,
+                        list: list.pk,
+                        address,
+                        name,
+                    };
+                    let new_val = db.add_list_owner(list.pk, list_owner)?;
+                    println!("Added new list owner {}", new_val);
+                }
+                RemoveListOwner { pk } => {
+                    db.remove_list_owner(list.pk, pk)?;
+                    println!("Removed list owner with pk = {}", pk);
                 }
                 EnableMembership { address } => {
                     let changeset = ListMembershipChangeset {

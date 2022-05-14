@@ -114,6 +114,16 @@ impl Database {
         Ok(ret)
     }
 
+    pub fn remove_list_policy(&self, list_pk: i64, policy_pk: i64) -> Result<()> {
+        let mut stmt = self
+            .connection
+            .prepare("DELETE FROM post_policy WHERE pk = ? AND list_pk = ?;")?;
+        stmt.execute(rusqlite::params![&policy_pk, &list_pk,])?;
+
+        trace!("remove_list_policy {} {}.", list_pk, policy_pk);
+        Ok(())
+    }
+
     pub fn set_list_policy(&self, list_pk: i64, policy: PostPolicy) -> Result<DbVal<PostPolicy>> {
         let mut stmt = self.connection.prepare("INSERT OR REPLACE INTO post_policy(list, announce_only, subscriber_only, approval_needed) VALUES (?, ?, ?, ?) RETURNING *;")?;
         let ret = stmt.query_row(
@@ -229,6 +239,38 @@ impl Database {
             let list = list?;
             ret.push(list);
         }
+        Ok(ret)
+    }
+
+    pub fn remove_list_owner(&self, list_pk: i64, owner_pk: i64) -> Result<()> {
+        self.connection.execute(
+            "DELETE FROM list_owners WHERE list_pk = ? AND pk = ?;",
+            rusqlite::params![&list_pk, &owner_pk],
+        )?;
+        Ok(())
+    }
+
+    pub fn add_list_owner(&self, list_pk: i64, list_owner: ListOwner) -> Result<DbVal<ListOwner>> {
+        let mut stmt = self.connection.prepare(
+            "INSERT OR REPLACE INTO list_owner(list, address, name) VALUES (?, ?, ?) RETURNING *;",
+        )?;
+        let ret = stmt.query_row(
+            rusqlite::params![&list_pk, &list_owner.address, &list_owner.name,],
+            |row| {
+                let pk = row.get("pk")?;
+                Ok(DbVal(
+                    ListOwner {
+                        pk,
+                        list: row.get("list")?,
+                        address: row.get("address")?,
+                        name: row.get("name")?,
+                    },
+                    pk,
+                ))
+            },
+        )?;
+
+        trace!("add_list_owner {:?}.", &ret);
         Ok(ret)
     }
 
