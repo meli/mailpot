@@ -1,6 +1,7 @@
 use mailin_embedded::{Handler, Response, Server, SslConfig};
 use mailpot::{melib, models::*, Configuration, Database, SendMail};
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
+use std::sync::{Arc, Mutex};
 use std::thread;
 use tempfile::TempDir;
 
@@ -30,14 +31,18 @@ enum Message {
 
 #[derive(Debug, Clone)]
 struct MyHandler {
-    mails: Vec<((IpAddr, String), Message)>,
+    mails: Arc<Mutex<Vec<((IpAddr, String), Message)>>>,
+    stored: Arc<Mutex<Vec<(String, melib::Envelope)>>>,
 }
 use mailin_embedded::response::{INTERNAL_ERROR, OK};
 
 impl Handler for MyHandler {
     fn helo(&mut self, ip: IpAddr, domain: &str) -> Response {
         eprintln!("helo ip {:?} domain {:?}", ip, domain);
-        self.mails.push(((ip, domain.to_string()), Message::Helo));
+        self.mails
+            .lock()
+            .unwrap()
+            .push(((ip, domain.to_string()), Message::Helo));
         OK
     }
 
@@ -45,6 +50,8 @@ impl Handler for MyHandler {
         eprintln!("mail() ip {:?} domain {:?} from {:?}", ip, domain, from);
         if let Some((_, message)) = self
             .mails
+            .lock()
+            .unwrap()
             .iter_mut()
             .find(|((i, d), _)| (i, d.as_str()) == (&ip, domain))
         {
@@ -61,7 +68,7 @@ impl Handler for MyHandler {
 
     fn rcpt(&mut self, _to: &str) -> Response {
         eprintln!("rcpt() to {:?}", _to);
-        if let Some((_, message)) = self.mails.last_mut() {
+        if let Some((_, message)) = self.mails.lock().unwrap().last_mut() {
             std::dbg!(&message);
             if let Message::Mail { from } = message {
                 *message = Message::Rcpt {
@@ -88,7 +95,7 @@ impl Handler for MyHandler {
             "data_start() domain {:?} from {:?} is8bit {:?} to {:?}",
             _domain, _from, _is8bit, _to
         );
-        if let Some(((_, d), ref mut message)) = self.mails.last_mut() {
+        if let Some(((_, d), ref mut message)) = self.mails.lock().unwrap().last_mut() {
             if d != _domain {
                 return INTERNAL_ERROR;
             }
@@ -97,7 +104,7 @@ impl Handler for MyHandler {
                 *message = Message::DataStart {
                     from: from.to_string(),
                     is8bit: _is8bit,
-                    to: _to.to_vec(),
+                    to: to.to_vec(),
                 };
                 return OK;
             }
@@ -106,7 +113,7 @@ impl Handler for MyHandler {
     }
 
     fn data(&mut self, _buf: &[u8]) -> Result<(), std::io::Error> {
-        if let Some(((_, _), ref mut message)) = self.mails.last_mut() {
+        if let Some(((_, _), ref mut message)) = self.mails.lock().unwrap().last_mut() {
             if let Message::DataStart { from, is8bit, to } = message {
                 *message = Message::Data {
                     from: from.to_string(),
@@ -125,21 +132,24 @@ impl Handler for MyHandler {
 
     fn data_end(&mut self) -> Response {
         eprintln!("datae_nd() ");
-        if let Some(((_, _), message)) = self.mails.pop() {
+        if let Some(((_, _), message)) = self.mails.lock().unwrap().pop() {
             if let Message::Data {
                 from,
-                is8bit,
+                is8bit: _,
                 to,
                 buf,
             } = message
             {
-                match melib::Envelope::from_bytes(&buf, None) {
-                    Ok(env) => {
-                        std::dbg!(&env);
-                        std::dbg!(env.other_headers());
-                    }
-                    Err(err) => {
-                        eprintln!("envelope parse error {}", err);
+                for to in to {
+                    match melib::Envelope::from_bytes(&buf, None) {
+                        Ok(env) => {
+                            std::dbg!(&env);
+                            std::dbg!(env.other_headers());
+                            self.stored.lock().unwrap().push((to.clone(), env));
+                        }
+                        Err(err) => {
+                            eprintln!("envelope parse error {}", err);
+                        }
                     }
                 }
                 return OK;
@@ -172,9 +182,13 @@ fn test_smtp() {
         .unwrap();
     let tmp_dir = TempDir::new().unwrap();
 
+    let handler = MyHandler {
+        mails: Arc::new(Mutex::new(vec![])),
+        stored: Arc::new(Mutex::new(vec![])),
+    };
+    let handler2 = handler.clone();
     let _smtp_handle = thread::spawn(move || {
-        let handler = MyHandler { mails: vec![] };
-        let mut server = Server::new(handler);
+        let mut server = Server::new(handler2);
 
         server
             .with_name("example.com")
@@ -275,4 +289,5 @@ fn test_smtp() {
             panic!("Could not parse message: {}", err);
         }
     }
+    assert_eq!(handler.stored.lock().unwrap().len(), 2);
 }
