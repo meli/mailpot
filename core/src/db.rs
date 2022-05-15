@@ -34,6 +34,90 @@ pub struct Database {
 }
 
 impl Database {
+    pub fn db_path() -> Result<PathBuf> {
+        let mut config_path = None;
+        crate::config::CONFIG.with(|c| {
+            config_path = c.borrow().db_path.clone();
+        });
+        if let Some(db_path) = config_path {
+            return Ok(db_path);
+        }
+        let name = DB_NAME;
+        let data_dir = xdg::BaseDirectories::with_prefix("mailpot")?;
+        Ok(data_dir.place_data_file(name)?)
+    }
+
+    pub fn open_db(db_path: PathBuf) -> Result<Self> {
+        if !db_path.exists() {
+            return Err("Database doesn't exist".into());
+        }
+        Ok(Database {
+            connection: DbConnection::open(&db_path.to_str().unwrap())?,
+        })
+    }
+
+    pub fn open_or_create_db() -> Result<Self> {
+        let db_path = Self::db_path()?;
+        let mut create = false;
+        if !db_path.exists() {
+            info!("Creating {} database in {}", DB_NAME, db_path.display());
+            create = true;
+        }
+        if create {
+            use std::os::unix::fs::PermissionsExt;
+            let mut child = Command::new("sqlite3")
+                .arg(&db_path)
+                .stdin(Stdio::piped())
+                .spawn()?;
+            let mut stdin = child.stdin.take().unwrap();
+            std::thread::spawn(move || {
+                stdin
+                    .write_all(include_bytes!("./schema.sql"))
+                    .expect("failed to write to stdin");
+            });
+            let output = child.wait_with_output()?;
+            if !output.status.success() {
+                return Err(format!("Could not initialize sqlite3 database at {}: sqlite3 returned exit code {} and stderr {}", db_path.display(), String::from_utf8_lossy(&output.stderr), output.status.code().unwrap_or_default()).into());
+            }
+
+            let file = std::fs::File::open(&db_path)?;
+            let metadata = file.metadata()?;
+            let mut permissions = metadata.permissions();
+
+            permissions.set_mode(0o600); // Read/write for owner only.
+            file.set_permissions(permissions)?;
+        }
+
+        let conn = DbConnection::open(&db_path.to_str().unwrap())?;
+
+        Ok(Database { connection: conn })
+    }
+
+    pub fn load_archives(&mut self) -> Result<&mut Self> {
+        let mut archives_path = None;
+        crate::config::CONFIG.with(|c| {
+            archives_path = c.borrow().archives_path.clone();
+        });
+        let archives_path = if let Some(archives_path) = archives_path {
+            archives_path
+        } else {
+            return Ok(self);
+        };
+        let mut stmt = self.connection.prepare("ATTACH ? AS ?;")?;
+        for archive in std::fs::read_dir(&archives_path)? {
+            let archive = archive?;
+            let path = archive.path();
+            let name = path.file_name().unwrap_or_default();
+            stmt.execute(rusqlite::params![
+                path.to_str().unwrap(),
+                name.to_str().unwrap()
+            ])?;
+        }
+        drop(stmt);
+
+        Ok(self)
+    }
+
     pub fn list_lists(&self) -> Result<Vec<DbVal<MailingList>>> {
         let mut stmt = self.connection.prepare("SELECT * FROM mailing_lists;")?;
         let list_iter = stmt.query_map([], |row| {
@@ -444,65 +528,6 @@ impl Database {
             .execute(&self.connection)?;
         */
         Ok(())
-    }
-
-    pub fn db_path() -> Result<PathBuf> {
-        let mut config_path = None;
-        crate::config::CONFIG.with(|c| {
-            config_path = c.borrow().db_path.clone();
-        });
-        if let Some(db_path) = config_path {
-            return Ok(db_path);
-        }
-        let name = DB_NAME;
-        let data_dir = xdg::BaseDirectories::with_prefix("mailpot")?;
-        Ok(data_dir.place_data_file(name)?)
-    }
-
-    pub fn open_db(db_path: PathBuf) -> Result<Self> {
-        if !db_path.exists() {
-            return Err("Database doesn't exist".into());
-        }
-        Ok(Database {
-            connection: DbConnection::open(&db_path.to_str().unwrap())?,
-        })
-    }
-
-    pub fn open_or_create_db() -> Result<Self> {
-        let db_path = Self::db_path()?;
-        let mut create = false;
-        if !db_path.exists() {
-            info!("Creating {} database in {}", DB_NAME, db_path.display());
-            create = true;
-        }
-        if create {
-            use std::os::unix::fs::PermissionsExt;
-            let mut child = Command::new("sqlite3")
-                .arg(&db_path)
-                .stdin(Stdio::piped())
-                .spawn()?;
-            let mut stdin = child.stdin.take().unwrap();
-            std::thread::spawn(move || {
-                stdin
-                    .write_all(include_bytes!("./schema.sql"))
-                    .expect("failed to write to stdin");
-            });
-            let output = child.wait_with_output()?;
-            if !output.status.success() {
-                return Err(format!("Could not initialize sqlite3 database at {}: sqlite3 returned exit code {} and stderr {}", db_path.display(), String::from_utf8_lossy(&output.stderr), output.status.code().unwrap_or_default()).into());
-            }
-
-            let file = std::fs::File::open(&db_path)?;
-            let metadata = file.metadata()?;
-            let mut permissions = metadata.permissions();
-
-            permissions.set_mode(0o600); // Read/write for owner only.
-            file.set_permissions(permissions)?;
-        }
-
-        let conn = DbConnection::open(&db_path.to_str().unwrap())?;
-
-        Ok(Database { connection: conn })
     }
 
     pub fn get_list_filters(

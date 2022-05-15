@@ -63,6 +63,8 @@ struct Opt {
 enum Command {
     ///Prints database filesystem location
     DbLocation,
+    ///Prints default configuration file filesystem location
+    ConfigLocation,
     ///Dumps database data to STDOUT
     DumpDatabase,
     ///Lists all registered mailing lists
@@ -204,6 +206,9 @@ fn run_app(opt: Opt) -> Result<()> {
     match opt.cmd {
         DbLocation => {
             println!("{}", Database::db_path()?.display());
+        }
+        ConfigLocation => {
+            println!("{}", Configuration::default_path()?.display());
         }
         DumpDatabase => {
             let db = Database::open_or_create_db()?;

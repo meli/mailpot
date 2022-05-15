@@ -40,6 +40,8 @@ pub struct Configuration {
     pub storage: String,
     #[serde(default)]
     pub db_path: Option<PathBuf>,
+    #[serde(default)]
+    pub archives_path: Option<PathBuf>,
 }
 
 impl Default for Configuration {
@@ -54,6 +56,7 @@ impl Configuration {
             send_mail: SendMail::ShellCommand("/usr/bin/false".to_string()),
             storage: "sqlite3".into(),
             db_path: None,
+            archives_path: None,
         }
     }
 
@@ -86,6 +89,12 @@ impl Configuration {
 
     pub fn data_directory() -> Result<PathBuf> {
         Ok(xdg::BaseDirectories::with_prefix("mailpot")?.get_data_home())
+    }
+
+    pub fn default_path() -> Result<PathBuf> {
+        xdg::BaseDirectories::with_prefix("mailpot")?
+            .place_config_file("config.toml")
+            .map_err(Into::into)
     }
 
     pub fn save_message_to_path(msg: &str, mut path: PathBuf) -> Result<PathBuf> {
