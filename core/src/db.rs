@@ -18,6 +18,7 @@
  */
 
 use super::*;
+use crate::ErrorKind::*;
 use melib::Envelope;
 use models::changesets::*;
 use rusqlite::Connection as DbConnection;
@@ -243,10 +244,12 @@ impl Database {
     }
 
     pub fn remove_list_owner(&self, list_pk: i64, owner_pk: i64) -> Result<()> {
-        self.connection.execute(
-            "DELETE FROM list_owners WHERE list_pk = ? AND pk = ?;",
-            rusqlite::params![&list_pk, &owner_pk],
-        )?;
+        self.connection
+            .execute(
+                "DELETE FROM list_owners WHERE list_pk = ? AND pk = ?;",
+                rusqlite::params![&list_pk, &owner_pk],
+            )
+            .chain_err(|| NotFound("List owner"))?;
         Ok(())
     }
 
@@ -648,7 +651,7 @@ impl Database {
                     /* FIXME - Notify submitter */
                     trace!("PostAction::Reject {{ reason: {} }}", reason);
                     //futures::executor::block_on(conn.mail_transaction(&post.bytes, b)).unwrap();
-                    return Err(crate::ErrorKind::PostRejected(reason).into());
+                    return Err(PostRejected(reason).into());
                 }
                 PostAction::Defer { reason } => {
                     trace!("PostAction::Defer {{ reason: {} }}", reason);

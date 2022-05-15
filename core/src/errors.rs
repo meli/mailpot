@@ -24,6 +24,11 @@ error_chain! {
            description("Post rejected")
            display("Your post has been rejected: {}", reason)
        }
+
+       NotFound(model: &'static str) {
+           description("Not found")
+           display("This {} is not present in the database.", model)
+       }
    }
    foreign_links {
        Sql(rusqlite::Error);
