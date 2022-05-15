@@ -242,11 +242,11 @@ fn run_app(opt: Opt) -> Result<()> {
         }
         List { list_id, cmd } => {
             let db = Database::open_or_create_db()?;
-            let mut lists = db.list_lists()?;
-            let list = if let Some(pos) = lists.iter().position(|l| l.id == list_id) {
-                lists.remove(pos)
-            } else {
-                return Err(format!("No list with id {} was found", list_id).into());
+            let list = match db.get_list_by_id(&list_id)? {
+                Some(v) => v,
+                None => {
+                    return Err(format!("No list with id {} was found", list_id).into());
+                }
             };
             use ListCommand::*;
             match cmd {

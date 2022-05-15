@@ -83,6 +83,31 @@ impl Database {
         Ok(ret)
     }
 
+    pub fn get_list_by_id<S: AsRef<str>>(&self, id: S) -> Result<Option<DbVal<MailingList>>> {
+        let id = id.as_ref();
+        let mut stmt = self
+            .connection
+            .prepare("SELECT * FROM mailing_lists WHERE id = ?;")?;
+        let ret = stmt
+            .query_row([&id], |row| {
+                let pk = row.get("pk")?;
+                Ok(DbVal(
+                    MailingList {
+                        pk,
+                        name: row.get("name")?,
+                        id: row.get("id")?,
+                        address: row.get("address")?,
+                        description: row.get("description")?,
+                        archive_url: row.get("archive_url")?,
+                    },
+                    pk,
+                ))
+            })
+            .optional()?;
+
+        Ok(ret)
+    }
+
     pub fn create_list(&self, new_val: MailingList) -> Result<DbVal<MailingList>> {
         let mut stmt = self
             .connection
