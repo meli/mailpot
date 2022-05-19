@@ -224,6 +224,9 @@ impl ListOwner {
 pub enum ListRequest {
     Subscribe,
     Unsubscribe,
+    RetrieveArchive(String, String),
+    RetrieveMessages(Vec<String>),
+    SetDigest(bool),
     Other(String),
 }
 

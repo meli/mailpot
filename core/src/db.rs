@@ -786,6 +786,33 @@ impl Database {
                 );
                 //FIXME: mail to list-owner
             }
+            ListRequest::RetrieveMessages(ref message_ids) => {
+                trace!(
+                    "retrieve messages {:?} action for addresses {:?} in list {}",
+                    message_ids,
+                    env.from(),
+                    list
+                );
+                //FIXME
+            }
+            ListRequest::RetrieveArchive(ref from, ref to) => {
+                trace!(
+                    "retrieve archie action from {:?} to {:?} for addresses {:?} in list {}",
+                    from,
+                    to,
+                    env.from(),
+                    list
+                );
+                //FIXME
+            }
+            ListRequest::SetDigest(ref toggle) => {
+                trace!(
+                    "set digest action with value {} for addresses {:?} in list {}",
+                    toggle,
+                    env.from(),
+                    list
+                );
+            }
             ListRequest::Other(ref req) => {
                 trace!(
                     "unknown request action {} for addresses {:?} in list {}",
