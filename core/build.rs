@@ -18,7 +18,7 @@
  */
 
 use std::io::Write;
-use std::process::Command;
+use std::process::{Command, Stdio};
 
 fn main() {
     println!("cargo:rerun-if-changed=src/schema.sql.m4");
@@ -27,6 +27,28 @@ fn main() {
         .arg("./src/schema.sql.m4")
         .output()
         .unwrap();
+    let mut verify = Command::new("sqlite3")
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()
+        .unwrap();
+    println!(
+        "Verifying by creating an in-memory database in sqlite3 and feeding it the output schema."
+    );
+    verify
+        .stdin
+        .take()
+        .unwrap()
+        .write_all(&output.stdout)
+        .unwrap();
+    let exit = verify.wait_with_output().unwrap();
+    if !exit.status.success() {
+        panic!(
+            "sqlite3 could not read SQL schema: {}",
+            String::from_utf8_lossy(&exit.stdout)
+        );
+    }
     let mut file = std::fs::File::create("./src/schema.sql").unwrap();
     file.write_all(&output.stdout).unwrap();
 }
