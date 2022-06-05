@@ -23,6 +23,7 @@ use melib::Envelope;
 use models::changesets::*;
 use rusqlite::Connection as DbConnection;
 use rusqlite::OptionalExtension;
+use std::convert::TryFrom;
 use std::io::Write;
 use std::path::PathBuf;
 use std::process::{Command, Stdio};
@@ -590,29 +591,9 @@ impl Database {
                     if !addr.contains_address(&list.list_address()) {
                         return true;
                     }
-                    if let Err(err) = self.request(
-                        list,
-                        match subaddr.as_str() {
-                            "subscribe" | "request" if env.subject().trim() == "subscribe" => {
-                                ListRequest::Subscribe
-                            }
-                            "unsubscribe" | "request" if env.subject().trim() == "unsubscribe" => {
-                                ListRequest::Unsubscribe
-                            }
-                            "request" => ListRequest::Other(env.subject().trim().to_string()),
-                            _ => {
-                                trace!(
-                                    "unknown action = {} for addresses {:?} in list {}",
-                                    subaddr,
-                                    env.from(),
-                                    list
-                                );
-                                ListRequest::Other(subaddr.trim().to_string())
-                            }
-                        },
-                        env,
-                        raw,
-                    ) {
+                    if let Err(err) = ListRequest::try_from((subaddr.as_str(), env))
+                        .and_then(|req| self.request(list, req, env, raw))
+                    {
                         info!("Processing request returned error: {}", err);
                     }
                     false

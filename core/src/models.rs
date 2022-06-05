@@ -236,6 +236,27 @@ impl std::fmt::Display for ListRequest {
     }
 }
 
+impl<S: AsRef<str>> std::convert::TryFrom<(S, &melib::Envelope)> for ListRequest {
+    type Error = crate::Error;
+
+    fn try_from((val, env): (S, &melib::Envelope)) -> std::result::Result<Self, Self::Error> {
+        let val = val.as_ref();
+        Ok(match val {
+            "subscribe" | "request" if env.subject().trim() == "subscribe" => {
+                ListRequest::Subscribe
+            }
+            "unsubscribe" | "request" if env.subject().trim() == "unsubscribe" => {
+                ListRequest::Unsubscribe
+            }
+            "request" => ListRequest::Other(env.subject().trim().to_string()),
+            _ => {
+                trace!("unknown action = {} for addresses {:?}", val, env.from(),);
+                ListRequest::Other(val.trim().to_string())
+            }
+        })
+    }
+}
+
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct NewListPost<'s> {
     pub list: i64,

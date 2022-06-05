@@ -29,6 +29,11 @@ error_chain! {
            description("Not found")
            display("This {} is not present in the database.", model)
        }
+
+       InvalidRequest(reason: String) {
+           description("List request is invalid")
+           display("Your list request has been found invalid: {}.", reason)
+       }
    }
    foreign_links {
        Sql(rusqlite::Error);
