@@ -1,6 +1,6 @@
 use mailin_embedded::{Handler, Response, Server, SslConfig};
 use mailpot::{melib, models::*, Configuration, Database, SendMail};
-use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
+use std::net::IpAddr; //, Ipv4Addr, Ipv6Addr};
 use std::sync::{Arc, Mutex};
 use std::thread;
 use tempfile::TempDir;
@@ -18,12 +18,11 @@ enum Message {
     },
     DataStart {
         from: String,
-        is8bit: bool,
         to: Vec<String>,
     },
     Data {
+        #[allow(dead_code)]
         from: String,
-        is8bit: bool,
         to: Vec<String>,
         buf: Vec<u8>,
     },
@@ -103,7 +102,6 @@ impl Handler for MyHandler {
             if let Message::Rcpt { from, to } = message {
                 *message = Message::DataStart {
                     from: from.to_string(),
-                    is8bit: _is8bit,
                     to: to.to_vec(),
                 };
                 return OK;
@@ -114,10 +112,9 @@ impl Handler for MyHandler {
 
     fn data(&mut self, _buf: &[u8]) -> Result<(), std::io::Error> {
         if let Some(((_, _), ref mut message)) = self.mails.lock().unwrap().last_mut() {
-            if let Message::DataStart { from, is8bit, to } = message {
+            if let Message::DataStart { from, to } = message {
                 *message = Message::Data {
                     from: from.to_string(),
-                    is8bit: *is8bit,
                     to: to.clone(),
                     buf: _buf.to_vec(),
                 };
@@ -133,13 +130,7 @@ impl Handler for MyHandler {
     fn data_end(&mut self) -> Response {
         eprintln!("datae_nd() ");
         if let Some(((_, _), message)) = self.mails.lock().unwrap().pop() {
-            if let Message::Data {
-                from,
-                is8bit: _,
-                to,
-                buf,
-            } = message
-            {
+            if let Message::Data { from: _, to, buf } = message {
                 for to in to {
                     match melib::Envelope::from_bytes(&buf, None) {
                         Ok(env) => {
