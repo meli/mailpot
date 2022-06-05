@@ -35,7 +35,10 @@ use structopt::StructOpt;
 #[structopt(
     name = "mailpot",
     about = "mini mailing list manager",
-    author = "Manos Pitsidianakis <epilys@nessuent.xyz>"
+    author = "Manos Pitsidianakis <epilys@nessuent.xyz>",
+    manpage = "docs/main.mdoc",
+    manpage_header = "docs/header.mdoc",
+    manpage_footer = "docs/footer.mdoc"
 )]
 struct Opt {
     /// Activate debug mode
@@ -60,6 +63,7 @@ struct Opt {
 }
 
 #[derive(Debug, StructOpt)]
+#[structopt(manpage = "docs/command.mdoc")]
 enum Command {
     ///Prints database filesystem location
     DbLocation,
@@ -107,6 +111,7 @@ enum Command {
 }
 
 #[derive(Debug, StructOpt)]
+#[structopt(manpage = "docs/error_queue.mdoc")]
 enum ErrorQueueCommand {
     /// List.
     List,
@@ -131,6 +136,7 @@ enum ErrorQueueCommand {
 }
 
 #[derive(Debug, StructOpt)]
+#[structopt(manpage = "docs/list.mdoc")]
 enum ListCommand {
     /// List members of list.
     Members,

@@ -1,0 +1,104 @@
+
+.Bl -tag -width Ds -compact -offset indent
+.It Ic members
+List members of list.
+.It Ic add-member
+.Fl -address Ar address
+E-mail address.
+
+.Fl -name Ar name
+Name.
+
+.Fl -digest
+Send messages as digest?.
+
+.Fl -hide-address
+Hide message from list when posting?.
+
+.Fl -receive-confirmation Ar receive-confirmation
+Hide message from list when posting? Receive confirmation email when posting?.
+
+.Fl -receive-duplicates Ar receive-duplicates
+Receive posts from list even if address exists in To or Cc header?.
+
+.Fl -receive-own-posts Ar receive-own-posts
+Receive own posts from list?.
+
+.Fl -enabled Ar enabled
+Is subscription enabled?.
+
+Add member to list.
+.It Ic remove-member
+.Fl -address Ar address
+E-mail address.
+
+Remove member from list.
+.It Ic update-membership
+Update membership info.
+.It Ic add-policy
+.Fl -announce-only
+.
+
+.Fl -subscriber-only
+.
+
+.Fl -approval-needed
+.
+
+Add policy to list.
+.It Ic remove-policy
+.Fl -pk Ar pk
+.
+
+.
+.It Ic add-list-owner
+.Fl -address Ar address
+.
+
+.Fl -name Ar name
+.
+
+Add list owner to list.
+.It Ic remove-list-owner
+.Fl -pk Ar pk
+.
+
+.
+.It Ic enable-membership
+Alias for update-membership --enabled true.
+.It Ic disable-membership
+Alias for update-membership --enabled false.
+.It Ic update
+Update mailing list details.
+.It Ic health
+Show mailing list health status.
+.It Ic info
+Show mailing list info.
+.It Ic members
+List members of list.
+.It Ic add-member
+Add member to list.
+.It Ic remove-member
+Remove member from list.
+.It Ic update-membership
+Update membership info.
+.It Ic add-policy
+Add policy to list.
+.It Ic remove-policy
+.
+.It Ic add-list-owner
+Add list owner to list.
+.It Ic remove-list-owner
+.
+.It Ic enable-membership
+Alias for update-membership --enabled true.
+.It Ic disable-membership
+Alias for update-membership --enabled false.
+.It Ic update
+Update mailing list details.
+.It Ic health
+Show mailing list health status.
+.It Ic info
+Show mailing list info.
+.El
+.Pp
