@@ -37,13 +37,24 @@ CREATE TABLE IF NOT EXISTS membership (
   list                    INTEGER NOT NULL,
   address                 TEXT NOT NULL,
   name                    TEXT,
+  account                 INTEGER,
   BOOLEAN_TYPE(enabled) DEFAULT BOOLEAN_TRUE(),
   BOOLEAN_TYPE(digest) DEFAULT BOOLEAN_FALSE(),
   BOOLEAN_TYPE(hide_address) DEFAULT BOOLEAN_FALSE(),
   BOOLEAN_TYPE(receive_duplicates) DEFAULT BOOLEAN_TRUE(),
   BOOLEAN_TYPE(receive_own_posts) DEFAULT BOOLEAN_FALSE(),
   BOOLEAN_TYPE(receive_confirmation) DEFAULT BOOLEAN_TRUE(),
-  FOREIGN KEY (list) REFERENCES mailing_lists(pk) ON DELETE CASCADE
+  FOREIGN KEY (list) REFERENCES mailing_lists(pk) ON DELETE CASCADE,
+  FOREIGN KEY (account) REFERENCES account(pk) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS account (
+  pk                      INTEGER PRIMARY KEY NOT NULL,
+  name                    TEXT,
+  address                 TEXT NOT NULL UNIQUE,
+  public_key              TEXT,
+  password                TEXT NOT NULL,
+  BOOLEAN_TYPE(enabled) DEFAULT BOOLEAN_TRUE()
 );
 
 CREATE TABLE IF NOT EXISTS candidate_membership (
@@ -75,5 +86,7 @@ CREATE TABLE IF NOT EXISTS post_event (
   FOREIGN KEY (post) REFERENCES post(pk) ON DELETE CASCADE
 );
 
+CREATE INDEX IF NOT EXISTS post_listpk_idx ON post(list);
+CREATE INDEX IF NOT EXISTS post_msgid_idx ON post(message_id);
 CREATE INDEX IF NOT EXISTS mailing_lists_idx ON mailing_lists(id);
 CREATE INDEX IF NOT EXISTS membership_idx ON membership(address);
