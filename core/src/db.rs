@@ -34,6 +34,9 @@ pub struct Database {
     pub connection: DbConnection,
 }
 
+mod error_queue;
+pub use error_queue::*;
+
 impl Database {
     pub fn db_path() -> Result<PathBuf> {
         let mut config_path = None;

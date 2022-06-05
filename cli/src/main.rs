@@ -99,6 +99,35 @@ enum Command {
         #[structopt(long)]
         dry_run: bool,
     },
+    /// Mail that has not been handled properly end up in the error queue.
+    ErrorQueue {
+        #[structopt(subcommand)]
+        cmd: ErrorQueueCommand,
+    },
+}
+
+#[derive(Debug, StructOpt)]
+enum ErrorQueueCommand {
+    /// List.
+    List,
+    /// Print entry in RFC5322 or JSON format.
+    Print {
+        /// index of entry.
+        #[structopt(long)]
+        index: Vec<i64>,
+        /// JSON format.
+        #[structopt(long)]
+        json: bool,
+    },
+    /// Delete entry and print it in stdout.
+    Delete {
+        /// index of entry.
+        #[structopt(long)]
+        index: Vec<i64>,
+        /// Do not print in stdout.
+        #[structopt(long)]
+        quiet: bool,
+    },
 }
 
 #[derive(Debug, StructOpt)]
@@ -533,6 +562,66 @@ fn run_app(opt: Opt) -> Result<()> {
                 }
             }
         }
+        ErrorQueue { cmd } => match cmd {
+            ErrorQueueCommand::List => {
+                let db = Database::open_or_create_db()?;
+                let errors = db.error_queue()?;
+                if errors.is_empty() {
+                    println!("Error queue is empty.");
+                } else {
+                    for e in errors {
+                        println!(
+                            "- {} {} {} {} {}",
+                            e["pk"],
+                            e["datetime"],
+                            e["from_address"],
+                            e["to_address"],
+                            e["subject"]
+                        );
+                    }
+                }
+            }
+            ErrorQueueCommand::Print { index, json } => {
+                let db = Database::open_or_create_db()?;
+                let mut errors = db.error_queue()?;
+                if !index.is_empty() {
+                    errors.retain(|el| index.contains(&el.pk()));
+                }
+                if errors.is_empty() {
+                    println!("Error queue is empty.");
+                } else {
+                    for e in errors {
+                        if json {
+                            println!("{:#}", e);
+                        } else {
+                            println!("{}", e["message"]);
+                        }
+                    }
+                }
+            }
+            ErrorQueueCommand::Delete { index, quiet } => {
+                let mut db = Database::open_or_create_db()?;
+                let mut errors = db.error_queue()?;
+                if !index.is_empty() {
+                    errors.retain(|el| index.contains(&el.pk()));
+                }
+                if errors.is_empty() {
+                    if !quiet {
+                        println!("Error queue is empty.");
+                    }
+                } else {
+                    if !quiet {
+                        println!("Deleting error queue elements {:?}", &index);
+                    }
+                    db.delete_from_error_queue(index)?;
+                    if !quiet {
+                        for e in errors {
+                            println!("{}", e["message"]);
+                        }
+                    }
+                }
+            }
+        },
     }
 
     Ok(())

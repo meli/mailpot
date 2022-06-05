@@ -86,6 +86,17 @@ CREATE TABLE IF NOT EXISTS post_event (
   FOREIGN KEY (post) REFERENCES post(pk) ON DELETE CASCADE
 );
 
+CREATE TABLE IF NOT EXISTS error_queue (
+  pk                      INTEGER PRIMARY KEY NOT NULL,
+  to_address              TEXT NOT NULL,
+  from_address            TEXT NOT NULL,
+  subject                 TEXT NOT NULL,
+  message_id              TEXT NOT NULL,
+  message                 BLOB NOT NULL,
+  timestamp               INTEGER NOT NULL DEFAULT (unixepoch()),
+  datetime                TEXT NOT NULL DEFAULT (datetime())
+);
+
 CREATE INDEX IF NOT EXISTS post_listpk_idx ON post(list);
 CREATE INDEX IF NOT EXISTS post_msgid_idx ON post(message_id);
 CREATE INDEX IF NOT EXISTS mailing_lists_idx ON mailing_lists(id);
