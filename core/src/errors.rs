@@ -34,6 +34,11 @@ error_chain! {
            description("List request is invalid")
            display("Your list request has been found invalid: {}.", reason)
        }
+
+       Information(reason: String) {
+           description("")
+           display("{}.", reason)
+       }
    }
    foreign_links {
        Sql(rusqlite::Error);

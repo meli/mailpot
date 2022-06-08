@@ -21,6 +21,26 @@ use super::*;
 use serde_json::{json, Value};
 
 impl Database {
+    pub fn insert_to_error_queue(&self, env: &Envelope, raw: &[u8]) -> Result<i64> {
+        let mut stmt = self.connection.prepare("INSERT INTO error_queue(to_address, from_address, subject, message_id, message, timestamp, datetime) VALUES(?, ?, ?, ?, ?, ?, ?) RETURNING pk;")?;
+        let pk = stmt.query_row(
+            rusqlite::params![
+                &env.field_to_to_string(),
+                &env.field_from_to_string(),
+                &env.subject(),
+                &env.message_id().to_string(),
+                raw,
+                &env.timestamp,
+                &env.date,
+            ],
+            |row| {
+                let pk: i64 = row.get("pk")?;
+                Ok(pk)
+            },
+        )?;
+        Ok(pk)
+    }
+
     pub fn error_queue(&self) -> Result<Vec<DbVal<Value>>> {
         let mut stmt = self.connection.prepare("SELECT * FROM error_queue;")?;
         let error_iter = stmt.query_map([], |row| {
@@ -32,8 +52,8 @@ impl Database {
                     "from_address": row.get::<_, String>("from_address")?,
                     "subject": row.get::<_, String>("subject")?,
                     "message_id": row.get::<_, String>("message_id")?,
-                    "message": row.get::<_, String>("message")?,
-                    "timestamp": row.get::<_, String>("timestamp")?,
+                    "message": row.get::<_, Vec<u8>>("message")?,
+                    "timestamp": row.get::<_, u64>("timestamp")?,
                     "datetime": row.get::<_, String>("datetime")?,
                 }),
                 pk,

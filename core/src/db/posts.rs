@@ -52,6 +52,21 @@ impl Database {
     }
 
     pub fn post(&self, env: &Envelope, raw: &[u8], _dry_run: bool) -> Result<()> {
+        let result = self.inner_post(env, raw, _dry_run);
+        if let Err(err) = result {
+            return match self.insert_to_error_queue(env, raw) {
+                Ok(idx) => Err(Error::from_kind(Information(format!(
+                    "Inserted into error_queue at index {}",
+                    idx
+                )))
+                .chain_err(|| err)),
+                Err(err2) => Err(err.chain_err(|| err2)),
+            };
+        }
+        result
+    }
+
+    fn inner_post(&self, env: &Envelope, raw: &[u8], _dry_run: bool) -> Result<()> {
         trace!("Received envelope to post: {:#?}", &env);
         let tos = env.to().to_vec();
         if tos.is_empty() {
