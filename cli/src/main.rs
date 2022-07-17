@@ -644,7 +644,7 @@ fn main() -> std::result::Result<(), i32> {
         .init()
         .unwrap();
     if let Err(err) = run_app(opt) {
-        println!("{}", err);
+        println!("{}", err.display_chain());
         std::process::exit(-1);
     }
     Ok(())

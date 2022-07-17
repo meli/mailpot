@@ -38,10 +38,7 @@ pub struct Configuration {
     pub send_mail: SendMail,
     #[serde(default = "default_storage_fn")]
     pub storage: String,
-    #[serde(default)]
-    pub db_path: Option<PathBuf>,
-    #[serde(default)]
-    pub archives_path: Option<PathBuf>,
+    pub db_path: PathBuf,
 }
 
 impl Default for Configuration {
@@ -55,8 +52,7 @@ impl Configuration {
         Configuration {
             send_mail: SendMail::ShellCommand("/usr/bin/false".to_string()),
             storage: "sqlite3".into(),
-            db_path: None,
-            archives_path: None,
+            db_path: ".".into(),
         }
     }
 
@@ -73,28 +69,44 @@ impl Configuration {
         let mut s = String::new();
         let mut file = std::fs::File::open(path)?;
         file.read_to_string(&mut s)?;
-        let config: Configuration = toml::from_str(&s)?;
+        let config: Configuration = toml::from_str(&s).context(format!(
+            "Could not parse configuration file `{}` succesfully: ",
+            path.display()
+        ))?;
+
         Ok(config)
     }
 
     pub fn init() -> Result<()> {
-        let path =
+        let mut path =
             xdg::BaseDirectories::with_prefix("mailpot")?.place_config_file("config.toml")?;
         if !path.exists() {
             return Err(format!("Configuration file {} doesn't exist", path.display()).into());
+        }
+        if path.starts_with("~") {
+            path = Path::new(&std::env::var("HOME").context("No $HOME set.")?)
+                .join(path.strip_prefix("~").context("Internal error while getting default database path: path starts with ~ but rust couldn't strip_refix(\"~\"")?)
+                .into();
         }
         let config: Configuration = Self::from_file(&path)?;
         config.init_with()
     }
 
     pub fn data_directory() -> Result<PathBuf> {
-        Ok(xdg::BaseDirectories::with_prefix("mailpot")?.get_data_home())
+        Ok(xdg::BaseDirectories::with_prefix("mailpot")?
+            .get_data_home()
+            .canonicalize()?)
     }
 
     pub fn default_path() -> Result<PathBuf> {
-        xdg::BaseDirectories::with_prefix("mailpot")?
-            .place_config_file("config.toml")
-            .map_err(Into::into)
+        let mut result =
+            xdg::BaseDirectories::with_prefix("mailpot")?.place_config_file("config.toml")?;
+        if result.starts_with("~") {
+            result = Path::new(&std::env::var("HOME").context("No $HOME set.")?)
+                .join(result.strip_prefix("~").context("Internal error while getting default database path: path starts with ~ but rust couldn't strip_refix(\"~\"")?)
+                .into();
+        }
+        Ok(result)
     }
 
     pub fn save_message_to_path(msg: &str, mut path: PathBuf) -> Result<PathBuf> {

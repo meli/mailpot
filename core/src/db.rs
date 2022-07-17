@@ -43,16 +43,7 @@ pub use members::*;
 
 impl Database {
     pub fn db_path() -> Result<PathBuf> {
-        let mut config_path = None;
-        crate::config::CONFIG.with(|c| {
-            config_path = c.borrow().db_path.clone();
-        });
-        if let Some(db_path) = config_path {
-            return Ok(db_path);
-        }
-        let name = DB_NAME;
-        let data_dir = xdg::BaseDirectories::with_prefix("mailpot")?;
-        Ok(data_dir.place_data_file(name)?)
+        Ok(crate::config::CONFIG.with(|c| c.borrow().db_path.clone()))
     }
 
     pub fn open_db(db_path: PathBuf) -> Result<Self> {
@@ -65,27 +56,38 @@ impl Database {
     }
 
     pub fn open_or_create_db() -> Result<Self> {
-        let db_path = Self::db_path()?;
+        let mut db_path = Self::db_path()?;
+        db_path = db_path
+            .canonicalize()
+            .context("Could not access database path")?;
+        db_path.push("current.db");
         let mut create = false;
         if !db_path.exists() {
             info!("Creating {} database in {}", DB_NAME, db_path.display());
             create = true;
+            std::fs::File::create(&db_path).context("Could not create db path")?;
         }
+        db_path = db_path
+            .canonicalize()
+            .context("Could not canonicalize db path")?;
         if create {
             use std::os::unix::fs::PermissionsExt;
             let mut child = Command::new("sqlite3")
                 .arg(&db_path)
                 .stdin(Stdio::piped())
+                .stdout(Stdio::piped())
+                .stderr(Stdio::piped())
                 .spawn()?;
             let mut stdin = child.stdin.take().unwrap();
             std::thread::spawn(move || {
                 stdin
                     .write_all(include_bytes!("./schema.sql"))
                     .expect("failed to write to stdin");
+                stdin.flush().expect("could not flush stdin");
             });
             let output = child.wait_with_output()?;
             if !output.status.success() {
-                return Err(format!("Could not initialize sqlite3 database at {}: sqlite3 returned exit code {} and stderr {}", db_path.display(), String::from_utf8_lossy(&output.stderr), output.status.code().unwrap_or_default()).into());
+                return Err(format!("Could not initialize sqlite3 database at {}: sqlite3 returned exit code {} and stderr {} {}", db_path.display(), output.status.code().unwrap_or_default(), String::from_utf8_lossy(&output.stderr), String::from_utf8_lossy(&output.stdout)).into());
             }
 
             let file = std::fs::File::open(&db_path)?;
@@ -102,20 +104,15 @@ impl Database {
     }
 
     pub fn load_archives(&mut self) -> Result<&mut Self> {
-        let mut archives_path = None;
-        crate::config::CONFIG.with(|c| {
-            archives_path = c.borrow().archives_path.clone();
-        });
-        let archives_path = if let Some(archives_path) = archives_path {
-            archives_path
-        } else {
-            return Ok(self);
-        };
+        let archives_path = crate::config::CONFIG.with(|c| c.borrow().db_path.clone());
         let mut stmt = self.connection.prepare("ATTACH ? AS ?;")?;
         for archive in std::fs::read_dir(&archives_path)? {
             let archive = archive?;
             let path = archive.path();
             let name = path.file_name().unwrap_or_default();
+            if name == "current.db" {
+                continue;
+            }
             stmt.execute(rusqlite::params![
                 path.to_str().unwrap(),
                 name.to_str().unwrap()

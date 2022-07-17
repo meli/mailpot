@@ -17,6 +17,9 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
+pub use crate::anyhow::Context;
+pub use error_chain::ChainedError;
+
 // Create the Error, ErrorKind, ResultExt, and Result types
 error_chain! {
    errors {
@@ -41,6 +44,7 @@ error_chain! {
        }
    }
    foreign_links {
+       Logic(anyhow::Error);
        Sql(rusqlite::Error);
        Io(::std::io::Error);
        Xdg(xdg::BaseDirectoriesError);

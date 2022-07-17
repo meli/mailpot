@@ -12,7 +12,8 @@ categories = ["email"]
 
 [dependencies]
 chrono = { version = "^0.4", features = ["serde", ] }
-error-chain = "0.12.4"
+error-chain = { version = "0.12.4", default-features = false }
+anyhow = "1.0.58"
 #melib = { version = "*", default-features = false, features = ["smtp", "unicode_algorithms"], path="../../meli/melib", branch = "master" }
 melib = { version = "*", default-features = false, features = ["smtp", "unicode_algorithms"], git="https://github.com/meli/meli", branch = "master" }
 rusqlite = {version = "^0.27", features = ["bundled"] }
@@ -20,7 +21,7 @@ serde = { version = "^1", features = ["derive", ]}
 serde_json = "^1"
 toml = "^0.5"
 log = "0.4"
-xdg = "2.1.0"
+xdg = "2.4.1"
 
 [dev-dependencies]
 mailin-embedded = { version = "0.7",  features = ["rtls"] }

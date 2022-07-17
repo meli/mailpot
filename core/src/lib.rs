@@ -23,6 +23,7 @@
 use log::{info, trace};
 #[macro_use]
 extern crate error_chain;
+extern crate anyhow;
 #[macro_use]
 pub extern crate serde;
 
