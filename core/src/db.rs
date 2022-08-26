@@ -56,6 +56,7 @@ impl Database {
     }
 
     pub fn open_or_create_db() -> Result<Self> {
+        crate::config::Configuration::init()?;
         let mut db_path = Self::db_path()?;
         db_path = db_path
             .canonicalize()

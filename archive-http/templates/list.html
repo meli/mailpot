@@ -3,6 +3,12 @@
     <h1>{{title}}</h1>
     <div class="body">
         {{body}}
+      <h2>Months</h2>
+      <ul>
+        {% for month in months %}
+        <li><a href="/list/{{list.pk}}/{{ month }}">{{ month }}</a></li>
+{% endfor %}
+      </ul>
       <h2>Posts</h2>
       <ul>
         {% for post in posts %}

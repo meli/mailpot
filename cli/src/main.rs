@@ -108,6 +108,13 @@ enum Command {
         #[structopt(subcommand)]
         cmd: ErrorQueueCommand,
     },
+    /// Import a maildir folder into an existing list.
+    ImportMaildir {
+        ///Selects mailing list to operate on
+        list_id: String,
+        #[structopt(long, parse(from_os_str))]
+        maildir_path: PathBuf,
+    },
 }
 
 #[derive(Debug, StructOpt)]
@@ -628,6 +635,53 @@ fn run_app(opt: Opt) -> Result<()> {
                 }
             }
         },
+        ImportMaildir {
+            list_id,
+            mut maildir_path,
+        } => {
+            let db = Database::open_or_create_db()?;
+            let list = match db.get_list_by_id(&list_id)? {
+                Some(v) => v,
+                None => {
+                    return Err(format!("No list with id {} was found", list_id).into());
+                }
+            };
+            use melib::backends::maildir::MaildirPathTrait;
+            use melib::{Envelope, EnvelopeHash};
+            use std::collections::hash_map::DefaultHasher;
+            use std::hash::{Hash, Hasher};
+            use std::io::Read;
+
+            if !maildir_path.is_absolute() {
+                maildir_path = std::env::current_dir()
+                    .expect("could not detect current directory")
+                    .join(&maildir_path);
+            }
+
+            fn get_file_hash(file: &std::path::Path) -> EnvelopeHash {
+                let mut hasher = DefaultHasher::default();
+                file.hash(&mut hasher);
+                hasher.finish()
+            }
+            let mut buf = Vec::with_capacity(4096);
+            let files = melib::backends::maildir::MaildirType::list_mail_in_maildir_fs(
+                maildir_path.clone(),
+                true,
+            )?;
+            let mut ctr = 0;
+            for file in files {
+                let hash = get_file_hash(&file);
+                let mut reader = std::io::BufReader::new(std::fs::File::open(&file)?);
+                buf.clear();
+                reader.read_to_end(&mut buf)?;
+                if let Ok(mut env) = Envelope::from_bytes(buf.as_slice(), Some(file.flags())) {
+                    env.set_hash(hash);
+                    db.insert_post(list.pk, &buf, &env)?;
+                    ctr += 1;
+                }
+            }
+            println!("Inserted {} posts to {}.", ctr, list_id);
+        }
     }
 
     Ok(())

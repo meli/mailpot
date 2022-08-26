@@ -29,12 +29,41 @@ use askama::Template;
 use percent_encoding::percent_decode_str;
 
 #[derive(Template)]
+#[template(path = "lists.html")]
+struct ListsTemplate<'a> {
+    title: &'a str,
+    description: &'a str,
+    lists_len: usize,
+    lists: Vec<ListTemplate<'a>>,
+}
+
+#[derive(Template)]
 #[template(path = "list.html")]
 struct ListTemplate<'a> {
     title: &'a str,
-    _list: &'a DbVal<MailingList>,
+    list: &'a DbVal<MailingList>,
     posts: Vec<DbVal<Post>>,
+    months: Vec<String>,
     body: &'a str,
+}
+
+impl<'a> Into<ListTemplate<'a>> for (&'a DbVal<MailingList>, &'a Database) {
+    fn into(self: (&'a DbVal<MailingList>, &'a Database)) -> ListTemplate<'a> {
+        let (list, db) = self;
+        let months = db.months(list.pk).unwrap();
+        let posts = db.list_posts(list.pk, None).unwrap();
+        ListTemplate {
+            title: &list.name,
+            list: &list,
+            posts,
+            months,
+            body: &list
+                .description
+                .as_ref()
+                .map(|s| s.as_str())
+                .unwrap_or_default(),
+        }
+    }
 }
 
 #[derive(Template)]
@@ -57,10 +86,12 @@ async fn main() {
     let list_handler = warp::path!("lists" / i64).map(|list_pk: i64| {
         let db = Database::open_or_create_db().unwrap();
         let list = db.get_list(list_pk).unwrap().unwrap();
+        let months = db.months(list_pk).unwrap();
         let posts = db.list_posts(list_pk, None).unwrap();
         let template = ListTemplate {
             title: &list.name,
-            _list: &list,
+            list: &list,
+            months,
             posts,
             body: &list.description.clone().unwrap_or_default(),
         };
@@ -99,12 +130,31 @@ async fn main() {
             let res = template.render().unwrap();
             Ok(warp::reply::html(res))
         });
-    let routes = warp::get().and(list_handler).or(post_handler);
+    let index_handler = warp::path::end().map(|| {
+        let db = Database::open_or_create_db().unwrap();
+        let lists_values = db.list_lists().unwrap();
+        let lists = lists_values
+            .iter()
+            .map(|list| (list, &db).into())
+            .collect::<Vec<ListTemplate<'_>>>();
+        let template = ListsTemplate {
+            title: "mailing list archive",
+            description: "",
+            lists_len: lists.len(),
+            lists: lists,
+        };
+        let res = template.render().unwrap();
+        Ok(warp::reply::html(res))
+    });
+    let routes = warp::get()
+        .and(index_handler)
+        .or(list_handler)
+        .or(post_handler);
 
     // Note that composing filters for many routes may increase compile times (because it uses a lot of generics).
     // If you wish to use dynamic dispatch instead and speed up compile times while
     // making it slightly slower at runtime, you can use Filter::boxed().
 
-    eprintln!("Running at 127.0.0.1:3030");
+    eprintln!("Running at http://127.0.0.1:3030");
     warp::serve(routes).run(([127, 0, 0, 1], 3030)).await;
 }

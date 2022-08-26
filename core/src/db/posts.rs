@@ -21,10 +21,24 @@ use super::*;
 
 impl Database {
     pub fn insert_post(&self, list_pk: i64, message: &[u8], env: &Envelope) -> Result<i64> {
-        let address = env.from()[0].get_email();
+        let from_ = env.from();
+        let address = if from_.is_empty() {
+            String::new()
+        } else {
+            from_[0].get_email()
+        };
+        let mut datetime: std::borrow::Cow<'_, str> = env.date.as_str().into();
+        if env.timestamp != 0 {
+            datetime = melib::datetime::timestamp_to_string(
+                env.timestamp,
+                Some(melib::datetime::RFC3339_FMT_WITH_TIME),
+                true,
+            )
+            .into();
+        }
         let message_id = env.message_id_display();
         let mut stmt = self.connection.prepare(
-            "INSERT INTO post(list, address, message_id, message, datetime, timestamp) VALUES(?, ?, ?, ?, ?, ?) RETURNING pk;",
+            "INSERT OR REPLACE INTO post(list, address, message_id, message, datetime, timestamp) VALUES(?, ?, ?, ?, ?, ?) RETURNING pk;",
         )?;
         let pk = stmt.query_row(
             rusqlite::params![
@@ -32,7 +46,7 @@ impl Database {
                 &address,
                 &message_id,
                 &message,
-                &env.date,
+                &datetime,
                 &env.timestamp
             ],
             |row| {
@@ -295,5 +309,22 @@ impl Database {
             }
         }
         Ok(())
+    }
+
+    pub fn months(&self, list_pk: i64) -> Result<Vec<String>> {
+        let mut stmt = self.connection.prepare(
+            "SELECT DISTINCT strftime('%Y-%m', CAST(timestamp AS INTEGER), 'unixepoch') FROM post WHERE list = ?;",
+        )?;
+        let months_iter = stmt.query_map([list_pk], |row| {
+            let val: String = row.get(0)?;
+            Ok(val)
+        })?;
+
+        let mut ret = vec![];
+        for month in months_iter {
+            let month = month?;
+            ret.push(month);
+        }
+        Ok(ret)
     }
 }
