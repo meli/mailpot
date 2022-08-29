@@ -2,9 +2,11 @@
 <div class="entry">
     <p>{{lists_len}} lists</p>
     <div class="body">
-      {% for list in lists %}
-      {{ list }}
+      <ul>
+      {% for list in lists.as_slice() -%}
+      <li><a href="/lists/{{ list.pk }}">{{ list  }}</a></li>
       {% endfor %}
+      </ul>
     </div>
 </div>
 {% include "footer.html" %}

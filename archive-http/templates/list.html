@@ -1,8 +1,7 @@
-{% include "header.html" %}
 <div class="entry">
     <h1>{{title}}</h1>
     <div class="body">
-        {{body}}
+        {{body|safe}}
       <h2>Months</h2>
       <ul>
         {% for month in months %}
@@ -17,4 +16,3 @@
       </ul>
     </div>
 </div>
-{% include "footer.html" %}

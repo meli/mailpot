@@ -2,7 +2,7 @@
 <div class="entry">
     <h1>{{title}}</h1>
     <div class="body">
-        {{body}}
+        {{body | safe}}
     </div>
 </div>
 {% include "footer.html" %}

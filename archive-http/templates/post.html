@@ -2,8 +2,35 @@
 <div class="entry">
     <h1>{{subject}}</h1>
     <div class="body">
+      <table>
+        <tbody>
+          <tr>
+            <td>From</td>
+            <td><code>{{_from}}</code></td>
+          </tr>
+          <tr>
+            <td>To</td>
+            <td><code>{{_to}}</code></td>
+          </tr>
+          <tr>
+            <td>Subject</td>
+            <td>{{subject}}</td>
+          </tr>
+          {% if _in_reply_to.is_some() %}
+          <tr>
+            <td>In-&shy;Reply-&shy;To</td>
+            <td><code>{{_in_reply_to.as_ref().unwrap() }}</code></td>
+          </tr>
+          {% endif %}
+          <tr>
+            <td>References</td>
+            <td>{% for reference in _references %}<code>{{reference}}</code>, {% endfor %}</td>
+          </tr>
+        </tbody>
+      </table>
+
       <pre>
-        {{body}}
+        {{body|safe}}
       </pre>
     </div>
 </div>

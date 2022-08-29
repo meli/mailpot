@@ -271,31 +271,32 @@ impl Database {
     pub fn list_posts(
         &self,
         list_pk: i64,
-        _date_range: Option<(String, String)>,
+        date_range: Option<(i64, i64)>,
     ) -> Result<Vec<DbVal<Post>>> {
-        let mut stmt = self
-            .connection
-            .prepare("SELECT * FROM post WHERE list = ?;")?;
-        let iter = stmt.query_map(rusqlite::params![&list_pk,], |row| {
-            let pk = row.get("pk")?;
-            Ok(DbVal(
-                Post {
-                    pk,
-                    list: row.get("list")?,
-                    address: row.get("address")?,
-                    message_id: row.get("message_id")?,
-                    message: row.get("message")?,
-                    timestamp: row.get("timestamp")?,
-                    datetime: row.get("datetime")?,
-                },
-                pk,
-            ))
-        })?;
         let mut ret = vec![];
-        for post in iter {
-            let post = post?;
-            ret.push(post);
-        }
+        if let Some((year, month)) = date_range.as_ref() {
+            let mut stmt = self
+                .connection
+                .prepare("SELECT * FROM post WHERE list = ? AND year = ? AND month = ?;")?;
+            let iter = stmt.query_map(rusqlite::params![list_pk, year, month], |row| {
+                Ok(DbVal::<Post>::try_from(row)?)
+            })?;
+            for post in iter {
+                let post = post?;
+                ret.push(post);
+            }
+        } else {
+            let mut stmt = self
+                .connection
+                .prepare("SELECT * FROM post WHERE list = ?;")?;
+            let iter = stmt.query_map(rusqlite::params![list_pk,], |row| {
+                Ok(DbVal::<Post>::try_from(row)?)
+            })?;
+            for post in iter {
+                let post = post?;
+                ret.push(post);
+            }
+        };
 
         trace!("list_posts {:?}.", &ret);
         Ok(ret)

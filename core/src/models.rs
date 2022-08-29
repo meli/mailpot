@@ -281,3 +281,22 @@ impl std::fmt::Display for Post {
         write!(fmt, "{:?}", self)
     }
 }
+
+impl<'r, 's> std::convert::TryFrom<&'r rusqlite::Row<'s>> for DbVal<Post> {
+    type Error = rusqlite::Error;
+    fn try_from(row: &'r rusqlite::Row<'s>) -> std::result::Result<Self, Self::Error> {
+        let pk = row.get("pk")?;
+        Ok(DbVal(
+            Post {
+                pk,
+                list: row.get("list")?,
+                address: row.get("address")?,
+                message_id: row.get("message_id")?,
+                message: row.get("message")?,
+                timestamp: row.get("timestamp")?,
+                datetime: row.get("datetime")?,
+            },
+            pk,
+        ))
+    }
+}

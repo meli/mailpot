@@ -34,7 +34,7 @@ struct ListsTemplate<'a> {
     title: &'a str,
     description: &'a str,
     lists_len: usize,
-    lists: Vec<ListTemplate<'a>>,
+    lists: Vec<DbVal<MailingList>>,
 }
 
 #[derive(Template)]
@@ -50,7 +50,12 @@ struct ListTemplate<'a> {
 impl<'a> Into<ListTemplate<'a>> for (&'a DbVal<MailingList>, &'a Database) {
     fn into(self: (&'a DbVal<MailingList>, &'a Database)) -> ListTemplate<'a> {
         let (list, db) = self;
-        let months = db.months(list.pk).unwrap();
+        let months = db
+            .months(list.pk)
+            .unwrap()
+            .into_iter()
+            .map(|s| s.replace('-', "/").to_string())
+            .collect();
         let posts = db.list_posts(list.pk, None).unwrap();
         ListTemplate {
             title: &list.name,
@@ -86,7 +91,12 @@ async fn main() {
     let list_handler = warp::path!("lists" / i64).map(|list_pk: i64| {
         let db = Database::open_or_create_db().unwrap();
         let list = db.get_list(list_pk).unwrap().unwrap();
-        let months = db.months(list_pk).unwrap();
+        let months = db
+            .months(list_pk)
+            .unwrap()
+            .into_iter()
+            .map(|s| s.replace('-', "/").to_string())
+            .collect();
         let posts = db.list_posts(list_pk, None).unwrap();
         let template = ListTemplate {
             title: &list.name,
@@ -98,6 +108,25 @@ async fn main() {
         let res = template.render().unwrap();
         Ok(warp::reply::html(res))
     });
+    let month_handler =
+        warp::path!("list" / i64 / i64 / i64).map(|list_pk: i64, year: i64, month: i64| {
+            let db = Database::open_or_create_db().unwrap();
+            let list = db.get_list(list_pk).unwrap().unwrap();
+            let mut posts = db.list_posts(list_pk, Some((year, month))).unwrap();
+            let template = ListTemplate {
+                title: &list.name,
+                list: &list,
+                posts,
+                months: vec![month.to_string()],
+                body: &list
+                    .description
+                    .as_ref()
+                    .map(|s| s.as_str())
+                    .unwrap_or_default(),
+            };
+            let res = template.render().unwrap();
+            Ok(warp::reply::html(res))
+        });
     let post_handler =
         warp::path!("list" / i64 / String).map(|list_pk: i64, message_id: String| {
             let message_id = percent_decode_str(&message_id).decode_utf8().unwrap();
@@ -133,15 +162,12 @@ async fn main() {
     let index_handler = warp::path::end().map(|| {
         let db = Database::open_or_create_db().unwrap();
         let lists_values = db.list_lists().unwrap();
-        let lists = lists_values
-            .iter()
-            .map(|list| (list, &db).into())
-            .collect::<Vec<ListTemplate<'_>>>();
+        let lists = lists_values;
         let template = ListsTemplate {
             title: "mailing list archive",
             description: "",
             lists_len: lists.len(),
-            lists: lists,
+            lists,
         };
         let res = template.render().unwrap();
         Ok(warp::reply::html(res))
@@ -149,6 +175,7 @@ async fn main() {
     let routes = warp::get()
         .and(index_handler)
         .or(list_handler)
+        .or(month_handler)
         .or(post_handler);
 
     // Note that composing filters for many routes may increase compile times (because it uses a lot of generics).

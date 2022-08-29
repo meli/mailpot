@@ -2,6 +2,7 @@ define(xor, `(($1) OR ($2)) AND NOT (($1) AND ($2))')dnl
 define(BOOLEAN_TYPE, `$1 BOOLEAN CHECK ($1 in (0, 1)) NOT NULL')dnl
 define(BOOLEAN_FALSE, `0')dnl
 define(BOOLEAN_TRUE, `1')dnl
+undefine(substr)dnl
 PRAGMA foreign_keys = true;
 PRAGMA encoding = 'UTF-8';
 
@@ -74,7 +75,9 @@ CREATE TABLE IF NOT EXISTS post (
   message_id              TEXT NOT NULL,
   message                 BLOB NOT NULL,
   timestamp               INTEGER NOT NULL DEFAULT (unixepoch()),
-  datetime                TEXT NOT NULL DEFAULT (datetime())
+  datetime                TEXT NOT NULL DEFAULT (datetime()),
+  year                    INTEGER AS (CAST(substr(datetime,0,5) AS INTEGER)) NOT NULL,
+  month                   INTEGER AS (CAST(substr(datetime,6,7) AS INTEGER)) NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS post_event (
@@ -101,3 +104,4 @@ CREATE INDEX IF NOT EXISTS post_listpk_idx ON post(list);
 CREATE INDEX IF NOT EXISTS post_msgid_idx ON post(message_id);
 CREATE INDEX IF NOT EXISTS mailing_lists_idx ON mailing_lists(id);
 CREATE INDEX IF NOT EXISTS membership_idx ON membership(address);
+CREATE INDEX IF NOT EXISTS post_date_idx ON post(year ASC, month ASC);
