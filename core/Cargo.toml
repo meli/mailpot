@@ -7,23 +7,22 @@ license = "LICENSE"
 readme = "README.md"
 description = "mailing list manager"
 repository = "https://github.com/meli/mailpot"
-keywords = ["mail", "mailing-lists" ]
+keywords = ["mail", "mailing-lists"]
 categories = ["email"]
 
 [dependencies]
+anyhow = "1.0.58"
 chrono = { version = "^0.4", features = ["serde", ] }
 error-chain = { version = "0.12.4", default-features = false }
-anyhow = "1.0.58"
-#melib = { version = "*", default-features = false, features = ["smtp", "unicode_algorithms"], path="../../meli/melib", branch = "master" }
-melib = { version = "*", default-features = false, features = ["smtp", "unicode_algorithms"], git="https://github.com/meli/meli", branch = "master" }
-rusqlite = {version = "^0.27", features = ["bundled"] }
-serde = { version = "^1", features = ["derive", ]}
+log = "0.4"
+melib = { version = "*", default-features = false, features = ["smtp", "unicode_algorithms", "maildir_backend"], git = "https://github.com/meli/meli", rev = "b87d54ea3f" }
+rusqlite = { version = "^0.27", features = ["bundled"] }
+serde = { version = "^1", features = ["derive", ] }
 serde_json = "^1"
 toml = "^0.5"
-log = "0.4"
 xdg = "2.4.1"
 
 [dev-dependencies]
-mailin-embedded = { version = "0.7",  features = ["rtls"] }
-tempfile = "3.3.0"
+mailin-embedded = { version = "0.7", features = ["rtls"] }
 stderrlog = "^0.5"
+tempfile = "3.3.0"

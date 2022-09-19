@@ -1,9 +1,9 @@
 [workspace]
 members = [
-	"core",
-  "cli",
-  "rest-http",
   "archive-http",
+  "cli",
+  "core",
+  "rest-http",
 ]
 
 [patch.crates-io]
