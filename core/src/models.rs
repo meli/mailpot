@@ -77,7 +77,7 @@ where
     }
 }
 
-#[derive(Debug, PartialEq, Clone, Deserialize, Serialize)]
+#[derive(Debug, PartialEq, Eq, Clone, Deserialize, Serialize)]
 pub struct MailingList {
     pub pk: i64,
     pub name: String,

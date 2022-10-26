@@ -54,14 +54,10 @@ impl<'a> Into<ListTemplate<'a>> for (&'a DbVal<MailingList>, &'a Database) {
         let posts = db.list_posts(list.pk, None).unwrap();
         ListTemplate {
             title: &list.name,
-            list: &list,
+            list,
             posts,
             months,
-            body: &list
-                .description
-                .as_ref()
-                .map(|s| s.as_str())
-                .unwrap_or_default(),
+            body: list.description.as_deref().unwrap_or_default(),
         }
     }
 }
@@ -141,7 +137,7 @@ async fn main() {
             title: "mailing list archive",
             description: "",
             lists_len: lists.len(),
-            lists: lists,
+            lists,
         };
         let res = template.render().unwrap();
         Ok(warp::reply::html(res))

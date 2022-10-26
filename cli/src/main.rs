@@ -664,10 +664,8 @@ fn run_app(opt: Opt) -> Result<()> {
                 hasher.finish()
             }
             let mut buf = Vec::with_capacity(4096);
-            let files = melib::backends::maildir::MaildirType::list_mail_in_maildir_fs(
-                maildir_path.clone(),
-                true,
-            )?;
+            let files =
+                melib::backends::maildir::MaildirType::list_mail_in_maildir_fs(maildir_path, true)?;
             let mut ctr = 0;
             for file in files {
                 let hash = get_file_hash(&file);

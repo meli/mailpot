@@ -92,8 +92,7 @@ impl Configuration {
         }
         if path.starts_with("~") {
             path = Path::new(&std::env::var("HOME").context("No $HOME set.")?)
-                .join(path.strip_prefix("~").context("Internal error while getting default database path: path starts with ~ but rust couldn't strip_refix(\"~\"")?)
-                .into();
+                .join(path.strip_prefix("~").context("Internal error while getting default database path: path starts with ~ but rust couldn't strip_refix(\"~\"")?);
         }
         let config: Configuration = Self::from_file(&path)?;
         config.init_with()
@@ -110,8 +109,7 @@ impl Configuration {
             xdg::BaseDirectories::with_prefix("mailpot")?.place_config_file("config.toml")?;
         if result.starts_with("~") {
             result = Path::new(&std::env::var("HOME").context("No $HOME set.")?)
-                .join(result.strip_prefix("~").context("Internal error while getting default database path: path starts with ~ but rust couldn't strip_refix(\"~\"")?)
-                .into();
+                .join(result.strip_prefix("~").context("Internal error while getting default database path: path starts with ~ but rust couldn't strip_refix(\"~\"")?);
         }
         Ok(result)
     }

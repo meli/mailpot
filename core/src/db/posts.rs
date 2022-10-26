@@ -160,21 +160,20 @@ impl Database {
                             if !recipients.is_empty() {
                                 trace!("recipients: {:?}", &recipients);
 
-                                match &configuration.send_mail {
-                                    crate::config::SendMail::Smtp(ref smtp_conf) => {
-                                        let smtp_conf = smtp_conf.clone();
-                                        use melib::futures;
-                                        use melib::smol;
-                                        use melib::smtp::*;
-                                        let mut conn = smol::future::block_on(smol::spawn(
-                                            SmtpConnection::new_connection(smtp_conf.clone()),
-                                        ))?;
-                                        futures::executor::block_on(conn.mail_transaction(
-                                            &String::from_utf8_lossy(&bytes),
-                                            Some(recipients),
-                                        ))?;
-                                    }
-                                    _ => {}
+                                if let crate::config::SendMail::Smtp(ref smtp_conf) =
+                                    &configuration.send_mail
+                                {
+                                    let smtp_conf = smtp_conf.clone();
+                                    use melib::futures;
+                                    use melib::smol;
+                                    use melib::smtp::*;
+                                    let mut conn = smol::future::block_on(smol::spawn(
+                                        SmtpConnection::new_connection(smtp_conf.clone()),
+                                    ))?;
+                                    futures::executor::block_on(conn.mail_transaction(
+                                        &String::from_utf8_lossy(&bytes),
+                                        Some(recipients),
+                                    ))?;
                                 }
                             } else {
                                 trace!("list has no recipients");
