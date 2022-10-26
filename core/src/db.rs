@@ -28,7 +28,7 @@ use std::io::Write;
 use std::path::PathBuf;
 use std::process::{Command, Stdio};
 
-const DB_NAME: &str = "mpot.db";
+const DB_NAME: &str = "current.db";
 
 pub struct Database {
     pub connection: DbConnection,
@@ -58,19 +58,15 @@ impl Database {
     pub fn open_or_create_db() -> Result<Self> {
         crate::config::Configuration::init()?;
         let mut db_path = Self::db_path()?;
-        db_path = db_path
-            .canonicalize()
-            .context("Could not access database path")?;
-        db_path.push("current.db");
+        if db_path.is_dir() {
+            db_path.push(DB_NAME);
+        }
         let mut create = false;
         if !db_path.exists() {
             info!("Creating {} database in {}", DB_NAME, db_path.display());
             create = true;
             std::fs::File::create(&db_path).context("Could not create db path")?;
         }
-        db_path = db_path
-            .canonicalize()
-            .context("Could not canonicalize db path")?;
         if create {
             use std::os::unix::fs::PermissionsExt;
             let mut child = Command::new("sqlite3")
@@ -98,6 +94,9 @@ impl Database {
             permissions.set_mode(0o600); // Read/write for owner only.
             file.set_permissions(permissions)?;
         }
+        db_path = db_path
+            .canonicalize()
+            .context("Could not canonicalize db path")?;
 
         let conn = DbConnection::open(&db_path.to_str().unwrap())?;
 
@@ -111,7 +110,7 @@ impl Database {
             let archive = archive?;
             let path = archive.path();
             let name = path.file_name().unwrap_or_default();
-            if name == "current.db" {
+            if name == DB_NAME {
                 continue;
             }
             stmt.execute(rusqlite::params![

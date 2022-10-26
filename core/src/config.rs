@@ -19,12 +19,13 @@
 
 use super::errors::*;
 use chrono::prelude::*;
-use std::cell::RefCell;
+use std::cell::{Cell, RefCell};
 use std::io::{Read, Write};
 use std::os::unix::fs::PermissionsExt;
 use std::path::{Path, PathBuf};
 
 thread_local!(pub static CONFIG: RefCell<Configuration> = RefCell::new(Configuration::new()));
+thread_local!(static CONFIG_INIT: Cell<bool> = Cell::new(false));
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(tag = "type", content = "value")]
@@ -60,6 +61,9 @@ impl Configuration {
         CONFIG.with(|f| {
             *f.borrow_mut() = self;
         });
+        CONFIG_INIT.with(|f| {
+            f.set(true);
+        });
 
         Ok(())
     }
@@ -78,6 +82,9 @@ impl Configuration {
     }
 
     pub fn init() -> Result<()> {
+        if CONFIG_INIT.with(|f| f.get()) {
+            return Ok(());
+        }
         let mut path =
             xdg::BaseDirectories::with_prefix("mailpot")?.place_config_file("config.toml")?;
         if !path.exists() {

@@ -7,7 +7,7 @@ fn test_init_empty() {
 
     let db_path = tmp_dir.path().join("mpot.db");
     let mut config = Configuration::default();
-    config.db_path = Some(db_path.clone());
+    config.db_path = db_path.clone();
     config.init_with().unwrap();
 
     assert_eq!(Database::db_path().unwrap(), db_path);
@@ -22,7 +22,7 @@ fn test_list_creation() {
 
     let db_path = tmp_dir.path().join("mpot.db");
     let mut config = Configuration::default();
-    config.db_path = Some(db_path.clone());
+    config.db_path = db_path.clone();
     config.init_with().unwrap();
 
     assert_eq!(Database::db_path().unwrap(), db_path);

@@ -27,7 +27,7 @@ fn test_error_queue() {
     let db_path = tmp_dir.path().join("mpot.db");
     let mut config = Configuration::default();
     config.send_mail = SendMail::Smtp(get_smtp_conf());
-    config.db_path = Some(db_path.clone());
+    config.db_path = db_path.clone();
     config.init_with().unwrap();
 
     assert_eq!(Database::db_path().unwrap(), db_path);
