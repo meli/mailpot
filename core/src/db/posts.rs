@@ -119,11 +119,7 @@ impl Database {
             return Ok(());
         }
 
-        let mut configuration = crate::config::Configuration::new();
-        crate::config::CONFIG.with(|f| {
-            configuration = f.borrow().clone();
-        });
-        trace!("Configuration is {:#?}", &configuration);
+        trace!("Configuration is {:#?}", &self.conf);
         use crate::mail::{ListContext, Post, PostAction};
         for mut list in lists {
             trace!("Examining list {}", list.list_id());
@@ -161,7 +157,7 @@ impl Database {
                                 trace!("recipients: {:?}", &recipients);
 
                                 if let crate::config::SendMail::Smtp(ref smtp_conf) =
-                                    &configuration.send_mail
+                                    &self.conf.send_mail
                                 {
                                     let smtp_conf = smtp_conf.clone();
                                     use melib::futures;

@@ -25,9 +25,30 @@ pub use mailpot::errors::*;
 pub use mailpot::models::*;
 pub use mailpot::*;
 
-use askama::Template;
-use percent_encoding::percent_decode_str;
+use std::sync::Arc;
 
+use percent_encoding::percent_decode_str;
+use tera::{Context, Tera};
+use warp::Filter;
+
+lazy_static::lazy_static! {
+    pub static ref TEMPLATES: Tera = {
+        let mut tera = match Tera::new("src/templates/*") {
+            Ok(t) => t,
+            Err(e) => {
+                println!("Parsing error(s): {}", e);
+                ::std::process::exit(1);
+            }
+        };
+        let names: Vec<_> = tera.get_template_names().collect();
+        println!("names: {:?}", names);
+        assert!(!names.is_empty());
+        tera.autoescape_on(vec![".html", ".sql"]);
+        tera
+    };
+}
+
+/*
 #[derive(Template)]
 #[template(path = "lists.html")]
 struct ListsTemplate<'a> {
@@ -75,72 +96,99 @@ struct PostTemplate<'a> {
     _in_reply_to: Option<String>,
     _references: Vec<String>,
 }
+*/
 
-use warp::Filter;
 #[tokio::main]
 async fn main() {
-    let list_handler = warp::path!("lists" / i64).map(|list_pk: i64| {
-        let db = Database::open_or_create_db().unwrap();
+    let config_path = std::env::args()
+        .skip(1)
+        .next()
+        .expect("Expected configuration file path as first argument.");
+    let conf = Arc::new(Configuration::from_file(config_path).unwrap());
+
+    let conf1 = conf.clone();
+    let list_handler = warp::path!("lists" / i64).map(move |list_pk: i64| {
+        let db = Database::open_db(&conf1).unwrap();
         let list = db.get_list(list_pk).unwrap().unwrap();
         let months = db.months(list_pk).unwrap();
         let posts = db.list_posts(list_pk, None).unwrap();
-        let template = ListTemplate {
-            title: &list.name,
-            list: &list,
-            months,
-            posts,
-            body: &list.description.clone().unwrap_or_default(),
-        };
-        let res = template.render().unwrap();
-        Ok(warp::reply::html(res))
+        let mut context = Context::new();
+        context.insert("title", &list.name);
+        context.insert("list", &list);
+        context.insert("months", &months);
+        context.insert("posts", &posts);
+        context.insert("body", &list.description.clone().unwrap_or_default());
+        Ok(warp::reply::html(
+            TEMPLATES.render("list.html", &context).unwrap(),
+        ))
     });
+    let conf2 = conf.clone();
     let post_handler =
-        warp::path!("list" / i64 / String).map(|list_pk: i64, message_id: String| {
+        warp::path!("list" / i64 / String).map(move |list_pk: i64, message_id: String| {
             let message_id = percent_decode_str(&message_id).decode_utf8().unwrap();
-            let db = Database::open_or_create_db().unwrap();
+            let db = Database::open_db(&conf2).unwrap();
             let list = db.get_list(list_pk).unwrap().unwrap();
             let posts = db.list_posts(list_pk, None).unwrap();
             let post = posts
-                .into_iter()
+                .iter()
                 .find(|p| message_id.contains(&p.message_id))
                 .unwrap();
             let envelope = melib::Envelope::from_bytes(post.message.as_slice(), None)
                 .expect("Could not parse mail");
             let body = envelope.body_bytes(post.message.as_slice());
             let body_text = body.text();
-            let template = PostTemplate {
-                title: &list.name,
-                _list: &list,
-                _post: post,
-                body: &body_text,
-                _from: &envelope.field_from_to_string(),
-                _to: &envelope.field_to_to_string(),
-                subject: &envelope.subject(),
-                _in_reply_to: envelope.in_reply_to_display().map(|r| r.to_string()),
-                _references: envelope
+            let mut context = Context::new();
+            context.insert("title", &list.name);
+            context.insert("list", &list);
+            context.insert("post", &post);
+            context.insert("posts", &posts);
+            context.insert("body", &body_text);
+            context.insert("from", &envelope.field_from_to_string());
+            context.insert("date", &envelope.date_as_str());
+            context.insert("to", &envelope.field_to_to_string());
+            context.insert("subject", &envelope.subject());
+            context.insert(
+                "in_reply_to",
+                &envelope.in_reply_to_display().map(|r| r.to_string()),
+            );
+            context.insert(
+                "references",
+                &envelope
                     .references()
                     .into_iter()
                     .map(|m| m.to_string())
                     .collect::<Vec<String>>(),
-            };
-            let res = template.render().unwrap();
-            Ok(warp::reply::html(res))
+            );
+            Ok(warp::reply::html(
+                TEMPLATES.render("post.html", &context).unwrap(),
+            ))
         });
-    let index_handler = warp::path::end().map(|| {
-        let db = Database::open_or_create_db().unwrap();
+    let conf3 = conf.clone();
+    let index_handler = warp::path::end().map(move || {
+        let db = Database::open_db(&conf3).unwrap();
         let lists_values = db.list_lists().unwrap();
+        dbg!(&lists_values);
         let lists = lists_values
             .iter()
-            .map(|list| (list, &db).into())
-            .collect::<Vec<ListTemplate<'_>>>();
-        let template = ListsTemplate {
-            title: "mailing list archive",
-            description: "",
-            lists_len: lists.len(),
-            lists,
-        };
-        let res = template.render().unwrap();
-        Ok(warp::reply::html(res))
+            .map(|list| {
+                let mut context = Context::new();
+                let months = db.months(list.pk).unwrap();
+                let posts = db.list_posts(list.pk, None).unwrap();
+                context.insert("title", &list.name);
+                context.insert("list", &list);
+                context.insert("posts", &posts);
+                context.insert("months", &months);
+                context.insert("body", &list.description.as_deref().unwrap_or_default());
+                context.into_json()
+            })
+            .collect::<Vec<_>>();
+        let mut context = Context::new();
+        context.insert("title", "mailing list archive");
+        context.insert("description", "");
+        context.insert("lists", &lists);
+        Ok(warp::reply::html(
+            TEMPLATES.render("lists.html", &context).unwrap(),
+        ))
     });
     let routes = warp::get()
         .and(index_handler)

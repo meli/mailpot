@@ -17,6 +17,7 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
+use super::Configuration;
 use super::*;
 use crate::ErrorKind::*;
 use melib::Envelope;
@@ -25,13 +26,14 @@ use rusqlite::Connection as DbConnection;
 use rusqlite::OptionalExtension;
 use std::convert::TryFrom;
 use std::io::Write;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 
 const DB_NAME: &str = "current.db";
 
 pub struct Database {
     pub connection: DbConnection,
+    conf: Configuration,
 }
 
 mod error_queue;
@@ -42,22 +44,18 @@ mod members;
 pub use members::*;
 
 impl Database {
-    pub fn db_path() -> Result<PathBuf> {
-        Ok(crate::config::CONFIG.with(|c| c.borrow().db_path.clone()))
-    }
-
-    pub fn open_db(db_path: PathBuf) -> Result<Self> {
-        if !db_path.exists() {
+    pub fn open_db(conf: &Configuration) -> Result<Self> {
+        if !conf.db_path.exists() {
             return Err("Database doesn't exist".into());
         }
         Ok(Database {
-            connection: DbConnection::open(&db_path.to_str().unwrap())?,
+            conf: conf.clone(),
+            connection: DbConnection::open(&conf.db_path.to_str().unwrap())?,
         })
     }
 
-    pub fn open_or_create_db() -> Result<Self> {
-        crate::config::Configuration::init()?;
-        let mut db_path = Self::db_path()?;
+    pub fn open_or_create_db(conf: &Configuration) -> Result<Self> {
+        let mut db_path = conf.db_path.to_path_buf();
         if db_path.is_dir() {
             db_path.push(DB_NAME);
         }
@@ -100,11 +98,14 @@ impl Database {
 
         let conn = DbConnection::open(&db_path.to_str().unwrap())?;
 
-        Ok(Database { connection: conn })
+        Ok(Database {
+            conf: conf.clone(),
+            connection: conn,
+        })
     }
 
-    pub fn load_archives(&mut self) -> Result<&mut Self> {
-        let archives_path = crate::config::CONFIG.with(|c| c.borrow().db_path.clone());
+    pub fn load_archives(&mut self, conf: &Configuration) -> Result<&mut Self> {
+        let archives_path = conf.data_path.clone();
         let mut stmt = self.connection.prepare("ATTACH ? AS ?;")?;
         for archive in std::fs::read_dir(&archives_path)? {
             let archive = archive?;
@@ -232,7 +233,7 @@ impl Database {
     pub fn remove_list_policy(&self, list_pk: i64, policy_pk: i64) -> Result<()> {
         let mut stmt = self
             .connection
-            .prepare("DELETE FROM post_policy WHERE pk = ? AND list_pk = ?;")?;
+            .prepare("DELETE FROM post_policy WHERE pk = ? AND list = ?;")?;
         stmt.execute(rusqlite::params![&policy_pk, &list_pk,])?;
 
         trace!("remove_list_policy {} {}.", list_pk, policy_pk);
@@ -240,6 +241,13 @@ impl Database {
     }
 
     pub fn set_list_policy(&self, list_pk: i64, policy: PostPolicy) -> Result<DbVal<PostPolicy>> {
+        if !(policy.announce_only || policy.subscriber_only || policy.approval_needed) {
+            return Err(
+                "Cannot add empty policy. Having no policies is probably what you want to do."
+                    .into(),
+            );
+        }
+
         let mut stmt = self.connection.prepare("INSERT OR REPLACE INTO post_policy(list, announce_only, subscriber_only, approval_needed) VALUES (?, ?, ?, ?) RETURNING *;")?;
         let ret = stmt.query_row(
             rusqlite::params![

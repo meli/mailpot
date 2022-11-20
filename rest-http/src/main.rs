@@ -37,9 +37,15 @@ fn json_body() -> impl Filter<Extract = (String,), Error = warp::Rejection> + Cl
 
 #[tokio::main]
 async fn main() {
+    let config_path = std::env::args()
+        .skip(1)
+        .next()
+        .expect("Expected configuration file path as first argument.");
+    Configuration::init(config_path).unwrap();
+
     // GET /lists/:i64/policy
     let policy = warp::path!("lists" / i64 / "policy").map(|list_pk| {
-        let db = Database::open_or_create_db().unwrap();
+        let db = Database::open_or_create_db(&Configuration::db_path().unwrap()).unwrap();
         db.get_list_policy(list_pk)
             .ok()
             .map(|l| warp::reply::json(&l.unwrap()))
@@ -48,21 +54,21 @@ async fn main() {
 
     //get("/lists")]
     let lists = warp::path!("lists").map(|| {
-        let db = Database::open_or_create_db().unwrap();
+        let db = Database::open_or_create_db(&Configuration::db_path().unwrap()).unwrap();
         let lists = db.list_lists().unwrap();
         warp::reply::json(&lists)
     });
 
     //get("/lists/<num>")]
     let lists_num = warp::path!("lists" / i64).map(|list_pk| {
-        let db = Database::open_or_create_db().unwrap();
+        let db = Database::open_or_create_db(&Configuration::db_path().unwrap()).unwrap();
         let list = db.get_list(list_pk).unwrap();
         warp::reply::json(&list)
     });
 
     //get("/lists/<num>/members")]
     let lists_members = warp::path!("lists" / i64 / "members").map(|list_pk| {
-        let db = Database::open_or_create_db().unwrap();
+        let db = Database::open_or_create_db(&Configuration::db_path().unwrap()).unwrap();
         db.list_members(list_pk)
             .ok()
             .map(|l| warp::reply::json(&l))
@@ -71,7 +77,7 @@ async fn main() {
 
     //get("/lists/<num>/owners")]
     let lists_owners = warp::path!("lists" / i64 / "owners").map(|list_pk| {
-        let db = Database::open_or_create_db().unwrap();
+        let db = Database::open_or_create_db(&Configuration::db_path().unwrap()).unwrap();
         db.get_list_owners(list_pk)
             .ok()
             .map(|l| warp::reply::json(&l))

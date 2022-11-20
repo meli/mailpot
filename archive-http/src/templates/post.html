@@ -1,0 +1,36 @@
+{% include "header.html" %}
+<div class="entry">
+    <h1>{{subject}}</h1>
+    <table class="headers">
+      <tr>
+        <th scope="row">List</th>
+        <td>{{ list.id }}</td>
+      </tr>
+      <tr>
+        <th scope="row">From</th>
+        <td>{{ from }}</td>
+      </tr>
+      <tr>
+        <th scope="row">Date</th>
+        <td>{{ date }}</td>
+      </tr>
+      <tr>
+        <th scope="row">To</th>
+        <td>{{ to }}</td>
+      </tr>
+      <tr>
+        <th scope="row">Subject</th>
+        <td>{{ subject }}</td>
+      </tr>
+      {% if in_reply_to %}
+      <tr>
+        <th scope="row">In-Reply-To</th>
+        <td>{{ in_reply_to }}</td>
+      </tr>
+      {% endif %}
+    </table>
+    <div class="body">
+      <pre>{{body}}</pre>
+    </div>
+</div>
+{% include "footer.html" %}

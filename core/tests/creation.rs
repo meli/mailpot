@@ -1,4 +1,4 @@
-use mailpot::{models::*, Configuration, Database};
+use mailpot::{models::*, Configuration, Database, SendMail};
 use tempfile::TempDir;
 
 #[test]
@@ -6,13 +6,17 @@ fn test_init_empty() {
     let tmp_dir = TempDir::new().unwrap();
 
     let db_path = tmp_dir.path().join("mpot.db");
-    let mut config = Configuration::default();
-    config.db_path = db_path.clone();
+    let config = Configuration {
+        send_mail: SendMail::ShellCommand("/usr/bin/false".to_string()),
+        db_path: db_path.clone(),
+        storage: "sqlite3".to_string(),
+        data_path: tmp_dir.path().to_path_buf(),
+    };
     config.init_with().unwrap();
 
     assert_eq!(Database::db_path().unwrap(), db_path);
 
-    let db = Database::open_or_create_db().unwrap();
+    let db = Database::open_or_create_db(&db_path).unwrap();
     assert!(db.list_lists().unwrap().is_empty());
 }
 
@@ -21,13 +25,17 @@ fn test_list_creation() {
     let tmp_dir = TempDir::new().unwrap();
 
     let db_path = tmp_dir.path().join("mpot.db");
-    let mut config = Configuration::default();
-    config.db_path = db_path.clone();
+    let config = Configuration {
+        send_mail: SendMail::ShellCommand("/usr/bin/false".to_string()),
+        db_path: db_path.clone(),
+        storage: "sqlite3".to_string(),
+        data_path: tmp_dir.path().to_path_buf(),
+    };
     config.init_with().unwrap();
 
     assert_eq!(Database::db_path().unwrap(), db_path);
 
-    let db = Database::open_or_create_db().unwrap();
+    let db = Database::open_or_create_db(&db_path).unwrap();
     assert!(db.list_lists().unwrap().is_empty());
     let foo_chat = db
         .create_list(MailingList {

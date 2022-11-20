@@ -48,7 +48,7 @@ struct Opt {
     /// Set config file
     #[structopt(short, long, parse(from_os_str))]
     #[allow(dead_code)]
-    config: Option<PathBuf>,
+    config: PathBuf,
     #[structopt(flatten)]
     cmd: Command,
     /// Silence all output
@@ -65,10 +65,6 @@ struct Opt {
 #[derive(Debug, StructOpt)]
 #[structopt(manpage = "docs/command.mdoc")]
 enum Command {
-    ///Prints database filesystem location
-    DbLocation,
-    ///Prints default configuration file filesystem location
-    ConfigLocation,
     ///Dumps database data to STDOUT
     DumpDatabase,
     ///Lists all registered mailing lists
@@ -238,22 +234,11 @@ fn run_app(opt: Opt) -> Result<()> {
     if opt.debug {
         println!("DEBUG: {:?}", &opt);
     }
-    if let Some(config_path) = opt.config.as_ref() {
-        let config = Configuration::from_file(&config_path)?;
-        config.init_with()?;
-    } else {
-        Configuration::init()?;
-    }
+    let config = Configuration::from_file(opt.config.as_path())?;
     use Command::*;
+    let mut db = Database::open_or_create_db(&config)?;
     match opt.cmd {
-        DbLocation => {
-            println!("{}", Database::db_path()?.display());
-        }
-        ConfigLocation => {
-            println!("{}", Configuration::default_path()?.display());
-        }
         DumpDatabase => {
-            let db = Database::open_or_create_db()?;
             let lists = db.list_lists()?;
             let mut stdout = std::io::stdout();
             serde_json::to_writer_pretty(&mut stdout, &lists)?;
@@ -262,7 +247,6 @@ fn run_app(opt: Opt) -> Result<()> {
             }
         }
         ListLists => {
-            let db = Database::open_or_create_db()?;
             let lists = db.list_lists()?;
             if lists.is_empty() {
                 println!("No lists found.");
@@ -288,7 +272,6 @@ fn run_app(opt: Opt) -> Result<()> {
             }
         }
         List { list_id, cmd } => {
-            let db = Database::open_or_create_db()?;
             let list = match db.get_list_by_id(&list_id)? {
                 Some(v) => v,
                 None => {
@@ -531,7 +514,6 @@ fn run_app(opt: Opt) -> Result<()> {
             description,
             archive_url,
         } => {
-            let db = Database::open_or_create_db()?;
             let new = db.create_list(MailingList {
                 pk: 0,
                 name,
@@ -564,12 +546,15 @@ fn run_app(opt: Opt) -> Result<()> {
                     if opt.debug {
                         std::dbg!(&env);
                     }
-                    let db = Database::open_or_create_db()?;
                     db.post(&env, input.as_bytes(), dry_run)?;
+                }
+                Err(err) if input.trim().is_empty() => {
+                    eprintln!("Empty input, abort.");
+                    return Err(err.into());
                 }
                 Err(err) => {
                     eprintln!("Could not parse message: {}", err);
-                    let p = Configuration::save_message(input)?;
+                    let p = config.save_message(input)?;
                     eprintln!("Message saved at {}", p.display());
                     return Err(err.into());
                 }
@@ -577,7 +562,6 @@ fn run_app(opt: Opt) -> Result<()> {
         }
         ErrorQueue { cmd } => match cmd {
             ErrorQueueCommand::List => {
-                let db = Database::open_or_create_db()?;
                 let errors = db.error_queue()?;
                 if errors.is_empty() {
                     println!("Error queue is empty.");
@@ -595,7 +579,6 @@ fn run_app(opt: Opt) -> Result<()> {
                 }
             }
             ErrorQueueCommand::Print { index, json } => {
-                let db = Database::open_or_create_db()?;
                 let mut errors = db.error_queue()?;
                 if !index.is_empty() {
                     errors.retain(|el| index.contains(&el.pk()));
@@ -613,7 +596,6 @@ fn run_app(opt: Opt) -> Result<()> {
                 }
             }
             ErrorQueueCommand::Delete { index, quiet } => {
-                let mut db = Database::open_or_create_db()?;
                 let mut errors = db.error_queue()?;
                 if !index.is_empty() {
                     errors.retain(|el| index.contains(&el.pk()));
@@ -639,7 +621,6 @@ fn run_app(opt: Opt) -> Result<()> {
             list_id,
             mut maildir_path,
         } => {
-            let db = Database::open_or_create_db()?;
             let list = match db.get_list_by_id(&list_id)? {
                 Some(v) => v,
                 None => {

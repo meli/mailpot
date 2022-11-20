@@ -1,10 +1,10 @@
 {% include "header.html" %}
 <div class="entry">
-    <h1>{{subject}}</h1>
+    <p>{{lists|length}} lists</p>
     <div class="body">
-      <pre>
-        {{body}}
-      </pre>
+      {% for list in lists %}
+      {{ list.title }}
+      {% endfor %}
     </div>
 </div>
 {% include "footer.html" %}

@@ -24,9 +24,6 @@ use std::io::{Read, Write};
 use std::os::unix::fs::PermissionsExt;
 use std::path::{Path, PathBuf};
 
-thread_local!(pub static CONFIG: RefCell<Configuration> = RefCell::new(Configuration::new()));
-thread_local!(static CONFIG_INIT: Cell<bool> = Cell::new(false));
-
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(tag = "type", content = "value")]
 pub enum SendMail {
@@ -40,33 +37,24 @@ pub struct Configuration {
     #[serde(default = "default_storage_fn")]
     pub storage: String,
     pub db_path: PathBuf,
-}
-
-impl Default for Configuration {
-    fn default() -> Self {
-        Self::new()
-    }
+    pub data_path: PathBuf,
 }
 
 impl Configuration {
-    pub(crate) fn new() -> Self {
+    /*
+    pub fn new(db_path: impl Into<PathBuf>) -> Self {
+        let db_path = db_path.into();
         Configuration {
             send_mail: SendMail::ShellCommand("/usr/bin/false".to_string()),
             storage: "sqlite3".into(),
-            db_path: ".".into(),
+            data_path: db_path
+                .parent()
+                .map(Path::to_path_buf)
+                .unwrap_or_else(|| db_path.clone()),
+            db_path,
         }
     }
-
-    pub fn init_with(self) -> Result<()> {
-        CONFIG.with(|f| {
-            *f.borrow_mut() = self;
-        });
-        CONFIG_INIT.with(|f| {
-            f.set(true);
-        });
-
-        Ok(())
-    }
+    */
 
     pub fn from_file<P: AsRef<Path>>(path: P) -> Result<Self> {
         let path = path.as_ref();
@@ -81,27 +69,12 @@ impl Configuration {
         Ok(config)
     }
 
-    pub fn init() -> Result<()> {
-        if CONFIG_INIT.with(|f| f.get()) {
-            return Ok(());
-        }
-        let mut path =
-            xdg::BaseDirectories::with_prefix("mailpot")?.place_config_file("config.toml")?;
-        if !path.exists() {
-            return Err(format!("Configuration file {} doesn't exist", path.display()).into());
-        }
-        if path.starts_with("~") {
-            path = Path::new(&std::env::var("HOME").context("No $HOME set.")?)
-                .join(path.strip_prefix("~").context("Internal error while getting default database path: path starts with ~ but rust couldn't strip_refix(\"~\"")?);
-        }
-        let config: Configuration = Self::from_file(&path)?;
-        config.init_with()
+    pub fn data_directory(&self) -> &Path {
+        self.data_path.as_path()
     }
 
-    pub fn data_directory() -> Result<PathBuf> {
-        Ok(xdg::BaseDirectories::with_prefix("mailpot")?
-            .get_data_home()
-            .canonicalize()?)
+    pub fn db_path(&self) -> &Path {
+        self.db_path.as_path()
     }
 
     pub fn default_path() -> Result<PathBuf> {
@@ -114,10 +87,13 @@ impl Configuration {
         Ok(result)
     }
 
-    pub fn save_message_to_path(msg: &str, mut path: PathBuf) -> Result<PathBuf> {
-        let now = Local::now().timestamp();
-        path.push(format!("{}-failed.eml", now));
+    pub fn save_message_to_path(&self, msg: &str, mut path: PathBuf) -> Result<PathBuf> {
+        if path.is_dir() {
+            let now = Local::now().timestamp();
+            path.push(format!("{}-failed.eml", now));
+        }
 
+        debug_assert!(path != self.db_path());
         let mut file = std::fs::File::create(&path)?;
         let metadata = file.metadata()?;
         let mut permissions = metadata.permissions();
@@ -129,23 +105,8 @@ impl Configuration {
         Ok(path)
     }
 
-    pub fn save_message(msg: String) -> Result<PathBuf> {
-        match Configuration::data_directory()
-            .and_then(|path| Self::save_message_to_path(&msg, path))
-        {
-            Ok(p) => return Ok(p),
-            Err(err) => {
-                eprintln!("{}", err);
-            }
-        };
-        match Self::save_message_to_path(&msg, PathBuf::from(".")) {
-            Ok(p) => return Ok(p),
-            Err(err) => {
-                eprintln!("{}", err);
-            }
-        }
-        let temp_path = std::env::temp_dir();
-        Self::save_message_to_path(&msg, temp_path)
+    pub fn save_message(&self, msg: String) -> Result<PathBuf> {
+        self.save_message_to_path(&msg, self.data_directory().to_path_buf())
     }
 }
 

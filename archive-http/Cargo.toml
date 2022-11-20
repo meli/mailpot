@@ -16,8 +16,9 @@ name = "mpot-archives"
 path = "src/main.rs"
 
 [dependencies]
-askama = "0.8"
+tera = "1"
 mailpot = { version = "0.1.0", path = "../core" }
 percent-encoding = "2.1"
 tokio = { version = "1", features = ["full"] }
 warp = "0.3"
+lazy_static = "*"

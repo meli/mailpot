@@ -25,14 +25,17 @@ fn test_error_queue() {
     let tmp_dir = TempDir::new().unwrap();
 
     let db_path = tmp_dir.path().join("mpot.db");
-    let mut config = Configuration::default();
-    config.send_mail = SendMail::Smtp(get_smtp_conf());
-    config.db_path = db_path.clone();
+    let config = Configuration {
+        send_mail: SendMail::Smtp(get_smtp_conf()),
+        db_path: db_path.clone(),
+        storage: "sqlite3".to_string(),
+        data_path: tmp_dir.path().to_path_buf(),
+    };
     config.init_with().unwrap();
 
     assert_eq!(Database::db_path().unwrap(), db_path);
 
-    let db = Database::open_or_create_db().unwrap();
+    let db = Database::open_or_create_db(&db_path).unwrap();
     assert!(db.list_lists().unwrap().is_empty());
     let foo_chat = db
         .create_list(MailingList {
