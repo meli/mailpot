@@ -101,8 +101,7 @@ struct PostTemplate<'a> {
 #[tokio::main]
 async fn main() {
     let config_path = std::env::args()
-        .skip(1)
-        .next()
+        .nth(1)
         .expect("Expected configuration file path as first argument.");
     let conf = Arc::new(Configuration::from_file(config_path).unwrap());
 

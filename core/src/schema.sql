@@ -84,6 +84,7 @@ CREATE TABLE IF NOT EXISTS post_event (
 
 CREATE TABLE IF NOT EXISTS error_queue (
   pk                      INTEGER PRIMARY KEY NOT NULL,
+  error                   TEXT NOT NULL,
   to_address              TEXT NOT NULL,
   from_address            TEXT NOT NULL,
   subject                 TEXT NOT NULL,

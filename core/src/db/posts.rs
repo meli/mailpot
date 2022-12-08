@@ -68,7 +68,7 @@ impl Database {
     pub fn post(&self, env: &Envelope, raw: &[u8], _dry_run: bool) -> Result<()> {
         let result = self.inner_post(env, raw, _dry_run);
         if let Err(err) = result {
-            return match self.insert_to_error_queue(env, raw) {
+            return match self.insert_to_error_queue(env, raw, err.to_string()) {
                 Ok(idx) => Err(Error::from_kind(Information(format!(
                     "Inserted into error_queue at index {}",
                     idx

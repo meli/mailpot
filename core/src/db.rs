@@ -26,7 +26,6 @@ use rusqlite::Connection as DbConnection;
 use rusqlite::OptionalExtension;
 use std::convert::TryFrom;
 use std::io::Write;
-use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 
 const DB_NAME: &str = "current.db";

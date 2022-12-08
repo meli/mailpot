@@ -21,10 +21,11 @@ use super::*;
 use serde_json::{json, Value};
 
 impl Database {
-    pub fn insert_to_error_queue(&self, env: &Envelope, raw: &[u8]) -> Result<i64> {
-        let mut stmt = self.connection.prepare("INSERT INTO error_queue(to_address, from_address, subject, message_id, message, timestamp, datetime) VALUES(?, ?, ?, ?, ?, ?, ?) RETURNING pk;")?;
+    pub fn insert_to_error_queue(&self, env: &Envelope, raw: &[u8], reason: String) -> Result<i64> {
+        let mut stmt = self.connection.prepare("INSERT INTO error_queue(error, to_address, from_address, subject, message_id, message, timestamp, datetime) VALUES(?, ?, ?, ?, ?, ?, ?, ?) RETURNING pk;")?;
         let pk = stmt.query_row(
             rusqlite::params![
+                &reason,
                 &env.field_to_to_string(),
                 &env.field_from_to_string(),
                 &env.subject(),
@@ -48,6 +49,7 @@ impl Database {
             Ok(DbVal(
                 json!({
                     "pk" : pk,
+                    "error": row.get::<_, String>("error")?,
                     "to_address": row.get::<_, String>("to_address")?,
                     "from_address": row.get::<_, String>("from_address")?,
                     "subject": row.get::<_, String>("subject")?,

@@ -19,7 +19,6 @@
 
 use super::errors::*;
 use chrono::prelude::*;
-use std::cell::{Cell, RefCell};
 use std::io::{Read, Write};
 use std::os::unix::fs::PermissionsExt;
 use std::path::{Path, PathBuf};

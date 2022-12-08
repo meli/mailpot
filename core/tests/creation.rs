@@ -12,11 +12,9 @@ fn test_init_empty() {
         storage: "sqlite3".to_string(),
         data_path: tmp_dir.path().to_path_buf(),
     };
-    config.init_with().unwrap();
 
-    assert_eq!(Database::db_path().unwrap(), db_path);
+    let db = Database::open_or_create_db(&config).unwrap();
 
-    let db = Database::open_or_create_db(&db_path).unwrap();
     assert!(db.list_lists().unwrap().is_empty());
 }
 
@@ -31,11 +29,8 @@ fn test_list_creation() {
         storage: "sqlite3".to_string(),
         data_path: tmp_dir.path().to_path_buf(),
     };
-    config.init_with().unwrap();
 
-    assert_eq!(Database::db_path().unwrap(), db_path);
-
-    let db = Database::open_or_create_db(&db_path).unwrap();
+    let db = Database::open_or_create_db(&config).unwrap();
     assert!(db.list_lists().unwrap().is_empty());
     let foo_chat = db
         .create_list(MailingList {

@@ -37,7 +37,7 @@ use mailin_embedded::response::{INTERNAL_ERROR, OK};
 
 impl Handler for MyHandler {
     fn helo(&mut self, ip: IpAddr, domain: &str) -> Response {
-        eprintln!("helo ip {:?} domain {:?}", ip, domain);
+        // eprintln!("helo ip {:?} domain {:?}", ip, domain);
         self.mails
             .lock()
             .unwrap()
@@ -46,7 +46,7 @@ impl Handler for MyHandler {
     }
 
     fn mail(&mut self, ip: IpAddr, domain: &str, from: &str) -> Response {
-        eprintln!("mail() ip {:?} domain {:?} from {:?}", ip, domain, from);
+        // eprintln!("mail() ip {:?} domain {:?} from {:?}", ip, domain, from);
         if let Some((_, message)) = self
             .mails
             .lock()
@@ -54,7 +54,6 @@ impl Handler for MyHandler {
             .iter_mut()
             .find(|((i, d), _)| (i, d.as_str()) == (&ip, domain))
         {
-            std::dbg!(&message);
             if let Message::Helo = message {
                 *message = Message::Mail {
                     from: from.to_string(),
@@ -66,9 +65,8 @@ impl Handler for MyHandler {
     }
 
     fn rcpt(&mut self, _to: &str) -> Response {
-        eprintln!("rcpt() to {:?}", _to);
+        // eprintln!("rcpt() to {:?}", _to);
         if let Some((_, message)) = self.mails.lock().unwrap().last_mut() {
-            std::dbg!(&message);
             if let Message::Mail { from } = message {
                 *message = Message::Rcpt {
                     from: from.clone(),
@@ -90,15 +88,11 @@ impl Handler for MyHandler {
         _is8bit: bool,
         _to: &[String],
     ) -> Response {
-        eprintln!(
-            "data_start() domain {:?} from {:?} is8bit {:?} to {:?}",
-            _domain, _from, _is8bit, _to
-        );
+        // eprintln!( "data_start() domain {:?} from {:?} is8bit {:?} to {:?}", _domain, _from, _is8bit, _to);
         if let Some(((_, d), ref mut message)) = self.mails.lock().unwrap().last_mut() {
             if d != _domain {
                 return INTERNAL_ERROR;
             }
-            std::dbg!(&message);
             if let Message::Rcpt { from, to } = message {
                 *message = Message::DataStart {
                     from: from.to_string(),
@@ -128,14 +122,12 @@ impl Handler for MyHandler {
     }
 
     fn data_end(&mut self) -> Response {
-        eprintln!("datae_nd() ");
+        //eprintln!("data_end()");
         if let Some(((_, _), message)) = self.mails.lock().unwrap().pop() {
             if let Message::Data { from: _, to, buf } = message {
                 for to in to {
                     match melib::Envelope::from_bytes(&buf, None) {
                         Ok(env) => {
-                            std::dbg!(&env);
-                            std::dbg!(env.other_headers());
                             self.stored.lock().unwrap().push((to.clone(), env));
                         }
                         Err(err) => {
@@ -198,11 +190,8 @@ fn test_smtp() {
         storage: "sqlite3".to_string(),
         data_path: tmp_dir.path().to_path_buf(),
     };
-    config.clone().init_with().unwrap();
 
-    assert_eq!(Database::db_path().unwrap(), db_path);
-
-    let db = Database::open_or_create_db(&config.db_path).unwrap();
+    let db = Database::open_or_create_db(&config).unwrap();
     assert!(db.list_lists().unwrap().is_empty());
     let foo_chat = db
         .create_list(MailingList {
@@ -234,7 +223,7 @@ fn test_smtp() {
     let input_bytes = include_bytes!("./test_sample_longmessage.eml");
     match melib::Envelope::from_bytes(input_bytes, None) {
         Ok(envelope) => {
-            eprintln!("envelope {:?}", &envelope);
+            // eprintln!("envelope {:?}", &envelope);
             match db
                 .post(&envelope, input_bytes, /* dry_run */ false)
                 .unwrap_err()

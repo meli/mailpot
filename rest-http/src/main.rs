@@ -27,6 +27,8 @@ pub use mailpot::*;
 
 use warp::Filter;
 
+use std::sync::Arc;
+
 /*
 fn json_body() -> impl Filter<Extract = (String,), Error = warp::Rejection> + Clone {
     // When accepting a body, we want a JSON body
@@ -38,46 +40,50 @@ fn json_body() -> impl Filter<Extract = (String,), Error = warp::Rejection> + Cl
 #[tokio::main]
 async fn main() {
     let config_path = std::env::args()
-        .skip(1)
-        .next()
+        .nth(1)
         .expect("Expected configuration file path as first argument.");
-    Configuration::init(config_path).unwrap();
+    let conf = Arc::new(Configuration::from_file(config_path).unwrap());
 
+    let conf1 = conf.clone();
     // GET /lists/:i64/policy
-    let policy = warp::path!("lists" / i64 / "policy").map(|list_pk| {
-        let db = Database::open_or_create_db(&Configuration::db_path().unwrap()).unwrap();
+    let policy = warp::path!("lists" / i64 / "policy").map(move |list_pk| {
+        let db = Database::open_or_create_db(&conf1).unwrap();
         db.get_list_policy(list_pk)
             .ok()
             .map(|l| warp::reply::json(&l.unwrap()))
             .unwrap()
     });
 
+    let conf2 = conf.clone();
     //get("/lists")]
-    let lists = warp::path!("lists").map(|| {
-        let db = Database::open_or_create_db(&Configuration::db_path().unwrap()).unwrap();
+    let lists = warp::path!("lists").map(move || {
+        let db = Database::open_or_create_db(&conf2).unwrap();
         let lists = db.list_lists().unwrap();
         warp::reply::json(&lists)
     });
 
+    let conf3 = conf.clone();
     //get("/lists/<num>")]
-    let lists_num = warp::path!("lists" / i64).map(|list_pk| {
-        let db = Database::open_or_create_db(&Configuration::db_path().unwrap()).unwrap();
+    let lists_num = warp::path!("lists" / i64).map(move |list_pk| {
+        let db = Database::open_or_create_db(&conf3).unwrap();
         let list = db.get_list(list_pk).unwrap();
         warp::reply::json(&list)
     });
 
+    let conf4 = conf.clone();
     //get("/lists/<num>/members")]
-    let lists_members = warp::path!("lists" / i64 / "members").map(|list_pk| {
-        let db = Database::open_or_create_db(&Configuration::db_path().unwrap()).unwrap();
+    let lists_members = warp::path!("lists" / i64 / "members").map(move |list_pk| {
+        let db = Database::open_or_create_db(&conf4).unwrap();
         db.list_members(list_pk)
             .ok()
             .map(|l| warp::reply::json(&l))
             .unwrap()
     });
 
+    let conf5 = conf.clone();
     //get("/lists/<num>/owners")]
-    let lists_owners = warp::path!("lists" / i64 / "owners").map(|list_pk| {
-        let db = Database::open_or_create_db(&Configuration::db_path().unwrap()).unwrap();
+    let lists_owners = warp::path!("lists" / i64 / "owners").map(move |list_pk| {
+        let db = Database::open_or_create_db(&conf5).unwrap();
         db.get_list_owners(list_pk)
             .ok()
             .map(|l| warp::reply::json(&l))

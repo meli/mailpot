@@ -31,11 +31,8 @@ fn test_error_queue() {
         storage: "sqlite3".to_string(),
         data_path: tmp_dir.path().to_path_buf(),
     };
-    config.init_with().unwrap();
 
-    assert_eq!(Database::db_path().unwrap(), db_path);
-
-    let db = Database::open_or_create_db(&db_path).unwrap();
+    let db = Database::open_or_create_db(&config).unwrap();
     assert!(db.list_lists().unwrap().is_empty());
     let foo_chat = db
         .create_list(MailingList {
@@ -63,23 +60,17 @@ fn test_error_queue() {
         .unwrap();
 
     assert_eq!(post_policy.pk(), 1);
+    assert_eq!(db.error_queue().unwrap().len(), 0);
 
     let input_bytes = include_bytes!("./test_sample_longmessage.eml");
-    match melib::Envelope::from_bytes(input_bytes, None) {
-        Ok(envelope) => {
-            eprintln!("envelope {:?}", &envelope);
-            match db
-                .post(&envelope, input_bytes, /* dry_run */ false)
-                .unwrap_err()
-                .kind()
-            {
-                mailpot::ErrorKind::PostRejected(_reason) => {}
-                other => panic!("Got unexpected error: {}", other),
-            }
-            assert_eq!(db.error_queue().unwrap().len(), 1)
-        }
-        Err(err) => {
-            panic!("Could not parse message: {}", err);
-        }
+    let envelope = melib::Envelope::from_bytes(input_bytes, None).expect("Could not parse message");
+    match db
+        .post(&envelope, input_bytes, /* dry_run */ false)
+        .unwrap_err()
+        .kind()
+    {
+        mailpot::ErrorKind::PostRejected(_reason) => {}
+        other => panic!("Got unexpected error: {}", other),
     }
+    assert_eq!(db.error_queue().unwrap().len(), 1);
 }
