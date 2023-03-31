@@ -16,7 +16,7 @@ chrono = { version = "^0.4", features = ["serde", ] }
 error-chain = { version = "0.12.4", default-features = false }
 log = "0.4"
 melib = { version = "*", default-features = false, features = ["smtp", "unicode_algorithms", "maildir_backend"], git = "https://github.com/meli/meli", rev = "2447a2c" }
-rusqlite = { version = "^0.27", features = ["bundled"] }
+rusqlite = { version = "^0.28", features = ["bundled"] }
 serde = { version = "^1", features = ["derive", ] }
 serde_json = "^1"
 toml = "^0.5"

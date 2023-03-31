@@ -7,7 +7,7 @@ license = "LICENSE"
 readme = "README.md"
 description = "mailing list manager"
 repository = "https://github.com/meli/mailpot"
-keywords = ["mail", "mailing-lists" ]
+keywords = ["mail", "mailing-lists"]
 categories = ["email"]
 default-run = "mpot-http"
 
@@ -17,5 +17,5 @@ path = "src/main.rs"
 
 [dependencies]
 mailpot = { version = "0.1.0", path = "../core" }
-tokio = { version = "1", features = ["full"] }
-warp = "0.3"
+tokio = { version = "^1", features = ["full"] }
+warp = "^0.3"

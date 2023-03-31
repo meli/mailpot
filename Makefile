@@ -5,6 +5,7 @@ check:
 .PHONY: fmt
 fmt:
 	cargo fmt --all
+	cargo sort -w || true
 
 .PHONY: lint
 lint:
