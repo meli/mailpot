@@ -48,7 +48,7 @@ error_chain! {
        Sql(rusqlite::Error);
        Io(::std::io::Error);
        Xdg(xdg::BaseDirectoriesError);
-       Melib(melib::error::MeliError);
+       Melib(melib::error::Error);
        Configuration(toml::de::Error);
        SerdeJson(serde_json::Error);
    }

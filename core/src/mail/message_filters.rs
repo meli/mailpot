@@ -175,7 +175,7 @@ impl PostFilter for FinalizeRecipients {
         let email_from = post.from.get_email();
         for member in ctx.memberships {
             trace!("examining member {:?}", &member);
-            if member.address != email_from {
+            if member.address == email_from {
                 trace!("member is submitter");
             }
             if member.digest {

@@ -1,3 +1,4 @@
+use log::{trace, warn};
 use mailin_embedded::{Handler, Response, Server, SslConfig};
 use mailpot::{melib, models::*, Configuration, Database, SendMail};
 use std::net::IpAddr; //, Ipv4Addr, Ipv6Addr};
@@ -229,7 +230,9 @@ fn test_smtp() {
                 .unwrap_err()
                 .kind()
             {
-                mailpot::ErrorKind::PostRejected(_reason) => {}
+                mailpot::ErrorKind::PostRejected(reason) => {
+                    trace!("Non-member post succesfully rejected: '{reason}'");
+                }
                 other => panic!("Got unexpected error: {}", other),
             }
 
@@ -273,4 +276,129 @@ fn test_smtp() {
         }
     }
     assert_eq!(handler.stored.lock().unwrap().len(), 2);
+}
+
+#[test]
+fn test_smtp_mailcrab() {
+    use std::env;
+
+    fn get_smtp_conf() -> melib::smtp::SmtpServerConf {
+        use melib::smtp::*;
+        SmtpServerConf {
+            hostname: "127.0.0.1".into(),
+            port: 1025,
+            envelope_from: "foo-chat@example.com".into(),
+            auth: SmtpAuth::None,
+            security: SmtpSecurity::None,
+            extensions: Default::default(),
+        }
+    }
+
+    stderrlog::new()
+        .quiet(false)
+        .verbosity(15)
+        .show_module_names(true)
+        .timestamp(stderrlog::Timestamp::Millisecond)
+        .init()
+        .unwrap();
+    let Ok(mailcrab_ip) = env::var("MAILCRAB_IP") else {
+        warn!("MAILCRAB_IP env var not set, is mailcrab server running?");
+        return;
+    };
+    let mailcrab_port = env::var("MAILCRAB_PORT").unwrap_or("1080".to_string());
+    let api_uri = format!("http://{mailcrab_ip}:{mailcrab_port}/api/messages");
+
+    let tmp_dir = TempDir::new().unwrap();
+
+    let db_path = tmp_dir.path().join("mpot.db");
+    let config = Configuration {
+        send_mail: SendMail::Smtp(get_smtp_conf()),
+        db_path: db_path.clone(),
+        storage: "sqlite3".to_string(),
+        data_path: tmp_dir.path().to_path_buf(),
+    };
+
+    let db = Database::open_or_create_db(&config).unwrap();
+    assert!(db.list_lists().unwrap().is_empty());
+    let foo_chat = db
+        .create_list(MailingList {
+            pk: 0,
+            name: "foobar chat".into(),
+            id: "foo-chat".into(),
+            address: "foo-chat@example.com".into(),
+            description: None,
+            archive_url: None,
+        })
+        .unwrap();
+
+    assert_eq!(foo_chat.pk(), 1);
+    let post_policy = db
+        .set_list_policy(
+            foo_chat.pk(),
+            PostPolicy {
+                pk: 0,
+                list: foo_chat.pk(),
+                announce_only: false,
+                subscriber_only: true,
+                approval_needed: false,
+            },
+        )
+        .unwrap();
+
+    assert_eq!(post_policy.pk(), 1);
+
+    let input_bytes = include_bytes!("./test_sample_longmessage.eml");
+    match melib::Envelope::from_bytes(input_bytes, None) {
+        Ok(envelope) => {
+            match db
+                .post(&envelope, input_bytes, /* dry_run */ false)
+                .unwrap_err()
+                .kind()
+            {
+                mailpot::ErrorKind::PostRejected(reason) => {
+                    trace!("Non-member post succesfully rejected: '{reason}'");
+                }
+                other => panic!("Got unexpected error: {}", other),
+            }
+            db.add_member(
+                foo_chat.pk(),
+                ListMembership {
+                    pk: 0,
+                    list: foo_chat.pk(),
+                    address: "japoeunp@hotmail.com".into(),
+                    name: Some("Jamaica Poe".into()),
+                    digest: false,
+                    hide_address: false,
+                    receive_duplicates: true,
+                    receive_own_posts: true,
+                    receive_confirmation: true,
+                    enabled: true,
+                },
+            )
+            .unwrap();
+            db.add_member(
+                foo_chat.pk(),
+                ListMembership {
+                    pk: 0,
+                    list: foo_chat.pk(),
+                    address: "manos@example.com".into(),
+                    name: Some("Manos Hands".into()),
+                    digest: false,
+                    hide_address: false,
+                    receive_duplicates: true,
+                    receive_own_posts: true,
+                    receive_confirmation: true,
+                    enabled: true,
+                },
+            )
+            .unwrap();
+            db.post(&envelope, input_bytes, /* dry_run */ false)
+                .unwrap();
+        }
+        Err(err) => {
+            panic!("Could not parse message: {}", err);
+        }
+    }
+    let mails: String = reqwest::blocking::get(&api_uri).unwrap().text().unwrap();
+    trace!("mails: {}", mails);
 }

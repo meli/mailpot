@@ -94,6 +94,39 @@ CREATE TABLE IF NOT EXISTS error_queue (
   datetime                TEXT NOT NULL DEFAULT (datetime())
 );
 
+-- # Queues
+--
+-- ## The "maildrop" queue
+--
+-- Messages that have been submitted  but not yet processed, await processing in
+-- the "maildrop" queue. Messages can be added to the "maildrop" queue even when
+-- mailpot is not running.
+--
+-- ## The "deferred" queue
+--
+-- When all the deliverable recipients for a message are delivered, and for some
+-- recipients delivery failed for a transient reason (it might succeed later), the
+-- message is placed in the "deferred" queue.
+--
+-- ## The "hold" queue
+--
+-- List administrators may introduce rules for emails to be placed indefinitely in
+-- the "hold" queue. Messages placed in the "hold" queue stay there until the
+-- administrator intervenes. No periodic delivery attempts are made for messages
+-- in the "hold" queue.
+CREATE TABLE IF NOT EXISTS queue (
+  pk                      INTEGER PRIMARY KEY NOT NULL,
+  kind                    TEXT CHECK (kind IN ('maildrop', 'hold', 'deferred', 'corrupt')) NOT NULL,
+  to_addresses            TEXT NOT NULL,
+  from_address            TEXT NOT NULL,
+  subject                 TEXT NOT NULL,
+  message_id              TEXT NOT NULL,
+  message                 BLOB NOT NULL,
+  timestamp               INTEGER NOT NULL DEFAULT (unixepoch()),
+  datetime                TEXT NOT NULL DEFAULT (datetime())
+);
+
+
 CREATE INDEX IF NOT EXISTS post_listpk_idx ON post(list);
 CREATE INDEX IF NOT EXISTS post_msgid_idx ON post(message_id);
 CREATE INDEX IF NOT EXISTS mailing_lists_idx ON mailing_lists(id);

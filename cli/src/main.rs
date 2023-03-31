@@ -642,7 +642,7 @@ fn run_app(opt: Opt) -> Result<()> {
             fn get_file_hash(file: &std::path::Path) -> EnvelopeHash {
                 let mut hasher = DefaultHasher::default();
                 file.hash(&mut hasher);
-                hasher.finish()
+                EnvelopeHash(hasher.finish())
             }
             let mut buf = Vec::with_capacity(4096);
             let files =

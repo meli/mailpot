@@ -49,7 +49,7 @@ impl Database {
         }
         Ok(Database {
             conf: conf.clone(),
-            connection: DbConnection::open(&conf.db_path.to_str().unwrap())?,
+            connection: DbConnection::open(conf.db_path.to_str().unwrap())?,
         })
     }
 
@@ -95,7 +95,7 @@ impl Database {
             .canonicalize()
             .context("Could not canonicalize db path")?;
 
-        let conn = DbConnection::open(&db_path.to_str().unwrap())?;
+        let conn = DbConnection::open(db_path.to_str().unwrap())?;
 
         Ok(Database {
             conf: conf.clone(),
