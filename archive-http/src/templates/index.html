@@ -2,7 +2,11 @@
 <div class="entry">
     <h1>{{title}}</h1>
     <div class="body">
-        {{body}}
+      <ul>
+      {% for l in lists %}
+      <li><a href="/lists/{{ l.list.pk }}/">{{l.title}}</a></li>
+      {% endfor %}
+      </ul>
     </div>
 </div>
 {% include "footer.html" %}

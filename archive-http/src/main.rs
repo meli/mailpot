@@ -27,24 +27,16 @@ pub use mailpot::*;
 
 use std::sync::Arc;
 
+use minijinja::{Environment, Source};
 use percent_encoding::percent_decode_str;
-use tera::{Context, Tera};
 use warp::Filter;
 
 lazy_static::lazy_static! {
-    pub static ref TEMPLATES: Tera = {
-        let mut tera = match Tera::new("src/templates/*") {
-            Ok(t) => t,
-            Err(e) => {
-                println!("Parsing error(s): {}", e);
-                ::std::process::exit(1);
-            }
-        };
-        let names: Vec<_> = tera.get_template_names().collect();
-        println!("names: {:?}", names);
-        assert!(!names.is_empty());
-        tera.autoescape_on(vec![".html", ".sql"]);
-        tera
+    pub static ref TEMPLATES: Environment<'static> = {
+        let mut env = Environment::new();
+        env.set_source(Source::from_path("src/templates/"));
+
+        env
     };
 }
 
@@ -110,15 +102,38 @@ async fn main() {
         let db = Database::open_db(&conf1).unwrap();
         let list = db.get_list(list_pk).unwrap().unwrap();
         let months = db.months(list_pk).unwrap();
-        let posts = db.list_posts(list_pk, None).unwrap();
-        let mut context = Context::new();
-        context.insert("title", &list.name);
-        context.insert("list", &list);
-        context.insert("months", &months);
-        context.insert("posts", &posts);
-        context.insert("body", &list.description.clone().unwrap_or_default());
+        let posts = db
+            .list_posts(list_pk, None)
+            .unwrap()
+            .into_iter()
+            .map(|post| {
+                let envelope = melib::Envelope::from_bytes(post.message.as_slice(), None)
+                    .expect("Could not parse mail");
+                minijinja::context! {
+                        pk => post.pk,
+                        list => post.list,
+                        subject => envelope.subject(),
+                        address=> post.address,
+                        message_id => post.message_id,
+                        message => post.message,
+                        timestamp => post.timestamp,
+                        datetime => post.datetime,
+                }
+            })
+            .collect::<Vec<_>>();
+        let context = minijinja::context! {
+            title=> &list.name,
+            list=> &list,
+            months=> &months,
+            posts=> posts,
+            body=>&list.description.clone().unwrap_or_default(),
+        };
         Ok(warp::reply::html(
-            TEMPLATES.render("list.html", &context).unwrap(),
+            TEMPLATES
+                .get_template("list.html")
+                .unwrap()
+                .render(context)
+                .unwrap_or_else(|err| err.to_string()),
         ))
     });
     let conf2 = conf.clone();
@@ -136,30 +151,25 @@ async fn main() {
                 .expect("Could not parse mail");
             let body = envelope.body_bytes(post.message.as_slice());
             let body_text = body.text();
-            let mut context = Context::new();
-            context.insert("title", &list.name);
-            context.insert("list", &list);
-            context.insert("post", &post);
-            context.insert("posts", &posts);
-            context.insert("body", &body_text);
-            context.insert("from", &envelope.field_from_to_string());
-            context.insert("date", &envelope.date_as_str());
-            context.insert("to", &envelope.field_to_to_string());
-            context.insert("subject", &envelope.subject());
-            context.insert(
-                "in_reply_to",
-                &envelope.in_reply_to_display().map(|r| r.to_string()),
-            );
-            context.insert(
-                "references",
-                &envelope
-                    .references()
-                    .into_iter()
-                    .map(|m| m.to_string())
-                    .collect::<Vec<String>>(),
-            );
+            let context = minijinja::context !{
+                title => &list.name,
+                list => &list,
+                post => &post,
+                posts => &posts,
+                body => &body_text,
+                from => &envelope.field_from_to_string(),
+                date => &envelope.date_as_str(),
+                to => &envelope.field_to_to_string(),
+                subject => &envelope.subject(),
+                in_reply_to => &envelope.in_reply_to_display().map(|r| r.to_string()),
+                references => &envelope .references() .into_iter() .map(|m| m.to_string()) .collect::<Vec<String>>(),
+            };
             Ok(warp::reply::html(
-                TEMPLATES.render("post.html", &context).unwrap(),
+                    TEMPLATES
+                    .get_template("post.html")
+                    .unwrap()
+                    .render(context)
+                .unwrap_or_else(|err| err.to_string()),
             ))
         });
     let conf3 = conf.clone();
@@ -170,23 +180,28 @@ async fn main() {
         let lists = lists_values
             .iter()
             .map(|list| {
-                let mut context = Context::new();
                 let months = db.months(list.pk).unwrap();
                 let posts = db.list_posts(list.pk, None).unwrap();
-                context.insert("title", &list.name);
-                context.insert("list", &list);
-                context.insert("posts", &posts);
-                context.insert("months", &months);
-                context.insert("body", &list.description.as_deref().unwrap_or_default());
-                context.into_json()
+                minijinja::context! {
+                    title => &list.name,
+                    list => &list,
+                    posts => &posts,
+                    months => &months,
+                    body => &list.description.as_deref().unwrap_or_default(),
+                }
             })
             .collect::<Vec<_>>();
-        let mut context = Context::new();
-        context.insert("title", "mailing list archive");
-        context.insert("description", "");
-        context.insert("lists", &lists);
+        let context = minijinja::context! {
+            title => "mailing list archive",
+            description => "",
+            lists => &lists,
+        };
         Ok(warp::reply::html(
-            TEMPLATES.render("lists.html", &context).unwrap(),
+            TEMPLATES
+                .get_template("lists.html")
+                .unwrap()
+                .render(context)
+                .unwrap_or_else(|err| err.to_string()),
         ))
     });
     let routes = warp::get()
