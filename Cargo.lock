@@ -1355,10 +1355,12 @@ dependencies = [
 name = "mpot-archives"
 version = "0.1.0"
 dependencies = [
+ "chrono",
  "lazy_static",
  "mailpot",
  "minijinja",
  "percent-encoding",
+ "serde",
  "serde_json",
  "tokio",
  "warp",

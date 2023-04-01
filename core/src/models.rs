@@ -22,7 +22,9 @@ pub mod changesets;
 
 use melib::email::Address;
 
-pub struct DbVal<T>(pub T, pub i64);
+#[derive(Debug, PartialEq, Eq, Clone, Deserialize, Serialize)]
+#[serde(transparent)]
+pub struct DbVal<T>(pub T, #[serde(skip)] pub i64);
 
 impl<T> DbVal<T> {
     #[inline(always)]
@@ -44,36 +46,6 @@ where
 {
     fn fmt(&self, fmt: &mut std::fmt::Formatter) -> std::fmt::Result {
         write!(fmt, "{}", self.0)
-    }
-}
-
-impl<T> std::fmt::Debug for DbVal<T>
-where
-    T: std::fmt::Debug,
-{
-    fn fmt(&self, fmt: &mut std::fmt::Formatter) -> std::fmt::Result {
-        write!(fmt, "{:?}", self.0)
-    }
-}
-
-impl<T> serde::Serialize for DbVal<T>
-where
-    T: serde::Serialize,
-{
-    fn serialize<S>(&self, serializer: S) -> std::result::Result<S::Ok, S::Error>
-    where
-        S: serde::Serializer,
-    {
-        self.0.serialize(serializer)
-    }
-}
-
-impl<T> std::cmp::PartialEq for DbVal<T>
-where
-    T: std::cmp::PartialEq,
-{
-    fn eq(&self, other: &Self) -> bool {
-        self.0 == other.0
     }
 }
 
@@ -106,29 +78,55 @@ impl std::fmt::Display for MailingList {
 }
 
 impl MailingList {
-    pub fn list_id(&self) -> String {
+    pub fn display_name(&self) -> String {
         format!("\"{}\" <{}>", self.name, self.address)
     }
 
-    pub fn list_post(&self) -> Option<String> {
+    pub fn post_header(&self) -> Option<String> {
         Some(format!("<mailto:{}>", self.address))
     }
 
-    pub fn list_unsubscribe(&self) -> Option<String> {
+    pub fn unsubscribe_header(&self) -> Option<String> {
         let p = self.address.split('@').collect::<Vec<&str>>();
         Some(format!(
-            "<mailto:{}-request@{}?subject=unsubscribe>",
+            "<mailto:{}-request@{}?subject=subscribe>",
             p[0], p[1]
         ))
     }
 
-    pub fn list_archive(&self) -> Option<String> {
+    pub fn archive_header(&self) -> Option<String> {
         self.archive_url.as_ref().map(|url| format!("<{}>", url))
     }
 
-    pub fn list_address(&self) -> Address {
+    pub fn address(&self) -> Address {
         Address::new(Some(self.name.clone()), self.address.clone())
     }
+
+    pub fn unsubscribe_mailto(&self) -> Option<MailtoAddress> {
+        let p = self.address.split('@').collect::<Vec<&str>>();
+        Some(MailtoAddress {
+            address: format!("{}-request@{}", p[0], p[1]),
+            subject: Some("unsubscribe".to_string()),
+        })
+    }
+
+    pub fn subscribe_mailto(&self) -> Option<MailtoAddress> {
+        let p = self.address.split('@').collect::<Vec<&str>>();
+        dbg!(Some(MailtoAddress {
+            address: format!("{}-request@{}", p[0], p[1]),
+            subject: Some("subscribe".to_string()),
+        }))
+    }
+
+    pub fn archive_url(&self) -> Option<&str> {
+        self.archive_url.as_deref()
+    }
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct MailtoAddress {
+    pub address: String,
+    pub subject: Option<String>,
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
@@ -274,6 +272,7 @@ pub struct Post {
     pub message: Vec<u8>,
     pub timestamp: u64,
     pub datetime: String,
+    pub month_year: String,
 }
 
 impl std::fmt::Display for Post {

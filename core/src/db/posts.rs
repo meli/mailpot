@@ -93,7 +93,7 @@ impl Database {
         for t in &tos {
             if let Some((addr, subaddr)) = t.subaddress("+") {
                 lists.retain(|list| {
-                    if !addr.contains_address(&list.list_address()) {
+                    if !addr.contains_address(&list.address()) {
                         return true;
                     }
                     if let Err(err) = ListRequest::try_from((subaddr.as_str(), env))
@@ -110,10 +110,10 @@ impl Database {
             trace!(
                 "Is post related to list {}? {}",
                 &list,
-                tos.iter().any(|a| a.contains_address(&list.list_address()))
+                tos.iter().any(|a| a.contains_address(&list.address()))
             );
 
-            tos.iter().any(|a| a.contains_address(&list.list_address()))
+            tos.iter().any(|a| a.contains_address(&list.address()))
         });
         if lists.is_empty() {
             return Ok(());
@@ -122,7 +122,7 @@ impl Database {
         trace!("Configuration is {:#?}", &self.conf);
         use crate::mail::{ListContext, Post, PostAction};
         for mut list in lists {
-            trace!("Examining list {}", list.list_id());
+            trace!("Examining list {}", list.display_name());
             let filters = self.get_list_filters(&list);
             let memberships = self.list_members(list.pk)?;
             trace!("List members {:#?}", &memberships);

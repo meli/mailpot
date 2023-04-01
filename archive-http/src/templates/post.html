@@ -1,6 +1,6 @@
 {% include "header.html" %}
-<div class="entry">
-    <h1>{{subject}}</h1>
+<div class="body">
+    <h1>{{trimmed_subject}}</h1>
     <table class="headers">
       <tr>
         <th scope="row">List</th>
@@ -11,10 +11,6 @@
         <td>{{ from }}</td>
       </tr>
       <tr>
-        <th scope="row">Date</th>
-        <td>{{ date }}</td>
-      </tr>
-      <tr>
         <th scope="row">To</th>
         <td>{{ to }}</td>
       </tr>
@@ -22,14 +18,24 @@
         <th scope="row">Subject</th>
         <td>{{ subject }}</td>
       </tr>
+      <tr>
+        <th scope="row">Date</th>
+        <td>{{ date }}</td>
+      </tr>
       {% if in_reply_to %}
       <tr>
         <th scope="row">In-Reply-To</th>
-        <td>{{ in_reply_to }}</td>
+        <td class="message-id"><a href="{{ root_prefix|safe }}/list/{{list.pk}}/{{ in_reply_to }}.html">{{ in_reply_to }}</a></td>
+      </tr>
+      {% endif %}
+      {% if references %}
+      <tr>
+        <th scope="row">References</th>
+        <td>{% for r in references %}<span class="message-id"><a href="{{ root_prefix|safe }}/list/{{list.pk}}/{{ r }}.html">{{ r }}</a></span>{% endfor %}</td>
       </tr>
       {% endif %}
     </table>
-    <div class="body">
+    <div class="post-body">
       <pre>{{body}}</pre>
     </div>
 </div>

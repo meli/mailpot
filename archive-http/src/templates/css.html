@@ -1,0 +1,205 @@
+<style>
+* Use a more intuitive box-sizing model */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+/* Remove all margins & padding */
+* {
+  margin: 0;
+  padding: 0;
+}
+
+/* Only show focus outline when the user is tabbing (not when clicking) */
+*:focus {
+  outline: none;
+}
+
+*:focus-visible {
+  outline: 1px solid blue;
+}
+
+/* Prevent mobile browsers increasing font-size */
+html {
+  -moz-text-size-adjust: none;
+  -webkit-text-size-adjust: none;
+  text-size-adjust: none;
+}
+
+/* Allow percentage-based heights */
+/* Setting width: 100% isn't required because it is a default for block-level elements (html & body are block level) */
+html, body {
+  height: 100%;
+}
+
+body {
+  /* Prevent the rubber band effect when the user scrolls to the top or bottom of the page (WebKit only) */
+  overscroll-behavior: none;
+
+  /* Prevent the browser from synthesizing missing typefaces */
+  font-synthesis: none;
+
+  color: black;
+  /* UI controls color (example: range input) */
+  accent-color: black;
+
+  /* Because overscroll-behavior: none only works on WebKit, a background color is set that will show when overscroll occurs  */
+  background: white;
+}
+
+/* Remove unintuitive behaviour such as gaps around media elements.  */
+img, picture, video, canvas, svg, iframe {
+  display: block;
+}
+
+/* Avoid text overflow */
+h1, h2, h3, h4, h5, h6, p, strong {
+  overflow-wrap: break-word;
+}
+
+a {
+  text-decoration: none;
+}
+
+ul, ol {
+  list-style: none;
+}
+
+input {
+  border: none;
+}
+
+input, button, textarea, select {
+  font: inherit;
+}
+
+/* Create a root stacking context (only when using frameworks like Next.js) */
+#__next {
+  isolation: isolate;
+}
+
+
+body>div.layout {
+  width: 100%;
+
+  display: grid;
+  grid:
+    "header header header" auto
+    "leftside body rightside" 1fr
+    "footer footer footer" auto
+    / auto 1fr auto;
+  gap: 8px;
+}
+
+div.layout>.header { grid-area: header; }
+div.layout>.leftside { grid-area: leftside; }
+div.layout>div.body { grid-area: body; }
+div.layout>.rightside { grid-area: rightside; }
+div.layout>.footer { grid-area: footer; }
+
+div.preamble {
+  border-left: 0.2rem solid GrayText;
+  padding-left: 0.5rem;
+}
+
+div.calendar th {
+  padding: 0.5rem;
+  opacity: 0.7;
+}
+
+div.calendar tr,
+div.calendar th {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  font-family: monospace;
+}
+
+div.calendar table {
+  display: inline-table;
+  border-collapse: collapse;
+}
+
+div.calendar td {
+  padding: 0.1rem 0.4rem;
+}
+
+div.calendar td.empty {
+  color: GrayText;
+}
+
+div.calendar td:not(.empty) {
+  font-weight: bold;
+}
+
+div.calendar td:not(:empty) {
+  border: 1px solid black;
+}
+
+div.calendar td:empty {
+  background: GrayText;
+  opacity: 0.3;
+}
+
+div.calendar {
+  display: flex;
+  flex-wrap: wrap;
+  flex-direction: row;
+  gap: 1rem;
+  align-items: baseline;
+}
+
+div.calendar caption {
+  font-weight: bold;
+}
+
+div.posts {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;  
+}
+
+div.posts>div.entry {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;  
+}
+
+div.posts>div.entry>span.subject {
+  font-size: larger;
+}
+
+div.posts>div.entry span.message-id,
+div.posts>div.entry span.date {
+  color: GrayText;
+}
+
+table.headers tr>th {
+  text-align: right;
+  color: GrayText;
+}
+table.headers tr>th:after {
+  content:':';
+  display: inline-block;
+}
+div.post-body {
+  margin: 1rem;
+}
+td.message-id,
+span.message-id{
+  color: GrayText;
+}
+td.message-id:before,
+span.message-id:before{
+  content:'<';
+  display: inline-block;
+}
+td.message-id:after,
+span.message-id:after{
+  content:'>';
+  display: inline-block;
+}
+span.message-id + span.message-id:before{
+  content:', <';
+  display: inline-block;
+}
+</style>

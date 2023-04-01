@@ -109,13 +109,13 @@ impl PostFilter for AddListHeaders {
     ) -> std::result::Result<(&'p mut Post, &'p mut ListContext<'list>), ()> {
         trace!("Running AddListHeaders filter");
         let (mut headers, body) = melib::email::parser::mail(&post.bytes).unwrap();
-        let list_id = ctx.list.list_id();
+        let list_id = ctx.list.display_name();
         let sender = format!("<{}>", ctx.list.address);
         headers.push((&b"List-ID"[..], list_id.as_bytes()));
         headers.push((&b"Sender"[..], sender.as_bytes()));
-        let list_post = ctx.list.list_post();
-        let list_unsubscribe = ctx.list.list_unsubscribe();
-        let list_archive = ctx.list.list_archive();
+        let list_post = ctx.list.post_header();
+        let list_unsubscribe = ctx.list.unsubscribe_header();
+        let list_archive = ctx.list.archive_header();
         if let Some(post) = list_post.as_ref() {
             headers.push((&b"List-Post"[..], post.as_bytes()));
         }

@@ -281,7 +281,7 @@ impl Database {
     ) -> Result<Vec<DbVal<Post>>> {
         let mut stmt = self
             .connection
-            .prepare("SELECT * FROM post WHERE list = ?;")?;
+            .prepare("SELECT pk, list, address, message_id, message, timestamp, datetime, strftime('%Y-%m', CAST(timestamp AS INTEGER), 'unixepoch') as month_year FROM post WHERE list = ?;")?;
         let iter = stmt.query_map(rusqlite::params![&list_pk,], |row| {
             let pk = row.get("pk")?;
             Ok(DbVal(
@@ -293,6 +293,7 @@ impl Database {
                     message: row.get("message")?,
                     timestamp: row.get("timestamp")?,
                     datetime: row.get("datetime")?,
+                    month_year: row.get("month_year")?,
                 },
                 pk,
             ))
