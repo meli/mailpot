@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>meli-general</title>
+        <style>
+    @charset "UTF-8";
+    * Use a more intuitive box-sizing model */
+    *, *::before, *::after {
+        box-sizing: border-box;
+    }
+
+    /* Remove all margins & padding */
+    * {
+        margin: 0;
+        padding: 0;
+    }
+
+    /* Only show focus outline when the user is tabbing (not when clicking) */
+    *:focus {
+        outline: none;
+    }
+
+    *:focus-visible {
+        outline: 1px solid blue;
+    }
+
+    /* Prevent mobile browsers increasing font-size */
+    html {
+        -moz-text-size-adjust: none;
+        -webkit-text-size-adjust: none;
+        text-size-adjust: none;
+        font-family:-apple-system,BlinkMacSystemFont,Arial,sans-serif;
+        line-height:1.15;
+        -webkit-text-size-adjust:100%;
+        overflow-y:scroll;
+    }
+
+    /* Allow percentage-based heights */
+    /* Setting width: 100% isn't required because it is a default for block-level elements (html & body are block level) */
+    html, body {
+        height: 100%;
+    }
+
+    body {
+        /* Prevent the rubber band effect when the user scrolls to the top or bottom of the page (WebKit only) */
+        overscroll-behavior: none;
+
+        /* Prevent the browser from synthesizing missing typefaces */
+        font-synthesis: none;
+
+        color: black;
+        /* UI controls color (example: range input) */
+        accent-color: black;
+
+        /* Because overscroll-behavior: none only works on WebKit, a background color is set that will show when overscroll occurs  */
+        background: white;
+        margin:0;
+        font-feature-settings:"onum" 1;
+        text-rendering:optimizeLegibility;
+        -webkit-font-smoothing:antialiased;
+        -moz-osx-font-smoothing:grayscale;
+        font-family:-apple-system,BlinkMacSystemFont,Roboto,Roboto Slab,Droid Serif,Segoe UI,system-ui,Arial,sans-serif;
+        font-size:1.125em
+    }
+
+    /* Remove unintuitive behaviour such as gaps around media elements.  */
+    img, picture, video, canvas, svg, iframe {
+        display: block;
+    }
+
+    /* Avoid text overflow */
+    h1, h2, h3, h4, h5, h6, p, strong {
+        overflow-wrap: break-word;
+    }
+
+    a {
+        text-decoration: none;
+    }
+
+    ul, ol {
+        list-style: none;
+    }
+
+    input {
+        border: none;
+    }
+
+    input, button, textarea, select {
+        font: inherit;
+    }
+
+    /* Create a root stacking context (only when using frameworks like Next.js) */
+    #__next {
+        isolation: isolate;
+    }
+
+
+    body>main.layout {
+        width: 100%;
+        overflow-wrap: anywhere;
+
+        display: grid;
+        grid:
+        "header header header" auto
+        "leftside body rightside" 1fr
+        "footer footer footer" auto
+        / auto 1fr auto;
+        gap: 8px;
+    }
+
+    main.layout>.header { grid-area: header; }
+    main.layout>.leftside { grid-area: leftside; }
+    main.layout>div.body { grid-area: body; }
+    main.layout>.rightside { grid-area: rightside; }
+    main.layout>footer {
+        grid-area: footer;
+        padding: 1rem 2rem;
+    }
+
+    main.layout>div.header>h1 {
+        margin: 1rem;
+    }
+
+    main.layout>div.body h2 {
+        margin: 1rem;
+    }
+
+    nav.breadcrumb ul:before {
+        content: "≫";
+        display: inline-block;
+        margin-right: 0.6rem;
+    }
+
+    .breadcrumb a {
+        padding: 0.4rem;
+        margin: -0.4rem;
+        font-size: larger;
+    }
+
+    .breadcrumb>ul>li:first-child a {
+        padding-left: 0rem;
+    }
+
+    .breadcrumb {
+        padding: 0rem 0.5rem;
+        margin: 1rem;
+    }
+
+    .breadcrumb span[aria-current="page"] {
+        color: GrayText;
+        vertical-align: sub;
+        padding: 0.4rem;
+        margin-left: -0.4rem;
+    }
+
+    .breadcrumb ul {
+        display: flex;
+        flex-wrap: wrap;
+        list-style: none;
+        margin: 0;
+        padding: 0;
+    }
+
+    .breadcrumb li:not(:last-child)::after {
+        display: inline-block;
+        margin: 0rem 0.25rem;
+        content: "→";
+        vertical-align: text-bottom;
+    }
+
+    div.preamble {
+        border-left: 0.2rem solid GrayText;
+        padding-left: 0.5rem;
+    }
+
+    div.calendar th {
+        padding: 0.5rem;
+        opacity: 0.7;
+    }
+
+    div.calendar tr,
+    div.calendar th {
+        text-align: right;
+        font-variant-numeric: tabular-nums;
+        font-family: monospace;
+    }
+
+    div.calendar table {
+        display: inline-table;
+        border-collapse: collapse;
+    }
+
+    div.calendar td {
+        padding: 0.1rem 0.4rem;
+    }
+
+    div.calendar td.empty {
+        color: GrayText;
+    }
+
+    div.calendar td:not(.empty) {
+        font-weight: bold;
+    }
+
+    div.calendar td:not(:empty) {
+        border: 1px solid black;
+    }
+
+    div.calendar td:empty {
+        background: GrayText;
+        opacity: 0.3;
+    }
+
+    div.calendar {
+        display: flex;
+        flex-wrap: wrap;
+        flex-direction: row;
+        gap: 1rem;
+        align-items: baseline;
+    }
+
+    div.calendar caption {
+        font-weight: bold;
+    }
+
+    div.posts {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    div.posts>div.entry {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    div.posts>div.entry>span.subject {
+        font-size: larger;
+    }
+
+    div.posts>div.entry>span.metadata {
+        color: GrayText;
+    }
+
+    div.posts>div.entry>span.metadata>span.from {
+        margin-inline-end: 1rem;
+    }
+
+    table.headers tr>th {
+        text-align: right;
+        color: GrayText;
+    }
+    table.headers th[scope="row"] {
+        padding-right: .5rem;
+    }
+    table.headers tr>th:after {
+        content:':';
+        display: inline-block;
+    }
+    div.post-body {
+        margin: 1rem;
+    }
+    div.post-body>pre {
+        max-width: 98vw;
+        overflow-wrap: break-word;
+        white-space: pre-line;
+    }
+    td.message-id,
+    span.message-id{
+        color: GrayText;
+    }
+    td.message-id:before,
+    span.message-id:before{
+        content:'<';
+        display: inline-block;
+    }
+    td.message-id:after,
+    span.message-id:after{
+        content:'>';
+        display: inline-block;
+    }
+    span.message-id + span.message-id:before{
+        content:', <';
+        display: inline-block;
+    }
+    td.faded,
+    span.faded {
+        color: GrayText;
+    }
+    td.faded:is(:focus, :hover, :focus-visible, :focus-within),
+    span.faded:is(:focus, :hover, :focus-visible, :focus-within) {
+        color: revert;
+    }
+
+    ul.lists {
+        padding: 1rem 2rem;
+    }
+
+    ul.lists li {
+        list-style: disc;
+    }
+
+    ul.lists li + li {
+        margin-top: 1rem;
+    }
+
+    hr {
+        margin: 1rem 0rem;
+    }
+</style>
+    </head>
+    <body>
+        <main class="layout">
+            <div class="header">
+                <h1>meli-general</h1>
+                
+                <nav aria-label="Breadcrumb" class="breadcrumb">
+    <ul>
+        
+            
+                <li><a href="&#x2f;mailpot&#x2f;">Lists</a></li>
+            
+        
+            
+                <li><a href="&#x2f;mailpot&#x2f;lists&#x2f;2&#x2f;">meli-general</a></li>
+            
+        
+            
+                <li><span aria-current="page">Still alive: a heartbeat</span></li>
+            
+        
+    </ul>
+</nav>
+                <hr />
+            </div>
+<div class="body">
+    <h2>Still alive: a heartbeat</h2>
+    <table class="headers">
+        <tr>
+            <th scope="row">List</th>
+            <td class="faded">meli-general</td>
+        </tr>
+        <tr>
+            <th scope="row">From</th>
+            <td>Manos Pitsidianakis &lt;epilys@nessuent.xyz&gt;</td>
+        </tr>
+        <tr>
+            <th scope="row">To</th>
+            <td class="faded">meli-general@meli.delivery, meli-devel@meli.delivery</td>
+        </tr>
+        <tr>
+            <th scope="row">Subject</th>
+            <td>[meli-general] Still alive: a heartbeat</td>
+        </tr>
+        <tr>
+            <th scope="row">Date</th>
+            <td class="faded">Wed, 24 Jun 2020 12:43:09 +0300</td>
+        </tr>
+        
+        
+    </table>
+    <div class="post-body">
+        <pre>Hello everyone and thank you for your interest.
+
+I&#x27;m writing to let you know development is still alive, though there
+haven&#x27;t been any tagged releases lately. This is because I keep adding
+features and fixes I want, and haven&#x27;t finalised a solid version
+candidate.
+
+Some changes that come to mind are:
+
+- ui: Add search in pagers
+- imap: add server_password_command
+- configuration: Add per-folder and per-account configuration overrides.
+  e.g. `accounts.&quot;imap.domain.tld&quot;.mailboxes.&quot;INBOX&quot;.index_style = &quot;plain&quot;`
+- themes: Add Italics, Blink, Dim and Hidden text attributes
+- themes: add support for themeing substrings that match a regexp
+- themes: add support for color and attribute aliases in theme files
+- ui: manual refresh for mailbox view
+- enhanced, portable Makefile
+- added Debian packaging
+- added `default_header_values`: default header values used when creating a new draft
+- ui: switch between sidebar and mailbox view with {left,right} keys for more intuitive navigation
+- ui: add optional filter query for each mailbox view to view only the matching subset of messages (for example, you can hide all seen envelopes with `filter = &quot;not flags:seen&quot;`
+- mbox: add support for multiple mbox mailboxes
+- numerous other fixes for notmuch, IMAP. Proper new notifications
+  recognition for IMAP
+
+Next moves are improving the async front. While the present job system
+may be improved, it might make sense to switch to Rust&#x27;s async features.
+I&#x27;m looking into whether an existing futures executor can be used or a
+custom one shall be made. This is because meli works with an event
+notification system and jobs aren&#x27;t going to be awaited in the UI
+thread, the executor should notify the UI thread that jobs are ready to
+be polled.
+
+You can check out the main git branch and provide feedback and bug
+reports.
+
+PS: Some people have been sending messages in the list but were rejected
+by the DMARC daemon: I have disabled the verification for the mailing
+list but I don&#x27;t know if it will work.
+</pre>
+    </div>
+</div>
+<footer>
+    <hr />
+    <p>Generated by <a href="https://github.com/meli/mailpot">mailpot</a>.</p>
+</footer>
+</main>
+</body>
+</html>

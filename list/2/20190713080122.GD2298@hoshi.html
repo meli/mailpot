@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>meli-general</title>
+        <style>
+    @charset "UTF-8";
+    * Use a more intuitive box-sizing model */
+    *, *::before, *::after {
+        box-sizing: border-box;
+    }
+
+    /* Remove all margins & padding */
+    * {
+        margin: 0;
+        padding: 0;
+    }
+
+    /* Only show focus outline when the user is tabbing (not when clicking) */
+    *:focus {
+        outline: none;
+    }
+
+    *:focus-visible {
+        outline: 1px solid blue;
+    }
+
+    /* Prevent mobile browsers increasing font-size */
+    html {
+        -moz-text-size-adjust: none;
+        -webkit-text-size-adjust: none;
+        text-size-adjust: none;
+        font-family:-apple-system,BlinkMacSystemFont,Arial,sans-serif;
+        line-height:1.15;
+        -webkit-text-size-adjust:100%;
+        overflow-y:scroll;
+    }
+
+    /* Allow percentage-based heights */
+    /* Setting width: 100% isn't required because it is a default for block-level elements (html & body are block level) */
+    html, body {
+        height: 100%;
+    }
+
+    body {
+        /* Prevent the rubber band effect when the user scrolls to the top or bottom of the page (WebKit only) */
+        overscroll-behavior: none;
+
+        /* Prevent the browser from synthesizing missing typefaces */
+        font-synthesis: none;
+
+        color: black;
+        /* UI controls color (example: range input) */
+        accent-color: black;
+
+        /* Because overscroll-behavior: none only works on WebKit, a background color is set that will show when overscroll occurs  */
+        background: white;
+        margin:0;
+        font-feature-settings:"onum" 1;
+        text-rendering:optimizeLegibility;
+        -webkit-font-smoothing:antialiased;
+        -moz-osx-font-smoothing:grayscale;
+        font-family:-apple-system,BlinkMacSystemFont,Roboto,Roboto Slab,Droid Serif,Segoe UI,system-ui,Arial,sans-serif;
+        font-size:1.125em
+    }
+
+    /* Remove unintuitive behaviour such as gaps around media elements.  */
+    img, picture, video, canvas, svg, iframe {
+        display: block;
+    }
+
+    /* Avoid text overflow */
+    h1, h2, h3, h4, h5, h6, p, strong {
+        overflow-wrap: break-word;
+    }
+
+    a {
+        text-decoration: none;
+    }
+
+    ul, ol {
+        list-style: none;
+    }
+
+    input {
+        border: none;
+    }
+
+    input, button, textarea, select {
+        font: inherit;
+    }
+
+    /* Create a root stacking context (only when using frameworks like Next.js) */
+    #__next {
+        isolation: isolate;
+    }
+
+
+    body>main.layout {
+        width: 100%;
+        overflow-wrap: anywhere;
+
+        display: grid;
+        grid:
+        "header header header" auto
+        "leftside body rightside" 1fr
+        "footer footer footer" auto
+        / auto 1fr auto;
+        gap: 8px;
+    }
+
+    main.layout>.header { grid-area: header; }
+    main.layout>.leftside { grid-area: leftside; }
+    main.layout>div.body { grid-area: body; }
+    main.layout>.rightside { grid-area: rightside; }
+    main.layout>footer {
+        grid-area: footer;
+        padding: 1rem 2rem;
+    }
+
+    main.layout>div.header>h1 {
+        margin: 1rem;
+    }
+
+    main.layout>div.body h2 {
+        margin: 1rem;
+    }
+
+    nav.breadcrumb ul:before {
+        content: "≫";
+        display: inline-block;
+        margin-right: 0.6rem;
+    }
+
+    .breadcrumb a {
+        padding: 0.4rem;
+        margin: -0.4rem;
+        font-size: larger;
+    }
+
+    .breadcrumb>ul>li:first-child a {
+        padding-left: 0rem;
+    }
+
+    .breadcrumb {
+        padding: 0rem 0.5rem;
+        margin: 1rem;
+    }
+
+    .breadcrumb span[aria-current="page"] {
+        color: GrayText;
+        vertical-align: sub;
+        padding: 0.4rem;
+        margin-left: -0.4rem;
+    }
+
+    .breadcrumb ul {
+        display: flex;
+        flex-wrap: wrap;
+        list-style: none;
+        margin: 0;
+        padding: 0;
+    }
+
+    .breadcrumb li:not(:last-child)::after {
+        display: inline-block;
+        margin: 0rem 0.25rem;
+        content: "→";
+        vertical-align: text-bottom;
+    }
+
+    div.preamble {
+        border-left: 0.2rem solid GrayText;
+        padding-left: 0.5rem;
+    }
+
+    div.calendar th {
+        padding: 0.5rem;
+        opacity: 0.7;
+    }
+
+    div.calendar tr,
+    div.calendar th {
+        text-align: right;
+        font-variant-numeric: tabular-nums;
+        font-family: monospace;
+    }
+
+    div.calendar table {
+        display: inline-table;
+        border-collapse: collapse;
+    }
+
+    div.calendar td {
+        padding: 0.1rem 0.4rem;
+    }
+
+    div.calendar td.empty {
+        color: GrayText;
+    }
+
+    div.calendar td:not(.empty) {
+        font-weight: bold;
+    }
+
+    div.calendar td:not(:empty) {
+        border: 1px solid black;
+    }
+
+    div.calendar td:empty {
+        background: GrayText;
+        opacity: 0.3;
+    }
+
+    div.calendar {
+        display: flex;
+        flex-wrap: wrap;
+        flex-direction: row;
+        gap: 1rem;
+        align-items: baseline;
+    }
+
+    div.calendar caption {
+        font-weight: bold;
+    }
+
+    div.posts {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    div.posts>div.entry {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    div.posts>div.entry>span.subject {
+        font-size: larger;
+    }
+
+    div.posts>div.entry>span.metadata {
+        color: GrayText;
+    }
+
+    div.posts>div.entry>span.metadata>span.from {
+        margin-inline-end: 1rem;
+    }
+
+    table.headers tr>th {
+        text-align: right;
+        color: GrayText;
+    }
+    table.headers th[scope="row"] {
+        padding-right: .5rem;
+    }
+    table.headers tr>th:after {
+        content:':';
+        display: inline-block;
+    }
+    div.post-body {
+        margin: 1rem;
+    }
+    div.post-body>pre {
+        max-width: 98vw;
+        overflow-wrap: break-word;
+        white-space: pre-line;
+    }
+    td.message-id,
+    span.message-id{
+        color: GrayText;
+    }
+    td.message-id:before,
+    span.message-id:before{
+        content:'<';
+        display: inline-block;
+    }
+    td.message-id:after,
+    span.message-id:after{
+        content:'>';
+        display: inline-block;
+    }
+    span.message-id + span.message-id:before{
+        content:', <';
+        display: inline-block;
+    }
+    td.faded,
+    span.faded {
+        color: GrayText;
+    }
+    td.faded:is(:focus, :hover, :focus-visible, :focus-within),
+    span.faded:is(:focus, :hover, :focus-visible, :focus-within) {
+        color: revert;
+    }
+
+    ul.lists {
+        padding: 1rem 2rem;
+    }
+
+    ul.lists li {
+        list-style: disc;
+    }
+
+    ul.lists li + li {
+        margin-top: 1rem;
+    }
+
+    hr {
+        margin: 1rem 0rem;
+    }
+</style>
+    </head>
+    <body>
+        <main class="layout">
+            <div class="header">
+                <h1>meli-general</h1>
+                
+                <nav aria-label="Breadcrumb" class="breadcrumb">
+    <ul>
+        
+            
+                <li><a href="&#x2f;mailpot&#x2f;">Lists</a></li>
+            
+        
+            
+                <li><a href="&#x2f;mailpot&#x2f;lists&#x2f;2&#x2f;">meli-general</a></li>
+            
+        
+            
+                <li><span aria-current="page">Questions about meli</span></li>
+            
+        
+    </ul>
+</nav>
+                <hr />
+            </div>
+<div class="body">
+    <h2>Questions about meli</h2>
+    <table class="headers">
+        <tr>
+            <th scope="row">List</th>
+            <td class="faded">meli-general</td>
+        </tr>
+        <tr>
+            <th scope="row">From</th>
+            <td>Matthias Beyer &lt;mail@beyermatthias.de&gt;</td>
+        </tr>
+        <tr>
+            <th scope="row">To</th>
+            <td class="faded">meli-general@meli.delivery</td>
+        </tr>
+        <tr>
+            <th scope="row">Subject</th>
+            <td>[meli-general] Questions about meli</td>
+        </tr>
+        <tr>
+            <th scope="row">Date</th>
+            <td class="faded">Sat, 13 Jul 2019 10:01:22 +0200</td>
+        </tr>
+        
+        
+    </table>
+    <div class="post-body">
+        <pre>Hi,
+
+I found meli via reddit and had a quick look at the website - awesome project
+and I&#x27;d love to contribute a little bit (only a little bit because I have some
+other stuff I really have to get going).
+
+I have one question which I did not see as answered after looking at the
+website, though:
+
+Do you plan to integrate mail fetching and sending in the mail client itself?
+Because I am really in favour of the unix philosophy here and I&#x27;d like to see a
+mail _reader_ seperate from a mail _sender_ and a mail _fetcher_. Also, I would
+love to see integration into other tooling (contact management, calendar
+management, task&#x2f;todo management) _outside_ of the mail client (if this is
+applicable at all to your project).
+
+
+FWIW, you have to note that I am the author of imag [0] the personal information
+management suite, where I want to have tools for contact management, mail
+tracking (not a MUA&#x2f;MTA though), todo management, etc etc etc...
+
+What I am mainly asking for is
+1) Unix philosophy: One tool for one job
+2) Possibility to integrate other tools via scripting (because that whats imag
+is focused on).
+
+
+Feel free to shoot me any questions and get a discussion going!
+
+
+[0]: https:&#x2f;&#x2f;imag-pim.org
+
+
+-- 
+Mit freundlichen Grüßen,
+Kind regards,
+Matthias Beyer
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEEGg7ZGbdq&#x2f;6NrnwfOzq8bZH7VayUFAl0pj9AACgkQzq8bZH7V
+ayW7SQ&#x2f;9HQo4MOKJslhFtA0vq52G3&#x2f;KuKuz2U1a4v5qFwxSyhaVwXl9Ey14iOXxg
+9E9TjzdmLpCF+Uf+2G4jBKJ5H9oTjTtogGGQjVAP3Ec6dZ7B2jhZrr398+lXoMyL
+KrGr745SVHsr979JWMpmdO8S60j60ZWixINo9jAUMMN59+fPrD3y+xeZYc66BHz8
+1RJyrucw3PVZ1xuEynTT72tc4vY4xM+qphPq0Sxhp+ivKY7CiWEIbMitlsk4NegS
+klNwdfxA4isTRnFhGufVTMqBD40uM78uZa1QsG73NAAIniSDkyXJK9FY+9ApyA1a
+LkdoY0R2YFarWW1QByp++l73Kl+EfI+69go8EcLMosHuAkL+z&#x2f;Y&#x2f;glp8Sd6QKN38
+Vqlk7W0sshtYDjH3cmmuOeuYZlPxRhWXmZoFg7c4nM9e30DyYoBuSY44BvTIq2oU
+1avLJTY5I3cx3hRuPqRvrD&#x2f;Vn9+1cRevpv7zXaDjNfllQSX+XaNMy6gCok923pQP
+zduOOmBIXjwCLNW8BRQxJhPvWtS&#x2f;5Q&#x2f;tw0iYZD5lrJQnZYB7mxwCAMogyr2jY91v
+bLX8Hb50Ryk3Qq6MSlCmiY2+foWFEpTfpCWZ&#x2f;wisxXs7b3r6GXmJWIi8fvn+8H2E
+NoWfH26UUYuOhBuH31+LeiedcfKxa8Nv3dz+eI&#x2f;+AefofETssVE=
+=Awbs
+-----END PGP SIGNATURE-----
+</pre>
+    </div>
+</div>
+<footer>
+    <hr />
+    <p>Generated by <a href="https://github.com/meli/mailpot">mailpot</a>.</p>
+</footer>
+</main>
+</body>
+</html>

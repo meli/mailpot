@@ -1,0 +1,2840 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>meli-general</title>
+        <style>
+    @charset "UTF-8";
+    * Use a more intuitive box-sizing model */
+    *, *::before, *::after {
+        box-sizing: border-box;
+    }
+
+    /* Remove all margins & padding */
+    * {
+        margin: 0;
+        padding: 0;
+    }
+
+    /* Only show focus outline when the user is tabbing (not when clicking) */
+    *:focus {
+        outline: none;
+    }
+
+    *:focus-visible {
+        outline: 1px solid blue;
+    }
+
+    /* Prevent mobile browsers increasing font-size */
+    html {
+        -moz-text-size-adjust: none;
+        -webkit-text-size-adjust: none;
+        text-size-adjust: none;
+        font-family:-apple-system,BlinkMacSystemFont,Arial,sans-serif;
+        line-height:1.15;
+        -webkit-text-size-adjust:100%;
+        overflow-y:scroll;
+    }
+
+    /* Allow percentage-based heights */
+    /* Setting width: 100% isn't required because it is a default for block-level elements (html & body are block level) */
+    html, body {
+        height: 100%;
+    }
+
+    body {
+        /* Prevent the rubber band effect when the user scrolls to the top or bottom of the page (WebKit only) */
+        overscroll-behavior: none;
+
+        /* Prevent the browser from synthesizing missing typefaces */
+        font-synthesis: none;
+
+        color: black;
+        /* UI controls color (example: range input) */
+        accent-color: black;
+
+        /* Because overscroll-behavior: none only works on WebKit, a background color is set that will show when overscroll occurs  */
+        background: white;
+        margin:0;
+        font-feature-settings:"onum" 1;
+        text-rendering:optimizeLegibility;
+        -webkit-font-smoothing:antialiased;
+        -moz-osx-font-smoothing:grayscale;
+        font-family:-apple-system,BlinkMacSystemFont,Roboto,Roboto Slab,Droid Serif,Segoe UI,system-ui,Arial,sans-serif;
+        font-size:1.125em
+    }
+
+    /* Remove unintuitive behaviour such as gaps around media elements.  */
+    img, picture, video, canvas, svg, iframe {
+        display: block;
+    }
+
+    /* Avoid text overflow */
+    h1, h2, h3, h4, h5, h6, p, strong {
+        overflow-wrap: break-word;
+    }
+
+    a {
+        text-decoration: none;
+    }
+
+    ul, ol {
+        list-style: none;
+    }
+
+    input {
+        border: none;
+    }
+
+    input, button, textarea, select {
+        font: inherit;
+    }
+
+    /* Create a root stacking context (only when using frameworks like Next.js) */
+    #__next {
+        isolation: isolate;
+    }
+
+
+    body>main.layout {
+        width: 100%;
+        overflow-wrap: anywhere;
+
+        display: grid;
+        grid:
+        "header header header" auto
+        "leftside body rightside" 1fr
+        "footer footer footer" auto
+        / auto 1fr auto;
+        gap: 8px;
+    }
+
+    main.layout>.header { grid-area: header; }
+    main.layout>.leftside { grid-area: leftside; }
+    main.layout>div.body { grid-area: body; }
+    main.layout>.rightside { grid-area: rightside; }
+    main.layout>footer {
+        grid-area: footer;
+        padding: 1rem 2rem;
+    }
+
+    main.layout>div.header>h1 {
+        margin: 1rem;
+    }
+
+    main.layout>div.body h2 {
+        margin: 1rem;
+    }
+
+    nav.breadcrumb ul:before {
+        content: "≫";
+        display: inline-block;
+        margin-right: 0.6rem;
+    }
+
+    .breadcrumb a {
+        padding: 0.4rem;
+        margin: -0.4rem;
+        font-size: larger;
+    }
+
+    .breadcrumb>ul>li:first-child a {
+        padding-left: 0rem;
+    }
+
+    .breadcrumb {
+        padding: 0rem 0.5rem;
+        margin: 1rem;
+    }
+
+    .breadcrumb span[aria-current="page"] {
+        color: GrayText;
+        vertical-align: sub;
+        padding: 0.4rem;
+        margin-left: -0.4rem;
+    }
+
+    .breadcrumb ul {
+        display: flex;
+        flex-wrap: wrap;
+        list-style: none;
+        margin: 0;
+        padding: 0;
+    }
+
+    .breadcrumb li:not(:last-child)::after {
+        display: inline-block;
+        margin: 0rem 0.25rem;
+        content: "→";
+        vertical-align: text-bottom;
+    }
+
+    div.preamble {
+        border-left: 0.2rem solid GrayText;
+        padding-left: 0.5rem;
+    }
+
+    div.calendar th {
+        padding: 0.5rem;
+        opacity: 0.7;
+    }
+
+    div.calendar tr,
+    div.calendar th {
+        text-align: right;
+        font-variant-numeric: tabular-nums;
+        font-family: monospace;
+    }
+
+    div.calendar table {
+        display: inline-table;
+        border-collapse: collapse;
+    }
+
+    div.calendar td {
+        padding: 0.1rem 0.4rem;
+    }
+
+    div.calendar td.empty {
+        color: GrayText;
+    }
+
+    div.calendar td:not(.empty) {
+        font-weight: bold;
+    }
+
+    div.calendar td:not(:empty) {
+        border: 1px solid black;
+    }
+
+    div.calendar td:empty {
+        background: GrayText;
+        opacity: 0.3;
+    }
+
+    div.calendar {
+        display: flex;
+        flex-wrap: wrap;
+        flex-direction: row;
+        gap: 1rem;
+        align-items: baseline;
+    }
+
+    div.calendar caption {
+        font-weight: bold;
+    }
+
+    div.posts {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    div.posts>div.entry {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    div.posts>div.entry>span.subject {
+        font-size: larger;
+    }
+
+    div.posts>div.entry>span.metadata {
+        color: GrayText;
+    }
+
+    div.posts>div.entry>span.metadata>span.from {
+        margin-inline-end: 1rem;
+    }
+
+    table.headers tr>th {
+        text-align: right;
+        color: GrayText;
+    }
+    table.headers th[scope="row"] {
+        padding-right: .5rem;
+    }
+    table.headers tr>th:after {
+        content:':';
+        display: inline-block;
+    }
+    div.post-body {
+        margin: 1rem;
+    }
+    div.post-body>pre {
+        max-width: 98vw;
+        overflow-wrap: break-word;
+        white-space: pre-line;
+    }
+    td.message-id,
+    span.message-id{
+        color: GrayText;
+    }
+    td.message-id:before,
+    span.message-id:before{
+        content:'<';
+        display: inline-block;
+    }
+    td.message-id:after,
+    span.message-id:after{
+        content:'>';
+        display: inline-block;
+    }
+    span.message-id + span.message-id:before{
+        content:', <';
+        display: inline-block;
+    }
+    td.faded,
+    span.faded {
+        color: GrayText;
+    }
+    td.faded:is(:focus, :hover, :focus-visible, :focus-within),
+    span.faded:is(:focus, :hover, :focus-visible, :focus-within) {
+        color: revert;
+    }
+
+    ul.lists {
+        padding: 1rem 2rem;
+    }
+
+    ul.lists li {
+        list-style: disc;
+    }
+
+    ul.lists li + li {
+        margin-top: 1rem;
+    }
+
+    hr {
+        margin: 1rem 0rem;
+    }
+</style>
+    </head>
+    <body>
+        <main class="layout">
+            <div class="header">
+                <h1>meli-general</h1>
+                
+                <nav aria-label="Breadcrumb" class="breadcrumb">
+    <ul>
+        
+            
+                <li><a href="&#x2f;mailpot&#x2f;">Lists</a></li>
+            
+        
+            
+                <li><span aria-current="page">meli-general</span></li>
+            
+        
+    </ul>
+</nav>
+                <hr />
+            </div>
+<div class="body">
+    
+        <div id="preamble" class="preamble">
+            
+                
+                    <h2 id="subscribe">Subscribe</h2>
+                    
+                    
+                        
+                            <p>
+                                <a href="mailto:meli-general-request@meli.delivery?subject=subscribe"><code>meli-general-request@meli.delivery</code></a> with the following subject: <code>subscribe</code>
+                            </p>
+                        
+                    
+
+                    
+                    
+                        <h2 id="unsubscribe">Unsubscribe</h2>
+                        
+                            <p>
+                                <a href="mailto:meli-general-request@meli.delivery?subject=unsubscribe"><code>meli-general-request@meli.delivery</code></a> with the following subject: <code>unsubscribe</code>
+                            </p>
+                        
+                    
+                
+
+                <h2 id="post">Post</h2>
+                
+                    <p>List is open to all posts <em>after approval</em> by the list owners.</p>
+                    <p>You can send new posts to:
+                        <a href="mailto:meli-general@meli.delivery"><code>meli-general@meli.delivery</code></a>
+                    </p>
+                
+            
+        </div>
+        <hr />
+    
+    <div class="list">
+        <h2 id="calendar">Calendar</h2>
+        <div class="calendar">
+            
+                
+    
+    
+        <table>
+            <caption align="top">
+                <!--<a href="/mailpot/list/2/2019-07">-->
+                <a href="#" style="color: GrayText;">
+                    July 2019
+                </a>
+            </caption>
+            <thead>
+                <tr>
+                    <th>M</th>
+                    <th>Tu</th>
+                    <th>W</th>
+                    <th>Th</th>
+                    <th>F</th>
+                    <th>Sa</th>
+                    <th>Su</th>
+                </tr>
+            </thead>
+            <tbody>
+                
+                    <tr>
+                        
+                            
+                                
+                                
+                                    <td class="empty">1</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">2</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">3</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">4</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">5</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">6</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">7</td>
+                                
+                            
+                        
+                    </tr>
+                
+                    <tr>
+                        
+                            
+                                
+                                
+                                    <td class="empty">8</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">9</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">10</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">11</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">12</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td><ruby>13<rt>(1)</rt></ruby></td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td><ruby>14<rt>(2)</rt></ruby></td>
+                                
+                            
+                        
+                    </tr>
+                
+                    <tr>
+                        
+                            
+                                
+                                
+                                    <td class="empty">15</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">16</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">17</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">18</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">19</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">20</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">21</td>
+                                
+                            
+                        
+                    </tr>
+                
+                    <tr>
+                        
+                            
+                                
+                                
+                                    <td class="empty">22</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">23</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">24</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">25</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">26</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">27</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">28</td>
+                                
+                            
+                        
+                    </tr>
+                
+                    <tr>
+                        
+                            
+                                
+                                
+                                    <td class="empty">29</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">30</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td><ruby>31<rt>(1)</rt></ruby></td>
+                                
+                            
+                        
+                            
+                                <td></td>
+                            
+                        
+                            
+                                <td></td>
+                            
+                        
+                            
+                                <td></td>
+                            
+                        
+                            
+                                <td></td>
+                            
+                        
+                    </tr>
+                
+            </tbody>
+        </table>
+    
+
+            
+                
+    
+    
+        <table>
+            <caption align="top">
+                <!--<a href="/mailpot/list/2/2019-08">-->
+                <a href="#" style="color: GrayText;">
+                    August 2019
+                </a>
+            </caption>
+            <thead>
+                <tr>
+                    <th>M</th>
+                    <th>Tu</th>
+                    <th>W</th>
+                    <th>Th</th>
+                    <th>F</th>
+                    <th>Sa</th>
+                    <th>Su</th>
+                </tr>
+            </thead>
+            <tbody>
+                
+                    <tr>
+                        
+                            
+                                <td></td>
+                            
+                        
+                            
+                                <td></td>
+                            
+                        
+                            
+                                <td></td>
+                            
+                        
+                            
+                                
+                                
+                                    <td><ruby>1<rt>(3)</rt></ruby></td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">2</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">3</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">4</td>
+                                
+                            
+                        
+                    </tr>
+                
+                    <tr>
+                        
+                            
+                                
+                                
+                                    <td class="empty">5</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">6</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">7</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">8</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">9</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">10</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">11</td>
+                                
+                            
+                        
+                    </tr>
+                
+                    <tr>
+                        
+                            
+                                
+                                
+                                    <td class="empty">12</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">13</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">14</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">15</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">16</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">17</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">18</td>
+                                
+                            
+                        
+                    </tr>
+                
+                    <tr>
+                        
+                            
+                                
+                                
+                                    <td class="empty">19</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">20</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">21</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">22</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">23</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">24</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">25</td>
+                                
+                            
+                        
+                    </tr>
+                
+                    <tr>
+                        
+                            
+                                
+                                
+                                    <td class="empty">26</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">27</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">28</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">29</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">30</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">31</td>
+                                
+                            
+                        
+                            
+                                <td></td>
+                            
+                        
+                    </tr>
+                
+            </tbody>
+        </table>
+    
+
+            
+                
+    
+    
+        <table>
+            <caption align="top">
+                <!--<a href="/mailpot/list/2/2019-09">-->
+                <a href="#" style="color: GrayText;">
+                    September 2019
+                </a>
+            </caption>
+            <thead>
+                <tr>
+                    <th>M</th>
+                    <th>Tu</th>
+                    <th>W</th>
+                    <th>Th</th>
+                    <th>F</th>
+                    <th>Sa</th>
+                    <th>Su</th>
+                </tr>
+            </thead>
+            <tbody>
+                
+                    <tr>
+                        
+                            
+                                <td></td>
+                            
+                        
+                            
+                                <td></td>
+                            
+                        
+                            
+                                <td></td>
+                            
+                        
+                            
+                                <td></td>
+                            
+                        
+                            
+                                <td></td>
+                            
+                        
+                            
+                                <td></td>
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">1</td>
+                                
+                            
+                        
+                    </tr>
+                
+                    <tr>
+                        
+                            
+                                
+                                
+                                    <td class="empty">2</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">3</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">4</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">5</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">6</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">7</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">8</td>
+                                
+                            
+                        
+                    </tr>
+                
+                    <tr>
+                        
+                            
+                                
+                                
+                                    <td class="empty">9</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">10</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">11</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">12</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">13</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">14</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">15</td>
+                                
+                            
+                        
+                    </tr>
+                
+                    <tr>
+                        
+                            
+                                
+                                
+                                    <td class="empty">16</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td><ruby>17<rt>(2)</rt></ruby></td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">18</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">19</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">20</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">21</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">22</td>
+                                
+                            
+                        
+                    </tr>
+                
+                    <tr>
+                        
+                            
+                                
+                                
+                                    <td class="empty">23</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">24</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">25</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">26</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">27</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">28</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td><ruby>29<rt>(1)</rt></ruby></td>
+                                
+                            
+                        
+                    </tr>
+                
+                    <tr>
+                        
+                            
+                                
+                                
+                                    <td class="empty">30</td>
+                                
+                            
+                        
+                            
+                                <td></td>
+                            
+                        
+                            
+                                <td></td>
+                            
+                        
+                            
+                                <td></td>
+                            
+                        
+                            
+                                <td></td>
+                            
+                        
+                            
+                                <td></td>
+                            
+                        
+                            
+                                <td></td>
+                            
+                        
+                    </tr>
+                
+            </tbody>
+        </table>
+    
+
+            
+                
+    
+    
+        <table>
+            <caption align="top">
+                <!--<a href="/mailpot/list/2/2020-06">-->
+                <a href="#" style="color: GrayText;">
+                    June 2020
+                </a>
+            </caption>
+            <thead>
+                <tr>
+                    <th>M</th>
+                    <th>Tu</th>
+                    <th>W</th>
+                    <th>Th</th>
+                    <th>F</th>
+                    <th>Sa</th>
+                    <th>Su</th>
+                </tr>
+            </thead>
+            <tbody>
+                
+                    <tr>
+                        
+                            
+                                
+                                
+                                    <td class="empty">1</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">2</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">3</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">4</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">5</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">6</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">7</td>
+                                
+                            
+                        
+                    </tr>
+                
+                    <tr>
+                        
+                            
+                                
+                                
+                                    <td class="empty">8</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">9</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">10</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">11</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">12</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">13</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">14</td>
+                                
+                            
+                        
+                    </tr>
+                
+                    <tr>
+                        
+                            
+                                
+                                
+                                    <td class="empty">15</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td><ruby>16<rt>(1)</rt></ruby></td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">17</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">18</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">19</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">20</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">21</td>
+                                
+                            
+                        
+                    </tr>
+                
+                    <tr>
+                        
+                            
+                                
+                                
+                                    <td class="empty">22</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">23</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td><ruby>24<rt>(1)</rt></ruby></td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">25</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">26</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">27</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">28</td>
+                                
+                            
+                        
+                    </tr>
+                
+                    <tr>
+                        
+                            
+                                
+                                
+                                    <td class="empty">29</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">30</td>
+                                
+                            
+                        
+                            
+                                <td></td>
+                            
+                        
+                            
+                                <td></td>
+                            
+                        
+                            
+                                <td></td>
+                            
+                        
+                            
+                                <td></td>
+                            
+                        
+                            
+                                <td></td>
+                            
+                        
+                    </tr>
+                
+            </tbody>
+        </table>
+    
+
+            
+                
+    
+    
+        <table>
+            <caption align="top">
+                <!--<a href="/mailpot/list/2/2020-07">-->
+                <a href="#" style="color: GrayText;">
+                    July 2020
+                </a>
+            </caption>
+            <thead>
+                <tr>
+                    <th>M</th>
+                    <th>Tu</th>
+                    <th>W</th>
+                    <th>Th</th>
+                    <th>F</th>
+                    <th>Sa</th>
+                    <th>Su</th>
+                </tr>
+            </thead>
+            <tbody>
+                
+                    <tr>
+                        
+                            
+                                <td></td>
+                            
+                        
+                            
+                                <td></td>
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">1</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">2</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">3</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">4</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">5</td>
+                                
+                            
+                        
+                    </tr>
+                
+                    <tr>
+                        
+                            
+                                
+                                
+                                    <td class="empty">6</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">7</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">8</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">9</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">10</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">11</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">12</td>
+                                
+                            
+                        
+                    </tr>
+                
+                    <tr>
+                        
+                            
+                                
+                                
+                                    <td class="empty">13</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">14</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">15</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">16</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">17</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">18</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">19</td>
+                                
+                            
+                        
+                    </tr>
+                
+                    <tr>
+                        
+                            
+                                
+                                
+                                    <td class="empty">20</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">21</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">22</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">23</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">24</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">25</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">26</td>
+                                
+                            
+                        
+                    </tr>
+                
+                    <tr>
+                        
+                            
+                                
+                                
+                                    <td class="empty">27</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">28</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">29</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td><ruby>30<rt>(1)</rt></ruby></td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">31</td>
+                                
+                            
+                        
+                            
+                                <td></td>
+                            
+                        
+                            
+                                <td></td>
+                            
+                        
+                    </tr>
+                
+            </tbody>
+        </table>
+    
+
+            
+                
+    
+    
+        <table>
+            <caption align="top">
+                <!--<a href="/mailpot/list/2/2020-09">-->
+                <a href="#" style="color: GrayText;">
+                    September 2020
+                </a>
+            </caption>
+            <thead>
+                <tr>
+                    <th>M</th>
+                    <th>Tu</th>
+                    <th>W</th>
+                    <th>Th</th>
+                    <th>F</th>
+                    <th>Sa</th>
+                    <th>Su</th>
+                </tr>
+            </thead>
+            <tbody>
+                
+                    <tr>
+                        
+                            
+                                <td></td>
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">1</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">2</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">3</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">4</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">5</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">6</td>
+                                
+                            
+                        
+                    </tr>
+                
+                    <tr>
+                        
+                            
+                                
+                                
+                                    <td class="empty">7</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">8</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">9</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">10</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">11</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">12</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">13</td>
+                                
+                            
+                        
+                    </tr>
+                
+                    <tr>
+                        
+                            
+                                
+                                
+                                    <td class="empty">14</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">15</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td><ruby>16<rt>(1)</rt></ruby></td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td><ruby>17<rt>(2)</rt></ruby></td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">18</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">19</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">20</td>
+                                
+                            
+                        
+                    </tr>
+                
+                    <tr>
+                        
+                            
+                                
+                                
+                                    <td class="empty">21</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">22</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">23</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">24</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">25</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">26</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td><ruby>27<rt>(2)</rt></ruby></td>
+                                
+                            
+                        
+                    </tr>
+                
+                    <tr>
+                        
+                            
+                                
+                                
+                                    <td><ruby>28<rt>(2)</rt></ruby></td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td><ruby>29<rt>(1)</rt></ruby></td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">30</td>
+                                
+                            
+                        
+                            
+                                <td></td>
+                            
+                        
+                            
+                                <td></td>
+                            
+                        
+                            
+                                <td></td>
+                            
+                        
+                            
+                                <td></td>
+                            
+                        
+                    </tr>
+                
+            </tbody>
+        </table>
+    
+
+            
+                
+    
+    
+        <table>
+            <caption align="top">
+                <!--<a href="/mailpot/list/2/2020-10">-->
+                <a href="#" style="color: GrayText;">
+                    October 2020
+                </a>
+            </caption>
+            <thead>
+                <tr>
+                    <th>M</th>
+                    <th>Tu</th>
+                    <th>W</th>
+                    <th>Th</th>
+                    <th>F</th>
+                    <th>Sa</th>
+                    <th>Su</th>
+                </tr>
+            </thead>
+            <tbody>
+                
+                    <tr>
+                        
+                            
+                                <td></td>
+                            
+                        
+                            
+                                <td></td>
+                            
+                        
+                            
+                                <td></td>
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">1</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">2</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">3</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">4</td>
+                                
+                            
+                        
+                    </tr>
+                
+                    <tr>
+                        
+                            
+                                
+                                
+                                    <td class="empty">5</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">6</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">7</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">8</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">9</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">10</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">11</td>
+                                
+                            
+                        
+                    </tr>
+                
+                    <tr>
+                        
+                            
+                                
+                                
+                                    <td class="empty">12</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">13</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">14</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">15</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">16</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">17</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">18</td>
+                                
+                            
+                        
+                    </tr>
+                
+                    <tr>
+                        
+                            
+                                
+                                
+                                    <td class="empty">19</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">20</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">21</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">22</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">23</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">24</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">25</td>
+                                
+                            
+                        
+                    </tr>
+                
+                    <tr>
+                        
+                            
+                                
+                                
+                                    <td class="empty">26</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td><ruby>27<rt>(1)</rt></ruby></td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">28</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td><ruby>29<rt>(1)</rt></ruby></td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">30</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">31</td>
+                                
+                            
+                        
+                            
+                                <td></td>
+                            
+                        
+                    </tr>
+                
+            </tbody>
+        </table>
+    
+
+            
+                
+    
+    
+        <table>
+            <caption align="top">
+                <!--<a href="/mailpot/list/2/2020-11">-->
+                <a href="#" style="color: GrayText;">
+                    November 2020
+                </a>
+            </caption>
+            <thead>
+                <tr>
+                    <th>M</th>
+                    <th>Tu</th>
+                    <th>W</th>
+                    <th>Th</th>
+                    <th>F</th>
+                    <th>Sa</th>
+                    <th>Su</th>
+                </tr>
+            </thead>
+            <tbody>
+                
+                    <tr>
+                        
+                            
+                                <td></td>
+                            
+                        
+                            
+                                <td></td>
+                            
+                        
+                            
+                                <td></td>
+                            
+                        
+                            
+                                <td></td>
+                            
+                        
+                            
+                                <td></td>
+                            
+                        
+                            
+                                <td></td>
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">1</td>
+                                
+                            
+                        
+                    </tr>
+                
+                    <tr>
+                        
+                            
+                                
+                                
+                                    <td class="empty">2</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">3</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td><ruby>4<rt>(1)</rt></ruby></td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">5</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">6</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">7</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">8</td>
+                                
+                            
+                        
+                    </tr>
+                
+                    <tr>
+                        
+                            
+                                
+                                
+                                    <td class="empty">9</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">10</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">11</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">12</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">13</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td><ruby>14<rt>(1)</rt></ruby></td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">15</td>
+                                
+                            
+                        
+                    </tr>
+                
+                    <tr>
+                        
+                            
+                                
+                                
+                                    <td class="empty">16</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">17</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">18</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">19</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">20</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">21</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">22</td>
+                                
+                            
+                        
+                    </tr>
+                
+                    <tr>
+                        
+                            
+                                
+                                
+                                    <td class="empty">23</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">24</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">25</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">26</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">27</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">28</td>
+                                
+                            
+                        
+                            
+                                
+                                
+                                    <td class="empty">29</td>
+                                
+                            
+                        
+                    </tr>
+                
+                    <tr>
+                        
+                            
+                                
+                                
+                                    <td class="empty">30</td>
+                                
+                            
+                        
+                            
+                                <td></td>
+                            
+                        
+                            
+                                <td></td>
+                            
+                        
+                            
+                                <td></td>
+                            
+                        
+                            
+                                <td></td>
+                            
+                        
+                            
+                                <td></td>
+                            
+                        
+                            
+                                <td></td>
+                            
+                        
+                    </tr>
+                
+            </tbody>
+        </table>
+    
+
+            
+        </div>
+        <hr />
+        <h2 id="posts">Posts</h2>
+        <div class="posts">
+            <p>25 post(s)</p>
+            
+                <div class="entry">
+                    <span class="subject"><a href="/mailpot/list/2/20190713080122.GD2298@hoshi.html">Questions about meli</a></span>
+                    <span class="metadata">👤&nbsp;<span class="from">mail@beyermatthias.de</span> 📆&nbsp;<span class="date">2019-07-13T11:01:22</span></span>
+                    <span class="metadata">🪪 &nbsp;<span class="message-id">20190713080122.GD2298@hoshi</span></span>
+                </div>
+            
+                <div class="entry">
+                    <span class="subject"><a href="/mailpot/list/2/umqrv.hf2gnnaj5q83@nessuent.xyz.html">Re: Questions about meli</a></span>
+                    <span class="metadata">👤&nbsp;<span class="from">epilys@nessuent.xyz</span> 📆&nbsp;<span class="date">2019-07-14T14:21:02</span></span>
+                    <span class="metadata">🪪 &nbsp;<span class="message-id">umqrv.hf2gnnaj5q83@nessuent.xyz</span></span>
+                </div>
+            
+                <div class="entry">
+                    <span class="subject"><a href="/mailpot/list/2/20190714114632.GD1945@hoshi.html">Re: Questions about meli</a></span>
+                    <span class="metadata">👤&nbsp;<span class="from">mail@beyermatthias.de</span> 📆&nbsp;<span class="date">2019-07-14T14:46:32</span></span>
+                    <span class="metadata">🪪 &nbsp;<span class="message-id">20190714114632.GD1945@hoshi</span></span>
+                </div>
+            
+                <div class="entry">
+                    <span class="subject"><a href="/mailpot/list/2/d065e340-c0f7-6b76-30e6-d4f11c4a51ed@orbitalfox.eu.html">Feature: handle mailto addresses</a></span>
+                    <span class="metadata">👤&nbsp;<span class="from">fox@orbitalfox.eu</span> 📆&nbsp;<span class="date">2019-07-31T21:00:07</span></span>
+                    <span class="metadata">🪪 &nbsp;<span class="message-id">d065e340-c0f7-6b76-30e6-d4f11c4a51ed@orbitalfox.eu</span></span>
+                </div>
+            
+                <div class="entry">
+                    <span class="subject"><a href="/mailpot/list/2/vjteq.jisv1wiqd2dz@nessuent.xyz.html">Re: Feature: handle mailto addresses</a></span>
+                    <span class="metadata">👤&nbsp;<span class="from">epilys@nessuent.xyz</span> 📆&nbsp;<span class="date">2019-08-01T11:05:31</span></span>
+                    <span class="metadata">🪪 &nbsp;<span class="message-id">vjteq.jisv1wiqd2dz@nessuent.xyz</span></span>
+                </div>
+            
+                <div class="entry">
+                    <span class="subject"><a href="/mailpot/list/2/44e95ea4-36b8-c693-08e1-cae63a27f9a9@orbitalfox.eu.html">Re: Feature: handle mailto addresses</a></span>
+                    <span class="metadata">👤&nbsp;<span class="from">fox@orbitalfox.eu</span> 📆&nbsp;<span class="date">2019-08-01T11:17:04</span></span>
+                    <span class="metadata">🪪 &nbsp;<span class="message-id">44e95ea4-36b8-c693-08e1-cae63a27f9a9@orbitalfox.eu</span></span>
+                </div>
+            
+                <div class="entry">
+                    <span class="subject"><a href="/mailpot/list/2/vju3b.zyxky906x9rg@nessuent.xyz.html">Re: Feature: handle mailto addresses</a></span>
+                    <span class="metadata">👤&nbsp;<span class="from">epilys@nessuent.xyz</span> 📆&nbsp;<span class="date">2019-08-01T11:22:44</span></span>
+                    <span class="metadata">🪪 &nbsp;<span class="message-id">vju3b.zyxky906x9rg@nessuent.xyz</span></span>
+                </div>
+            
+                <div class="entry">
+                    <span class="subject"><a href="/mailpot/list/2/20190917135020.GC99276@fremen.lan.html">meli can&#x27;t read my maildirs</a></span>
+                    <span class="metadata">👤&nbsp;<span class="from">edd@theunixzoo.co.uk</span> 📆&nbsp;<span class="date">2019-09-17T16:50:20</span></span>
+                    <span class="metadata">🪪 &nbsp;<span class="message-id">20190917135020.GC99276@fremen.lan</span></span>
+                </div>
+            
+                <div class="entry">
+                    <span class="subject"><a href="/mailpot/list/2/xzc04.ni7mkd4mtutq@nessuent.xyz.html">Re: meli can&#x27;t read my maildirs</a></span>
+                    <span class="metadata">👤&nbsp;<span class="from">epilys@nessuent.xyz</span> 📆&nbsp;<span class="date">2019-09-17T17:20:05</span></span>
+                    <span class="metadata">🪪 &nbsp;<span class="message-id">xzc04.ni7mkd4mtutq@nessuent.xyz</span></span>
+                </div>
+            
+                <div class="entry">
+                    <span class="subject"><a href="/mailpot/list/2/yljuc.euopj1p7vyhv@nessuent.xyz.html">Reporting issues with meli</a></span>
+                    <span class="metadata">👤&nbsp;<span class="from">epilys@nessuent.xyz</span> 📆&nbsp;<span class="date">2019-09-29T17:16:15</span></span>
+                    <span class="metadata">🪪 &nbsp;<span class="message-id">yljuc.euopj1p7vyhv@nessuent.xyz</span></span>
+                </div>
+            
+                <div class="entry">
+                    <span class="subject"><a href="/mailpot/list/2/20200616200356.GC3872@io.lakedaemon.net.html">missing List-ID header field, Mailman confgured properly?</a></span>
+                    <span class="metadata">👤&nbsp;<span class="from">meli@lakedaemon.net</span> 📆&nbsp;<span class="date">2020-06-16T23:03:56</span></span>
+                    <span class="metadata">🪪 &nbsp;<span class="message-id">20200616200356.GC3872@io.lakedaemon.net</span></span>
+                </div>
+            
+                <div class="entry">
+                    <span class="subject"><a href="/mailpot/list/2/cfd13.i36o8e1dpxu1@nessuent.xyz.html">Still alive: a heartbeat</a></span>
+                    <span class="metadata">👤&nbsp;<span class="from">epilys@nessuent.xyz</span> 📆&nbsp;<span class="date">2020-06-24T12:43:09</span></span>
+                    <span class="metadata">🪪 &nbsp;<span class="message-id">cfd13.i36o8e1dpxu1@nessuent.xyz</span></span>
+                </div>
+            
+                <div class="entry">
+                    <span class="subject"><a href="/mailpot/list/2/580dee100514ad4c5a145cd351ef8cb9@brainfuck.space.html">Why is the notmuch backend so slow?</a></span>
+                    <span class="metadata">👤&nbsp;<span class="from">thomas+meli@brainfuck.space</span> 📆&nbsp;<span class="date">2020-07-30T01:01:34</span></span>
+                    <span class="metadata">🪪 &nbsp;<span class="message-id">580dee100514ad4c5a145cd351ef8cb9@brainfuck.space</span></span>
+                </div>
+            
+                <div class="entry">
+                    <span class="subject"><a href="/mailpot/list/2/160026854170.22144.16063588445444947690@snf-804220.localdomain.html">Setting up an Outlook account</a></span>
+                    <span class="metadata">👤&nbsp;<span class="from">roberto.diremigio@hey.com</span> 📆&nbsp;<span class="date">2020-09-16T18:02:21</span></span>
+                    <span class="metadata">🪪 &nbsp;<span class="message-id">160026854170.22144.16063588445444947690@snf-804220.localdomain</span></span>
+                </div>
+            
+                <div class="entry">
+                    <span class="subject"><a href="/mailpot/list/2/a85f1ff6-9623-4b33-82c4-6d64f6dc1ad8@www.fastmail.com.html">Test post, ignore</a></span>
+                    <span class="metadata">👤&nbsp;<span class="from">meli_devel@fea.st</span> 📆&nbsp;<span class="date">2020-09-17T21:28:32</span></span>
+                    <span class="metadata">🪪 &nbsp;<span class="message-id">a85f1ff6-9623-4b33-82c4-6d64f6dc1ad8@www.fastmail.com</span></span>
+                </div>
+            
+                <div class="entry">
+                    <span class="subject"><a href="/mailpot/list/2/gtn57.doavavw9rkjp@nessuent.xyz.html">Re: Setting up an Outlook account</a></span>
+                    <span class="metadata">👤&nbsp;<span class="from">epilys@nessuent.xyz</span> 📆&nbsp;<span class="date">2020-09-17T23:46:44</span></span>
+                    <span class="metadata">🪪 &nbsp;<span class="message-id">gtn57.doavavw9rkjp@nessuent.xyz</span></span>
+                </div>
+            
+                <div class="entry">
+                    <span class="subject"><a href="/mailpot/list/2/160120774853.9639.1386263814807880659@snf-804220.localdomain.html">Re: Setting up an Outlook account</a></span>
+                    <span class="metadata">👤&nbsp;<span class="from">roberto.diremigio@hey.com</span> 📆&nbsp;<span class="date">2020-09-27T14:55:48</span></span>
+                    <span class="metadata">🪪 &nbsp;<span class="message-id">160120774853.9639.1386263814807880659@snf-804220.localdomain</span></span>
+                </div>
+            
+                <div class="entry">
+                    <span class="subject"><a href="/mailpot/list/2/hbxbz.0lavb05kc2x6@nessuent.xyz.html">Re: Setting up an Outlook account</a></span>
+                    <span class="metadata">👤&nbsp;<span class="from">epilys@nessuent.xyz</span> 📆&nbsp;<span class="date">2020-09-27T20:59:50</span></span>
+                    <span class="metadata">🪪 &nbsp;<span class="message-id">hbxbz.0lavb05kc2x6@nessuent.xyz</span></span>
+                </div>
+            
+                <div class="entry">
+                    <span class="subject"><a href="/mailpot/list/2/160131188399.17608.14056427871415125859@snf-804220.localdomain.html">Re: Setting up an Outlook account</a></span>
+                    <span class="metadata">👤&nbsp;<span class="from">roberto.diremigio@hey.com</span> 📆&nbsp;<span class="date">2020-09-28T19:51:23</span></span>
+                    <span class="metadata">🪪 &nbsp;<span class="message-id">160131188399.17608.14056427871415125859@snf-804220.localdomain</span></span>
+                </div>
+            
+                <div class="entry">
+                    <span class="subject"><a href="/mailpot/list/2/hexh2.bs7d90jrckx@nessuent.xyz.html">Re: Setting up an Outlook account</a></span>
+                    <span class="metadata">👤&nbsp;<span class="from">epilys@nessuent.xyz</span> 📆&nbsp;<span class="date">2020-09-28T19:52:39</span></span>
+                    <span class="metadata">🪪 &nbsp;<span class="message-id">hexh2.bs7d90jrckx@nessuent.xyz</span></span>
+                </div>
+            
+                <div class="entry">
+                    <span class="subject"><a href="/mailpot/list/2/160140786172.15007.7793270257389951558@snf-804220.localdomain.html">Re: Setting up an Outlook account</a></span>
+                    <span class="metadata">👤&nbsp;<span class="from">roberto.diremigio@hey.com</span> 📆&nbsp;<span class="date">2020-09-29T22:31:01</span></span>
+                    <span class="metadata">🪪 &nbsp;<span class="message-id">160140786172.15007.7793270257389951558@snf-804220.localdomain</span></span>
+                </div>
+            
+                <div class="entry">
+                    <span class="subject"><a href="/mailpot/list/2/034fcf3b-9c1e-830d-52b7-4887848198f7@umanwizard.com.html">Build fails on OpenBSD</a></span>
+                    <span class="metadata">👤&nbsp;<span class="from">brennan@umanwizard.com</span> 📆&nbsp;<span class="date">2020-10-27T02:17:28</span></span>
+                    <span class="metadata">🪪 &nbsp;<span class="message-id">034fcf3b-9c1e-830d-52b7-4887848198f7@umanwizard.com</span></span>
+                </div>
+            
+                <div class="entry">
+                    <span class="subject"><a href="/mailpot/list/2/iypp1.nhgqwzqzfhpj@nessuent.xyz.html">Re: Build fails on OpenBSD</a></span>
+                    <span class="metadata">👤&nbsp;<span class="from">epilys@nessuent.xyz</span> 📆&nbsp;<span class="date">2020-10-29T14:05:17</span></span>
+                    <span class="metadata">🪪 &nbsp;<span class="message-id">iypp1.nhgqwzqzfhpj@nessuent.xyz</span></span>
+                </div>
+            
+                <div class="entry">
+                    <span class="subject"><a href="/mailpot/list/2/6464773db54c835503a78da64bfe3092b1e45778@hey.com.html">Re: Setting up an Outlook account</a></span>
+                    <span class="metadata">👤&nbsp;<span class="from">roberto.diremigio@hey.com</span> 📆&nbsp;<span class="date">2020-11-04T19:00:29</span></span>
+                    <span class="metadata">🪪 &nbsp;<span class="message-id">6464773db54c835503a78da64bfe3092b1e45778@hey.com</span></span>
+                </div>
+            
+                <div class="entry">
+                    <span class="subject"><a href="/mailpot/list/2/jshvf.trx8g9cpuz88@nessuent.xyz.html">Re: Setting up an Outlook account</a></span>
+                    <span class="metadata">👤&nbsp;<span class="from">epilys@nessuent.xyz</span> 📆&nbsp;<span class="date">2020-11-14T16:04:14</span></span>
+                    <span class="metadata">🪪 &nbsp;<span class="message-id">jshvf.trx8g9cpuz88@nessuent.xyz</span></span>
+                </div>
+            
+        </div>
+    </div>
+</div>
+<footer>
+    <hr />
+    <p>Generated by <a href="https://github.com/meli/mailpot">mailpot</a>.</p>
+</footer>
+</main>
+</body>
+</html>

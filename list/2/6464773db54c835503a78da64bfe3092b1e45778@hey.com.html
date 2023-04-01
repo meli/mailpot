@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>meli-general</title>
+        <style>
+    @charset "UTF-8";
+    * Use a more intuitive box-sizing model */
+    *, *::before, *::after {
+        box-sizing: border-box;
+    }
+
+    /* Remove all margins & padding */
+    * {
+        margin: 0;
+        padding: 0;
+    }
+
+    /* Only show focus outline when the user is tabbing (not when clicking) */
+    *:focus {
+        outline: none;
+    }
+
+    *:focus-visible {
+        outline: 1px solid blue;
+    }
+
+    /* Prevent mobile browsers increasing font-size */
+    html {
+        -moz-text-size-adjust: none;
+        -webkit-text-size-adjust: none;
+        text-size-adjust: none;
+        font-family:-apple-system,BlinkMacSystemFont,Arial,sans-serif;
+        line-height:1.15;
+        -webkit-text-size-adjust:100%;
+        overflow-y:scroll;
+    }
+
+    /* Allow percentage-based heights */
+    /* Setting width: 100% isn't required because it is a default for block-level elements (html & body are block level) */
+    html, body {
+        height: 100%;
+    }
+
+    body {
+        /* Prevent the rubber band effect when the user scrolls to the top or bottom of the page (WebKit only) */
+        overscroll-behavior: none;
+
+        /* Prevent the browser from synthesizing missing typefaces */
+        font-synthesis: none;
+
+        color: black;
+        /* UI controls color (example: range input) */
+        accent-color: black;
+
+        /* Because overscroll-behavior: none only works on WebKit, a background color is set that will show when overscroll occurs  */
+        background: white;
+        margin:0;
+        font-feature-settings:"onum" 1;
+        text-rendering:optimizeLegibility;
+        -webkit-font-smoothing:antialiased;
+        -moz-osx-font-smoothing:grayscale;
+        font-family:-apple-system,BlinkMacSystemFont,Roboto,Roboto Slab,Droid Serif,Segoe UI,system-ui,Arial,sans-serif;
+        font-size:1.125em
+    }
+
+    /* Remove unintuitive behaviour such as gaps around media elements.  */
+    img, picture, video, canvas, svg, iframe {
+        display: block;
+    }
+
+    /* Avoid text overflow */
+    h1, h2, h3, h4, h5, h6, p, strong {
+        overflow-wrap: break-word;
+    }
+
+    a {
+        text-decoration: none;
+    }
+
+    ul, ol {
+        list-style: none;
+    }
+
+    input {
+        border: none;
+    }
+
+    input, button, textarea, select {
+        font: inherit;
+    }
+
+    /* Create a root stacking context (only when using frameworks like Next.js) */
+    #__next {
+        isolation: isolate;
+    }
+
+
+    body>main.layout {
+        width: 100%;
+        overflow-wrap: anywhere;
+
+        display: grid;
+        grid:
+        "header header header" auto
+        "leftside body rightside" 1fr
+        "footer footer footer" auto
+        / auto 1fr auto;
+        gap: 8px;
+    }
+
+    main.layout>.header { grid-area: header; }
+    main.layout>.leftside { grid-area: leftside; }
+    main.layout>div.body { grid-area: body; }
+    main.layout>.rightside { grid-area: rightside; }
+    main.layout>footer {
+        grid-area: footer;
+        padding: 1rem 2rem;
+    }
+
+    main.layout>div.header>h1 {
+        margin: 1rem;
+    }
+
+    main.layout>div.body h2 {
+        margin: 1rem;
+    }
+
+    nav.breadcrumb ul:before {
+        content: "≫";
+        display: inline-block;
+        margin-right: 0.6rem;
+    }
+
+    .breadcrumb a {
+        padding: 0.4rem;
+        margin: -0.4rem;
+        font-size: larger;
+    }
+
+    .breadcrumb>ul>li:first-child a {
+        padding-left: 0rem;
+    }
+
+    .breadcrumb {
+        padding: 0rem 0.5rem;
+        margin: 1rem;
+    }
+
+    .breadcrumb span[aria-current="page"] {
+        color: GrayText;
+        vertical-align: sub;
+        padding: 0.4rem;
+        margin-left: -0.4rem;
+    }
+
+    .breadcrumb ul {
+        display: flex;
+        flex-wrap: wrap;
+        list-style: none;
+        margin: 0;
+        padding: 0;
+    }
+
+    .breadcrumb li:not(:last-child)::after {
+        display: inline-block;
+        margin: 0rem 0.25rem;
+        content: "→";
+        vertical-align: text-bottom;
+    }
+
+    div.preamble {
+        border-left: 0.2rem solid GrayText;
+        padding-left: 0.5rem;
+    }
+
+    div.calendar th {
+        padding: 0.5rem;
+        opacity: 0.7;
+    }
+
+    div.calendar tr,
+    div.calendar th {
+        text-align: right;
+        font-variant-numeric: tabular-nums;
+        font-family: monospace;
+    }
+
+    div.calendar table {
+        display: inline-table;
+        border-collapse: collapse;
+    }
+
+    div.calendar td {
+        padding: 0.1rem 0.4rem;
+    }
+
+    div.calendar td.empty {
+        color: GrayText;
+    }
+
+    div.calendar td:not(.empty) {
+        font-weight: bold;
+    }
+
+    div.calendar td:not(:empty) {
+        border: 1px solid black;
+    }
+
+    div.calendar td:empty {
+        background: GrayText;
+        opacity: 0.3;
+    }
+
+    div.calendar {
+        display: flex;
+        flex-wrap: wrap;
+        flex-direction: row;
+        gap: 1rem;
+        align-items: baseline;
+    }
+
+    div.calendar caption {
+        font-weight: bold;
+    }
+
+    div.posts {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    div.posts>div.entry {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    div.posts>div.entry>span.subject {
+        font-size: larger;
+    }
+
+    div.posts>div.entry>span.metadata {
+        color: GrayText;
+    }
+
+    div.posts>div.entry>span.metadata>span.from {
+        margin-inline-end: 1rem;
+    }
+
+    table.headers tr>th {
+        text-align: right;
+        color: GrayText;
+    }
+    table.headers th[scope="row"] {
+        padding-right: .5rem;
+    }
+    table.headers tr>th:after {
+        content:':';
+        display: inline-block;
+    }
+    div.post-body {
+        margin: 1rem;
+    }
+    div.post-body>pre {
+        max-width: 98vw;
+        overflow-wrap: break-word;
+        white-space: pre-line;
+    }
+    td.message-id,
+    span.message-id{
+        color: GrayText;
+    }
+    td.message-id:before,
+    span.message-id:before{
+        content:'<';
+        display: inline-block;
+    }
+    td.message-id:after,
+    span.message-id:after{
+        content:'>';
+        display: inline-block;
+    }
+    span.message-id + span.message-id:before{
+        content:', <';
+        display: inline-block;
+    }
+    td.faded,
+    span.faded {
+        color: GrayText;
+    }
+    td.faded:is(:focus, :hover, :focus-visible, :focus-within),
+    span.faded:is(:focus, :hover, :focus-visible, :focus-within) {
+        color: revert;
+    }
+
+    ul.lists {
+        padding: 1rem 2rem;
+    }
+
+    ul.lists li {
+        list-style: disc;
+    }
+
+    ul.lists li + li {
+        margin-top: 1rem;
+    }
+
+    hr {
+        margin: 1rem 0rem;
+    }
+</style>
+    </head>
+    <body>
+        <main class="layout">
+            <div class="header">
+                <h1>meli-general</h1>
+                
+                <nav aria-label="Breadcrumb" class="breadcrumb">
+    <ul>
+        
+            
+                <li><a href="&#x2f;mailpot&#x2f;">Lists</a></li>
+            
+        
+            
+                <li><a href="&#x2f;mailpot&#x2f;lists&#x2f;2&#x2f;">meli-general</a></li>
+            
+        
+            
+                <li><span aria-current="page">Re: Setting up an Outlook account</span></li>
+            
+        
+    </ul>
+</nav>
+                <hr />
+            </div>
+<div class="body">
+    <h2>Re: Setting up an Outlook account</h2>
+    <table class="headers">
+        <tr>
+            <th scope="row">List</th>
+            <td class="faded">meli-general</td>
+        </tr>
+        <tr>
+            <th scope="row">From</th>
+            <td>Roberto Di Remigio &lt;roberto.diremigio@hey.com&gt;</td>
+        </tr>
+        <tr>
+            <th scope="row">To</th>
+            <td class="faded">&quot;roberto.diremigio--- via meli-general&quot; &lt;meli-general@meli.delivery&gt;</td>
+        </tr>
+        <tr>
+            <th scope="row">Subject</th>
+            <td>[meli-general] Re: Setting up an Outlook account</td>
+        </tr>
+        <tr>
+            <th scope="row">Date</th>
+            <td class="faded">Wed, 04 Nov 2020 18:00:29 +0100</td>
+        </tr>
+        
+            <tr>
+                <th scope="row">In-Reply-To</th>
+                <td class="faded message-id"><a href="/mailpot/list/2/160140786426.19661.16101318922832171240@mail.html">160140786426.19661.16101318922832171240@mail</a></td>
+            </tr>
+        
+        
+            <tr>
+                <th scope="row">References</th>
+                <td><span class="faded message-id"><a href="/mailpot/list/2/160140786426.19661.16101318922832171240@mail.html">160140786426.19661.16101318922832171240@mail</a></span></td>
+            </tr>
+        
+    </table>
+    <div class="post-body">
+        <pre>Hello again!
+
+I am still struggling with sending emails. I am getting this error
+whenever:
+
+Summary: Command parameter not implemented
+5.7.4 Unrecognized authentication type
+Kind: Authentication
+
+Roberto
+</pre>
+    </div>
+</div>
+<footer>
+    <hr />
+    <p>Generated by <a href="https://github.com/meli/mailpot">mailpot</a>.</p>
+</footer>
+</main>
+</body>
+</html>
