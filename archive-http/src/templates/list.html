@@ -4,7 +4,7 @@
       <h2>Months</h2>
       <ul>
         {% for month in months %}
-        <li><a href="/list/{{list.pk}}/{{ month }}">{{ month }}</a></li>
+        <li><a href="{{ root_prefix|safe }}/list/{{list.pk}}/{{ month }}">{{ month }}</a></li>
         {% endfor %}
       </ul>
       <h2>Posts</h2>
@@ -12,7 +12,7 @@
         {% for post in posts %}
         <li><span>From: &lt;{{ post.address }}&gt;</span><br />
           <span>Date: {{ post.datetime }}</span><br />
-          <span>Subject: <a href="/list/{{post.list}}/{{ post.message_id }}">{{ post.subject }}</a></span></br><span>Message-ID: {{ post.message_id }}</span>
+          <span>Subject: <a href="{{ root_prefix|safe }}/list/{{post.list}}/{{ post.message_id }}.html">{{ post.subject }}</a></span></br><span>Message-ID: {{ post.message_id }}</span>
         </li>
 {% endfor %}
       </ul>

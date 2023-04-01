@@ -15,6 +15,10 @@ default-run = "mpot-archives"
 name = "mpot-archives"
 path = "src/main.rs"
 
+[[bin]]
+name = "mpot-gen"
+path = "src/gen.rs"
+
 [dependencies]
 lazy_static = "*"
 mailpot = { version = "0.1.0", path = "../core" }

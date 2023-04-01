@@ -40,56 +40,6 @@ lazy_static::lazy_static! {
     };
 }
 
-/*
-#[derive(Template)]
-#[template(path = "lists.html")]
-struct ListsTemplate<'a> {
-    title: &'a str,
-    description: &'a str,
-    lists_len: usize,
-    lists: Vec<ListTemplate<'a>>,
-}
-
-#[derive(Template)]
-#[template(path = "list.html")]
-struct ListTemplate<'a> {
-    title: &'a str,
-    list: &'a DbVal<MailingList>,
-    posts: Vec<DbVal<Post>>,
-    months: Vec<String>,
-    body: &'a str,
-}
-
-impl<'a> Into<ListTemplate<'a>> for (&'a DbVal<MailingList>, &'a Database) {
-    fn into(self: (&'a DbVal<MailingList>, &'a Database)) -> ListTemplate<'a> {
-        let (list, db) = self;
-        let months = db.months(list.pk).unwrap();
-        let posts = db.list_posts(list.pk, None).unwrap();
-        ListTemplate {
-            title: &list.name,
-            list,
-            posts,
-            months,
-            body: list.description.as_deref().unwrap_or_default(),
-        }
-    }
-}
-
-#[derive(Template)]
-#[template(path = "post.html")]
-struct PostTemplate<'a> {
-    title: &'a str,
-    _list: &'a DbVal<MailingList>,
-    _post: DbVal<Post>,
-    body: &'a str,
-    _from: &'a str,
-    _to: &'a str,
-    subject: &'a str,
-    _in_reply_to: Option<String>,
-    _references: Vec<String>,
-}
-*/
-
 #[tokio::main]
 async fn main() {
     let config_path = std::env::args()
