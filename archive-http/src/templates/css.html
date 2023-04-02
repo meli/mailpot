@@ -1,4 +1,5 @@
 <style>
+    @charset "UTF-8";
     * Use a more intuitive box-sizing model */
     *, *::before, *::after {
         box-sizing: border-box;
@@ -24,6 +25,10 @@
         -moz-text-size-adjust: none;
         -webkit-text-size-adjust: none;
         text-size-adjust: none;
+        font-family:-apple-system,BlinkMacSystemFont,Arial,sans-serif;
+        line-height:1.15;
+        -webkit-text-size-adjust:100%;
+        overflow-y:scroll;
     }
 
     /* Allow percentage-based heights */
@@ -45,6 +50,13 @@
 
         /* Because overscroll-behavior: none only works on WebKit, a background color is set that will show when overscroll occurs  */
         background: white;
+        margin:0;
+        font-feature-settings:"onum" 1;
+        text-rendering:optimizeLegibility;
+        -webkit-font-smoothing:antialiased;
+        -moz-osx-font-smoothing:grayscale;
+        font-family:-apple-system,BlinkMacSystemFont,Roboto,Roboto Slab,Droid Serif,Segoe UI,system-ui,Arial,sans-serif;
+        font-size:1.125em
     }
 
     /* Remove unintuitive behaviour such as gaps around media elements.  */
@@ -79,8 +91,9 @@
     }
 
 
-    body>div.layout {
+    body>main.layout {
         width: 100%;
+        overflow-wrap: anywhere;
 
         display: grid;
         grid:
@@ -91,17 +104,20 @@
         gap: 8px;
     }
 
-    div.layout>.header { grid-area: header; }
-    div.layout>.leftside { grid-area: leftside; }
-    div.layout>div.body { grid-area: body; }
-    div.layout>.rightside { grid-area: rightside; }
-    div.layout>.footer { grid-area: footer; }
+    main.layout>.header { grid-area: header; }
+    main.layout>.leftside { grid-area: leftside; }
+    main.layout>div.body { grid-area: body; }
+    main.layout>.rightside { grid-area: rightside; }
+    main.layout>footer {
+        grid-area: footer;
+        padding: 1rem 2rem;
+    }
 
-    div.layout>div.header>h1 {
+    main.layout>div.header>h1 {
         margin: 1rem;
     }
 
-    div.layout>div.body h2 {
+    main.layout>div.body h2 {
         margin: 1rem;
     }
 
@@ -231,12 +247,20 @@
         text-align: right;
         color: GrayText;
     }
+    table.headers th[scope="row"] {
+        padding-right: .5rem;
+    }
     table.headers tr>th:after {
         content:':';
         display: inline-block;
     }
     div.post-body {
         margin: 1rem;
+    }
+    div.post-body>pre {
+        max-width: 98vw;
+        overflow-wrap: break-word;
+        white-space: pre-line;
     }
     td.message-id,
     span.message-id{
@@ -255,6 +279,14 @@
     span.message-id + span.message-id:before{
         content:', <';
         display: inline-block;
+    }
+    td.faded,
+    span.faded {
+        color: GrayText;
+    }
+    td.faded:is(:focus, :hover, :focus-visible, :focus-within),
+    span.faded:is(:focus, :hover, :focus-visible, :focus-within) {
+        color: revert;
     }
 
     ul.lists {

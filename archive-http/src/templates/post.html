@@ -4,7 +4,7 @@
     <table class="headers">
         <tr>
             <th scope="row">List</th>
-            <td>{{ list.id }}</td>
+            <td class="faded">{{ list.id }}</td>
         </tr>
         <tr>
             <th scope="row">From</th>
@@ -12,7 +12,7 @@
         </tr>
         <tr>
             <th scope="row">To</th>
-            <td>{{ to }}</td>
+            <td class="faded">{{ to }}</td>
         </tr>
         <tr>
             <th scope="row">Subject</th>
@@ -20,18 +20,18 @@
         </tr>
         <tr>
             <th scope="row">Date</th>
-            <td>{{ date }}</td>
+            <td class="faded">{{ date }}</td>
         </tr>
         {% if in_reply_to %}
             <tr>
                 <th scope="row">In-Reply-To</th>
-                <td class="message-id"><a href="{{ root_prefix|safe }}/list/{{list.pk}}/{{ in_reply_to }}.html">{{ in_reply_to }}</a></td>
+                <td class="faded message-id"><a href="{{ root_prefix|safe }}/list/{{list.pk}}/{{ in_reply_to }}.html">{{ in_reply_to }}</a></td>
             </tr>
         {% endif %}
         {% if references %}
             <tr>
                 <th scope="row">References</th>
-                <td>{% for r in references %}<span class="message-id"><a href="{{ root_prefix|safe }}/list/{{list.pk}}/{{ r }}.html">{{ r }}</a></span>{% endfor %}</td>
+                <td>{% for r in references %}<span class="faded message-id"><a href="{{ root_prefix|safe }}/list/{{list.pk}}/{{ r }}.html">{{ r }}</a></span>{% endfor %}</td>
             </tr>
         {% endif %}
     </table>

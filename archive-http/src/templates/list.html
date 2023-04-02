@@ -61,7 +61,6 @@
             {%- from "calendar.html" import cal %}
             {% for date in months %}
                 {{ cal(date, hists, root_prefix, list.pk) }}
-                <!--<li><a href="{{ root_prefix|safe }}/list/{{list.pk}}/{{ month }}">{{ month }}</a></li>-->
             {% endfor %}
         </div>
         <hr />
@@ -71,8 +70,8 @@
             {% for post in posts %}
                 <div class="entry">
                     <span class="subject"><a href="{{ root_prefix|safe }}/list/{{post.list}}/{{ post.message_id }}.html">{{ post.subject }}</a></span>
-                    <span class="metadata">👤&nbsp;&nbsp;<span class="from">{{ post.address }}</span> 📆&nbsp;&nbsp;<span class="date">{{ post.datetime }}</span></span>
-                    <span class="metadata">🪪 &nbsp;&nbsp;<span class="message-id">{{ post.message_id }}</span></span>
+                    <span class="metadata">👤&nbsp;<span class="from">{{ post.address }}</span> 📆&nbsp;<span class="date">{{ post.datetime }}</span></span>
+                    <span class="metadata">🪪 &nbsp;<span class="message-id">{{ post.message_id }}</span></span>
                 </div>
             {% endfor %}
         </div>

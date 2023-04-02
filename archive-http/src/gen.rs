@@ -34,7 +34,7 @@ use std::io::Write;
 
 use minijinja::{Environment, Error, Source, State};
 
-use minijinja::value::{from_args, Object, SeqObject, Value};
+use minijinja::value::{Object, Value};
 
 lazy_static::lazy_static! {
     pub static ref TEMPLATES: Environment<'static> = {
