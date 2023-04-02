@@ -40,7 +40,6 @@ pub struct Configuration {
 }
 
 impl Configuration {
-    /*
     pub fn new(db_path: impl Into<PathBuf>) -> Self {
         let db_path = db_path.into();
         Configuration {
@@ -53,7 +52,6 @@ impl Configuration {
             db_path,
         }
     }
-    */
 
     pub fn from_file<P: AsRef<Path>>(path: P) -> Result<Self> {
         let path = path.as_ref();
@@ -106,6 +104,12 @@ impl Configuration {
 
     pub fn save_message(&self, msg: String) -> Result<PathBuf> {
         self.save_message_to_path(&msg, self.data_directory().to_path_buf())
+    }
+
+    pub fn to_toml(&self) -> String {
+        toml::Value::try_from(self)
+            .expect("Could not serialize config to TOML")
+            .to_string()
     }
 }
 

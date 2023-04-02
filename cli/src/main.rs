@@ -78,6 +78,8 @@ struct Opt {
 #[derive(Debug, StructOpt)]
 //#[structopt(manpage = "docs/command.mdoc")]
 enum Command {
+    /// Prints a sample config file to STDOUT
+    SampleConfig,
     ///Dumps database data to STDOUT
     DumpDatabase,
     ///Lists all registered mailing lists
@@ -251,10 +253,15 @@ fn run_app(opt: Opt) -> Result<()> {
     if opt.debug {
         println!("DEBUG: {:?}", &opt);
     }
+    if let Command::SampleConfig = opt.cmd {
+        println!("{}", Configuration::new("/path/to/sqlite.db").to_toml());
+        return Ok(());
+    };
     let config = Configuration::from_file(opt.config.as_path())?;
     use Command::*;
     let mut db = Database::open_or_create_db(&config)?;
     match opt.cmd {
+        SampleConfig => {}
         DumpDatabase => {
             let lists = db.list_lists()?;
             let mut stdout = std::io::stdout();
