@@ -49,9 +49,9 @@ macro_rules! get_list {
     name = "mailpot",
     about = "mini mailing list manager",
     author = "Manos Pitsidianakis <epilys@nessuent.xyz>",
-    manpage = "docs/main.mdoc",
-    manpage_header = "docs/header.mdoc",
-    manpage_footer = "docs/footer.mdoc"
+    //manpage = "docs/main.mdoc",
+    //manpage_header = "docs/header.mdoc",
+    //manpage_footer = "docs/footer.mdoc"
 )]
 struct Opt {
     /// Activate debug mode
@@ -76,7 +76,7 @@ struct Opt {
 }
 
 #[derive(Debug, StructOpt)]
-#[structopt(manpage = "docs/command.mdoc")]
+//#[structopt(manpage = "docs/command.mdoc")]
 enum Command {
     ///Dumps database data to STDOUT
     DumpDatabase,
@@ -127,7 +127,7 @@ enum Command {
 }
 
 #[derive(Debug, StructOpt)]
-#[structopt(manpage = "docs/error_queue.mdoc")]
+//#[structopt(manpage = "docs/error_queue.mdoc")]
 enum ErrorQueueCommand {
     /// List.
     List,
@@ -152,7 +152,7 @@ enum ErrorQueueCommand {
 }
 
 #[derive(Debug, StructOpt)]
-#[structopt(manpage = "docs/list.mdoc")]
+//#[structopt(manpage = "docs/list.mdoc")]
 enum ListCommand {
     /// List members of list.
     Members,
@@ -211,6 +211,8 @@ enum ListCommand {
         approval_needed: bool,
         #[structopt(long)]
         no_subscriptions: bool,
+        #[structopt(long)]
+        custom: bool,
     },
     RemovePolicy {
         #[structopt(long)]
@@ -429,6 +431,7 @@ fn run_app(opt: Opt) -> Result<()> {
                     subscriber_only,
                     approval_needed,
                     no_subscriptions,
+                    custom,
                 } => {
                     let policy = PostPolicy {
                         pk: 0,
@@ -437,6 +440,7 @@ fn run_app(opt: Opt) -> Result<()> {
                         subscriber_only,
                         approval_needed,
                         no_subscriptions,
+                        custom,
                     };
                     let new_val = db.set_list_policy(list.pk, policy)?;
                     println!("Added new policy with pk = {}", new_val.pk());

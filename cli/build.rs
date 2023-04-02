@@ -17,27 +17,25 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-use std::io::Write;
-use std::process::Command;
+//use std::io::Write;
+//use std::process::Command;
 
 fn main() {
-    println!("cargo:rerun-if-changed=../docs/command.mdoc");
-    println!("cargo:rerun-if-changed=../docs/list.mdoc");
-    println!("cargo:rerun-if-changed=../docs/error_queue.mdoc");
-    println!("cargo:rerun-if-changed=../docs/main.mdoc");
-    println!("cargo:rerun-if-changed=../docs/header.mdoc");
-    println!("cargo:rerun-if-changed=../docs/footer.mdoc");
-    println!("cargo:rerun-if-changed=../docs/mailpot.1.m4");
-    println!("cargo:rerun-if-changed=../docs/mailpot.1");
-    println!("cargo:rerun-if-changed=../docs");
-    println!("cargo:rerun-if-changed=./src/main.rs");
-    println!("build running");
-    std::env::set_current_dir("..").expect("could not chdir('..')");
+    //println!("cargo:rerun-if-changed=../docs/command.mdoc");
+    //println!("cargo:rerun-if-changed=../docs/list.mdoc");
+    //println!("cargo:rerun-if-changed=../docs/error_queue.mdoc");
+    //println!("cargo:rerun-if-changed=../docs/main.mdoc");
+    //println!("cargo:rerun-if-changed=../docs/header.mdoc");
+    //println!("cargo:rerun-if-changed=../docs/footer.mdoc");
+    //println!("cargo:rerun-if-changed=../docs/mailpot.1.m4");
+    //println!("cargo:rerun-if-changed=./src/main.rs");
+    //println!("build running");
+    //std::env::set_current_dir("..").expect("could not chdir('..')");
 
-    let output = Command::new("m4")
-        .arg("./docs/mailpot.1.m4")
-        .output()
-        .unwrap();
-    let mut file = std::fs::File::create("./docs/mailpot.1").unwrap();
-    file.write_all(&output.stdout).unwrap();
+    //let output = Command::new("m4")
+    //    .arg("./docs/mailpot.1.m4")
+    //    .output()
+    //    .unwrap();
+    //let mut file = std::fs::File::create("./docs/mailpot.1").unwrap();
+    //file.write_all(&output.stdout).unwrap();
 }

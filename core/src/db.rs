@@ -243,7 +243,8 @@ impl Database {
         if !(policy.announce_only
             || policy.subscriber_only
             || policy.approval_needed
-            || policy.no_subscriptions)
+            || policy.no_subscriptions
+            || policy.custom)
         {
             return Err(
                 "Cannot add empty policy. Having no policies is probably what you want to do."
@@ -251,7 +252,7 @@ impl Database {
             );
         }
 
-        let mut stmt = self.connection.prepare("INSERT OR REPLACE INTO post_policy(list, announce_only, subscriber_only, approval_needed, no_subscriptions) VALUES (?, ?, ?, ?, ?) RETURNING *;")?;
+        let mut stmt = self.connection.prepare("INSERT OR REPLACE INTO post_policy(list, announce_only, subscriber_only, approval_needed, no_subscriptions, custom) VALUES (?, ?, ?, ?, ?, ?) RETURNING *;")?;
         let ret = stmt.query_row(
             rusqlite::params![
                 &list_pk,
@@ -259,6 +260,7 @@ impl Database {
                 &policy.subscriber_only,
                 &policy.approval_needed,
                 &policy.no_subscriptions,
+                &policy.custom,
             ],
             |row| {
                 let pk = row.get("pk")?;
@@ -270,6 +272,7 @@ impl Database {
                         subscriber_only: row.get("subscriber_only")?,
                         approval_needed: row.get("approval_needed")?,
                         no_subscriptions: row.get("no_subscriptions")?,
+                        custom: row.get("custom")?,
                     },
                     pk,
                 ))
@@ -338,6 +341,7 @@ impl Database {
                         subscriber_only: row.get("subscriber_only")?,
                         approval_needed: row.get("approval_needed")?,
                         no_subscriptions: row.get("no_subscriptions")?,
+                        custom: row.get("custom")?,
                     },
                     pk,
                 ))

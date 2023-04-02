@@ -299,12 +299,11 @@ fn run_app() -> std::result::Result<(), Box<dyn std::error::Error>> {
                 msg_id = &msg_id[..msg_id.len().saturating_sub(1)];
                 let subject = envelope.subject();
                 let mut subject_ref = subject.trim();
-                if subject_ref.starts_with('[') {
-                    if subject_ref[1..].starts_with(&list.id)
-                        && subject_ref[1 + list.id.len()..].starts_with(']')
-                    {
-                        subject_ref = subject_ref[2 + list.id.len()..].trim();
-                    }
+                if subject_ref.starts_with('[')
+                    && subject_ref[1..].starts_with(&list.id)
+                    && subject_ref[1 + list.id.len()..].starts_with(']')
+                {
+                    subject_ref = subject_ref[2 + list.id.len()..].trim();
                 }
                 minijinja::context! {
                         pk => post.pk,
@@ -372,12 +371,11 @@ fn run_app() -> std::result::Result<(), Box<dyn std::error::Error>> {
             let body_text = body.text();
             let subject = envelope.subject();
             let mut subject_ref = subject.trim();
-            if subject_ref.starts_with('[') {
-                if subject_ref[1..].starts_with(&list.id)
-                    && subject_ref[1 + list.id.len()..].starts_with(']')
-                {
-                    subject_ref = subject_ref[2 + list.id.len()..].trim();
-                }
+            if subject_ref.starts_with('[')
+                && subject_ref[1..].starts_with(&list.id)
+                && subject_ref[1 + list.id.len()..].starts_with(']')
+            {
+                subject_ref = subject_ref[2 + list.id.len()..].trim();
             }
             let mut message_id = &post.message_id[1..];
             message_id = &message_id[..message_id.len().saturating_sub(1)];

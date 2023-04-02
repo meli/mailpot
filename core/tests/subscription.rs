@@ -39,6 +39,8 @@ fn test_list_subscription() {
                 announce_only: false,
                 subscriber_only: true,
                 approval_needed: false,
+                no_subscriptions: false,
+                custom: false,
             },
         )
         .unwrap();

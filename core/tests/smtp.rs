@@ -215,6 +215,8 @@ fn test_smtp() {
                 announce_only: false,
                 subscriber_only: true,
                 approval_needed: false,
+                no_subscriptions: false,
+                custom: false,
             },
         )
         .unwrap();
@@ -341,6 +343,8 @@ fn test_smtp_mailcrab() {
                 announce_only: false,
                 subscriber_only: true,
                 approval_needed: false,
+                no_subscriptions: false,
+                custom: false,
             },
         )
         .unwrap();
