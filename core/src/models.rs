@@ -112,10 +112,10 @@ impl MailingList {
 
     pub fn subscribe_mailto(&self) -> Option<MailtoAddress> {
         let p = self.address.split('@').collect::<Vec<&str>>();
-        dbg!(Some(MailtoAddress {
+        Some(MailtoAddress {
             address: format!("{}-request@{}", p[0], p[1]),
             subject: Some("subscribe".to_string()),
-        }))
+        })
     }
 
     pub fn archive_url(&self) -> Option<&str> {

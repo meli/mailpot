@@ -1,42 +1,42 @@
 {% include "header.html" %}
 <div class="body">
-    <h1>{{trimmed_subject}}</h1>
+    <h2>{{trimmed_subject}}</h2>
     <table class="headers">
-      <tr>
-        <th scope="row">List</th>
-        <td>{{ list.id }}</td>
-      </tr>
-      <tr>
-        <th scope="row">From</th>
-        <td>{{ from }}</td>
-      </tr>
-      <tr>
-        <th scope="row">To</th>
-        <td>{{ to }}</td>
-      </tr>
-      <tr>
-        <th scope="row">Subject</th>
-        <td>{{ subject }}</td>
-      </tr>
-      <tr>
-        <th scope="row">Date</th>
-        <td>{{ date }}</td>
-      </tr>
-      {% if in_reply_to %}
-      <tr>
-        <th scope="row">In-Reply-To</th>
-        <td class="message-id"><a href="{{ root_prefix|safe }}/list/{{list.pk}}/{{ in_reply_to }}.html">{{ in_reply_to }}</a></td>
-      </tr>
-      {% endif %}
-      {% if references %}
-      <tr>
-        <th scope="row">References</th>
-        <td>{% for r in references %}<span class="message-id"><a href="{{ root_prefix|safe }}/list/{{list.pk}}/{{ r }}.html">{{ r }}</a></span>{% endfor %}</td>
-      </tr>
-      {% endif %}
+        <tr>
+            <th scope="row">List</th>
+            <td>{{ list.id }}</td>
+        </tr>
+        <tr>
+            <th scope="row">From</th>
+            <td>{{ from }}</td>
+        </tr>
+        <tr>
+            <th scope="row">To</th>
+            <td>{{ to }}</td>
+        </tr>
+        <tr>
+            <th scope="row">Subject</th>
+            <td>{{ subject }}</td>
+        </tr>
+        <tr>
+            <th scope="row">Date</th>
+            <td>{{ date }}</td>
+        </tr>
+        {% if in_reply_to %}
+            <tr>
+                <th scope="row">In-Reply-To</th>
+                <td class="message-id"><a href="{{ root_prefix|safe }}/list/{{list.pk}}/{{ in_reply_to }}.html">{{ in_reply_to }}</a></td>
+            </tr>
+        {% endif %}
+        {% if references %}
+            <tr>
+                <th scope="row">References</th>
+                <td>{% for r in references %}<span class="message-id"><a href="{{ root_prefix|safe }}/list/{{list.pk}}/{{ r }}.html">{{ r }}</a></span>{% endfor %}</td>
+            </tr>
+        {% endif %}
     </table>
     <div class="post-body">
-      <pre>{{body}}</pre>
+        <pre>{{body}}</pre>
     </div>
 </div>
 {% include "footer.html" %}

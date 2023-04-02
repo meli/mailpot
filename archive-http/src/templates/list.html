@@ -1,81 +1,81 @@
 {% include "header.html" %}
 <div class="body">
-  {% if preamble %}
-  <div id="preamble" class="preamble">
-    {% if preamble.custom %}
-      {{ preamble.custom|safe }}
-    {% else %}
-      <h2 id="subscribe">Subscribe</h2>
-      {% set subscribe_mailto=list.subscribe_mailto() %}
-      {% if subscribe_mailto %}
-        {% if subscribe_mailto.subject %}
-          <p>
-            <a href="mailto:{{ subscribe_mailto.address|safe }}?subject={{ subscribe_mailto.subject|safe }}"><code>{{ subscribe_mailto.address }}</code></a> with the following subject: <code>{{ subscribe_mailto.subject}}</code>
-          </p>
-        {% else %}
-          <p>
-            <a href="mailto:{{ subscribe_mailto.address|safe }}"><code>{{ subscribe_mailto.address }}</code></a>
-          </p>
-        {% endif %}
-      {% else %}
-        <p>List is not open for subscriptions.</p>
-      {% endif %}
+    {% if preamble %}
+        <div id="preamble" class="preamble">
+            {% if preamble.custom %}
+                {{ preamble.custom|safe }}
+            {% else %}
+                <h2 id="subscribe">Subscribe</h2>
+                {% set subscribe_mailto=list.subscribe_mailto() %}
+                {% if subscribe_mailto %}
+                    {% if subscribe_mailto.subject %}
+                        <p>
+                            <a href="mailto:{{ subscribe_mailto.address|safe }}?subject={{ subscribe_mailto.subject|safe }}"><code>{{ subscribe_mailto.address }}</code></a> with the following subject: <code>{{ subscribe_mailto.subject}}</code>
+                        </p>
+                    {% else %}
+                        <p>
+                            <a href="mailto:{{ subscribe_mailto.address|safe }}"><code>{{ subscribe_mailto.address }}</code></a>
+                        </p>
+                    {% endif %}
+                {% else %}
+                    <p>List is not open for subscriptions.</p>
+                {% endif %}
 
-      {% set unsubscribe_mailto=list.unsubscribe_mailto() %}
-      {% if unsubscribe_mailto %}
-      <h2 id="unsubscribe">Unsubscribe</h2>
-        {% if unsubscribe_mailto.subject %}
-          <p>
-            <a href="mailto:{{ unsubscribe_mailto.address|safe }}?subject={{ unsubscribe_mailto.subject|safe }}"><code>{{ unsubscribe_mailto.address }}</code></a> with the following subject: <code>{{unsubscribe_mailto.subject}}</code>
-          </p>
-        {% else %}
-          <p>
-            <a href="mailto:{{ unsubscribe_mailto.address|safe }}"><code>{{ unsubscribe_mailto.address }}</code></a>
-          </p>
-        {% endif %}
-      {% endif %}
+                {% set unsubscribe_mailto=list.unsubscribe_mailto() %}
+                {% if unsubscribe_mailto %}
+                    <h2 id="unsubscribe">Unsubscribe</h2>
+                    {% if unsubscribe_mailto.subject %}
+                        <p>
+                            <a href="mailto:{{ unsubscribe_mailto.address|safe }}?subject={{ unsubscribe_mailto.subject|safe }}"><code>{{ unsubscribe_mailto.address }}</code></a> with the following subject: <code>{{unsubscribe_mailto.subject}}</code>
+                        </p>
+                    {% else %}
+                        <p>
+                            <a href="mailto:{{ unsubscribe_mailto.address|safe }}"><code>{{ unsubscribe_mailto.address }}</code></a>
+                        </p>
+                    {% endif %}
+                {% endif %}
 
-      <h2 id="post">Post</h2>
-      {% if post_policy.announce_only %}
-        <p>List is <em>announce-only</em>, i.e. you can only subscribe to receive announcements.</p>
-      {% elif post_policy.subscriber_only %}
-        <p>List is <em>subscriber-only</em>, i.e. you can only post if you are subscribed.</p>
-        <p>If you are subscribed, you can send new posts to:
-          <a href="mailto:{{ list.address| safe }}"><code>{{ list.address }}</code></a>
-        </p>
-      {% elif post_policy.approval_needed %}
-        <p>List is open to all posts <em>after approval</em> by the list owners.</p>
-        <p>You can send new posts to:
-          <a href="mailto:{{ list.address| safe }}"><code>{{ list.address }}</code></a>
-        </p>
-      {% else %}
-        <p>List is not open for submissions.</p>
-      {% endif %}
-    {% endif %}
-    </div>
-    <hr />
-  {% endif %}
-    <div class="body">
-      <h2 id="calendar">Calendar</h2>
-      <div class="calendar">
-        {%- from "calendar.html" import cal %}
-        {% for date in months %}
-        {{ cal(date, hists, root_prefix, list.pk) }}
-        <!--<li><a href="{{ root_prefix|safe }}/list/{{list.pk}}/{{ month }}">{{ month }}</a></li>-->
-        {% endfor %}
-      </div>
-    <hr />
-      <h2 id="posts">Posts</h2>
-      <div class="posts">
-        <p>{{ posts | length }} post(s)</p>
-        {% for post in posts %}
-        <div class="entry">
-          <span class="subject"><a href="{{ root_prefix|safe }}/list/{{post.list}}/{{ post.message_id }}.html">{{ post.subject }}</a></span>
-          <span>👤 <span class="from">{{ post.address }}</span> 📆 <span class="date">{{ post.datetime }}</span></span>
-          <span class="message-id">🪪 &lt;{{ post.message_id }}&gt;</span>
+                <h2 id="post">Post</h2>
+                {% if post_policy.announce_only %}
+                    <p>List is <em>announce-only</em>, i.e. you can only subscribe to receive announcements.</p>
+                {% elif post_policy.subscriber_only %}
+                    <p>List is <em>subscriber-only</em>, i.e. you can only post if you are subscribed.</p>
+                    <p>If you are subscribed, you can send new posts to:
+                        <a href="mailto:{{ list.address| safe }}"><code>{{ list.address }}</code></a>
+                    </p>
+                {% elif post_policy.approval_needed %}
+                    <p>List is open to all posts <em>after approval</em> by the list owners.</p>
+                    <p>You can send new posts to:
+                        <a href="mailto:{{ list.address| safe }}"><code>{{ list.address }}</code></a>
+                    </p>
+                {% else %}
+                    <p>List is not open for submissions.</p>
+                {% endif %}
+            {% endif %}
         </div>
-{% endfor %}
-      </div>
+        <hr />
+    {% endif %}
+    <div class="list">
+        <h2 id="calendar">Calendar</h2>
+        <div class="calendar">
+            {%- from "calendar.html" import cal %}
+            {% for date in months %}
+                {{ cal(date, hists, root_prefix, list.pk) }}
+                <!--<li><a href="{{ root_prefix|safe }}/list/{{list.pk}}/{{ month }}">{{ month }}</a></li>-->
+            {% endfor %}
+        </div>
+        <hr />
+        <h2 id="posts">Posts</h2>
+        <div class="posts">
+            <p>{{ posts | length }} post(s)</p>
+            {% for post in posts %}
+                <div class="entry">
+                    <span class="subject"><a href="{{ root_prefix|safe }}/list/{{post.list}}/{{ post.message_id }}.html">{{ post.subject }}</a></span>
+                    <span class="metadata">👤&nbsp;&nbsp;<span class="from">{{ post.address }}</span> 📆&nbsp;&nbsp;<span class="date">{{ post.datetime }}</span></span>
+                    <span class="metadata">🪪 &nbsp;&nbsp;<span class="message-id">{{ post.message_id }}</span></span>
+                </div>
+            {% endfor %}
+        </div>
     </div>
 </div>
 {% include "footer.html" %}

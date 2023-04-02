@@ -28,6 +28,7 @@ pub use mailpot::errors::*;
 pub use mailpot::models::*;
 pub use mailpot::*;
 
+use std::borrow::Cow;
 use std::fs::OpenOptions;
 use std::io::Write;
 
@@ -194,6 +195,12 @@ fn calendarize(_state: &State, args: Value, hists: Value) -> std::result::Result
     })
 }
 
+#[derive(Debug, PartialEq, Eq, Clone, serde::Deserialize, serde::Serialize)]
+pub struct Crumb {
+    pub label: Cow<'static, str>,
+    pub url: Cow<'static, str>,
+}
+
 fn run_app() -> std::result::Result<(), Box<dyn std::error::Error>> {
     let args = std::env::args().collect::<Vec<_>>();
     let Some(config_path) = args
@@ -241,12 +248,17 @@ fn run_app() -> std::result::Result<(), Box<dyn std::error::Error>> {
             .create(true)
             .truncate(true)
             .open(&output_path.join("index.html"))?;
+        let crumbs = vec![Crumb {
+            label: "Lists".into(),
+            url: format!("{root_url_prefix}/").into(),
+        }];
 
         let context = minijinja::context! {
             title => "mailing list archive",
             description => "",
             lists => &lists,
-                    root_prefix => &root_url_prefix,
+            root_prefix => &root_url_prefix,
+            crumbs => crumbs,
         };
         file.write_all(
             TEMPLATES
@@ -278,10 +290,7 @@ fn run_app() -> std::result::Result<(), Box<dyn std::error::Error>> {
             .iter()
             .map(|post| {
                 //2019-07-14T14:21:02
-                if let (Some(month), Some(day)) = (
-                    post.datetime.get(5..7).and_then(|m| m.parse::<u64>().ok()),
-                    post.datetime.get(8..10).and_then(|d| d.parse::<u64>().ok()),
-                ) {
+                if let Some(day) = post.datetime.get(8..10).and_then(|d| d.parse::<u64>().ok()) {
                     hist.get_mut(&post.month_year).unwrap()[day.saturating_sub(1) as usize] += 1;
                 }
                 let envelope = melib::Envelope::from_bytes(post.message.as_slice(), None)
@@ -310,6 +319,16 @@ fn run_app() -> std::result::Result<(), Box<dyn std::error::Error>> {
                 }
             })
             .collect::<Vec<_>>();
+        let crumbs = vec![
+            Crumb {
+                label: "Lists".into(),
+                url: format!("{root_url_prefix}/").into(),
+            },
+            Crumb {
+                label: list.name.clone().into(),
+                url: format!("{root_url_prefix}/lists/{}/", list.pk).into(),
+            },
+        ];
         let context = minijinja::context! {
             title=> &list.name,
             description=> &list.description,
@@ -321,6 +340,7 @@ fn run_app() -> std::result::Result<(), Box<dyn std::error::Error>> {
             body=>&list.description.clone().unwrap_or_default(),
             root_prefix => &root_url_prefix,
             list => Value::from_object(MailingList::from(list.clone())),
+            crumbs => crumbs,
         };
         let mut file = OpenOptions::new()
             .read(true)
@@ -359,6 +379,22 @@ fn run_app() -> std::result::Result<(), Box<dyn std::error::Error>> {
                     subject_ref = subject_ref[2 + list.id.len()..].trim();
                 }
             }
+            let mut message_id = &post.message_id[1..];
+            message_id = &message_id[..message_id.len().saturating_sub(1)];
+            let crumbs = vec![
+                Crumb {
+                    label: "Lists".into(),
+                    url: format!("{root_url_prefix}/").into(),
+                },
+                Crumb {
+                    label: list.name.clone().into(),
+                    url: format!("{root_url_prefix}/lists/{}/", list.pk).into(),
+                },
+                Crumb {
+                    label: subject_ref.to_string().into(),
+                    url: format!("{root_url_prefix}/lists/{}/{message_id}.html/", list.pk).into(),
+                },
+            ];
             let context = minijinja::context! {
                 title => &list.name,
                 list => &list,
@@ -372,7 +408,8 @@ fn run_app() -> std::result::Result<(), Box<dyn std::error::Error>> {
                 trimmed_subject => subject_ref,
                 in_reply_to => &envelope.in_reply_to_display().map(|r| r.to_string().as_str().strip_carets().to_string()),
                 references => &envelope .references() .into_iter() .map(|m| m.to_string().as_str().strip_carets().to_string()) .collect::<Vec<String>>(),
-                    root_prefix => &root_url_prefix,
+                root_prefix => &root_url_prefix,
+                crumbs => crumbs,
             };
             let mut file = OpenOptions::new()
                 .read(true)
