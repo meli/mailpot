@@ -173,6 +173,7 @@ pub struct PostPolicy {
     pub announce_only: bool,
     pub subscriber_only: bool,
     pub approval_needed: bool,
+    pub no_subscriptions: bool,
 }
 
 impl std::fmt::Display for PostPolicy {

@@ -31,6 +31,19 @@ pub use mailpot::*;
 use std::path::PathBuf;
 use structopt::StructOpt;
 
+macro_rules! get_list {
+    ($db:ident, $list_id:expr) => {{
+        $db.get_list_by_id(&$list_id)?.or_else(|| {
+            $list_id
+                .parse::<i64>()
+                .ok()
+                .map(|pk| $db.get_list(pk).ok())
+                .flatten()
+                .flatten()
+        })
+    }};
+}
+
 #[derive(Debug, StructOpt)]
 #[structopt(
     name = "mailpot",
@@ -196,6 +209,8 @@ enum ListCommand {
         subscriber_only: bool,
         #[structopt(long)]
         approval_needed: bool,
+        #[structopt(long)]
+        no_subscriptions: bool,
     },
     RemovePolicy {
         #[structopt(long)]
@@ -272,10 +287,10 @@ fn run_app(opt: Opt) -> Result<()> {
             }
         }
         List { list_id, cmd } => {
-            let list = match db.get_list_by_id(&list_id)? {
+            let list = match get_list!(db, list_id) {
                 Some(v) => v,
                 None => {
-                    return Err(format!("No list with id {} was found", list_id).into());
+                    return Err(format!("No list with id or pk {} was found", list_id).into());
                 }
             };
             use ListCommand::*;
@@ -413,6 +428,7 @@ fn run_app(opt: Opt) -> Result<()> {
                     announce_only,
                     subscriber_only,
                     approval_needed,
+                    no_subscriptions,
                 } => {
                     let policy = PostPolicy {
                         pk: 0,
@@ -420,6 +436,7 @@ fn run_app(opt: Opt) -> Result<()> {
                         announce_only,
                         subscriber_only,
                         approval_needed,
+                        no_subscriptions,
                     };
                     let new_val = db.set_list_policy(list.pk, policy)?;
                     println!("Added new policy with pk = {}", new_val.pk());
@@ -621,10 +638,10 @@ fn run_app(opt: Opt) -> Result<()> {
             list_id,
             mut maildir_path,
         } => {
-            let list = match db.get_list_by_id(&list_id)? {
+            let list = match get_list!(db, list_id) {
                 Some(v) => v,
                 None => {
-                    return Err(format!("No list with id {} was found", list_id).into());
+                    return Err(format!("No list with id or pk {} was found", list_id).into());
                 }
             };
             use melib::backends::maildir::MaildirPathTrait;

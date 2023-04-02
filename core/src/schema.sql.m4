@@ -28,7 +28,8 @@ CREATE TABLE IF NOT EXISTS post_policy (
   BOOLEAN_TYPE(announce_only) DEFAULT BOOLEAN_FALSE(),
   BOOLEAN_TYPE(subscriber_only) DEFAULT BOOLEAN_FALSE(),
   BOOLEAN_TYPE(approval_needed) DEFAULT BOOLEAN_FALSE(),
-  CHECK(xor(approval_needed, xor(announce_only, subscriber_only))),
+  BOOLEAN_TYPE(no_subscriptions) DEFAULT BOOLEAN_FALSE(),
+  CHECK(xor(no_subscriptions, xor(approval_needed, xor(announce_only, subscriber_only)))),
   FOREIGN KEY (list) REFERENCES mailing_lists(pk) ON DELETE CASCADE
 );
 

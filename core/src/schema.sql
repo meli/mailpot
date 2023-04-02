@@ -24,7 +24,8 @@ CREATE TABLE IF NOT EXISTS post_policy (
   announce_only BOOLEAN CHECK (announce_only in (0, 1)) NOT NULL DEFAULT 0,
   subscriber_only BOOLEAN CHECK (subscriber_only in (0, 1)) NOT NULL DEFAULT 0,
   approval_needed BOOLEAN CHECK (approval_needed in (0, 1)) NOT NULL DEFAULT 0,
-  CHECK(((approval_needed) OR (((announce_only) OR (subscriber_only)) AND NOT ((announce_only) AND (subscriber_only)))) AND NOT ((approval_needed) AND (((announce_only) OR (subscriber_only)) AND NOT ((announce_only) AND (subscriber_only))))),
+  no_subscriptions BOOLEAN CHECK (no_subscriptions in (0, 1)) NOT NULL DEFAULT 0,
+  CHECK(((no_subscriptions) OR (((approval_needed) OR (((announce_only) OR (subscriber_only)) AND NOT ((announce_only) AND (subscriber_only)))) AND NOT ((approval_needed) AND (((announce_only) OR (subscriber_only)) AND NOT ((announce_only) AND (subscriber_only)))))) AND NOT ((no_subscriptions) AND (((approval_needed) OR (((announce_only) OR (subscriber_only)) AND NOT ((announce_only) AND (subscriber_only)))) AND NOT ((approval_needed) AND (((announce_only) OR (subscriber_only)) AND NOT ((announce_only) AND (subscriber_only))))))),
   FOREIGN KEY (list) REFERENCES mailing_lists(pk) ON DELETE CASCADE
 );
 

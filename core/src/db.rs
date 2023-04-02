@@ -240,20 +240,25 @@ impl Database {
     }
 
     pub fn set_list_policy(&self, list_pk: i64, policy: PostPolicy) -> Result<DbVal<PostPolicy>> {
-        if !(policy.announce_only || policy.subscriber_only || policy.approval_needed) {
+        if !(policy.announce_only
+            || policy.subscriber_only
+            || policy.approval_needed
+            || policy.no_subscriptions)
+        {
             return Err(
                 "Cannot add empty policy. Having no policies is probably what you want to do."
                     .into(),
             );
         }
 
-        let mut stmt = self.connection.prepare("INSERT OR REPLACE INTO post_policy(list, announce_only, subscriber_only, approval_needed) VALUES (?, ?, ?, ?) RETURNING *;")?;
+        let mut stmt = self.connection.prepare("INSERT OR REPLACE INTO post_policy(list, announce_only, subscriber_only, approval_needed, no_subscriptions) VALUES (?, ?, ?, ?, ?) RETURNING *;")?;
         let ret = stmt.query_row(
             rusqlite::params![
                 &list_pk,
                 &policy.announce_only,
                 &policy.subscriber_only,
                 &policy.approval_needed,
+                &policy.no_subscriptions,
             ],
             |row| {
                 let pk = row.get("pk")?;
@@ -264,6 +269,7 @@ impl Database {
                         announce_only: row.get("announce_only")?,
                         subscriber_only: row.get("subscriber_only")?,
                         approval_needed: row.get("approval_needed")?,
+                        no_subscriptions: row.get("no_subscriptions")?,
                     },
                     pk,
                 ))
@@ -331,6 +337,7 @@ impl Database {
                         announce_only: row.get("announce_only")?,
                         subscriber_only: row.get("subscriber_only")?,
                         approval_needed: row.get("approval_needed")?,
+                        no_subscriptions: row.get("no_subscriptions")?,
                     },
                     pk,
                 ))
