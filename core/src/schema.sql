@@ -43,7 +43,8 @@ CREATE TABLE IF NOT EXISTS membership (
   receive_own_posts BOOLEAN CHECK (receive_own_posts in (0, 1)) NOT NULL DEFAULT 0,
   receive_confirmation BOOLEAN CHECK (receive_confirmation in (0, 1)) NOT NULL DEFAULT 1,
   FOREIGN KEY (list) REFERENCES mailing_lists(pk) ON DELETE CASCADE,
-  FOREIGN KEY (account) REFERENCES account(pk) ON DELETE CASCADE
+  FOREIGN KEY (account) REFERENCES account(pk) ON DELETE CASCADE,
+  UNIQUE (list, address) ON CONFLICT ROLLBACK
 );
 
 CREATE TABLE IF NOT EXISTS account (

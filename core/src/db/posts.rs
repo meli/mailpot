@@ -18,8 +18,10 @@
  */
 
 use super::*;
+use crate::mail::ListRequest;
 
-impl Database {
+impl Connection {
+    /// Insert a mailing list post into the database.
     pub fn insert_post(&self, list_pk: i64, message: &[u8], env: &Envelope) -> Result<i64> {
         let from_ = env.from();
         let address = if from_.is_empty() {
@@ -65,6 +67,7 @@ impl Database {
         Ok(pk)
     }
 
+    /// Process a new mailing list post.
     pub fn post(&self, env: &Envelope, raw: &[u8], _dry_run: bool) -> Result<()> {
         let result = self.inner_post(env, raw, _dry_run);
         if let Err(err) = result {
@@ -89,7 +92,7 @@ impl Database {
         if env.from().is_empty() {
             return Err("Envelope From: field is empty!".into());
         }
-        let mut lists = self.list_lists()?;
+        let mut lists = self.lists()?;
         for t in &tos {
             if let Some((addr, subaddr)) = t.subaddress("+") {
                 lists.retain(|list| {
@@ -123,12 +126,13 @@ impl Database {
         use crate::mail::{ListContext, Post, PostAction};
         for mut list in lists {
             trace!("Examining list {}", list.display_name());
-            let filters = self.get_list_filters(&list);
+            let filters = self.list_filters(&list);
             let memberships = self.list_members(list.pk)?;
+            let owners = self.list_owners(list.pk)?;
             trace!("List members {:#?}", &memberships);
             let mut list_ctx = ListContext {
-                policy: self.get_list_policy(list.pk)?,
-                list_owners: self.get_list_owners(list.pk)?,
+                policy: self.list_policy(list.pk)?,
+                list_owners: &owners,
                 list: &mut list,
                 memberships: &memberships,
                 scheduled_jobs: vec![],
@@ -201,6 +205,7 @@ impl Database {
         Ok(())
     }
 
+    /// Process a new mailing list request.
     pub fn request(
         &self,
         list: &DbVal<MailingList>,
@@ -216,7 +221,7 @@ impl Database {
                     list
                 );
 
-                let list_policy = self.get_list_policy(list.pk)?;
+                let list_policy = self.list_policy(list.pk)?;
                 let approval_needed = list_policy
                     .as_ref()
                     .map(|p| p.approval_needed)
@@ -254,7 +259,7 @@ impl Database {
                     list
                 );
                 for f in env.from() {
-                    if let Err(_err) = self.remove_member(list.pk, &f.get_email()) {
+                    if let Err(_err) = self.remove_membership(list.pk, &f.get_email()) {
                         //FIXME: send failure notice to f
                     } else {
                         //FIXME: send success notice to f
@@ -308,6 +313,7 @@ impl Database {
         Ok(())
     }
 
+    /// Fetch all year and month values for which at least one post exists in `yyyy-mm` format.
     pub fn months(&self, list_pk: i64) -> Result<Vec<String>> {
         let mut stmt = self.connection.prepare(
             "SELECT DISTINCT strftime('%Y-%m', CAST(timestamp AS INTEGER), 'unixepoch') FROM post WHERE list = ?;",

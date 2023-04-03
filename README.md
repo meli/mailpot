@@ -1,9 +1,12 @@
-# Mailpot - WIP mailing list manager
+# mailpot - WIP mailing list manager
+
+Rendered rustdoc of `core` crate: <https://meli.github.io/mailpot/docs/mailpot/>
 
 Crates:
 
-- `core`
+- `core` the library
 - `cli` a command line tool to manage lists
+- `archive-http` static web archive generation or with a dynamic http server
 - `rest-http` a REST http server to manage lists
 
 ## Project goals
@@ -12,32 +15,25 @@ Crates:
 - extensible through Rust API as a library
 - extensible through HTTP REST API as an HTTP server, with webhooks
 - basic management through CLI
-- replaceable lightweight web archiver
-- custom storage?
-- useful for both newsletters, discussions
+- optional lightweight web archiver
+- useful for both newsletters, discussions, article comments
 
 ## Initial setup
 
-Check where `mpot` expects your database file to be:
-
-```shell
-$ cargo run --bin mpot -- db-location
-Configuration file /home/user/.config/mailpot/config.toml doesn't exist
-```
-
-Uuugh, oops.
+Create a configuration file and a database:
 
 ```shell
 $ mkdir -p /home/user/.config/mailpot
-$ echo 'send_mail = { "type" = "ShellCommand", "value" = "/usr/bin/false" }' > /home/user/.config/mailpot/config.toml
-$ cargo run --bin mpot -- db-location
+$ export MPOT_CONFIG=/home/user/.config/mailpot/config.toml
+$ cargo run --bin mpot -- sample-config > "$MPOT_CONFIG"
+$ # edit config and set database path e.g. "/home/user/.local/share/mailpot/mpot.db"
+$ cargo run --bin mpot -- -c "$MPOT_CONFIG" db-location
 /home/user/.local/share/mailpot/mpot.db
 ```
 
-Now you can initialize the database file:
+This creates the database file in the configuration file as if you executed the following:
 
 ```shell
-$ mkdir -p /home/user/.local/share/mailpot/
 $ sqlite3 /home/user/.local/share/mailpot/mpot.db < ./core/src/schema.sql
 ```
 
@@ -188,3 +184,78 @@ TRACE - result Ok(
 )
 ```
 </details>
+
+## Using `mailpot` as a library
+
+```rust
+use mailpot::{models::*, *};
+use tempfile::TempDir;
+
+let tmp_dir = TempDir::new().unwrap();
+let db_path = tmp_dir.path().join("mpot.db");
+let config = Configuration {
+    send_mail: SendMail::ShellCommand("/usr/bin/false".to_string()),
+    db_path: db_path.clone(),
+    data_path: tmp_dir.path().to_path_buf(),
+};
+let db = Connection::open_or_create_db(config)?.trusted();
+
+// Create a new mailing list
+let list_pk = db.create_list(MailingList {
+    pk: 0,
+    name: "foobar chat".into(),
+    id: "foo-chat".into(),
+    address: "foo-chat@example.com".into(),
+    description: None,
+    archive_url: None,
+})?.pk;
+
+db.set_list_policy(
+    PostPolicy {
+        pk: 0,
+        list: list_pk,
+        announce_only: false,
+        subscriber_only: true,
+        approval_needed: false,
+        no_subscriptions: false,
+        custom: false,
+    },
+)?;
+
+// Drop privileges; we can only process new e-mail and modify memberships from now on.
+let db = db.untrusted();
+
+assert_eq!(db.list_members(list_pk)?.len(), 0);
+assert_eq!(db.list_posts(list_pk, None)?.len(), 0);
+
+// Process a subscription request e-mail
+let subscribe_bytes = b"From: Name <user@example.com>
+To: <foo-chat+subscribe@example.com>
+Subject: subscribe
+Date: Thu, 29 Oct 2020 13:58:16 +0000
+Message-ID: <1@example.com>
+
+";
+let envelope = melib::Envelope::from_bytes(subscribe_bytes, None)?;
+db.post(&envelope, subscribe_bytes, /* dry_run */ false)?;
+
+assert_eq!(db.list_members(list_pk)?.len(), 1);
+assert_eq!(db.list_posts(list_pk, None)?.len(), 0);
+
+// Process a post
+let post_bytes = b"From: Name <user@example.com>
+To: <foo-chat@example.com>
+Subject: my first post
+Date: Thu, 29 Oct 2020 14:01:09 +0000
+Message-ID: <2@example.com>
+
+Hello
+";
+let envelope =
+    melib::Envelope::from_bytes(post_bytes, None).expect("Could not parse message");
+db.post(&envelope, post_bytes, /* dry_run */ false)?;
+
+assert_eq!(db.list_members(list_pk)?.len(), 1);
+assert_eq!(db.list_posts(list_pk, None)?.len(), 1);
+# Ok::<(), Error>(())
+```

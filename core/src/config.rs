@@ -23,28 +23,36 @@ use std::io::{Read, Write};
 use std::os::unix::fs::PermissionsExt;
 use std::path::{Path, PathBuf};
 
+/// How to send e-mail.
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(tag = "type", content = "value")]
 pub enum SendMail {
+    /// A `melib` configuration for talking to an SMTP server.
     Smtp(melib::smtp::SmtpServerConf),
+    /// A plain shell command passed to `sh -c` with the e-mail passed in the stdin.
     ShellCommand(String),
 }
 
+/// The configuration for the mailpot database and the mail server.
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Configuration {
+    /// How to send e-mail.
     pub send_mail: SendMail,
-    #[serde(default = "default_storage_fn")]
-    pub storage: String,
+    /// The location of the sqlite3 file.
     pub db_path: PathBuf,
+    /// The directory where data are stored.
     pub data_path: PathBuf,
 }
 
 impl Configuration {
+    /// Create a new configuration value from a given database path value.
+    ///
+    /// If you wish to create a new database with this configuration, use [`Connection::open_or_create_db`](crate::Connection::open_or_create_db).
+    /// To open an existing database, use [`Database::open_db`](crate::Connection::open_db).
     pub fn new(db_path: impl Into<PathBuf>) -> Self {
         let db_path = db_path.into();
         Configuration {
             send_mail: SendMail::ShellCommand("/usr/bin/false".to_string()),
-            storage: "sqlite3".into(),
             data_path: db_path
                 .parent()
                 .map(Path::to_path_buf)
@@ -53,6 +61,7 @@ impl Configuration {
         }
     }
 
+    /// Deserialize configuration from TOML file.
     pub fn from_file<P: AsRef<Path>>(path: P) -> Result<Self> {
         let path = path.as_ref();
         let mut s = String::new();
@@ -66,24 +75,17 @@ impl Configuration {
         Ok(config)
     }
 
+    /// The saved data path.
     pub fn data_directory(&self) -> &Path {
         self.data_path.as_path()
     }
 
+    /// The sqlite3 database path.
     pub fn db_path(&self) -> &Path {
         self.db_path.as_path()
     }
 
-    pub fn default_path() -> Result<PathBuf> {
-        let mut result =
-            xdg::BaseDirectories::with_prefix("mailpot")?.place_config_file("config.toml")?;
-        if result.starts_with("~") {
-            result = Path::new(&std::env::var("HOME").context("No $HOME set.")?)
-                .join(result.strip_prefix("~").context("Internal error while getting default database path: path starts with ~ but rust couldn't strip_refix(\"~\"")?);
-        }
-        Ok(result)
-    }
-
+    /// Save message to a custom path.
     pub fn save_message_to_path(&self, msg: &str, mut path: PathBuf) -> Result<PathBuf> {
         if path.is_dir() {
             let now = Local::now().timestamp();
@@ -102,17 +104,15 @@ impl Configuration {
         Ok(path)
     }
 
+    /// Save message to the data directory.
     pub fn save_message(&self, msg: String) -> Result<PathBuf> {
         self.save_message_to_path(&msg, self.data_directory().to_path_buf())
     }
 
+    /// Serialize configuration to a TOML string.
     pub fn to_toml(&self) -> String {
         toml::Value::try_from(self)
             .expect("Could not serialize config to TOML")
             .to_string()
     }
-}
-
-fn default_storage_fn() -> String {
-    "sqlite3".to_string()
 }

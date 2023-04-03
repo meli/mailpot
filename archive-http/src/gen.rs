@@ -22,9 +22,6 @@ use chrono::Datelike;
 
 mod cal;
 
-pub use mailpot::config::*;
-pub use mailpot::db::*;
-pub use mailpot::errors::*;
 pub use mailpot::models::*;
 pub use mailpot::*;
 
@@ -223,8 +220,8 @@ fn run_app() -> std::result::Result<(), Box<dyn std::error::Error>> {
     let conf = Configuration::from_file(config_path)
         .map_err(|err| format!("Could not load config {config_path}: {err}"))?;
 
-    let db = Database::open_db(conf).map_err(|err| format!("Couldn't open db: {err}"))?;
-    let lists_values = db.list_lists()?;
+    let db = Connection::open_db(conf).map_err(|err| format!("Couldn't open db: {err}"))?;
+    let lists_values = db.lists()?;
     {
         //index.html
 
@@ -276,10 +273,8 @@ fn run_app() -> std::result::Result<(), Box<dyn std::error::Error>> {
         std::fs::create_dir_all(&lists_path)?;
         lists_path.push("index.html");
 
-        let list = db
-            .get_list(list.pk)?
-            .ok_or_else(|| format!("List with pk {} not found in database", list.pk))?;
-        let post_policy = db.get_list_policy(list.pk)?;
+        let list = db.list(list.pk)?;
+        let post_policy = db.list_policy(list.pk)?;
         let months = db.months(list.pk)?;
         let posts = db.list_posts(list.pk, None)?;
         let mut hist = months

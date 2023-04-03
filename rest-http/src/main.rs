@@ -19,21 +19,10 @@
 
 extern crate mailpot;
 
-pub use mailpot::config::*;
-pub use mailpot::db::*;
-pub use mailpot::errors::*;
 pub use mailpot::models::*;
 pub use mailpot::*;
 
 use warp::Filter;
-
-/*
-fn json_body() -> impl Filter<Extract = (String,), Error = warp::Rejection> + Clone {
-    // When accepting a body, we want a JSON body
-    // (and to reject huge payloads)...
-    warp::body::content_length_limit(1024 * 16).and(warp::body::json())
-}
-*/
 
 #[tokio::main]
 async fn main() {
@@ -45,8 +34,8 @@ async fn main() {
     let conf1 = conf.clone();
     // GET /lists/:i64/policy
     let policy = warp::path!("lists" / i64 / "policy").map(move |list_pk| {
-        let db = Database::open_db(conf1.clone()).unwrap();
-        db.get_list_policy(list_pk)
+        let db = Connection::open_db(conf1.clone()).unwrap();
+        db.list_policy(list_pk)
             .ok()
             .map(|l| warp::reply::json(&l.unwrap()))
             .unwrap()
@@ -55,34 +44,33 @@ async fn main() {
     let conf2 = conf.clone();
     //get("/lists")]
     let lists = warp::path!("lists").map(move || {
-        let db = Database::open_db(conf2.clone()).unwrap();
-        let lists = db.list_lists().unwrap();
+        let db = Connection::open_db(conf2.clone()).unwrap();
+        let lists = db.lists().unwrap();
         warp::reply::json(&lists)
     });
 
     let conf3 = conf.clone();
     //get("/lists/<num>")]
     let lists_num = warp::path!("lists" / i64).map(move |list_pk| {
-        let db = Database::open_db(conf3.clone()).unwrap();
-        let list = db.get_list(list_pk).unwrap();
+        let db = Connection::open_db(conf3.clone()).unwrap();
+        let list = db.list(list_pk).unwrap();
         warp::reply::json(&list)
     });
 
     let conf4 = conf.clone();
     //get("/lists/<num>/members")]
     let lists_members = warp::path!("lists" / i64 / "members").map(move |list_pk| {
-        let db = Database::open_db(conf4.clone()).unwrap();
+        let db = Connection::open_db(conf4.clone()).unwrap();
         db.list_members(list_pk)
             .ok()
             .map(|l| warp::reply::json(&l))
             .unwrap()
     });
 
-    let conf5 = conf.clone();
     //get("/lists/<num>/owners")]
     let lists_owners = warp::path!("lists" / i64 / "owners").map(move |list_pk| {
-        let db = Database::open_db(conf.clone()).unwrap();
-        db.get_list_owners(list_pk)
+        let db = Connection::open_db(conf.clone()).unwrap();
+        db.list_owners(list_pk)
             .ok()
             .map(|l| warp::reply::json(&l))
             .unwrap()
@@ -100,10 +88,6 @@ async fn main() {
             .or(lists_owners)
             .or(lists_owner_add),
     );
-
-    // Note that composing filters for many routes may increase compile times (because it uses a lot of generics).
-    // If you wish to use dynamic dispatch instead and speed up compile times while
-    // making it slightly slower at runtime, you can use Filter::boxed().
 
     warp::serve(routes).run(([127, 0, 0, 1], 3030)).await;
 }

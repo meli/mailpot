@@ -19,7 +19,7 @@
 
 mod utils;
 
-use mailpot::{models::*, Configuration, Database, SendMail};
+use mailpot::{models::*, Configuration, Connection, SendMail};
 use tempfile::TempDir;
 
 #[test]
@@ -32,12 +32,11 @@ fn test_list_subscription() {
     let config = Configuration {
         send_mail: SendMail::ShellCommand("/usr/bin/false".to_string()),
         db_path: db_path.clone(),
-        storage: "sqlite3".to_string(),
         data_path: tmp_dir.path().to_path_buf(),
     };
 
-    let db = Database::open_or_create_db(config).unwrap().trusted();
-    assert!(db.list_lists().unwrap().is_empty());
+    let db = Connection::open_or_create_db(config).unwrap().trusted();
+    assert!(db.lists().unwrap().is_empty());
     let foo_chat = db
         .create_list(MailingList {
             pk: 0,
@@ -50,7 +49,7 @@ fn test_list_subscription() {
         .unwrap();
 
     assert_eq!(foo_chat.pk(), 1);
-    let lists = db.list_lists().unwrap();
+    let lists = db.lists().unwrap();
     assert_eq!(lists.len(), 1);
     assert_eq!(lists[0], foo_chat);
     let post_policy = db
@@ -67,6 +66,7 @@ fn test_list_subscription() {
 
     assert_eq!(post_policy.pk(), 1);
     assert_eq!(db.error_queue().unwrap().len(), 0);
+    assert_eq!(db.list_members(foo_chat.pk()).unwrap().len(), 0);
 
     let db = db.untrusted();
 
@@ -114,6 +114,7 @@ MIME-Version: 1.0
         melib::Envelope::from_bytes(input_bytes_2, None).expect("Could not parse message");
     db.post(&envelope, input_bytes_2, /* dry_run */ false)
         .unwrap();
+    assert_eq!(db.list_members(foo_chat.pk()).unwrap().len(), 1);
     assert_eq!(db.error_queue().unwrap().len(), 1);
     let envelope =
         melib::Envelope::from_bytes(input_bytes_1, None).expect("Could not parse message");

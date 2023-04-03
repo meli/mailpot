@@ -20,7 +20,8 @@
 use super::*;
 use serde_json::{json, Value};
 
-impl Database {
+impl Connection {
+    /// Insert a received email into the error queue.
     pub fn insert_to_error_queue(&self, env: &Envelope, raw: &[u8], reason: String) -> Result<i64> {
         let mut stmt = self.connection.prepare("INSERT INTO error_queue(error, to_address, from_address, subject, message_id, message, timestamp, datetime) VALUES(?, ?, ?, ?, ?, ?, ?, ?) RETURNING pk;")?;
         let pk = stmt.query_row(
@@ -42,6 +43,7 @@ impl Database {
         Ok(pk)
     }
 
+    /// Fetch all error queue entries.
     pub fn error_queue(&self) -> Result<Vec<DbVal<Value>>> {
         let mut stmt = self.connection.prepare("SELECT * FROM error_queue;")?;
         let error_iter = stmt.query_map([], |row| {
@@ -70,6 +72,7 @@ impl Database {
         Ok(ret)
     }
 
+    /// Delete error queue entries.
     pub fn delete_from_error_queue(&mut self, index: Vec<i64>) -> Result<()> {
         let tx = self.connection.transaction()?;
 

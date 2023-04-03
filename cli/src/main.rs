@@ -21,9 +21,6 @@ extern crate log;
 extern crate mailpot;
 extern crate stderrlog;
 
-pub use mailpot::config::*;
-pub use mailpot::db::*;
-pub use mailpot::errors::*;
 pub use mailpot::mail::*;
 pub use mailpot::models::changesets::*;
 pub use mailpot::models::*;
@@ -31,14 +28,13 @@ pub use mailpot::*;
 use std::path::PathBuf;
 use structopt::StructOpt;
 
-macro_rules! get_list {
+macro_rules! list {
     ($db:ident, $list_id:expr) => {{
-        $db.get_list_by_id(&$list_id)?.or_else(|| {
+        $db.list_by_id(&$list_id)?.or_else(|| {
             $list_id
                 .parse::<i64>()
                 .ok()
-                .map(|pk| $db.get_list(pk).ok())
-                .flatten()
+                .map(|pk| $db.list(pk).ok())
                 .flatten()
         })
     }};
@@ -60,7 +56,6 @@ struct Opt {
 
     /// Set config file
     #[structopt(short, long, parse(from_os_str))]
-    #[allow(dead_code)]
     config: PathBuf,
     #[structopt(flatten)]
     cmd: Command,
@@ -259,11 +254,11 @@ fn run_app(opt: Opt) -> Result<()> {
     };
     let config = Configuration::from_file(opt.config.as_path())?;
     use Command::*;
-    let mut db = Database::open_or_create_db(config)?;
+    let mut db = Connection::open_or_create_db(config)?;
     match opt.cmd {
         SampleConfig => {}
         DumpDatabase => {
-            let lists = db.list_lists()?;
+            let lists = db.lists()?;
             let mut stdout = std::io::stdout();
             serde_json::to_writer_pretty(&mut stdout, &lists)?;
             for l in &lists {
@@ -271,13 +266,13 @@ fn run_app(opt: Opt) -> Result<()> {
             }
         }
         ListLists => {
-            let lists = db.list_lists()?;
+            let lists = db.lists()?;
             if lists.is_empty() {
                 println!("No lists found.");
             } else {
                 for l in lists {
                     println!("- {} {:?}", l.id, l);
-                    let list_owners = db.get_list_owners(l.pk)?;
+                    let list_owners = db.list_owners(l.pk)?;
                     if list_owners.is_empty() {
                         println!("\tList owners: None");
                     } else {
@@ -286,7 +281,7 @@ fn run_app(opt: Opt) -> Result<()> {
                             println!("\t- {}", o);
                         }
                     }
-                    if let Some(s) = db.get_list_policy(l.pk)? {
+                    if let Some(s) = db.list_policy(l.pk)? {
                         println!("\tList policy: {}", s);
                     } else {
                         println!("\tList policy: None");
@@ -296,7 +291,7 @@ fn run_app(opt: Opt) -> Result<()> {
             }
         }
         List { list_id, cmd } => {
-            let list = match get_list!(db, list_id) {
+            let list = match list!(db, list_id) {
                 Some(v) => v,
                 None => {
                     return Err(format!("No list with id or pk {} was found", list_id).into());
@@ -356,12 +351,12 @@ fn run_app(opt: Opt) -> Result<()> {
                         }
                     }
 
-                    db.remove_member(list.pk, &address)?;
+                    db.remove_membership(list.pk, &address)?;
                 }
                 Health => {
                     println!("{} health:", list);
-                    let list_owners = db.get_list_owners(list.pk)?;
-                    let list_policy = db.get_list_policy(list.pk)?;
+                    let list_owners = db.list_owners(list.pk)?;
+                    let list_policy = db.list_policy(list.pk)?;
                     if list_owners.is_empty() {
                         println!("\tList has no owners: you should add at least one.");
                     } else {
@@ -377,8 +372,8 @@ fn run_app(opt: Opt) -> Result<()> {
                 }
                 Info => {
                     println!("{} info:", list);
-                    let list_owners = db.get_list_owners(list.pk)?;
-                    let list_policy = db.get_list_policy(list.pk)?;
+                    let list_owners = db.list_owners(list.pk)?;
+                    let list_policy = db.list_policy(list.pk)?;
                     let members = db.list_members(list.pk)?;
                     if members.is_empty() {
                         println!("No members.");
@@ -649,7 +644,7 @@ fn run_app(opt: Opt) -> Result<()> {
             list_id,
             mut maildir_path,
         } => {
-            let list = match get_list!(db, list_id) {
+            let list = match list!(db, list_id) {
                 Some(v) => v,
                 None => {
                     return Err(format!("No list with id or pk {} was found", list_id).into());

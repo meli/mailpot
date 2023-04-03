@@ -17,39 +17,44 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
+//! Errors of this library.
+
 pub use crate::anyhow::Context;
 pub use error_chain::ChainedError;
 
 // Create the Error, ErrorKind, ResultExt, and Result types
+
 error_chain! {
    errors {
+       /// Post rejected.
        PostRejected(reason: String) {
            description("Post rejected")
            display("Your post has been rejected: {}", reason)
        }
 
+       /// An entry was not found in the database.
        NotFound(model: &'static str) {
            description("Not found")
            display("This {} is not present in the database.", model)
        }
 
+       /// A request was invalid.
        InvalidRequest(reason: String) {
            description("List request is invalid")
            display("Your list request has been found invalid: {}.", reason)
        }
 
+       /// An error happened and it was handled internally.
        Information(reason: String) {
            description("")
            display("{}.", reason)
        }
    }
    foreign_links {
-       Logic(anyhow::Error);
-       Sql(rusqlite::Error);
-       Io(::std::io::Error);
-       Xdg(xdg::BaseDirectoriesError);
-       Melib(melib::error::Error);
-       Configuration(toml::de::Error);
-       SerdeJson(serde_json::Error);
+       Logic(anyhow::Error) #[doc="Error returned from an external user initiated operation such as deserialization or I/O."];
+       Sql(rusqlite::Error) #[doc="Error returned from sqlite3."];
+       Io(::std::io::Error) #[doc="Error returned from internal I/O operations."];
+       Melib(melib::error::Error) #[doc="Error returned from e-mail protocol operations from `melib` crate."];
+       SerdeJson(serde_json::Error) #[doc="Error from deserializing JSON values."];
    }
 }

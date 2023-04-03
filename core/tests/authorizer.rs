@@ -19,7 +19,7 @@
 
 mod utils;
 
-use mailpot::{models::*, Configuration, Database, SendMail};
+use mailpot::{models::*, Configuration, Connection, SendMail};
 use std::error::Error;
 use tempfile::TempDir;
 
@@ -32,12 +32,11 @@ fn test_authorizer() {
     let config = Configuration {
         send_mail: SendMail::ShellCommand("/usr/bin/false".to_string()),
         db_path: db_path.clone(),
-        storage: "sqlite3".to_string(),
         data_path: tmp_dir.path().to_path_buf(),
     };
 
-    let db = Database::open_or_create_db(config).unwrap();
-    assert!(db.list_lists().unwrap().is_empty());
+    let db = Connection::open_or_create_db(config).unwrap();
+    assert!(db.lists().unwrap().is_empty());
 
     for err in [
         db.create_list(MailingList {
@@ -73,7 +72,7 @@ fn test_authorizer() {
             },
         );
     }
-    assert!(db.list_lists().unwrap().is_empty());
+    assert!(db.lists().unwrap().is_empty());
 
     let db = db.trusted();
 

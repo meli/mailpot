@@ -17,6 +17,8 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
+//! Mailpot database and methods.
+
 use super::Configuration;
 use super::*;
 use crate::ErrorKind::*;
@@ -28,9 +30,9 @@ use std::convert::TryFrom;
 use std::io::Write;
 use std::process::{Command, Stdio};
 
-const DB_NAME: &str = "current.db";
-
-pub struct Database {
+/// A connection to a `mailpot` database.
+pub struct Connection {
+    /// The `rusqlite` connection handle.
     pub connection: DbConnection,
     conf: Configuration,
 }
@@ -55,6 +57,7 @@ fn user_authorizer_callback(
 ) -> rusqlite::hooks::Authorization {
     use rusqlite::hooks::{AuthAction, Authorization};
 
+    // [ref:sync_auth_doc] sync with `untrusted()` rustdoc when changing this.
     match auth_context.action {
         AuthAction::Delete {
             table_name: "error_queue" | "queue" | "candidate_membership" | "membership",
@@ -73,7 +76,12 @@ fn user_authorizer_callback(
     }
 }
 
-impl Database {
+impl Connection {
+    /// Creates a new database connection.
+    ///
+    /// `Connection` supports a limited subset of operations by default (see
+    /// [`Connection::untrusted`]).
+    /// Use [`Connection::trusted`] to remove these limits.
     pub fn open_db(conf: Configuration) -> Result<Self> {
         use rusqlite::config::DbConfig;
         use std::sync::Once;
@@ -94,12 +102,14 @@ impl Database {
         conn.busy_timeout(core::time::Duration::from_millis(500))?;
         conn.busy_handler(Some(|times: i32| -> bool { times < 5 }))?;
         conn.authorizer(Some(user_authorizer_callback));
-        Ok(Database {
+        Ok(Connection {
             conf,
             connection: conn,
         })
     }
 
+    /// Removes operational limits from this connection. (see [`Connection::untrusted`])
+    #[must_use]
     pub fn trusted(self) -> Self {
         self.connection
             .authorizer::<fn(rusqlite::hooks::AuthContext<'_>) -> rusqlite::hooks::Authorization>(
@@ -108,21 +118,30 @@ impl Database {
         self
     }
 
+    // [tag:sync_auth_doc]
+    /// Sets operational limits for this connection.
+    ///
+    /// - Allow `INSERT`, `DELETE` only for "error_queue", "queue", "candidate_membership", "membership".
+    /// - Allow `INSERT` only for "post".
+    /// - Allow read access to all tables.
+    /// - Allow `SELECT`, `TRANSACTION`, `SAVEPOINT`, and the `strftime` function.
+    /// - Deny everything else.
     pub fn untrusted(self) -> Self {
         self.connection.authorizer(Some(user_authorizer_callback));
         self
     }
 
+    /// Create a database if it doesn't exist and then open it.
     pub fn open_or_create_db(conf: Configuration) -> Result<Self> {
         if !conf.db_path.exists() {
             let db_path = &conf.db_path;
             use std::os::unix::fs::PermissionsExt;
 
             info!("Creating database in {}", db_path.display());
-            std::fs::File::create(&db_path).context("Could not create db path")?;
+            std::fs::File::create(db_path).context("Could not create db path")?;
 
             let mut child = Command::new("sqlite3")
-                .arg(&db_path)
+                .arg(db_path)
                 .stdin(Stdio::piped())
                 .stdout(Stdio::piped())
                 .stderr(Stdio::piped())
@@ -139,7 +158,7 @@ impl Database {
                 return Err(format!("Could not initialize sqlite3 database at {}: sqlite3 returned exit code {} and stderr {} {}", db_path.display(), output.status.code().unwrap_or_default(), String::from_utf8_lossy(&output.stderr), String::from_utf8_lossy(&output.stdout)).into());
             }
 
-            let file = std::fs::File::open(&db_path)?;
+            let file = std::fs::File::open(db_path)?;
             let metadata = file.metadata()?;
             let mut permissions = metadata.permissions();
 
@@ -149,10 +168,12 @@ impl Database {
         Self::open_db(conf)
     }
 
+    /// Returns a connection's configuration.
     pub fn conf(&self) -> &Configuration {
         &self.conf
     }
 
+    /// Loads archive databases from [`Configuration::data_path`], if any.
     pub fn load_archives(&self) -> Result<()> {
         let mut stmt = self.connection.prepare("ATTACH ? AS ?;")?;
         for archive in std::fs::read_dir(&self.conf.data_path)? {
@@ -171,7 +192,8 @@ impl Database {
         Ok(())
     }
 
-    pub fn list_lists(&self) -> Result<Vec<DbVal<MailingList>>> {
+    /// Returns a vector of existing mailing lists.
+    pub fn lists(&self) -> Result<Vec<DbVal<MailingList>>> {
         let mut stmt = self.connection.prepare("SELECT * FROM mailing_lists;")?;
         let list_iter = stmt.query_map([], |row| {
             let pk = row.get("pk")?;
@@ -196,7 +218,8 @@ impl Database {
         Ok(ret)
     }
 
-    pub fn get_list(&self, pk: i64) -> Result<Option<DbVal<MailingList>>> {
+    /// Fetch a mailing list by primary key.
+    pub fn list(&self, pk: i64) -> Result<DbVal<MailingList>> {
         let mut stmt = self
             .connection
             .prepare("SELECT * FROM mailing_lists WHERE pk = ?;")?;
@@ -216,11 +239,15 @@ impl Database {
                 ))
             })
             .optional()?;
-
-        Ok(ret)
+        if let Some(ret) = ret {
+            Ok(ret)
+        } else {
+            Err(Error::from(NotFound("list or list policy not found!")))
+        }
     }
 
-    pub fn get_list_by_id<S: AsRef<str>>(&self, id: S) -> Result<Option<DbVal<MailingList>>> {
+    /// Fetch a mailing list by id.
+    pub fn list_by_id<S: AsRef<str>>(&self, id: S) -> Result<Option<DbVal<MailingList>>> {
         let id = id.as_ref();
         let mut stmt = self
             .connection
@@ -245,6 +272,7 @@ impl Database {
         Ok(ret)
     }
 
+    /// Create a new list.
     pub fn create_list(&self, new_val: MailingList) -> Result<DbVal<MailingList>> {
         let mut stmt = self
             .connection
@@ -280,7 +308,7 @@ impl Database {
     /// Remove an existing list policy.
     ///
     /// ```
-    /// # use mailpot::{models::*, Configuration, Database, SendMail};
+    /// # use mailpot::{models::*, Configuration, Connection, SendMail};
     /// # use tempfile::TempDir;
     ///
     /// # let tmp_dir = TempDir::new().unwrap();
@@ -288,12 +316,11 @@ impl Database {
     /// # let config = Configuration {
     /// #     send_mail: SendMail::ShellCommand("/usr/bin/false".to_string()),
     /// #     db_path: db_path.clone(),
-    /// #     storage: "sqlite3".to_string(),
     /// #     data_path: tmp_dir.path().to_path_buf(),
     /// # };
     ///
     /// # fn do_test(config: Configuration) {
-    /// let db = Database::open_or_create_db(config).unwrap().trusted();
+    /// let db = Connection::open_or_create_db(config).unwrap().trusted();
     /// let list_pk = db.create_list(MailingList {
     ///     pk: 0,
     ///     name: "foobar chat".into(),
@@ -317,25 +344,6 @@ impl Database {
     /// # }
     /// # do_test(config);
     /// ```
-    /// ```should_panic
-    /// # use mailpot::{models::*, Configuration, Database, SendMail};
-    /// # use tempfile::TempDir;
-    ///
-    /// # let tmp_dir = TempDir::new().unwrap();
-    /// # let db_path = tmp_dir.path().join("mpot.db");
-    /// # let config = Configuration {
-    /// #     send_mail: SendMail::ShellCommand("/usr/bin/false".to_string()),
-    /// #     db_path: db_path.clone(),
-    /// #     storage: "sqlite3".to_string(),
-    /// #     data_path: tmp_dir.path().to_path_buf(),
-    /// # };
-    ///
-    /// # fn do_test(config: Configuration) {
-    /// let db = Database::open_or_create_db(config).unwrap().trusted();
-    /// db.remove_list_policy(1, 1).unwrap();
-    /// # }
-    /// # do_test(config);
-    /// ```
     pub fn remove_list_policy(&self, list_pk: i64, policy_pk: i64) -> Result<()> {
         let mut stmt = self
             .connection
@@ -353,6 +361,28 @@ impl Database {
         Ok(())
     }
 
+    /// ```should_panic
+    /// # use mailpot::{models::*, Configuration, Connection, SendMail};
+    /// # use tempfile::TempDir;
+    ///
+    /// # let tmp_dir = TempDir::new().unwrap();
+    /// # let db_path = tmp_dir.path().join("mpot.db");
+    /// # let config = Configuration {
+    /// #     send_mail: SendMail::ShellCommand("/usr/bin/false".to_string()),
+    /// #     db_path: db_path.clone(),
+    /// #     data_path: tmp_dir.path().to_path_buf(),
+    /// # };
+    ///
+    /// # fn do_test(config: Configuration) {
+    /// let db = Connection::open_or_create_db(config).unwrap().trusted();
+    /// db.remove_list_policy(1, 1).unwrap();
+    /// # }
+    /// # do_test(config);
+    /// ```
+    #[cfg(doc)]
+    pub fn remove_list_policy_panic() {}
+
+    /// Set the unique post policy for a list.
     pub fn set_list_policy(&self, policy: PostPolicy) -> Result<DbVal<PostPolicy>> {
         if !(policy.announce_only
             || policy.subscriber_only
@@ -415,6 +445,7 @@ impl Database {
         Ok(ret)
     }
 
+    /// Fetch all posts of a mailing list.
     pub fn list_posts(
         &self,
         list_pk: i64,
@@ -449,16 +480,8 @@ impl Database {
         Ok(ret)
     }
 
-    pub fn update_list(&self, _change_set: MailingListChangeset) -> Result<()> {
-        /*
-        diesel::update(mailing_lists::table)
-            .set(&set)
-            .execute(&self.connection)?;
-        */
-        Ok(())
-    }
-
-    pub fn get_list_policy(&self, pk: i64) -> Result<Option<DbVal<PostPolicy>>> {
+    /// Fetch the post policy of a mailing list.
+    pub fn list_policy(&self, pk: i64) -> Result<Option<DbVal<PostPolicy>>> {
         let mut stmt = self
             .connection
             .prepare("SELECT * FROM post_policy WHERE list = ?;")?;
@@ -483,7 +506,8 @@ impl Database {
         Ok(ret)
     }
 
-    pub fn get_list_owners(&self, pk: i64) -> Result<Vec<DbVal<ListOwner>>> {
+    /// Fetch the owners of a mailing list.
+    pub fn list_owners(&self, pk: i64) -> Result<Vec<DbVal<ListOwner>>> {
         let mut stmt = self
             .connection
             .prepare("SELECT * FROM list_owner WHERE list = ?;")?;
@@ -508,6 +532,7 @@ impl Database {
         Ok(ret)
     }
 
+    /// Remove an owner of a mailing list.
     pub fn remove_list_owner(&self, list_pk: i64, owner_pk: i64) -> Result<()> {
         self.connection
             .query_row(
@@ -525,6 +550,7 @@ impl Database {
         Ok(())
     }
 
+    /// Add an owner of a mailing list.
     pub fn add_list_owner(&self, list_owner: ListOwner) -> Result<DbVal<ListOwner>> {
         let mut stmt = self.connection.prepare(
             "INSERT OR REPLACE INTO list_owner(list, address, name) VALUES (?, ?, ?) RETURNING *;",
@@ -567,7 +593,58 @@ impl Database {
         Ok(ret)
     }
 
-    pub fn get_list_filters(
+    /// Update a mailing list.
+    pub fn update_list(&mut self, change_set: MailingListChangeset) -> Result<()> {
+        if matches!(
+            change_set,
+            MailingListChangeset {
+                pk: _,
+                name: None,
+                id: None,
+                address: None,
+                description: None,
+                archive_url: None
+            }
+        ) {
+            return self.list(change_set.pk).map(|_| ());
+        }
+
+        let MailingListChangeset {
+            pk,
+            name,
+            id,
+            address,
+            description,
+            archive_url,
+        } = change_set;
+        let tx = self.connection.transaction()?;
+
+        macro_rules! update {
+            ($field:tt) => {{
+                if let Some($field) = $field {
+                    tx.execute(
+                        concat!(
+                            "UPDATE mailing_lists SET ",
+                            stringify!($field),
+                            " = ? WHERE pk = ?;"
+                        ),
+                        rusqlite::params![&$field, &pk],
+                    )?;
+                }
+            }};
+        }
+        update!(name);
+        update!(id);
+        update!(address);
+        update!(description);
+        update!(archive_url);
+
+        tx.commit()?;
+        Ok(())
+    }
+
+    /// Return the post filters of a mailing list.
+    pub fn list_filters(
         &self,
         _list: &DbVal<MailingList>,
     ) -> Vec<Box<dyn crate::mail::message_filters::PostFilter>> {

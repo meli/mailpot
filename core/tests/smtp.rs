@@ -21,7 +21,7 @@ mod utils;
 
 use log::{trace, warn};
 use mailin_embedded::{Handler, Response, Server, SslConfig};
-use mailpot::{melib, models::*, Configuration, Database, SendMail};
+use mailpot::{melib, models::*, Configuration, Connection, SendMail};
 use std::net::IpAddr; //, Ipv4Addr, Ipv6Addr};
 use std::sync::{Arc, Mutex};
 use std::thread;
@@ -204,12 +204,11 @@ fn test_smtp() {
     let config = Configuration {
         send_mail: SendMail::Smtp(get_smtp_conf()),
         db_path: db_path.clone(),
-        storage: "sqlite3".to_string(),
         data_path: tmp_dir.path().to_path_buf(),
     };
 
-    let db = Database::open_or_create_db(config).unwrap().trusted();
-    assert!(db.list_lists().unwrap().is_empty());
+    let db = Connection::open_or_create_db(config).unwrap().trusted();
+    assert!(db.lists().unwrap().is_empty());
     let foo_chat = db
         .create_list(MailingList {
             pk: 0,
@@ -323,12 +322,11 @@ fn test_smtp_mailcrab() {
     let config = Configuration {
         send_mail: SendMail::Smtp(get_smtp_conf()),
         db_path: db_path.clone(),
-        storage: "sqlite3".to_string(),
         data_path: tmp_dir.path().to_path_buf(),
     };
 
-    let db = Database::open_or_create_db(config).unwrap().trusted();
-    assert!(db.list_lists().unwrap().is_empty());
+    let db = Connection::open_or_create_db(config).unwrap().trusted();
+    assert!(db.lists().unwrap().is_empty());
     let foo_chat = db
         .create_list(MailingList {
             pk: 0,

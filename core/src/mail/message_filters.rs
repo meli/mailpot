@@ -16,13 +16,35 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
+
 #![allow(clippy::result_unit_err)]
+
+//! Filters to pass each mailing list post through. Filters are functions that implement the
+//! [`PostFilter`] trait that can:
+//!
+//! - transform post content.
+//! - modify the final [`PostAction`] to take.
+//! - modify the final scheduled jobs to perform. (See [`MailJob`]).
+//!
+//! Filters are executed in sequence like this:
+//!
+//! ```ignore
+//! let result = filters
+//!     .into_iter()
+//!     .fold(Ok((&mut post, &mut list_ctx)), |p, f| {
+//!         p.and_then(|(p, c)| f.feed(p, c))
+//!     });
+//! ```
+//!
+//! so the processing stops at the first returned error.
 
 use super::*;
 
-///Filter that modifies and/or verifies a post candidate. On rejection, return a string
-///describing the error and optionally set `post.action` to `Reject` or `Defer`
+/// Filter that modifies and/or verifies a post candidate. On rejection, return a string
+/// describing the error and optionally set `post.action` to `Reject` or `Defer`
 pub trait PostFilter {
+    /// Feed post into the filter. Perform modifications to `post` and / or `ctx`, and return them
+    /// with `Result::Ok` unless you want to the processing to stop and return an `Result::Err`.
     fn feed<'p, 'list>(
         self: Box<Self>,
         post: &'p mut Post,
@@ -30,7 +52,7 @@ pub trait PostFilter {
     ) -> std::result::Result<(&'p mut Post, &'p mut ListContext<'list>), ()>;
 }
 
-///Check that submitter can post to list, for now it accepts everything.
+/// Check that submitter can post to list, for now it accepts everything.
 pub struct PostRightsCheck;
 impl PostFilter for PostRightsCheck {
     fn feed<'p, 'list>(
@@ -45,7 +67,7 @@ impl PostFilter for PostRightsCheck {
                 let owner_addresses = ctx
                     .list_owners
                     .iter()
-                    .map(|lo| lo.into_address())
+                    .map(|lo| lo.address())
                     .collect::<Vec<Address>>();
                 trace!("Owner addresses are: {:#?}", &owner_addresses);
                 trace!("Envelope from is: {:?}", &post.from);
@@ -79,7 +101,7 @@ impl PostFilter for PostRightsCheck {
     }
 }
 
-///Ensure message contains only `\r\n` line terminators, required by SMTP.
+/// Ensure message contains only `\r\n` line terminators, required by SMTP.
 pub struct FixCRLF;
 impl PostFilter for FixCRLF {
     fn feed<'p, 'list>(
@@ -99,7 +121,7 @@ impl PostFilter for FixCRLF {
     }
 }
 
-///Add `List-*` headers
+/// Add `List-*` headers
 pub struct AddListHeaders;
 impl PostFilter for AddListHeaders {
     fn feed<'p, 'list>(
@@ -147,7 +169,7 @@ impl PostFilter for AddListHeaders {
     }
 }
 
-///Adds `Archived-At` field, if configured.
+/// Adds `Archived-At` field, if configured.
 pub struct ArchivedAtLink;
 impl PostFilter for ArchivedAtLink {
     fn feed<'p, 'list>(
@@ -160,8 +182,8 @@ impl PostFilter for ArchivedAtLink {
     }
 }
 
-///Assuming there are no more changes to be done on the post, it finalizes which list members
-///will receive the post in `post.action` field.
+/// Assuming there are no more changes to be done on the post, it finalizes which list members
+/// will receive the post in `post.action` field.
 pub struct FinalizeRecipients;
 impl PostFilter for FinalizeRecipients {
     fn feed<'p, 'list>(
@@ -181,13 +203,13 @@ impl PostFilter for FinalizeRecipients {
             if member.digest {
                 if member.address != email_from || member.receive_own_posts {
                     trace!("Member gets digest");
-                    digests.push(member.into_address());
+                    digests.push(member.address());
                 }
                 continue;
             }
             if member.address != email_from || member.receive_own_posts {
                 trace!("Member gets copy");
-                recipients.push(member.into_address());
+                recipients.push(member.address());
             }
             // TODO:
             // - check for duplicates (To,Cc,Bcc)
