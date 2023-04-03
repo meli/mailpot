@@ -25,8 +25,6 @@ pub use mailpot::errors::*;
 pub use mailpot::models::*;
 pub use mailpot::*;
 
-use std::sync::Arc;
-
 use minijinja::{Environment, Source};
 use percent_encoding::percent_decode_str;
 use warp::Filter;
@@ -45,11 +43,11 @@ async fn main() {
     let config_path = std::env::args()
         .nth(1)
         .expect("Expected configuration file path as first argument.");
-    let conf = Arc::new(Configuration::from_file(config_path).unwrap());
+    let conf = Configuration::from_file(config_path).unwrap();
 
     let conf1 = conf.clone();
     let list_handler = warp::path!("lists" / i64).map(move |list_pk: i64| {
-        let db = Database::open_db(&conf1).unwrap();
+        let db = Database::open_db(conf1.clone()).unwrap();
         let list = db.get_list(list_pk).unwrap().unwrap();
         let months = db.months(list_pk).unwrap();
         let posts = db
@@ -90,7 +88,7 @@ async fn main() {
     let post_handler =
         warp::path!("list" / i64 / String).map(move |list_pk: i64, message_id: String| {
             let message_id = percent_decode_str(&message_id).decode_utf8().unwrap();
-            let db = Database::open_db(&conf2).unwrap();
+            let db = Database::open_db(conf2.clone()).unwrap();
             let list = db.get_list(list_pk).unwrap().unwrap();
             let posts = db.list_posts(list_pk, None).unwrap();
             let post = posts
@@ -124,9 +122,8 @@ async fn main() {
         });
     let conf3 = conf.clone();
     let index_handler = warp::path::end().map(move || {
-        let db = Database::open_db(&conf3).unwrap();
+        let db = Database::open_db(conf3.clone()).unwrap();
         let lists_values = db.list_lists().unwrap();
-        dbg!(&lists_values);
         let lists = lists_values
             .iter()
             .map(|list| {

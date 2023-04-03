@@ -223,7 +223,7 @@ fn run_app() -> std::result::Result<(), Box<dyn std::error::Error>> {
     let conf = Configuration::from_file(config_path)
         .map_err(|err| format!("Could not load config {config_path}: {err}"))?;
 
-    let db = Database::open_db(&conf).map_err(|err| format!("Couldn't open db: {err}"))?;
+    let db = Database::open_db(conf).map_err(|err| format!("Couldn't open db: {err}"))?;
     let lists_values = db.list_lists()?;
     {
         //index.html

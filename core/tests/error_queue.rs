@@ -1,3 +1,24 @@
+/*
+ * This file is part of mailpot
+ *
+ * Copyright 2020 - Manos Pitsidianakis
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ */
+
+mod utils;
+
 use mailpot::{melib, models::*, Configuration, Database, SendMail};
 use tempfile::TempDir;
 
@@ -15,13 +36,7 @@ fn get_smtp_conf() -> melib::smtp::SmtpServerConf {
 
 #[test]
 fn test_error_queue() {
-    stderrlog::new()
-        .quiet(false)
-        .verbosity(15)
-        .show_module_names(true)
-        .timestamp(stderrlog::Timestamp::Millisecond)
-        .init()
-        .unwrap();
+    utils::init_stderr_logging();
     let tmp_dir = TempDir::new().unwrap();
 
     let db_path = tmp_dir.path().join("mpot.db");
@@ -32,7 +47,7 @@ fn test_error_queue() {
         data_path: tmp_dir.path().to_path_buf(),
     };
 
-    let db = Database::open_or_create_db(&config).unwrap();
+    let db = Database::open_or_create_db(config).unwrap().trusted();
     assert!(db.list_lists().unwrap().is_empty());
     let foo_chat = db
         .create_list(MailingList {
@@ -47,22 +62,22 @@ fn test_error_queue() {
 
     assert_eq!(foo_chat.pk(), 1);
     let post_policy = db
-        .set_list_policy(
-            foo_chat.pk(),
-            PostPolicy {
-                pk: 0,
-                list: foo_chat.pk(),
-                announce_only: false,
-                subscriber_only: true,
-                approval_needed: false,
-                no_subscriptions: false,
-                custom: false,
-            },
-        )
+        .set_list_policy(PostPolicy {
+            pk: 0,
+            list: foo_chat.pk(),
+            announce_only: false,
+            subscriber_only: true,
+            approval_needed: false,
+            no_subscriptions: false,
+            custom: false,
+        })
         .unwrap();
 
     assert_eq!(post_policy.pk(), 1);
     assert_eq!(db.error_queue().unwrap().len(), 0);
+
+    // drop privileges
+    let db = db.untrusted();
 
     let input_bytes = include_bytes!("./test_sample_longmessage.eml");
     let envelope = melib::Envelope::from_bytes(input_bytes, None).expect("Could not parse message");

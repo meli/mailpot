@@ -1,8 +1,30 @@
+/*
+ * This file is part of mailpot
+ *
+ * Copyright 2020 - Manos Pitsidianakis
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ */
+
+mod utils;
+
 use mailpot::{models::*, Configuration, Database, SendMail};
 use tempfile::TempDir;
 
 #[test]
 fn test_init_empty() {
+    utils::init_stderr_logging();
     let tmp_dir = TempDir::new().unwrap();
 
     let db_path = tmp_dir.path().join("mpot.db");
@@ -13,13 +35,14 @@ fn test_init_empty() {
         data_path: tmp_dir.path().to_path_buf(),
     };
 
-    let db = Database::open_or_create_db(&config).unwrap();
+    let db = Database::open_or_create_db(config).unwrap();
 
     assert!(db.list_lists().unwrap().is_empty());
 }
 
 #[test]
 fn test_list_creation() {
+    utils::init_stderr_logging();
     let tmp_dir = TempDir::new().unwrap();
 
     let db_path = tmp_dir.path().join("mpot.db");
@@ -30,7 +53,7 @@ fn test_list_creation() {
         data_path: tmp_dir.path().to_path_buf(),
     };
 
-    let db = Database::open_or_create_db(&config).unwrap();
+    let db = Database::open_or_create_db(config).unwrap().trusted();
     assert!(db.list_lists().unwrap().is_empty());
     let foo_chat = db
         .create_list(MailingList {

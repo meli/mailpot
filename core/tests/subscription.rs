@@ -1,8 +1,31 @@
+/*
+ * This file is part of mailpot
+ *
+ * Copyright 2020 - Manos Pitsidianakis
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ */
+
+mod utils;
+
 use mailpot::{models::*, Configuration, Database, SendMail};
 use tempfile::TempDir;
 
 #[test]
 fn test_list_subscription() {
+    utils::init_stderr_logging();
+
     let tmp_dir = TempDir::new().unwrap();
 
     let db_path = tmp_dir.path().join("mpot.db");
@@ -13,7 +36,7 @@ fn test_list_subscription() {
         data_path: tmp_dir.path().to_path_buf(),
     };
 
-    let db = Database::open_or_create_db(&config).unwrap();
+    let db = Database::open_or_create_db(config).unwrap().trusted();
     assert!(db.list_lists().unwrap().is_empty());
     let foo_chat = db
         .create_list(MailingList {
@@ -31,22 +54,22 @@ fn test_list_subscription() {
     assert_eq!(lists.len(), 1);
     assert_eq!(lists[0], foo_chat);
     let post_policy = db
-        .set_list_policy(
-            foo_chat.pk(),
-            PostPolicy {
-                pk: 0,
-                list: foo_chat.pk(),
-                announce_only: false,
-                subscriber_only: true,
-                approval_needed: false,
-                no_subscriptions: false,
-                custom: false,
-            },
-        )
+        .set_list_policy(PostPolicy {
+            pk: 0,
+            list: foo_chat.pk(),
+            announce_only: false,
+            subscriber_only: true,
+            approval_needed: false,
+            no_subscriptions: false,
+            custom: false,
+        })
         .unwrap();
 
     assert_eq!(post_policy.pk(), 1);
     assert_eq!(db.error_queue().unwrap().len(), 0);
+
+    let db = db.untrusted();
+
     let input_bytes_1 = b"From: Name <user@example.com>
 To: <foo-chat@example.com>
 Subject: This is a post

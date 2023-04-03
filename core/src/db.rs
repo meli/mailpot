@@ -42,30 +42,85 @@ pub use posts::*;
 mod members;
 pub use members::*;
 
+fn log_callback(error_code: std::ffi::c_int, message: &str) {
+    match error_code {
+        rusqlite::ffi::SQLITE_NOTICE => log::info!("{}", message),
+        rusqlite::ffi::SQLITE_WARNING => log::warn!("{}", message),
+        _ => log::error!("{error_code} {}", message),
+    }
+}
+
+fn user_authorizer_callback(
+    auth_context: rusqlite::hooks::AuthContext<'_>,
+) -> rusqlite::hooks::Authorization {
+    use rusqlite::hooks::{AuthAction, Authorization};
+
+    match auth_context.action {
+        AuthAction::Delete {
+            table_name: "error_queue" | "queue" | "candidate_membership" | "membership",
+        }
+        | AuthAction::Insert {
+            table_name: "post" | "error_queue" | "queue" | "candidate_membership" | "membership",
+        }
+        | AuthAction::Select
+        | AuthAction::Savepoint { .. }
+        | AuthAction::Transaction { .. }
+        | AuthAction::Read { .. }
+        | AuthAction::Function {
+            function_name: "strftime",
+        } => Authorization::Allow,
+        _ => Authorization::Deny,
+    }
+}
+
 impl Database {
-    pub fn open_db(conf: &Configuration) -> Result<Self> {
+    pub fn open_db(conf: Configuration) -> Result<Self> {
+        use rusqlite::config::DbConfig;
+        use std::sync::Once;
+
+        static INIT_SQLITE_LOGGING: Once = Once::new();
+
         if !conf.db_path.exists() {
             return Err("Database doesn't exist".into());
         }
+        INIT_SQLITE_LOGGING.call_once(|| {
+            unsafe { rusqlite::trace::config_log(Some(log_callback)).unwrap() };
+        });
+        let conn = DbConnection::open(conf.db_path.to_str().unwrap())?;
+        conn.set_db_config(DbConfig::SQLITE_DBCONFIG_ENABLE_FKEY, true)?;
+        conn.set_db_config(DbConfig::SQLITE_DBCONFIG_ENABLE_TRIGGER, true)?;
+        conn.set_db_config(DbConfig::SQLITE_DBCONFIG_DEFENSIVE, true)?;
+        conn.set_db_config(DbConfig::SQLITE_DBCONFIG_TRUSTED_SCHEMA, false)?;
+        conn.busy_timeout(core::time::Duration::from_millis(500))?;
+        conn.busy_handler(Some(|times: i32| -> bool { times < 5 }))?;
+        conn.authorizer(Some(user_authorizer_callback));
         Ok(Database {
-            conf: conf.clone(),
-            connection: DbConnection::open(conf.db_path.to_str().unwrap())?,
+            conf,
+            connection: conn,
         })
     }
 
-    pub fn open_or_create_db(conf: &Configuration) -> Result<Self> {
-        let mut db_path = conf.db_path.to_path_buf();
-        if db_path.is_dir() {
-            db_path.push(DB_NAME);
-        }
-        let mut create = false;
-        if !db_path.exists() {
-            info!("Creating {} database in {}", DB_NAME, db_path.display());
-            create = true;
-            std::fs::File::create(&db_path).context("Could not create db path")?;
-        }
-        if create {
+    pub fn trusted(self) -> Self {
+        self.connection
+            .authorizer::<fn(rusqlite::hooks::AuthContext<'_>) -> rusqlite::hooks::Authorization>(
+                None,
+            );
+        self
+    }
+
+    pub fn untrusted(self) -> Self {
+        self.connection.authorizer(Some(user_authorizer_callback));
+        self
+    }
+
+    pub fn open_or_create_db(conf: Configuration) -> Result<Self> {
+        if !conf.db_path.exists() {
+            let db_path = &conf.db_path;
             use std::os::unix::fs::PermissionsExt;
+
+            info!("Creating database in {}", db_path.display());
+            std::fs::File::create(&db_path).context("Could not create db path")?;
+
             let mut child = Command::new("sqlite3")
                 .arg(&db_path)
                 .stdin(Stdio::piped())
@@ -91,26 +146,20 @@ impl Database {
             permissions.set_mode(0o600); // Read/write for owner only.
             file.set_permissions(permissions)?;
         }
-        db_path = db_path
-            .canonicalize()
-            .context("Could not canonicalize db path")?;
-
-        let conn = DbConnection::open(db_path.to_str().unwrap())?;
-
-        Ok(Database {
-            conf: conf.clone(),
-            connection: conn,
-        })
+        Self::open_db(conf)
     }
 
-    pub fn load_archives(&mut self, conf: &Configuration) -> Result<&mut Self> {
-        let archives_path = conf.data_path.clone();
+    pub fn conf(&self) -> &Configuration {
+        &self.conf
+    }
+
+    pub fn load_archives(&self) -> Result<()> {
         let mut stmt = self.connection.prepare("ATTACH ? AS ?;")?;
-        for archive in std::fs::read_dir(&archives_path)? {
+        for archive in std::fs::read_dir(&self.conf.data_path)? {
             let archive = archive?;
             let path = archive.path();
             let name = path.file_name().unwrap_or_default();
-            if name == DB_NAME {
+            if path == self.conf.db_path {
                 continue;
             }
             stmt.execute(rusqlite::params![
@@ -118,9 +167,8 @@ impl Database {
                 name.to_str().unwrap()
             ])?;
         }
-        drop(stmt);
 
-        Ok(self)
+        Ok(())
     }
 
     pub fn list_lists(&self) -> Result<Vec<DbVal<MailingList>>> {
@@ -229,17 +277,83 @@ impl Database {
         Ok(ret)
     }
 
+    /// Remove an existing list policy.
+    ///
+    /// ```
+    /// # use mailpot::{models::*, Configuration, Database, SendMail};
+    /// # use tempfile::TempDir;
+    ///
+    /// # let tmp_dir = TempDir::new().unwrap();
+    /// # let db_path = tmp_dir.path().join("mpot.db");
+    /// # let config = Configuration {
+    /// #     send_mail: SendMail::ShellCommand("/usr/bin/false".to_string()),
+    /// #     db_path: db_path.clone(),
+    /// #     storage: "sqlite3".to_string(),
+    /// #     data_path: tmp_dir.path().to_path_buf(),
+    /// # };
+    ///
+    /// # fn do_test(config: Configuration) {
+    /// let db = Database::open_or_create_db(config).unwrap().trusted();
+    /// let list_pk = db.create_list(MailingList {
+    ///     pk: 0,
+    ///     name: "foobar chat".into(),
+    ///     id: "foo-chat".into(),
+    ///     address: "foo-chat@example.com".into(),
+    ///     description: None,
+    ///     archive_url: None,
+    /// }).unwrap().pk;
+    /// db.set_list_policy(
+    ///     PostPolicy {
+    ///         pk: 0,
+    ///         list: list_pk,
+    ///         announce_only: false,
+    ///         subscriber_only: true,
+    ///         approval_needed: false,
+    ///         no_subscriptions: false,
+    ///         custom: false,
+    ///     },
+    /// ).unwrap();
+    /// db.remove_list_policy(1, 1).unwrap();
+    /// # }
+    /// # do_test(config);
+    /// ```
+    /// ```should_panic
+    /// # use mailpot::{models::*, Configuration, Database, SendMail};
+    /// # use tempfile::TempDir;
+    ///
+    /// # let tmp_dir = TempDir::new().unwrap();
+    /// # let db_path = tmp_dir.path().join("mpot.db");
+    /// # let config = Configuration {
+    /// #     send_mail: SendMail::ShellCommand("/usr/bin/false".to_string()),
+    /// #     db_path: db_path.clone(),
+    /// #     storage: "sqlite3".to_string(),
+    /// #     data_path: tmp_dir.path().to_path_buf(),
+    /// # };
+    ///
+    /// # fn do_test(config: Configuration) {
+    /// let db = Database::open_or_create_db(config).unwrap().trusted();
+    /// db.remove_list_policy(1, 1).unwrap();
+    /// # }
+    /// # do_test(config);
+    /// ```
     pub fn remove_list_policy(&self, list_pk: i64, policy_pk: i64) -> Result<()> {
         let mut stmt = self
             .connection
-            .prepare("DELETE FROM post_policy WHERE pk = ? AND list = ?;")?;
-        stmt.execute(rusqlite::params![&policy_pk, &list_pk,])?;
+            .prepare("DELETE FROM post_policy WHERE pk = ? AND list = ? RETURNING *;")?;
+        stmt.query_row(rusqlite::params![&policy_pk, &list_pk,], |_| Ok(()))
+            .map_err(|err| {
+                if matches!(err, rusqlite::Error::QueryReturnedNoRows) {
+                    Error::from(err).chain_err(|| NotFound("list or list policy not found!"))
+                } else {
+                    err.into()
+                }
+            })?;
 
         trace!("remove_list_policy {} {}.", list_pk, policy_pk);
         Ok(())
     }
 
-    pub fn set_list_policy(&self, list_pk: i64, policy: PostPolicy) -> Result<DbVal<PostPolicy>> {
+    pub fn set_list_policy(&self, policy: PostPolicy) -> Result<DbVal<PostPolicy>> {
         if !(policy.announce_only
             || policy.subscriber_only
             || policy.approval_needed
@@ -251,33 +365,51 @@ impl Database {
                     .into(),
             );
         }
+        let list_pk = policy.list;
 
         let mut stmt = self.connection.prepare("INSERT OR REPLACE INTO post_policy(list, announce_only, subscriber_only, approval_needed, no_subscriptions, custom) VALUES (?, ?, ?, ?, ?, ?) RETURNING *;")?;
-        let ret = stmt.query_row(
-            rusqlite::params![
-                &list_pk,
-                &policy.announce_only,
-                &policy.subscriber_only,
-                &policy.approval_needed,
-                &policy.no_subscriptions,
-                &policy.custom,
-            ],
-            |row| {
-                let pk = row.get("pk")?;
-                Ok(DbVal(
-                    PostPolicy {
+        let ret = stmt
+            .query_row(
+                rusqlite::params![
+                    &list_pk,
+                    &policy.announce_only,
+                    &policy.subscriber_only,
+                    &policy.approval_needed,
+                    &policy.no_subscriptions,
+                    &policy.custom,
+                ],
+                |row| {
+                    let pk = row.get("pk")?;
+                    Ok(DbVal(
+                        PostPolicy {
+                            pk,
+                            list: row.get("list")?,
+                            announce_only: row.get("announce_only")?,
+                            subscriber_only: row.get("subscriber_only")?,
+                            approval_needed: row.get("approval_needed")?,
+                            no_subscriptions: row.get("no_subscriptions")?,
+                            custom: row.get("custom")?,
+                        },
                         pk,
-                        list: row.get("list")?,
-                        announce_only: row.get("announce_only")?,
-                        subscriber_only: row.get("subscriber_only")?,
-                        approval_needed: row.get("approval_needed")?,
-                        no_subscriptions: row.get("no_subscriptions")?,
-                        custom: row.get("custom")?,
-                    },
-                    pk,
-                ))
-            },
-        )?;
+                    ))
+                },
+            )
+            .map_err(|err| {
+                if matches!(
+                    err,
+                    rusqlite::Error::SqliteFailure(
+                        rusqlite::ffi::Error {
+                            code: rusqlite::ffi::ErrorCode::ConstraintViolation,
+                            extended_code: 787
+                        },
+                        _
+                    )
+                ) {
+                    Error::from(err).chain_err(|| NotFound("Could not find a list with this pk."))
+                } else {
+                    err.into()
+                }
+            })?;
 
         trace!("set_list_policy {:?}.", &ret);
         Ok(ret)
@@ -378,33 +510,58 @@ impl Database {
 
     pub fn remove_list_owner(&self, list_pk: i64, owner_pk: i64) -> Result<()> {
         self.connection
-            .execute(
-                "DELETE FROM list_owners WHERE list_pk = ? AND pk = ?;",
+            .query_row(
+                "DELETE FROM list_owner WHERE list = ? AND pk = ? RETURNING *;",
                 rusqlite::params![&list_pk, &owner_pk],
+                |_| Ok(()),
             )
-            .chain_err(|| NotFound("List owner"))?;
+            .map_err(|err| {
+                if matches!(err, rusqlite::Error::QueryReturnedNoRows) {
+                    Error::from(err).chain_err(|| NotFound("list or list owner not found!"))
+                } else {
+                    err.into()
+                }
+            })?;
         Ok(())
     }
 
-    pub fn add_list_owner(&self, list_pk: i64, list_owner: ListOwner) -> Result<DbVal<ListOwner>> {
+    pub fn add_list_owner(&self, list_owner: ListOwner) -> Result<DbVal<ListOwner>> {
         let mut stmt = self.connection.prepare(
             "INSERT OR REPLACE INTO list_owner(list, address, name) VALUES (?, ?, ?) RETURNING *;",
         )?;
-        let ret = stmt.query_row(
-            rusqlite::params![&list_pk, &list_owner.address, &list_owner.name,],
-            |row| {
-                let pk = row.get("pk")?;
-                Ok(DbVal(
-                    ListOwner {
+        let list_pk = list_owner.list;
+        let ret = stmt
+            .query_row(
+                rusqlite::params![&list_pk, &list_owner.address, &list_owner.name,],
+                |row| {
+                    let pk = row.get("pk")?;
+                    Ok(DbVal(
+                        ListOwner {
+                            pk,
+                            list: row.get("list")?,
+                            address: row.get("address")?,
+                            name: row.get("name")?,
+                        },
                         pk,
-                        list: row.get("list")?,
-                        address: row.get("address")?,
-                        name: row.get("name")?,
-                    },
-                    pk,
-                ))
-            },
-        )?;
+                    ))
+                },
+            )
+            .map_err(|err| {
+                if matches!(
+                    err,
+                    rusqlite::Error::SqliteFailure(
+                        rusqlite::ffi::Error {
+                            code: rusqlite::ffi::ErrorCode::ConstraintViolation,
+                            extended_code: 787
+                        },
+                        _
+                    )
+                ) {
+                    Error::from(err).chain_err(|| NotFound("Could not find a list with this pk."))
+                } else {
+                    err.into()
+                }
+            })?;
 
         trace!("add_list_owner {:?}.", &ret);
         Ok(ret)

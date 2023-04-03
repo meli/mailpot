@@ -259,7 +259,7 @@ fn run_app(opt: Opt) -> Result<()> {
     };
     let config = Configuration::from_file(opt.config.as_path())?;
     use Command::*;
-    let mut db = Database::open_or_create_db(&config)?;
+    let mut db = Database::open_or_create_db(config)?;
     match opt.cmd {
         SampleConfig => {}
         DumpDatabase => {
@@ -449,7 +449,7 @@ fn run_app(opt: Opt) -> Result<()> {
                         no_subscriptions,
                         custom,
                     };
-                    let new_val = db.set_list_policy(list.pk, policy)?;
+                    let new_val = db.set_list_policy(policy)?;
                     println!("Added new policy with pk = {}", new_val.pk());
                 }
                 RemovePolicy { pk } => {
@@ -463,7 +463,7 @@ fn run_app(opt: Opt) -> Result<()> {
                         address,
                         name,
                     };
-                    let new_val = db.add_list_owner(list.pk, list_owner)?;
+                    let new_val = db.add_list_owner(list_owner)?;
                     println!("Added new list owner {}", new_val);
                 }
                 RemoveListOwner { pk } => {
@@ -572,7 +572,7 @@ fn run_app(opt: Opt) -> Result<()> {
             match Envelope::from_bytes(input.as_bytes(), None) {
                 Ok(env) => {
                     if opt.debug {
-                        std::dbg!(&env);
+                        eprintln!("{:?}", &env);
                     }
                     db.post(&env, input.as_bytes(), dry_run)?;
                 }
@@ -582,7 +582,7 @@ fn run_app(opt: Opt) -> Result<()> {
                 }
                 Err(err) => {
                     eprintln!("Could not parse message: {}", err);
-                    let p = config.save_message(input)?;
+                    let p = db.conf().save_message(input)?;
                     eprintln!("Message saved at {}", p.display());
                     return Err(err.into());
                 }
