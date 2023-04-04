@@ -46,7 +46,13 @@ error_chain! {
 
        /// An error happened and it was handled internally.
        Information(reason: String) {
-           description("")
+           description("An error happened and it was handled internally.")
+           display("{}.", reason)
+       }
+
+       /// An error that shouldn't happen and should be reported.
+       Bug(reason: String) {
+           description("An error that shouldn't happen and should be reported.")
            display("{}.", reason)
        }
    }

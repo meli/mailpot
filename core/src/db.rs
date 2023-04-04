@@ -65,6 +65,10 @@ fn user_authorizer_callback(
         | AuthAction::Insert {
             table_name: "post" | "error_queue" | "queue" | "candidate_membership" | "membership",
         }
+        | AuthAction::Update {
+            table_name: "candidate_membership",
+            column_name: "accepted",
+        }
         | AuthAction::Select
         | AuthAction::Savepoint { .. }
         | AuthAction::Transaction { .. }
@@ -102,7 +106,7 @@ impl Connection {
         conn.busy_timeout(core::time::Duration::from_millis(500))?;
         conn.busy_handler(Some(|times: i32| -> bool { times < 5 }))?;
         conn.authorizer(Some(user_authorizer_callback));
-        Ok(Connection {
+        Ok(Self {
             conf,
             connection: conn,
         })
@@ -239,11 +243,10 @@ impl Connection {
                 ))
             })
             .optional()?;
-        if let Some(ret) = ret {
-            Ok(ret)
-        } else {
-            Err(Error::from(NotFound("list or list policy not found!")))
-        }
+        ret.map_or_else(
+            || Err(Error::from(NotFound("list or list policy not found!"))),
+            Ok,
+        )
     }
 
     /// Fetch a mailing list by id.

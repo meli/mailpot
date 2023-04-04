@@ -22,7 +22,7 @@ path = "src/gen.rs"
 
 [dependencies]
 chrono = { version = "^0.4", optional = true }
-lazy_static = "*"
+lazy_static = "^1.4"
 mailpot = { version = "0.1.0", path = "../core" }
 minijinja = { version = "0.31.0", features = ["source", ], optional = true }
 percent-encoding = { version = "^2.1", optional = true }

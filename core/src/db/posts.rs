@@ -29,15 +29,16 @@ impl Connection {
         } else {
             from_[0].get_email()
         };
-        let mut datetime: std::borrow::Cow<'_, str> = env.date.as_str().into();
-        if env.timestamp != 0 {
-            datetime = melib::datetime::timestamp_to_string(
+        let datetime: std::borrow::Cow<'_, str> = if env.timestamp != 0 {
+            melib::datetime::timestamp_to_string(
                 env.timestamp,
                 Some(melib::datetime::RFC3339_FMT_WITH_TIME),
                 true,
             )
-            .into();
-        }
+            .into()
+        } else {
+            env.date.as_str().into()
+        };
         let message_id = env.message_id_display();
         let mut stmt = self.connection.prepare(
             "INSERT OR REPLACE INTO post(list, address, message_id, message, datetime, timestamp) VALUES(?, ?, ?, ?, ?, ?) RETURNING pk;",
@@ -68,22 +69,32 @@ impl Connection {
     }
 
     /// Process a new mailing list post.
-    pub fn post(&self, env: &Envelope, raw: &[u8], _dry_run: bool) -> Result<()> {
+    pub fn post(&mut self, env: &Envelope, raw: &[u8], _dry_run: bool) -> Result<()> {
         let result = self.inner_post(env, raw, _dry_run);
         if let Err(err) = result {
             return match self.insert_to_error_queue(env, raw, err.to_string()) {
-                Ok(idx) => Err(Error::from_kind(Information(format!(
-                    "Inserted into error_queue at index {}",
-                    idx
-                )))
-                .chain_err(|| err)),
-                Err(err2) => Err(err.chain_err(|| err2)),
+                Ok(idx) => {
+                    log::info!(
+                        "Inserted mail from {:?} into error_queue at index {}",
+                        env.from(),
+                        idx
+                    );
+                    Err(err)
+                }
+                Err(err2) => {
+                    log::error!(
+                        "Could not insert mail from {:?} into error_queue: {err2}",
+                        env.from(),
+                    );
+
+                    Err(err.chain_err(|| err2))
+                }
             };
         }
         result
     }
 
-    fn inner_post(&self, env: &Envelope, raw: &[u8], _dry_run: bool) -> Result<()> {
+    fn inner_post(&mut self, env: &Envelope, raw: &[u8], _dry_run: bool) -> Result<()> {
         trace!("Received envelope to post: {:#?}", &env);
         let tos = env.to().to_vec();
         if tos.is_empty() {
@@ -93,6 +104,10 @@ impl Connection {
             return Err("Envelope From: field is empty!".into());
         }
         let mut lists = self.lists()?;
+        if lists.is_empty() {
+            return Err("No active mailing lists found.".into());
+        }
+        let prev_list_len = lists.len();
         for t in &tos {
             if let Some((addr, subaddr)) = t.subaddress("+") {
                 lists.retain(|list| {
@@ -106,6 +121,10 @@ impl Connection {
                     }
                     false
                 });
+                if lists.len() != prev_list_len {
+                    // Was request, handled above.
+                    return Ok(());
+                }
             }
         }
 
@@ -119,7 +138,11 @@ impl Connection {
             tos.iter().any(|a| a.contains_address(&list.address()))
         });
         if lists.is_empty() {
-            return Ok(());
+            return Err(format!(
+                "No relevant mailing list found for these addresses: {:?}",
+                tos
+            )
+            .into());
         }
 
         trace!("Configuration is {:#?}", &self.conf);
@@ -194,10 +217,12 @@ impl Connection {
                     trace!("PostAction::Defer {{ reason: {} }}", reason);
                     /* - FIXME Notify submitter
                      * - FIXME Save in database */
+                    return Err(PostRejected(reason).into());
                 }
                 PostAction::Hold => {
                     trace!("PostAction::Hold");
                     /* FIXME - Save in database */
+                    return Err(PostRejected("Hold".into()).into());
                 }
             }
         }
@@ -207,7 +232,7 @@ impl Connection {
 
     /// Process a new mailing list request.
     pub fn request(
-        &self,
+        &mut self,
         list: &DbVal<MailingList>,
         request: ListRequest,
         env: &Envelope,

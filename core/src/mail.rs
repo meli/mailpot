@@ -140,16 +140,12 @@ impl<S: AsRef<str>> std::convert::TryFrom<(S, &melib::Envelope)> for ListRequest
     fn try_from((val, env): (S, &melib::Envelope)) -> std::result::Result<Self, Self::Error> {
         let val = val.as_ref();
         Ok(match val {
-            "subscribe" | "request" if env.subject().trim() == "subscribe" => {
-                ListRequest::Subscribe
-            }
-            "unsubscribe" | "request" if env.subject().trim() == "unsubscribe" => {
-                ListRequest::Unsubscribe
-            }
-            "request" => ListRequest::Other(env.subject().trim().to_string()),
+            "subscribe" | "request" if env.subject().trim() == "subscribe" => Self::Subscribe,
+            "unsubscribe" | "request" if env.subject().trim() == "unsubscribe" => Self::Unsubscribe,
+            "request" => Self::Other(env.subject().trim().to_string()),
             _ => {
                 trace!("unknown action = {} for addresses {:?}", val, env.from(),);
-                ListRequest::Other(val.trim().to_string())
+                Self::Other(val.trim().to_string())
             }
         })
     }

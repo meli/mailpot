@@ -108,7 +108,7 @@ impl MailingList {
     pub fn unsubscribe_header(&self) -> Option<String> {
         let p = self.address.split('@').collect::<Vec<&str>>();
         Some(format!(
-            "<mailto:{}-request@{}?subject=subscribe>",
+            "<mailto:{}+request@{}?subject=subscribe>",
             p[0], p[1]
         ))
     }
@@ -126,21 +126,30 @@ impl MailingList {
     }
 
     /// List unsubscribe action as a [`MailtoAddress`](super::MailtoAddress).
-    pub fn unsubscribe_mailto(&self) -> Option<MailtoAddress> {
+    pub fn unsubscribe_mailto(&self) -> MailtoAddress {
         let p = self.address.split('@').collect::<Vec<&str>>();
-        Some(MailtoAddress {
-            address: format!("{}-request@{}", p[0], p[1]),
+        MailtoAddress {
+            address: format!("{}+request@{}", p[0], p[1]),
             subject: Some("unsubscribe".to_string()),
-        })
+        }
     }
 
     /// List subscribe action as a [`MailtoAddress`](super::MailtoAddress).
-    pub fn subscribe_mailto(&self) -> Option<MailtoAddress> {
+    pub fn subscribe_mailto(&self) -> MailtoAddress {
         let p = self.address.split('@').collect::<Vec<&str>>();
-        Some(MailtoAddress {
-            address: format!("{}-request@{}", p[0], p[1]),
+        MailtoAddress {
+            address: format!("{}+request@{}", p[0], p[1]),
             subject: Some("subscribe".to_string()),
-        })
+        }
+    }
+
+    /// List owner as a [`MailtoAddress`](super::MailtoAddress).
+    pub fn owner_mailto(&self) -> MailtoAddress {
+        let p = self.address.split('@').collect::<Vec<&str>>();
+        MailtoAddress {
+            address: format!("{}+owner@{}", p[0], p[1]),
+            subject: None,
+        }
     }
 
     /// List archive url value.
@@ -250,8 +259,8 @@ impl std::fmt::Display for ListOwner {
 }
 
 impl From<ListOwner> for ListMembership {
-    fn from(val: ListOwner) -> ListMembership {
-        ListMembership {
+    fn from(val: ListOwner) -> Self {
+        Self {
             pk: 0,
             list: val.list,
             address: val.address,

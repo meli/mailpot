@@ -42,7 +42,7 @@ fn test_error_queue() {
     let db_path = tmp_dir.path().join("mpot.db");
     let config = Configuration {
         send_mail: SendMail::Smtp(get_smtp_conf()),
-        db_path: db_path.clone(),
+        db_path,
         data_path: tmp_dir.path().to_path_buf(),
     };
 
@@ -76,7 +76,7 @@ fn test_error_queue() {
     assert_eq!(db.error_queue().unwrap().len(), 0);
 
     // drop privileges
-    let db = db.untrusted();
+    let mut db = db.untrusted();
 
     let input_bytes = include_bytes!("./test_sample_longmessage.eml");
     let envelope = melib::Envelope::from_bytes(input_bytes, None).expect("Could not parse message");

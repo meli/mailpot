@@ -50,6 +50,7 @@ enum Message {
     },
 }
 
+#[allow(clippy::type_complexity)]
 #[derive(Debug, Clone)]
 struct MyHandler {
     mails: Arc<Mutex<Vec<((IpAddr, String), Message)>>>,
@@ -136,7 +137,7 @@ impl Handler for MyHandler {
                 };
                 return Ok(());
             } else if let Message::Data { buf, .. } = message {
-                buf.extend(_buf.into_iter().copied());
+                buf.extend(_buf.iter());
                 return Ok(());
             }
         }
@@ -144,21 +145,19 @@ impl Handler for MyHandler {
     }
 
     fn data_end(&mut self) -> Response {
-        //eprintln!("data_end()");
-        if let Some(((_, _), message)) = self.mails.lock().unwrap().pop() {
-            if let Message::Data { from: _, to, buf } = message {
-                for to in to {
-                    match melib::Envelope::from_bytes(&buf, None) {
-                        Ok(env) => {
-                            self.stored.lock().unwrap().push((to.clone(), env));
-                        }
-                        Err(err) => {
-                            eprintln!("envelope parse error {}", err);
-                        }
+        if let Some(((_, _), Message::Data { from: _, to, buf })) = self.mails.lock().unwrap().pop()
+        {
+            for to in to {
+                match melib::Envelope::from_bytes(&buf, None) {
+                    Ok(env) => {
+                        self.stored.lock().unwrap().push((to.clone(), env));
+                    }
+                    Err(err) => {
+                        eprintln!("envelope parse error {}", err);
                     }
                 }
-                return OK;
             }
+            return OK;
         }
         INTERNAL_ERROR
     }
@@ -203,11 +202,11 @@ fn test_smtp() {
     let db_path = tmp_dir.path().join("mpot.db");
     let config = Configuration {
         send_mail: SendMail::Smtp(get_smtp_conf()),
-        db_path: db_path.clone(),
+        db_path,
         data_path: tmp_dir.path().to_path_buf(),
     };
 
-    let db = Connection::open_or_create_db(config).unwrap().trusted();
+    let mut db = Connection::open_or_create_db(config).unwrap().trusted();
     assert!(db.lists().unwrap().is_empty());
     let foo_chat = db
         .create_list(MailingList {
@@ -321,11 +320,11 @@ fn test_smtp_mailcrab() {
     let db_path = tmp_dir.path().join("mpot.db");
     let config = Configuration {
         send_mail: SendMail::Smtp(get_smtp_conf()),
-        db_path: db_path.clone(),
+        db_path,
         data_path: tmp_dir.path().to_path_buf(),
     };
 
-    let db = Connection::open_or_create_db(config).unwrap().trusted();
+    let mut db = Connection::open_or_create_db(config).unwrap().trusted();
     assert!(db.lists().unwrap().is_empty());
     let foo_chat = db
         .create_list(MailingList {
@@ -405,6 +404,6 @@ fn test_smtp_mailcrab() {
             panic!("Could not parse message: {}", err);
         }
     }
-    let mails: String = reqwest::blocking::get(&api_uri).unwrap().text().unwrap();
+    let mails: String = reqwest::blocking::get(api_uri).unwrap().text().unwrap();
     trace!("mails: {}", mails);
 }

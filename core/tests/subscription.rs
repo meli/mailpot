@@ -31,7 +31,7 @@ fn test_list_subscription() {
     let db_path = tmp_dir.path().join("mpot.db");
     let config = Configuration {
         send_mail: SendMail::ShellCommand("/usr/bin/false".to_string()),
-        db_path: db_path.clone(),
+        db_path,
         data_path: tmp_dir.path().to_path_buf(),
     };
 
@@ -68,7 +68,7 @@ fn test_list_subscription() {
     assert_eq!(db.error_queue().unwrap().len(), 0);
     assert_eq!(db.list_members(foo_chat.pk()).unwrap().len(), 0);
 
-    let db = db.untrusted();
+    let mut db = db.untrusted();
 
     let input_bytes_1 = b"From: Name <user@example.com>
 To: <foo-chat@example.com>

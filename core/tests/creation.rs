@@ -30,7 +30,7 @@ fn test_init_empty() {
     let db_path = tmp_dir.path().join("mpot.db");
     let config = Configuration {
         send_mail: SendMail::ShellCommand("/usr/bin/false".to_string()),
-        db_path: db_path.clone(),
+        db_path,
         data_path: tmp_dir.path().to_path_buf(),
     };
 
@@ -47,7 +47,7 @@ fn test_list_creation() {
     let db_path = tmp_dir.path().join("mpot.db");
     let config = Configuration {
         send_mail: SendMail::ShellCommand("/usr/bin/false".to_string()),
-        db_path: db_path.clone(),
+        db_path,
         data_path: tmp_dir.path().to_path_buf(),
     };
 

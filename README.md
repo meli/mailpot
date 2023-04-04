@@ -223,7 +223,7 @@ db.set_list_policy(
 )?;
 
 // Drop privileges; we can only process new e-mail and modify memberships from now on.
-let db = db.untrusted();
+let mut db = db.untrusted();
 
 assert_eq!(db.list_members(list_pk)?.len(), 0);
 assert_eq!(db.list_posts(list_pk, None)?.len(), 0);

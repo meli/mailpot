@@ -51,7 +51,7 @@ impl Configuration {
     /// To open an existing database, use [`Database::open_db`](crate::Connection::open_db).
     pub fn new(db_path: impl Into<PathBuf>) -> Self {
         let db_path = db_path.into();
-        Configuration {
+        Self {
             send_mail: SendMail::ShellCommand("/usr/bin/false".to_string()),
             data_path: db_path
                 .parent()
@@ -67,7 +67,7 @@ impl Configuration {
         let mut s = String::new();
         let mut file = std::fs::File::open(path)?;
         file.read_to_string(&mut s)?;
-        let config: Configuration = toml::from_str(&s).context(format!(
+        let config: Self = toml::from_str(&s).context(format!(
             "Could not parse configuration file `{}` succesfully: ",
             path.display()
         ))?;

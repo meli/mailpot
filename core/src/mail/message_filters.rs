@@ -92,9 +92,16 @@ impl PostFilter for PostRightsCheck {
                 }
             } else if policy.approval_needed {
                 trace!("post policy says approval_needed");
-                post.action = PostAction::Defer {
-                    reason: "Your posting has been deferred. Approval from the list's moderators is required before it is submitted.".to_string(),
-                };
+                let email_from = post.from.get_email();
+                trace!("post from is {:?}", &email_from);
+                trace!("post memberships are {:#?}", &ctx.memberships);
+                if !ctx.memberships.iter().any(|lm| lm.address == email_from) {
+                    trace!("Envelope from is not subscribed to this list");
+                    post.action = PostAction::Defer {
+                        reason: "Your posting has been deferred. Approval from the list's moderators is required before it is submitted.".to_string(),
+                    };
+                    return Err(());
+                }
             }
         }
         Ok((post, ctx))

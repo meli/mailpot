@@ -25,7 +25,9 @@ pub use mailpot::mail::*;
 pub use mailpot::models::changesets::*;
 pub use mailpot::models::*;
 pub use mailpot::*;
+
 use std::path::PathBuf;
+
 use structopt::StructOpt;
 
 macro_rules! list {
@@ -120,6 +122,33 @@ enum Command {
         list_id: String,
         #[structopt(long, parse(from_os_str))]
         maildir_path: PathBuf,
+    },
+    /// Update postfix maps and master.cf (probably needs root permissions).
+    UpdatePostfixConfig {
+        master_cf: Option<PathBuf>,
+        #[structopt(short, long)]
+        user: String,
+        #[structopt(short, long)]
+        binary_path: PathBuf,
+        #[structopt(short, long)]
+        process_limit: Option<u64>,
+        #[structopt(short, long)]
+        map_output_path: Option<PathBuf>,
+        #[structopt(short, long)]
+        transport_name: Option<String>,
+    },
+    /// Print postfix maps and master.cf entry to STDOUT.
+    PostfixConfig {
+        #[structopt(short, long)]
+        user: String,
+        #[structopt(short, long)]
+        binary_path: PathBuf,
+        #[structopt(short, long)]
+        process_limit: Option<u64>,
+        #[structopt(short, long)]
+        map_output_path: Option<PathBuf>,
+        #[structopt(short, long)]
+        transport_name: Option<String>,
     },
 }
 
@@ -683,6 +712,51 @@ fn run_app(opt: Opt) -> Result<()> {
                 }
             }
             println!("Inserted {} posts to {}.", ctr, list_id);
+        }
+        UpdatePostfixConfig {
+            master_cf,
+            user,
+            binary_path,
+            process_limit,
+            map_output_path,
+            transport_name,
+        } => {
+            let pfconf = mailpot::postfix::PostfixConfiguration {
+                user: user.into(),
+                binary_path,
+                process_limit,
+                map_output_path,
+                transport_name: transport_name.map(std::borrow::Cow::from),
+            };
+            pfconf.save_maps(db.conf())?;
+            pfconf.save_master_cf_entry(db.conf(), opt.config.as_path(), master_cf.as_deref())?;
+        }
+        PostfixConfig {
+            user,
+            binary_path,
+            process_limit,
+            map_output_path,
+            transport_name,
+        } => {
+            let pfconf = mailpot::postfix::PostfixConfiguration {
+                user: user.into(),
+                binary_path,
+                process_limit,
+                map_output_path,
+                transport_name: transport_name.map(std::borrow::Cow::from),
+            };
+            let lists = db.lists()?;
+            let lists_policies = lists
+                .into_iter()
+                .map(|l| {
+                    let pk = l.pk;
+                    Ok((l, db.list_policy(pk)?))
+                })
+                .collect::<Result<Vec<(DbVal<MailingList>, Option<DbVal<PostPolicy>>)>>>()?;
+            let maps = pfconf.generate_maps(&lists_policies);
+            let mastercf = pfconf.generate_master_cf_entry(db.conf(), opt.config.as_path());
+
+            println!("{maps}\n\n{mastercf}\n");
         }
     }
 

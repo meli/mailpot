@@ -16,7 +16,36 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
-#![warn(missing_docs)]
+
+#![deny(
+    missing_docs,
+    rustdoc::broken_intra_doc_links,
+    /* groups */
+    clippy::correctness,
+    clippy::suspicious,
+    clippy::complexity,
+    clippy::perf,
+    clippy::style,
+    clippy::cargo,
+    clippy::nursery,
+    /* restriction */
+    clippy::dbg_macro,
+    clippy::rc_buffer,
+    clippy::as_underscore,
+    clippy::assertions_on_result_states,
+    /* pedantic */
+    clippy::cast_lossless,
+    clippy::cast_possible_wrap,
+    clippy::ptr_as_ptr,
+    clippy::bool_to_int_with_if,
+    clippy::borrow_as_ptr,
+    clippy::case_sensitive_file_extension_comparisons,
+    clippy::cast_lossless,
+    clippy::cast_ptr_alignment,
+    clippy::naive_bytecount
+)]
+#![allow(clippy::multiple_crate_versions, clippy::missing_const_for_fn)]
+
 //! Mailing list manager library.
 //!
 //! ```
@@ -57,7 +86,7 @@
 //! )?;
 //!
 //! // Drop privileges; we can only process new e-mail and modify memberships from now on.
-//! let db = db.untrusted();
+//! let mut db = db.untrusted();
 //!
 //! assert_eq!(db.list_members(list_pk)?.len(), 0);
 //! assert_eq!(db.list_posts(list_pk, None)?.len(), 0);
@@ -109,15 +138,18 @@ pub extern crate serde_json;
 use log::{info, trace};
 
 mod config;
-pub mod mail;
-pub mod models;
-use models::*;
 mod db;
 mod errors;
+pub mod mail;
+pub mod models;
+#[cfg(not(target_os = "windows"))]
+pub mod postfix;
 
 pub use config::{Configuration, SendMail};
 pub use db::*;
 pub use errors::*;
+
+use models::*;
 
 /// A `mailto:` value.
 #[derive(Debug, Clone, Deserialize, Serialize)]
@@ -131,3 +163,28 @@ pub struct MailtoAddress {
 #[doc = include_str!("../../README.md")]
 #[cfg(doctest)]
 pub struct ReadmeDoctests;
+
+#[cfg(test)]
+use tests::init_stderr_logging;
+
+#[cfg(test)]
+mod tests {
+
+    // Initialize logging only once per process in tests.
+
+    use std::sync::Once;
+
+    static INIT_STDERR_LOGGING: Once = Once::new();
+
+    pub fn init_stderr_logging() {
+        INIT_STDERR_LOGGING.call_once(|| {
+            stderrlog::new()
+                .quiet(false)
+                .verbosity(15)
+                .show_module_names(true)
+                .timestamp(stderrlog::Timestamp::Millisecond)
+                .init()
+                .unwrap();
+        });
+    }
+}

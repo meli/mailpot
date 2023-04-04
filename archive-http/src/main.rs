@@ -18,22 +18,20 @@
  */
 
 extern crate mailpot;
+use chrono::Datelike;
 
-pub use mailpot::models::*;
+mod cal;
+mod utils;
+
+pub use mailpot::models::DbVal;
 pub use mailpot::*;
+use utils::*;
 
-use minijinja::{Environment, Source};
+use minijinja::value::{Object, Value};
+use minijinja::{Environment, Error, Source, State};
 use percent_encoding::percent_decode_str;
+use std::borrow::Cow;
 use warp::Filter;
-
-lazy_static::lazy_static! {
-    pub static ref TEMPLATES: Environment<'static> = {
-        let mut env = Environment::new();
-        env.set_source(Source::from_path("src/templates/"));
-
-        env
-    };
-}
 
 #[tokio::main]
 async fn main() {
@@ -46,32 +44,67 @@ async fn main() {
     let list_handler = warp::path!("lists" / i64).map(move |list_pk: i64| {
         let db = Connection::open_db(conf1.clone()).unwrap();
         let list = db.list(list_pk).unwrap();
-        let months = db.months(list_pk).unwrap();
-        let posts = db
-            .list_posts(list_pk, None)
-            .unwrap()
-            .into_iter()
+        let post_policy = db.list_policy(list.pk).unwrap();
+        let months = db.months(list.pk).unwrap();
+        let posts = db.list_posts(list.pk, None).unwrap();
+        let mut hist = months
+            .iter()
+            .map(|m| (m.to_string(), [0usize; 31]))
+            .collect::<std::collections::HashMap<String, [usize; 31]>>();
+        let posts_ctx = posts
+            .iter()
             .map(|post| {
+                //2019-07-14T14:21:02
+                if let Some(day) = post.datetime.get(8..10).and_then(|d| d.parse::<u64>().ok()) {
+                    hist.get_mut(&post.month_year).unwrap()[day.saturating_sub(1) as usize] += 1;
+                }
                 let envelope = melib::Envelope::from_bytes(post.message.as_slice(), None)
                     .expect("Could not parse mail");
+                let mut msg_id = &post.message_id[1..];
+                msg_id = &msg_id[..msg_id.len().saturating_sub(1)];
+                let subject = envelope.subject();
+                let mut subject_ref = subject.trim();
+                if subject_ref.starts_with('[')
+                    && subject_ref[1..].starts_with(&list.id)
+                    && subject_ref[1 + list.id.len()..].starts_with(']')
+                {
+                    subject_ref = subject_ref[2 + list.id.len()..].trim();
+                }
                 minijinja::context! {
-                        pk => post.pk,
-                        list => post.list,
-                        subject => envelope.subject(),
-                        address=> post.address,
-                        message_id => post.message_id,
-                        message => post.message,
-                        timestamp => post.timestamp,
-                        datetime => post.datetime,
+                    pk => post.pk,
+                    list => post.list,
+                    subject => subject_ref,
+                    address=> post.address,
+                    message_id => msg_id,
+                    message => post.message,
+                    timestamp => post.timestamp,
+                    datetime => post.datetime,
+                    root_prefix => "",
                 }
             })
             .collect::<Vec<_>>();
+        let crumbs = vec![
+            Crumb {
+                label: "Lists".into(),
+                url: "/".into(),
+            },
+            Crumb {
+                label: list.name.clone().into(),
+                url: format!("/lists/{}/", list.pk).into(),
+            },
+        ];
         let context = minijinja::context! {
             title=> &list.name,
-            list=> &list,
+            description=> &list.description,
+            post_policy=> &post_policy,
+            preamble => true,
             months=> &months,
-            posts=> posts,
+            hists => &hist,
+            posts=> posts_ctx,
             body=>&list.description.clone().unwrap_or_default(),
+            root_prefix => "",
+            list => Value::from_object(MailingList::from(list)),
+            crumbs => crumbs,
         };
         Ok(warp::reply::html(
             TEMPLATES
@@ -85,29 +118,58 @@ async fn main() {
     let post_handler =
         warp::path!("list" / i64 / String).map(move |list_pk: i64, message_id: String| {
             let message_id = percent_decode_str(&message_id).decode_utf8().unwrap();
+            dbg!(&message_id);
             let db = Connection::open_db(conf2.clone()).unwrap();
             let list = db.list(list_pk).unwrap();
             let posts = db.list_posts(list_pk, None).unwrap();
             let post = posts
                 .iter()
-                .find(|p| message_id.contains(&p.message_id))
+                .find(|p| message_id.contains(p.message_id.as_str().strip_carets()))
                 .unwrap();
+            //let mut msg_id = &post.message_id[1..];
+            //msg_id = &msg_id[..msg_id.len().saturating_sub(1)];
             let envelope = melib::Envelope::from_bytes(post.message.as_slice(), None)
-                .expect("Could not parse mail");
+                .map_err(|err| format!("Could not parse mail {}: {err}", post.message_id)).unwrap();
             let body = envelope.body_bytes(post.message.as_slice());
             let body_text = body.text();
-            let context = minijinja::context !{
+            let subject = envelope.subject();
+            let mut subject_ref = subject.trim();
+            if subject_ref.starts_with('[')
+                && subject_ref[1..].starts_with(&list.id)
+                && subject_ref[1 + list.id.len()..].starts_with(']')
+            {
+                subject_ref = subject_ref[2 + list.id.len()..].trim();
+            }
+            let mut message_id = &post.message_id[1..];
+            message_id = &message_id[..message_id.len().saturating_sub(1)];
+            let crumbs = vec![
+                Crumb {
+                    label: "Lists".into(),
+                    url: "/".into(),
+                },
+                Crumb {
+                    label: list.name.clone().into(),
+                    url: format!("/lists/{}/", list.pk).into(),
+                },
+                Crumb {
+                    label: subject_ref.to_string().into(),
+                    url: format!("/lists/{}/{message_id}.html/", list.pk).into(),
+                },
+            ];
+            let context = minijinja::context! {
                 title => &list.name,
                 list => &list,
                 post => &post,
-                posts => &posts,
                 body => &body_text,
                 from => &envelope.field_from_to_string(),
                 date => &envelope.date_as_str(),
                 to => &envelope.field_to_to_string(),
                 subject => &envelope.subject(),
-                in_reply_to => &envelope.in_reply_to_display().map(|r| r.to_string()),
-                references => &envelope .references() .into_iter() .map(|m| m.to_string()) .collect::<Vec<String>>(),
+                trimmed_subject => subject_ref,
+                in_reply_to => &envelope.in_reply_to_display().map(|r| r.to_string().as_str().strip_carets().to_string()),
+                references => &envelope .references() .into_iter() .map(|m| m.to_string().as_str().strip_carets().to_string()) .collect::<Vec<String>>(),
+                root_prefix => "",
+                crumbs => crumbs,
             };
             Ok(warp::reply::html(
                     TEMPLATES
@@ -128,17 +190,25 @@ async fn main() {
                 let posts = db.list_posts(list.pk, None).unwrap();
                 minijinja::context! {
                     title => &list.name,
-                    list => &list,
                     posts => &posts,
                     months => &months,
                     body => &list.description.as_deref().unwrap_or_default(),
+                    root_prefix => "",
+                    list => Value::from_object(MailingList::from(list.clone())),
                 }
             })
             .collect::<Vec<_>>();
+        let crumbs = vec![Crumb {
+            label: "Lists".into(),
+            url: "/".into(),
+        }];
+
         let context = minijinja::context! {
             title => "mailing list archive",
             description => "",
             lists => &lists,
+            root_prefix => "",
+            crumbs => crumbs,
         };
         Ok(warp::reply::html(
             TEMPLATES

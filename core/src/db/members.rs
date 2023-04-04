@@ -160,7 +160,11 @@ impl Connection {
     }
 
     /// Create membership candidate.
-    pub fn add_candidate_member(&self, list_pk: i64, mut new_val: ListMembership) -> Result<i64> {
+    pub fn add_candidate_member(
+        &mut self,
+        list_pk: i64,
+        mut new_val: ListMembership,
+    ) -> Result<i64> {
         new_val.list = list_pk;
         let mut stmt = self
             .connection
@@ -172,8 +176,11 @@ impl Connection {
                 Ok(pk)
             },
         )?;
+        drop(stmt);
 
         trace!("add_candidate_member {:?}.", &ret);
+        self.accept_candidate_member(ret)?;
+        // [ref:FIXME]: add approval required option for subscriptions.
         Ok(ret)
     }
 
@@ -181,7 +188,7 @@ impl Connection {
     pub fn accept_candidate_member(&mut self, pk: i64) -> Result<DbVal<ListMembership>> {
         let tx = self.connection.transaction()?;
         let mut stmt = tx
-            .prepare("INSERT INTO membership(list, address, name, enabled, digest, hide_address, receive_duplicates, receive_own_posts, receive_confirmation) FROM (SELECT list, address, name FROM candidate_membership WHERE pk = ?) RETURNING *;")?;
+            .prepare("INSERT INTO membership(list, address, name, enabled, digest, hide_address, receive_duplicates, receive_own_posts, receive_confirmation) SELECT list, address, name, 1, 0, 0, 1, 1, 0 FROM candidate_membership WHERE pk = ? RETURNING *;")?;
         let ret = stmt.query_row(rusqlite::params![&pk], |row| {
             let pk = row.get("pk")?;
             Ok(DbVal(
