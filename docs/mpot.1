@@ -1,0 +1,766 @@
+.ie \n(.g .ds Aq \(aq
+.el .ds Aq '
+.TH mpot 1  "mpot 0.1.0" 
+.ie \n(.g .ds Aq \(aq
+.el .ds Aq '
+.SH NAME
+mpot \- mailing list manager
+.ie \n(.g .ds Aq \(aq
+.el .ds Aq '
+.SH SYNOPSIS
+\fBmpot\fR [\fB\-d\fR|\fB\-\-debug\fR] <\fB\-c\fR|\fB\-\-config\fR> [\fB\-q\fR|\fB\-\-quiet\fR] [\fB\-v\fR|\fB\-\-verbose\fR]... [\fB\-t\fR|\fB\-\-ts\fR] [\fB\-h\fR|\fB\-\-help\fR] [\fB\-V\fR|\fB\-\-version\fR] <\fIsubcommands\fR>
+.ie \n(.g .ds Aq \(aq
+.el .ds Aq '
+.SH DESCRIPTION
+Tool for mailpot mailing list management.
+.ie \n(.g .ds Aq \(aq
+.el .ds Aq '
+.TP
+\-d, \-\-debug
+Print logs.
+.TP
+\-c, \-\-config \fICONFIG\fR
+Configuration file to use.
+.TP
+\-q, \-\-quiet
+Silence all output.
+.TP
+\-v, \-\-verbose
+Verbose mode (\-v, \-vv, \-vvv, etc).
+.TP
+\-t, \-\-ts \fITS\fR
+Debug log timestamp (sec, ms, ns, none).
+.ie \n(.g .ds Aq \(aq
+.el .ds Aq '
+.SH "QUICK START"
+mailpot saves its data in a sqlite3 file. To define the location of the sqlite3 file we need a configuration file, which can be generated with:
+
+mpot sample\-config > conf.toml
+
+Mailing lists can now be created:
+
+mpot \-c conf.toml create\-list \-\-name "my first list" \-\-id mylist \-\-address mylist@example.com
+
+You can list all the mailing lists with:
+
+mpot \-c conf.toml list\-lists
+
+You should add yourself as the list owner:
+
+mpot \-c conf.toml list mylist add\-list\-owner \-\-address myself@example.com \-\-name "Nemo"
+
+And also enable posting and subscriptions by setting list policies:
+
+mpot \-c conf.toml list mylist add\-policy \-\-subscriber\-only
+
+mpot \-c conf.toml list mylist add\-subscribe\-policy \-\-request \-\-send\-confirmation
+
+To post on a mailing list or submit a list request, pipe a raw e\-mail into STDIN:
+
+mpot \-c conf.toml post
+
+You can configure your mail server to redirect e\-mails addressed to your mailing lists to this command.
+
+For postfix, you can automatically generate this configuration with:
+
+mpot \-c conf.toml print\-postfix\-config \-\-user myself \-\-binary\-path /path/to/mpot
+
+This will print the following:
+
+\- content of `transport_maps` and `local_recipient_maps`
+
+The output must be saved in a plain text file.
+Map output should be added to transport_maps and local_recipient_maps parameters in postfix\*(Aqs main.cf.
+To make postfix be able to read them, the postmap application must be executed with the
+path to the map file as its sole argument.
+
+postmap /path/to/mylist_maps
+
+postmap is usually distributed along with the other postfix binaries.
+
+\- `master.cf` service entry
+The output must be entered in the master.cf file.
+See <https://www.postfix.org/master.5.html>.
+
+.ie \n(.g .ds Aq \(aq
+.el .ds Aq '
+.SH SUBCOMMANDS
+.ie \n(.g .ds Aq \(aq
+.el .ds Aq '
+.\fB
+.SS mpot sample-config
+.\fR
+.br
+
+.br
+
+Prints a sample config file to STDOUT.
+.ie \n(.g .ds Aq \(aq
+.el .ds Aq '
+.\fB
+.SS mpot dump-database
+.\fR
+.br
+
+.br
+
+Dumps database data to STDOUT.
+.ie \n(.g .ds Aq \(aq
+.el .ds Aq '
+.\fB
+.SS mpot list-lists
+.\fR
+.br
+
+.br
+
+Lists all registered mailing lists.
+.ie \n(.g .ds Aq \(aq
+.el .ds Aq '
+.\fB
+.SS mpot list
+.\fR
+.br
+
+.br
+
+mpot list \fILIST_ID\fR 
+.br
+
+Mailing list management.
+.TP
+\fILIST_ID\fR
+Selects mailing list to operate on.
+.ie \n(.g .ds Aq \(aq
+.el .ds Aq '
+.\fB
+.SS mpot list members
+.\fR
+.br
+
+.br
+
+List members of list.
+.ie \n(.g .ds Aq \(aq
+.el .ds Aq '
+.\fB
+.SS mpot list add-member
+.\fR
+.br
+
+.br
+
+mpot list add\-member \-\-address \fIADDRESS\fR [\-\-name \fINAME\fR] [\-\-digest \fIDIGEST\fR] [\-\-hide\-address \fIHIDE_ADDRESS\fR] [\-\-verified \fIVERIFIED\fR] [\-\-receive\-confirmation \fIRECEIVE_CONFIRMATION\fR] [\-\-receive\-duplicates \fIRECEIVE_DUPLICATES\fR] [\-\-receive\-own\-posts \fIRECEIVE_OWN_POSTS\fR] [\-\-enabled \fIENABLED\fR] 
+.br
+
+Add member to list.
+.TP
+\-\-address \fIADDRESS\fR
+E\-mail address.
+.TP
+\-\-name \fINAME\fR
+Name.
+.TP
+\-\-digest \fIDIGEST\fR [default: false]
+Send messages as digest.
+.br
+
+.br
+
+.br
+[\fIpossible values: \fRtrue, false]
+.TP
+\-\-hide\-address \fIHIDE_ADDRESS\fR [default: false]
+Hide message from list when posting.
+.br
+
+.br
+
+.br
+[\fIpossible values: \fRtrue, false]
+.TP
+\-\-verified \fIVERIFIED\fR [default: false]
+Hide message from list when posting. E\-mail address verification status.
+.br
+
+.br
+
+.br
+[\fIpossible values: \fRtrue, false]
+.TP
+\-\-receive\-confirmation \fIRECEIVE_CONFIRMATION\fR [default: true]
+Receive confirmation email when posting.
+.br
+
+.br
+
+.br
+[\fIpossible values: \fRtrue, false]
+.TP
+\-\-receive\-duplicates \fIRECEIVE_DUPLICATES\fR [default: true]
+Receive posts from list even if address exists in To or Cc header.
+.br
+
+.br
+
+.br
+[\fIpossible values: \fRtrue, false]
+.TP
+\-\-receive\-own\-posts \fIRECEIVE_OWN_POSTS\fR [default: false]
+Receive own posts from list.
+.br
+
+.br
+
+.br
+[\fIpossible values: \fRtrue, false]
+.TP
+\-\-enabled \fIENABLED\fR [default: true]
+Is subscription enabled.
+.br
+
+.br
+
+.br
+[\fIpossible values: \fRtrue, false]
+.ie \n(.g .ds Aq \(aq
+.el .ds Aq '
+.\fB
+.SS mpot list remove-member
+.\fR
+.br
+
+.br
+
+mpot list remove\-member \-\-address \fIADDRESS\fR 
+.br
+
+Remove member from list.
+.TP
+\-\-address \fIADDRESS\fR
+E\-mail address.
+.ie \n(.g .ds Aq \(aq
+.el .ds Aq '
+.\fB
+.SS mpot list update-membership
+.\fR
+.br
+
+.br
+
+mpot list update\-membership [\-\-name \fINAME\fR] [\-\-digest \fIDIGEST\fR] [\-\-hide\-address \fIHIDE_ADDRESS\fR] [\-\-verified \fIVERIFIED\fR] [\-\-receive\-confirmation \fIRECEIVE_CONFIRMATION\fR] [\-\-receive\-duplicates \fIRECEIVE_DUPLICATES\fR] [\-\-receive\-own\-posts \fIRECEIVE_OWN_POSTS\fR] [\-\-enabled \fIENABLED\fR] \fIADDRESS\fR 
+.br
+
+Update membership info.
+.TP
+\fIADDRESS\fR
+Address to edit.
+.TP
+\-\-name \fINAME\fR
+Name.
+.TP
+\-\-digest \fIDIGEST\fR [default: false]
+Send messages as digest.
+.br
+
+.br
+
+.br
+[\fIpossible values: \fRtrue, false]
+.TP
+\-\-hide\-address \fIHIDE_ADDRESS\fR [default: false]
+Hide message from list when posting.
+.br
+
+.br
+
+.br
+[\fIpossible values: \fRtrue, false]
+.TP
+\-\-verified \fIVERIFIED\fR [default: false]
+Hide message from list when posting. E\-mail address verification status.
+.br
+
+.br
+
+.br
+[\fIpossible values: \fRtrue, false]
+.TP
+\-\-receive\-confirmation \fIRECEIVE_CONFIRMATION\fR [default: true]
+Receive confirmation email when posting.
+.br
+
+.br
+
+.br
+[\fIpossible values: \fRtrue, false]
+.TP
+\-\-receive\-duplicates \fIRECEIVE_DUPLICATES\fR [default: true]
+Receive posts from list even if address exists in To or Cc header.
+.br
+
+.br
+
+.br
+[\fIpossible values: \fRtrue, false]
+.TP
+\-\-receive\-own\-posts \fIRECEIVE_OWN_POSTS\fR [default: false]
+Receive own posts from list.
+.br
+
+.br
+
+.br
+[\fIpossible values: \fRtrue, false]
+.TP
+\-\-enabled \fIENABLED\fR [default: true]
+Is subscription enabled.
+.br
+
+.br
+
+.br
+[\fIpossible values: \fRtrue, false]
+.ie \n(.g .ds Aq \(aq
+.el .ds Aq '
+.\fB
+.SS mpot list add-policy
+.\fR
+.br
+
+.br
+
+mpot list add\-policy [\-\-announce\-only \fIANNOUNCE_ONLY\fR] [\-\-subscriber\-only \fISUBSCRIBER_ONLY\fR] [\-\-approval\-needed \fIAPPROVAL_NEEDED\fR] [\-\-open \fIOPEN\fR] [\-\-custom \fICUSTOM\fR] 
+.br
+
+Add a new post policy.
+.TP
+\-\-announce\-only
+Only list owners can post.
+.TP
+\-\-subscriber\-only
+Only subscribers can post.
+.TP
+\-\-approval\-needed
+Subscribers can post. Other posts must be approved by list owners.
+.TP
+\-\-open
+Anyone can post without restrictions.
+.TP
+\-\-custom
+Allow posts, but handle it manually.
+.ie \n(.g .ds Aq \(aq
+.el .ds Aq '
+.\fB
+.SS mpot list remove-policy
+.\fR
+.br
+
+.br
+
+mpot list remove\-policy \-\-pk \fIPK\fR 
+.br
+
+.TP
+\-\-pk \fIPK\fR
+Post policy primary key.
+.ie \n(.g .ds Aq \(aq
+.el .ds Aq '
+.\fB
+.SS mpot list add-subscribe-policy
+.\fR
+.br
+
+.br
+
+mpot list add\-subscribe\-policy [\-\-send\-confirmation \fISEND_CONFIRMATION\fR] [\-\-open \fIOPEN\fR] [\-\-manual \fIMANUAL\fR] [\-\-request \fIREQUEST\fR] [\-\-custom \fICUSTOM\fR] 
+.br
+
+Add subscription policy to list.
+.TP
+\-\-send\-confirmation
+Send confirmation e\-mail when subscription is finalized.
+.TP
+\-\-open
+Anyone can subscribe without restrictions.
+.TP
+\-\-manual
+Only list owners can manually add subscribers.
+.TP
+\-\-request
+Anyone can request to subscribe.
+.TP
+\-\-custom
+Allow subscriptions, but handle it manually.
+.ie \n(.g .ds Aq \(aq
+.el .ds Aq '
+.\fB
+.SS mpot list remove-subscribe-policy
+.\fR
+.br
+
+.br
+
+mpot list remove\-subscribe\-policy \-\-pk \fIPK\fR 
+.br
+
+.TP
+\-\-pk \fIPK\fR
+Subscribe policy primary key.
+.ie \n(.g .ds Aq \(aq
+.el .ds Aq '
+.\fB
+.SS mpot list add-list-owner
+.\fR
+.br
+
+.br
+
+mpot list add\-list\-owner \-\-address \fIADDRESS\fR [\-\-name \fINAME\fR] 
+.br
+
+Add list owner to list.
+.TP
+\-\-address \fIADDRESS\fR
+
+.TP
+\-\-name \fINAME\fR
+
+.ie \n(.g .ds Aq \(aq
+.el .ds Aq '
+.\fB
+.SS mpot list remove-list-owner
+.\fR
+.br
+
+.br
+
+mpot list remove\-list\-owner \-\-pk \fIPK\fR 
+.br
+
+.TP
+\-\-pk \fIPK\fR
+List owner primary key.
+.ie \n(.g .ds Aq \(aq
+.el .ds Aq '
+.\fB
+.SS mpot list enable-membership
+.\fR
+.br
+
+.br
+
+mpot list enable\-membership \fIADDRESS\fR 
+.br
+
+Alias for update\-membership \-\-enabled true.
+.TP
+\fIADDRESS\fR
+Member address.
+.ie \n(.g .ds Aq \(aq
+.el .ds Aq '
+.\fB
+.SS mpot list disable-membership
+.\fR
+.br
+
+.br
+
+mpot list disable\-membership \fIADDRESS\fR 
+.br
+
+Alias for update\-membership \-\-enabled false.
+.TP
+\fIADDRESS\fR
+Member address.
+.ie \n(.g .ds Aq \(aq
+.el .ds Aq '
+.\fB
+.SS mpot list update
+.\fR
+.br
+
+.br
+
+mpot list update [\-\-name \fINAME\fR] [\-\-id \fIID\fR] [\-\-address \fIADDRESS\fR] [\-\-description \fIDESCRIPTION\fR] [\-\-archive\-url \fIARCHIVE_URL\fR] [\-\-owner\-local\-part \fIOWNER_LOCAL_PART\fR] [\-\-request\-local\-part \fIREQUEST_LOCAL_PART\fR] [\-\-verify \fIVERIFY\fR] [\-\-hidden \fIHIDDEN\fR] [\-\-enabled \fIENABLED\fR] 
+.br
+
+Update mailing list details.
+.TP
+\-\-name \fINAME\fR
+New list name.
+.TP
+\-\-id \fIID\fR
+New List\-ID.
+.TP
+\-\-address \fIADDRESS\fR
+New list address.
+.TP
+\-\-description \fIDESCRIPTION\fR
+New list description.
+.TP
+\-\-archive\-url \fIARCHIVE_URL\fR
+New list archive URL.
+.TP
+\-\-owner\-local\-part \fIOWNER_LOCAL_PART\fR
+New owner address local part. If empty, it defaults to \*(Aq+owner\*(Aq.
+.TP
+\-\-request\-local\-part \fIREQUEST_LOCAL_PART\fR
+New request address local part. If empty, it defaults to \*(Aq+request\*(Aq.
+.TP
+\-\-verify \fIVERIFY\fR
+Require verification of e\-mails for new subscriptions.
+
+Subscriptions that are initiated from the member\*(Aqs address are verified automatically.
+.br
+
+.br
+
+.br
+[\fIpossible values: \fRtrue, false]
+.TP
+\-\-hidden \fIHIDDEN\fR
+Public visibility of list.
+
+If hidden, the list will not show up in public APIs unless requests to it won\*(Aqt work.
+.br
+
+.br
+
+.br
+[\fIpossible values: \fRtrue, false]
+.TP
+\-\-enabled \fIENABLED\fR
+Enable or disable the list\*(Aqs functionality.
+
+If not enabled, the list will continue to show up in the database but e\-mails and requests to it won\*(Aqt work.
+.br
+
+.br
+
+.br
+[\fIpossible values: \fRtrue, false]
+.ie \n(.g .ds Aq \(aq
+.el .ds Aq '
+.\fB
+.SS mpot list health
+.\fR
+.br
+
+.br
+
+Show mailing list health status.
+.ie \n(.g .ds Aq \(aq
+.el .ds Aq '
+.\fB
+.SS mpot list info
+.\fR
+.br
+
+.br
+
+Show mailing list info.
+.ie \n(.g .ds Aq \(aq
+.el .ds Aq '
+.\fB
+.SS mpot create-list
+.\fR
+.br
+
+.br
+
+mpot create\-list \-\-name \fINAME\fR \-\-id \fIID\fR \-\-address \fIADDRESS\fR [\-\-description \fIDESCRIPTION\fR] [\-\-archive\-url \fIARCHIVE_URL\fR] 
+.br
+
+Create new list.
+.TP
+\-\-name \fINAME\fR
+List name.
+.TP
+\-\-id \fIID\fR
+List ID.
+.TP
+\-\-address \fIADDRESS\fR
+List e\-mail address.
+.TP
+\-\-description \fIDESCRIPTION\fR
+List description.
+.TP
+\-\-archive\-url \fIARCHIVE_URL\fR
+List archive URL.
+.ie \n(.g .ds Aq \(aq
+.el .ds Aq '
+.\fB
+.SS mpot post
+.\fR
+.br
+
+.br
+
+mpot post [\-\-dry\-run \fIDRY_RUN\fR] 
+.br
+
+Post message from STDIN to list.
+.TP
+\-\-dry\-run
+Show e\-mail processing result without actually consuming it.
+.ie \n(.g .ds Aq \(aq
+.el .ds Aq '
+.\fB
+.SS mpot error-queue
+.\fR
+.br
+
+.br
+
+Mail that has not been handled properly end up in the error queue.
+.ie \n(.g .ds Aq \(aq
+.el .ds Aq '
+.\fB
+.SS mpot error-queue list
+.\fR
+.br
+
+.br
+
+List.
+.ie \n(.g .ds Aq \(aq
+.el .ds Aq '
+.\fB
+.SS mpot error-queue print
+.\fR
+.br
+
+.br
+
+mpot error\-queue print [\-\-index \fIINDEX\fR] [\-\-json \fIJSON\fR] 
+.br
+
+Print entry in RFC5322 or JSON format.
+.TP
+\-\-index \fIINDEX\fR
+index of entry.
+.TP
+\-\-json
+JSON format.
+.ie \n(.g .ds Aq \(aq
+.el .ds Aq '
+.\fB
+.SS mpot error-queue delete
+.\fR
+.br
+
+.br
+
+mpot error\-queue delete [\-\-index \fIINDEX\fR] [\-\-quiet \fIQUIET\fR] 
+.br
+
+Delete entry and print it in stdout.
+.TP
+\-\-index \fIINDEX\fR
+index of entry.
+.TP
+\-\-quiet
+Do not print in stdout.
+.ie \n(.g .ds Aq \(aq
+.el .ds Aq '
+.\fB
+.SS mpot import-maildir
+.\fR
+.br
+
+.br
+
+mpot import\-maildir \-\-maildir\-path \fIMAILDIR_PATH\fR \fILIST_ID\fR 
+.br
+
+Import a maildir folder into an existing list.
+.TP
+\fILIST_ID\fR
+List\-ID or primary key value.
+.TP
+\-\-maildir\-path \fIMAILDIR_PATH\fR
+Path to a maildir mailbox. Must contain {cur, tmp, new} folders.
+.ie \n(.g .ds Aq \(aq
+.el .ds Aq '
+.\fB
+.SS mpot update-postfix-config
+.\fR
+.br
+
+.br
+
+mpot update\-postfix\-config [\-p \fIMASTER_CF\fR|\-\-master\-cf] {\-u \fIUSER\fR|\-\-user} \-\-binary\-path \fIBINARY_PATH\fR [\-\-process\-limit \fIPROCESS_LIMIT\fR] [\-\-map\-output\-path \fIMAP_OUTPUT_PATH\fR] [\-\-transport\-name \fITRANSPORT_NAME\fR] 
+.br
+
+Update postfix maps and master.cf (probably needs root permissions).
+.TP
+\-p, \-\-master\-cf \fIMASTER_CF\fR
+Override location of master.cf file (default: /etc/postfix/master.cf).
+.TP
+\-u, \-\-user \fIUSER\fR
+User that runs mailpot when postfix relays a message.
+
+Must not be the `postfix` user. Must have permissions to access the database file and the data directory.
+.TP
+\-\-binary\-path \fIBINARY_PATH\fR
+The path to the mailpot binary postfix will execute.
+.TP
+\-\-process\-limit \fIPROCESS_LIMIT\fR [default: 1]
+Limit the number of mailpot instances that can exist at the same time.
+
+Default is 1.
+.TP
+\-\-map\-output\-path \fIMAP_OUTPUT_PATH\fR
+The directory in which the map files are saved.
+
+Default is `data_path` from [`Configuration`](mailpot::Configuration).
+.TP
+\-\-transport\-name \fITRANSPORT_NAME\fR
+The name of the postfix service name to use. Default is `mailpot`.
+
+A postfix service is a daemon managed by the postfix process. Each entry in the `master.cf` configuration file defines a single service.
+
+The `master.cf` file is documented in [`master(5)`](https://www.postfix.org/master.5.html): <https://www.postfix.org/master.5.html>.
+.ie \n(.g .ds Aq \(aq
+.el .ds Aq '
+.\fB
+.SS mpot print-postfix-config
+.\fR
+.br
+
+.br
+
+mpot print\-postfix\-config {\-u \fIUSER\fR|\-\-user} \-\-binary\-path \fIBINARY_PATH\fR [\-\-process\-limit \fIPROCESS_LIMIT\fR] [\-\-map\-output\-path \fIMAP_OUTPUT_PATH\fR] [\-\-transport\-name \fITRANSPORT_NAME\fR] 
+.br
+
+Print postfix maps and master.cf entry to STDOUT.
+.TP
+\-u, \-\-user \fIUSER\fR
+User that runs mailpot when postfix relays a message.
+
+Must not be the `postfix` user. Must have permissions to access the database file and the data directory.
+.TP
+\-\-binary\-path \fIBINARY_PATH\fR
+The path to the mailpot binary postfix will execute.
+.TP
+\-\-process\-limit \fIPROCESS_LIMIT\fR [default: 1]
+Limit the number of mailpot instances that can exist at the same time.
+
+Default is 1.
+.TP
+\-\-map\-output\-path \fIMAP_OUTPUT_PATH\fR
+The directory in which the map files are saved.
+
+Default is `data_path` from [`Configuration`](mailpot::Configuration).
+.TP
+\-\-transport\-name \fITRANSPORT_NAME\fR
+The name of the postfix service name to use. Default is `mailpot`.
+
+A postfix service is a daemon managed by the postfix process. Each entry in the `master.cf` configuration file defines a single service.
+
+The `master.cf` file is documented in [`master(5)`](https://www.postfix.org/master.5.html): <https://www.postfix.org/master.5.html>.
+.ie \n(.g .ds Aq \(aq
+.el .ds Aq '
+.SH AUTHORS
+Manos Pitsidianakis <el13635@mail.ntua.gr>

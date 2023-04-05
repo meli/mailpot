@@ -72,7 +72,7 @@ impl Connection {
     pub fn post(&mut self, env: &Envelope, raw: &[u8], _dry_run: bool) -> Result<()> {
         let result = self.inner_post(env, raw, _dry_run);
         if let Err(err) = result {
-            return match self.insert_to_error_queue(env, raw, err.to_string()) {
+            return match self.insert_to_error_queue(None, env, raw, err.to_string()) {
                 Ok(idx) => {
                     log::info!(
                         "Inserted mail from {:?} into error_queue at index {}",
@@ -263,6 +263,7 @@ impl Connection {
                         receive_own_posts: false,
                         receive_confirmation: true,
                         enabled: !approval_needed,
+                        verified: true,
                     };
                     if approval_needed {
                         match self.add_candidate_member(list.pk, membership) {

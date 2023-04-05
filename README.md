@@ -2,6 +2,8 @@
 
 Rendered rustdoc of `core` crate: <https://meli.github.io/mailpot/docs/mailpot/>
 
+CLI manpage: [`mpot.1`](./docs/mpot.1) [Rendered](https://git.meli.delivery/meli/mailpot/src/branch/main/docs/mpot.1)
+
 Crates:
 
 - `core` the library
@@ -217,7 +219,7 @@ db.set_list_policy(
         announce_only: false,
         subscriber_only: true,
         approval_needed: false,
-        no_subscriptions: false,
+        open: false,
         custom: false,
     },
 )?;

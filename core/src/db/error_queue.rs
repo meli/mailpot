@@ -22,18 +22,23 @@ use serde_json::{json, Value};
 
 impl Connection {
     /// Insert a received email into the error queue.
-    pub fn insert_to_error_queue(&self, env: &Envelope, raw: &[u8], reason: String) -> Result<i64> {
-        let mut stmt = self.connection.prepare("INSERT INTO error_queue(error, to_address, from_address, subject, message_id, message, timestamp, datetime) VALUES(?, ?, ?, ?, ?, ?, ?, ?) RETURNING pk;")?;
+    pub fn insert_to_error_queue(
+        &self,
+        list_pk: Option<i64>,
+        env: &Envelope,
+        raw: &[u8],
+        reason: String,
+    ) -> Result<i64> {
+        let mut stmt = self.connection.prepare("INSERT INTO queue(which, list, comment, to_addresses, from_address, subject, message_id, message) VALUES('error', ?, ?, ?, ?, ?, ?, ?) RETURNING pk;")?;
         let pk = stmt.query_row(
             rusqlite::params![
+                &list_pk,
                 &reason,
                 &env.field_to_to_string(),
                 &env.field_from_to_string(),
                 &env.subject(),
                 &env.message_id().to_string(),
                 raw,
-                &env.timestamp,
-                &env.date,
             ],
             |row| {
                 let pk: i64 = row.get("pk")?;
@@ -45,14 +50,16 @@ impl Connection {
 
     /// Fetch all error queue entries.
     pub fn error_queue(&self) -> Result<Vec<DbVal<Value>>> {
-        let mut stmt = self.connection.prepare("SELECT * FROM error_queue;")?;
+        let mut stmt = self
+            .connection
+            .prepare("SELECT * FROM queue WHERE which = 'error';")?;
         let error_iter = stmt.query_map([], |row| {
             let pk = row.get::<_, i64>("pk")?;
             Ok(DbVal(
                 json!({
                     "pk" : pk,
-                    "error": row.get::<_, String>("error")?,
-                    "to_address": row.get::<_, String>("to_address")?,
+                    "error": row.get::<_, Option<String>>("comment")?,
+                    "to_addresses": row.get::<_, String>("to_addresses")?,
                     "from_address": row.get::<_, String>("from_address")?,
                     "subject": row.get::<_, String>("subject")?,
                     "message_id": row.get::<_, String>("message_id")?,
@@ -77,11 +84,11 @@ impl Connection {
         let tx = self.connection.transaction()?;
 
         if index.is_empty() {
-            tx.execute("DELETE FROM error_queue;", [])?;
+            tx.execute("DELETE FROM queue WHERE which = 'error';", [])?;
         } else {
             for i in index {
                 tx.execute(
-                    "DELETE FROM error_queue WHERE pk = ?;",
+                    "DELETE FROM queue WHERE which = 'error' AND pk = ?;",
                     rusqlite::params![i],
                 )?;
             }

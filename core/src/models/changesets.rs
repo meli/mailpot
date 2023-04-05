@@ -34,6 +34,16 @@ pub struct MailingListChangeset {
     pub description: Option<Option<String>>,
     /// Optional new value.
     pub archive_url: Option<Option<String>>,
+    /// Optional new value.
+    pub owner_local_part: Option<Option<String>>,
+    /// Optional new value.
+    pub request_local_part: Option<Option<String>>,
+    /// Optional new value.
+    pub verify: Option<bool>,
+    /// Optional new value.
+    pub hidden: Option<bool>,
+    /// Optional new value.
+    pub enabled: Option<bool>,
 }
 
 /// Changeset struct for [`ListMembership`](super::ListMembership).
@@ -48,6 +58,10 @@ pub struct ListMembershipChangeset {
     /// Optional new value.
     pub digest: Option<bool>,
     /// Optional new value.
+    pub enabled: Option<bool>,
+    /// Optional new value.
+    pub verified: Option<bool>,
+    /// Optional new value.
     pub hide_address: Option<bool>,
     /// Optional new value.
     pub receive_duplicates: Option<bool>,
@@ -55,8 +69,6 @@ pub struct ListMembershipChangeset {
     pub receive_own_posts: Option<bool>,
     /// Optional new value.
     pub receive_confirmation: Option<bool>,
-    /// Optional new value.
-    pub enabled: Option<bool>,
 }
 
 /// Changeset struct for [`PostPolicy`](super::PostPolicy).

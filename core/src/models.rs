@@ -17,8 +17,8 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-//! Database models: [`MailingList`], [`ListOwner`], [`ListMembership`], [`PostPolicy`] and
-//! [`Post`].
+//! Database models: [`MailingList`], [`ListOwner`], [`ListMembership`], [`PostPolicy`],
+//! [`SubscribePolicy`] and [`Post`].
 
 use super::*;
 pub mod changesets;
@@ -169,6 +169,10 @@ pub struct ListMembership {
     pub address: String,
     /// Member's name, optional.
     pub name: Option<String>,
+    /// Whether this membership is enabled.
+    pub enabled: bool,
+    /// Whether the e-mail address is verified.
+    pub verified: bool,
     /// Whether member wishes to receive list posts as a periodical digest e-mail.
     pub digest: bool,
     /// Whether member wishes their e-mail address hidden from public view.
@@ -181,18 +185,17 @@ pub struct ListMembership {
     pub receive_own_posts: bool,
     /// Whether member wishes to receive a plain confirmation for their own mailing list posts.
     pub receive_confirmation: bool,
-    /// Whether this membership is enabled.
-    pub enabled: bool,
 }
 
 impl std::fmt::Display for ListMembership {
     fn fmt(&self, fmt: &mut std::fmt::Formatter) -> std::fmt::Result {
         write!(
             fmt,
-            "{} [digest: {}, hide_address: {} {}]",
+            "{} [digest: {}, hide_address: {} verified: {} {}]",
             self.address(),
             self.digest,
             self.hide_address,
+            self.verified,
             if self.enabled {
                 "enabled"
             } else {
@@ -226,9 +229,9 @@ pub struct PostPolicy {
     /// Whether the policy is "approval needed" (Anyone can post, but approval from list owners is
     /// required if they are not subscribed).
     pub approval_needed: bool,
-    /// Whether the policy is "no subscriptions" (Anyone can post, but approval from list owners is
+    /// Whether the policy is "open" (Anyone can post, but approval from list owners is
     /// required. Subscriptions are not enabled).
-    pub no_subscriptions: bool,
+    pub open: bool,
     /// Custom policy.
     pub custom: bool,
 }
@@ -271,6 +274,7 @@ impl From<ListOwner> for ListMembership {
             receive_own_posts: false,
             receive_confirmation: true,
             enabled: true,
+            verified: true,
         }
     }
 }
@@ -304,6 +308,33 @@ pub struct Post {
 }
 
 impl std::fmt::Display for Post {
+    fn fmt(&self, fmt: &mut std::fmt::Formatter) -> std::fmt::Result {
+        write!(fmt, "{:?}", self)
+    }
+}
+
+/// A mailing list subscription policy entry.
+///
+/// Only one of the policy boolean flags must be set to true.
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct SubscribePolicy {
+    /// Database primary key.
+    pub pk: i64,
+    /// Mailing list foreign key (See [`MailingList`]).
+    pub list: i64,
+    /// Send confirmation e-mail when subscription is finalized.
+    pub send_confirmation: bool,
+    /// Anyone can subscribe without restrictions.
+    pub open: bool,
+    /// Only list owners can manually add subscribers.
+    pub manual: bool,
+    /// Anyone can request to subscribe.
+    pub request: bool,
+    /// Allow subscriptions, but handle it manually.
+    pub custom: bool,
+}
+
+impl std::fmt::Display for SubscribePolicy {
     fn fmt(&self, fmt: &mut std::fmt::Formatter) -> std::fmt::Result {
         write!(fmt, "{:?}", self)
     }

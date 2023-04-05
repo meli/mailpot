@@ -26,9 +26,8 @@ pub use mailpot::models::changesets::*;
 pub use mailpot::models::*;
 pub use mailpot::*;
 
-use std::path::PathBuf;
-
-use structopt::StructOpt;
+mod args;
+use args::*;
 
 macro_rules! list {
     ($db:ident, $list_id:expr) => {{
@@ -41,238 +40,6 @@ macro_rules! list {
         })
     }};
 }
-
-#[derive(Debug, StructOpt)]
-#[structopt(
-    name = "mailpot",
-    about = "mini mailing list manager",
-    author = "Manos Pitsidianakis <epilys@nessuent.xyz>",
-    //manpage = "docs/main.mdoc",
-    //manpage_header = "docs/header.mdoc",
-    //manpage_footer = "docs/footer.mdoc"
-)]
-struct Opt {
-    /// Activate debug mode
-    #[structopt(short, long)]
-    debug: bool,
-
-    /// Set config file
-    #[structopt(short, long, parse(from_os_str))]
-    config: PathBuf,
-    #[structopt(flatten)]
-    cmd: Command,
-    /// Silence all output
-    #[structopt(short = "q", long = "quiet")]
-    quiet: bool,
-    /// Verbose mode (-v, -vv, -vvv, etc)
-    #[structopt(short = "v", long = "verbose", parse(from_occurrences))]
-    verbose: usize,
-    /// Timestamp (sec, ms, ns, none)
-    #[structopt(short = "t", long = "timestamp")]
-    ts: Option<stderrlog::Timestamp>,
-}
-
-#[derive(Debug, StructOpt)]
-//#[structopt(manpage = "docs/command.mdoc")]
-enum Command {
-    /// Prints a sample config file to STDOUT
-    SampleConfig,
-    ///Dumps database data to STDOUT
-    DumpDatabase,
-    ///Lists all registered mailing lists
-    ListLists,
-    ///Mailing list management
-    List {
-        ///Selects mailing list to operate on
-        list_id: String,
-        #[structopt(subcommand)]
-        cmd: ListCommand,
-    },
-    ///Create new list
-    CreateList {
-        ///List name
-        #[structopt(long)]
-        name: String,
-        ///List ID
-        #[structopt(long)]
-        id: String,
-        ///List e-mail address
-        #[structopt(long)]
-        address: String,
-        ///List description
-        #[structopt(long)]
-        description: Option<String>,
-        ///List archive URL
-        #[structopt(long)]
-        archive_url: Option<String>,
-    },
-    ///Post message from STDIN to list
-    Post {
-        #[structopt(long)]
-        dry_run: bool,
-    },
-    /// Mail that has not been handled properly end up in the error queue.
-    ErrorQueue {
-        #[structopt(subcommand)]
-        cmd: ErrorQueueCommand,
-    },
-    /// Import a maildir folder into an existing list.
-    ImportMaildir {
-        ///Selects mailing list to operate on
-        list_id: String,
-        #[structopt(long, parse(from_os_str))]
-        maildir_path: PathBuf,
-    },
-    /// Update postfix maps and master.cf (probably needs root permissions).
-    UpdatePostfixConfig {
-        master_cf: Option<PathBuf>,
-        #[structopt(short, long)]
-        user: String,
-        #[structopt(short, long)]
-        binary_path: PathBuf,
-        #[structopt(short, long)]
-        process_limit: Option<u64>,
-        #[structopt(short, long)]
-        map_output_path: Option<PathBuf>,
-        #[structopt(short, long)]
-        transport_name: Option<String>,
-    },
-    /// Print postfix maps and master.cf entry to STDOUT.
-    PostfixConfig {
-        #[structopt(short, long)]
-        user: String,
-        #[structopt(short, long)]
-        binary_path: PathBuf,
-        #[structopt(short, long)]
-        process_limit: Option<u64>,
-        #[structopt(short, long)]
-        map_output_path: Option<PathBuf>,
-        #[structopt(short, long)]
-        transport_name: Option<String>,
-    },
-}
-
-#[derive(Debug, StructOpt)]
-//#[structopt(manpage = "docs/error_queue.mdoc")]
-enum ErrorQueueCommand {
-    /// List.
-    List,
-    /// Print entry in RFC5322 or JSON format.
-    Print {
-        /// index of entry.
-        #[structopt(long)]
-        index: Vec<i64>,
-        /// JSON format.
-        #[structopt(long)]
-        json: bool,
-    },
-    /// Delete entry and print it in stdout.
-    Delete {
-        /// index of entry.
-        #[structopt(long)]
-        index: Vec<i64>,
-        /// Do not print in stdout.
-        #[structopt(long)]
-        quiet: bool,
-    },
-}
-
-#[derive(Debug, StructOpt)]
-//#[structopt(manpage = "docs/list.mdoc")]
-enum ListCommand {
-    /// List members of list.
-    Members,
-    /// Add member to list.
-    AddMember {
-        /// E-mail address
-        #[structopt(long)]
-        address: String,
-        /// Name
-        #[structopt(long)]
-        name: Option<String>,
-        /// Send messages as digest?
-        #[structopt(long)]
-        digest: bool,
-        /// Hide message from list when posting?
-        #[structopt(long)]
-        hide_address: bool,
-        /// Hide message from list when posting?
-        #[structopt(long)]
-        /// Receive confirmation email when posting?
-        receive_confirmation: Option<bool>,
-        #[structopt(long)]
-        /// Receive posts from list even if address exists in To or Cc header?
-        receive_duplicates: Option<bool>,
-        #[structopt(long)]
-        /// Receive own posts from list?
-        receive_own_posts: Option<bool>,
-        #[structopt(long)]
-        /// Is subscription enabled?
-        enabled: Option<bool>,
-    },
-    /// Remove member from list.
-    RemoveMember {
-        #[structopt(long)]
-        /// E-mail address
-        address: String,
-    },
-    /// Update membership info.
-    UpdateMembership {
-        address: String,
-        name: Option<String>,
-        digest: Option<bool>,
-        hide_address: Option<bool>,
-        receive_duplicates: Option<bool>,
-        receive_own_posts: Option<bool>,
-        receive_confirmation: Option<bool>,
-        enabled: Option<bool>,
-    },
-    /// Add policy to list.
-    AddPolicy {
-        #[structopt(long)]
-        announce_only: bool,
-        #[structopt(long)]
-        subscriber_only: bool,
-        #[structopt(long)]
-        approval_needed: bool,
-        #[structopt(long)]
-        no_subscriptions: bool,
-        #[structopt(long)]
-        custom: bool,
-    },
-    RemovePolicy {
-        #[structopt(long)]
-        pk: i64,
-    },
-    /// Add list owner to list.
-    AddListOwner {
-        #[structopt(long)]
-        address: String,
-        #[structopt(long)]
-        name: Option<String>,
-    },
-    RemoveListOwner {
-        #[structopt(long)]
-        pk: i64,
-    },
-    /// Alias for update-membership --enabled true
-    EnableMembership { address: String },
-    /// Alias for update-membership --enabled false
-    DisableMembership { address: String },
-    /// Update mailing list details.
-    Update {
-        name: Option<String>,
-        id: Option<String>,
-        address: Option<String>,
-        description: Option<String>,
-        archive_url: Option<String>,
-    },
-    /// Show mailing list health status.
-    Health,
-    /// Show mailing list info.
-    Info,
-}
-
 fn run_app(opt: Opt) -> Result<()> {
     if opt.debug {
         println!("DEBUG: {:?}", &opt);
@@ -283,7 +50,7 @@ fn run_app(opt: Opt) -> Result<()> {
     };
     let config = Configuration::from_file(opt.config.as_path())?;
     use Command::*;
-    let mut db = Connection::open_or_create_db(config)?;
+    let mut db = Connection::open_or_create_db(config)?.trusted();
     match opt.cmd {
         SampleConfig => {}
         DumpDatabase => {
@@ -341,13 +108,17 @@ fn run_app(opt: Opt) -> Result<()> {
                 }
                 AddMember {
                     address,
-                    name,
-                    digest,
-                    hide_address,
-                    receive_confirmation,
-                    receive_duplicates,
-                    receive_own_posts,
-                    enabled,
+                    member_options:
+                        MemberOptions {
+                            name,
+                            digest,
+                            hide_address,
+                            receive_duplicates,
+                            receive_own_posts,
+                            receive_confirmation,
+                            enabled,
+                            verified,
+                        },
                 } => {
                     db.add_member(
                         list.pk,
@@ -356,12 +127,13 @@ fn run_app(opt: Opt) -> Result<()> {
                             list: list.pk,
                             name,
                             address,
-                            digest,
-                            hide_address,
+                            digest: digest.unwrap_or(false),
+                            hide_address: hide_address.unwrap_or(false),
                             receive_confirmation: receive_confirmation.unwrap_or(true),
                             receive_duplicates: receive_duplicates.unwrap_or(true),
                             receive_own_posts: receive_own_posts.unwrap_or(false),
                             enabled: enabled.unwrap_or(true),
+                            verified: verified.unwrap_or(false),
                         },
                     )?;
                 }
@@ -427,13 +199,17 @@ fn run_app(opt: Opt) -> Result<()> {
                 }
                 UpdateMembership {
                     address,
-                    name,
-                    digest,
-                    hide_address,
-                    receive_duplicates,
-                    receive_own_posts,
-                    receive_confirmation,
-                    enabled,
+                    member_options:
+                        MemberOptions {
+                            name,
+                            digest,
+                            hide_address,
+                            receive_duplicates,
+                            receive_own_posts,
+                            receive_confirmation,
+                            enabled,
+                            verified,
+                        },
                 } => {
                     let name = if name
                         .as_ref()
@@ -449,6 +225,7 @@ fn run_app(opt: Opt) -> Result<()> {
                         address,
                         name,
                         digest,
+                        verified,
                         hide_address,
                         receive_duplicates,
                         receive_own_posts,
@@ -461,7 +238,7 @@ fn run_app(opt: Opt) -> Result<()> {
                     announce_only,
                     subscriber_only,
                     approval_needed,
-                    no_subscriptions,
+                    open,
                     custom,
                 } => {
                     let policy = PostPolicy {
@@ -470,7 +247,7 @@ fn run_app(opt: Opt) -> Result<()> {
                         announce_only,
                         subscriber_only,
                         approval_needed,
-                        no_subscriptions,
+                        open,
                         custom,
                     };
                     let new_val = db.set_list_policy(policy)?;
@@ -479,6 +256,29 @@ fn run_app(opt: Opt) -> Result<()> {
                 RemovePolicy { pk } => {
                     db.remove_list_policy(list.pk, pk)?;
                     println!("Removed policy with pk = {}", pk);
+                }
+                AddSubscribePolicy {
+                    send_confirmation,
+                    open,
+                    manual,
+                    request,
+                    custom,
+                } => {
+                    let policy = SubscribePolicy {
+                        pk: 0,
+                        list: list.pk,
+                        send_confirmation,
+                        open,
+                        manual,
+                        request,
+                        custom,
+                    };
+                    let new_val = db.set_list_subscribe_policy(policy)?;
+                    println!("Added new subscribe policy with pk = {}", new_val.pk());
+                }
+                RemoveSubscribePolicy { pk } => {
+                    db.remove_list_subscribe_policy(list.pk, pk)?;
+                    println!("Removed subscribe policy with pk = {}", pk);
                 }
                 AddListOwner { address, name } => {
                     let list_owner = ListOwner {
@@ -500,11 +300,12 @@ fn run_app(opt: Opt) -> Result<()> {
                         address,
                         name: None,
                         digest: None,
+                        verified: None,
+                        enabled: Some(true),
                         hide_address: None,
                         receive_duplicates: None,
                         receive_own_posts: None,
                         receive_confirmation: None,
-                        enabled: Some(true),
                     };
                     db.update_member(changeset)?;
                 }
@@ -514,11 +315,12 @@ fn run_app(opt: Opt) -> Result<()> {
                         address,
                         name: None,
                         digest: None,
+                        enabled: Some(false),
+                        verified: None,
                         hide_address: None,
                         receive_duplicates: None,
                         receive_own_posts: None,
                         receive_confirmation: None,
-                        enabled: Some(false),
                     };
                     db.update_member(changeset)?;
                 }
@@ -528,25 +330,29 @@ fn run_app(opt: Opt) -> Result<()> {
                     address,
                     description,
                     archive_url,
+                    owner_local_part,
+                    request_local_part,
+                    verify,
+                    hidden,
+                    enabled,
                 } => {
-                    let description = if description
-                        .as_ref()
-                        .map(|s: &String| s.is_empty())
-                        .unwrap_or(false)
-                    {
-                        None
-                    } else {
-                        Some(description)
-                    };
-                    let archive_url = if archive_url
-                        .as_ref()
-                        .map(|s: &String| s.is_empty())
-                        .unwrap_or(false)
-                    {
-                        None
-                    } else {
-                        Some(archive_url)
-                    };
+                    macro_rules! string_opts {
+                        ($field:ident) => {
+                            if $field
+                                .as_ref()
+                                .map(|s: &String| s.is_empty())
+                                .unwrap_or(false)
+                            {
+                                None
+                            } else {
+                                Some($field)
+                            }
+                        };
+                    }
+                    let description = string_opts!(description);
+                    let archive_url = string_opts!(archive_url);
+                    let owner_local_part = string_opts!(owner_local_part);
+                    let request_local_part = string_opts!(request_local_part);
                     let changeset = MailingListChangeset {
                         pk: list.pk,
                         name,
@@ -554,6 +360,11 @@ fn run_app(opt: Opt) -> Result<()> {
                         address,
                         description,
                         archive_url,
+                        owner_local_part,
+                        request_local_part,
+                        verify,
+                        hidden,
+                        enabled,
                     };
                     db.update_list(changeset)?;
                 }
@@ -715,11 +526,14 @@ fn run_app(opt: Opt) -> Result<()> {
         }
         UpdatePostfixConfig {
             master_cf,
-            user,
-            binary_path,
-            process_limit,
-            map_output_path,
-            transport_name,
+            config:
+                PostfixConfig {
+                    user,
+                    binary_path,
+                    process_limit,
+                    map_output_path,
+                    transport_name,
+                },
         } => {
             let pfconf = mailpot::postfix::PostfixConfiguration {
                 user: user.into(),
@@ -731,12 +545,15 @@ fn run_app(opt: Opt) -> Result<()> {
             pfconf.save_maps(db.conf())?;
             pfconf.save_master_cf_entry(db.conf(), opt.config.as_path(), master_cf.as_deref())?;
         }
-        PostfixConfig {
-            user,
-            binary_path,
-            process_limit,
-            map_output_path,
-            transport_name,
+        PrintPostfixConfig {
+            config:
+                PostfixConfig {
+                    user,
+                    binary_path,
+                    process_limit,
+                    map_output_path,
+                    transport_name,
+                },
         } => {
             let pfconf = mailpot::postfix::PostfixConfiguration {
                 user: user.into(),
@@ -764,12 +581,12 @@ fn run_app(opt: Opt) -> Result<()> {
 }
 
 fn main() -> std::result::Result<(), i32> {
-    let opt = Opt::from_args();
+    let opt = Opt::parse();
     stderrlog::new()
         .module(module_path!())
         .module("mailpot")
         .quiet(opt.quiet)
-        .verbosity(opt.verbose)
+        .verbosity(opt.verbose as usize)
         .timestamp(opt.ts.unwrap_or(stderrlog::Timestamp::Off))
         .init()
         .unwrap();

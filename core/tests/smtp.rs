@@ -227,7 +227,7 @@ fn test_smtp() {
             announce_only: false,
             subscriber_only: true,
             approval_needed: false,
-            no_subscriptions: false,
+            open: false,
             custom: false,
         })
         .unwrap();
@@ -257,6 +257,7 @@ fn test_smtp() {
                     address: "japoeunp@hotmail.com".into(),
                     name: Some("Jamaica Poe".into()),
                     digest: false,
+                    verified: true,
                     hide_address: false,
                     receive_duplicates: true,
                     receive_own_posts: true,
@@ -273,6 +274,7 @@ fn test_smtp() {
                     address: "manos@example.com".into(),
                     name: Some("Manos Hands".into()),
                     digest: false,
+                    verified: true,
                     hide_address: false,
                     receive_duplicates: true,
                     receive_own_posts: true,
@@ -345,7 +347,7 @@ fn test_smtp_mailcrab() {
             announce_only: false,
             subscriber_only: true,
             approval_needed: false,
-            no_subscriptions: false,
+            open: false,
             custom: false,
         })
         .unwrap();
@@ -373,6 +375,7 @@ fn test_smtp_mailcrab() {
                     address: "japoeunp@hotmail.com".into(),
                     name: Some("Jamaica Poe".into()),
                     digest: false,
+                    verified: true,
                     hide_address: false,
                     receive_duplicates: true,
                     receive_own_posts: true,
@@ -389,6 +392,7 @@ fn test_smtp_mailcrab() {
                     address: "manos@example.com".into(),
                     name: Some("Manos Hands".into()),
                     digest: false,
+                    verified: true,
                     hide_address: false,
                     receive_duplicates: true,
                     receive_own_posts: true,

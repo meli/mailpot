@@ -1,107 +1,131 @@
 PRAGMA foreign_keys = true;
 PRAGMA encoding = 'UTF-8';
 
-CREATE TABLE IF NOT EXISTS mailing_lists (
-  pk              INTEGER PRIMARY KEY NOT NULL,
-  name            TEXT NOT NULL,
-  id              TEXT NOT NULL,
-  address         TEXT NOT NULL,
-  archive_url     TEXT,
-  description     TEXT
+CREATE TABLE IF NOT EXISTS list (
+  pk                       INTEGER PRIMARY KEY NOT NULL,
+  name                     TEXT NOT NULL,
+  id                       TEXT NOT NULL UNIQUE,
+  address                  TEXT NOT NULL UNIQUE,
+  owner_local_part         TEXT,
+  request_local_part       TEXT,
+  archive_url              TEXT,
+  description              TEXT,
+  created                  INTEGER NOT NULL DEFAULT (unixepoch()),
+  last_modified            INTEGER NOT NULL DEFAULT (unixepoch()),
+  verify BOOLEAN CHECK (verify in (0, 1)) NOT NULL     DEFAULT 1,
+  hidden BOOLEAN CHECK (hidden in (0, 1)) NOT NULL     DEFAULT 0,
+  enabled BOOLEAN CHECK (enabled in (0, 1)) NOT NULL    DEFAULT 1
 );
 
-CREATE TABLE IF NOT EXISTS list_owner (
-  pk              INTEGER PRIMARY KEY NOT NULL,
-  list            INTEGER NOT NULL,
-  address         TEXT NOT NULL,
-  name            TEXT,
-  FOREIGN KEY (list) REFERENCES mailing_lists(pk) ON DELETE CASCADE
+CREATE TABLE IF NOT EXISTS owner (
+  pk               INTEGER PRIMARY KEY NOT NULL,
+  list             INTEGER NOT NULL,
+  address          TEXT NOT NULL,
+  name             TEXT,
+  created          INTEGER NOT NULL DEFAULT (unixepoch()),
+  last_modified    INTEGER NOT NULL DEFAULT (unixepoch()),
+  FOREIGN KEY (list) REFERENCES list(pk) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS post_policy (
-  pk              INTEGER PRIMARY KEY NOT NULL,
-  list            INTEGER NOT NULL UNIQUE,
-  announce_only BOOLEAN CHECK (announce_only in (0, 1)) NOT NULL DEFAULT 0,
-  subscriber_only BOOLEAN CHECK (subscriber_only in (0, 1)) NOT NULL DEFAULT 0,
-  approval_needed BOOLEAN CHECK (approval_needed in (0, 1)) NOT NULL DEFAULT 0,
-  no_subscriptions BOOLEAN CHECK (no_subscriptions in (0, 1)) NOT NULL DEFAULT 0,
-  custom BOOLEAN CHECK (custom in (0, 1)) NOT NULL DEFAULT 0,
-  CHECK(((custom) OR (((no_subscriptions) OR (((approval_needed) OR (((announce_only) OR (subscriber_only)) AND NOT ((announce_only) AND (subscriber_only)))) AND NOT ((approval_needed) AND (((announce_only) OR (subscriber_only)) AND NOT ((announce_only) AND (subscriber_only)))))) AND NOT ((no_subscriptions) AND (((approval_needed) OR (((announce_only) OR (subscriber_only)) AND NOT ((announce_only) AND (subscriber_only)))) AND NOT ((approval_needed) AND (((announce_only) OR (subscriber_only)) AND NOT ((announce_only) AND (subscriber_only)))))))) AND NOT ((custom) AND (((no_subscriptions) OR (((approval_needed) OR (((announce_only) OR (subscriber_only)) AND NOT ((announce_only) AND (subscriber_only)))) AND NOT ((approval_needed) AND (((announce_only) OR (subscriber_only)) AND NOT ((announce_only) AND (subscriber_only)))))) AND NOT ((no_subscriptions) AND (((approval_needed) OR (((announce_only) OR (subscriber_only)) AND NOT ((announce_only) AND (subscriber_only)))) AND NOT ((approval_needed) AND (((announce_only) OR (subscriber_only)) AND NOT ((announce_only) AND (subscriber_only))))))))),
-  FOREIGN KEY (list) REFERENCES mailing_lists(pk) ON DELETE CASCADE
+  pk                               INTEGER PRIMARY KEY NOT NULL,
+  list                             INTEGER NOT NULL UNIQUE,
+  announce_only BOOLEAN CHECK (announce_only in (0, 1)) NOT NULL      DEFAULT 0,
+  subscriber_only BOOLEAN CHECK (subscriber_only in (0, 1)) NOT NULL    DEFAULT 0,
+  approval_needed BOOLEAN CHECK (approval_needed in (0, 1)) NOT NULL    DEFAULT 0,
+  open BOOLEAN CHECK (open in (0, 1)) NOT NULL               DEFAULT 0,
+  custom BOOLEAN CHECK (custom in (0, 1)) NOT NULL             DEFAULT 0,
+  created                          INTEGER NOT NULL DEFAULT (unixepoch()),
+  last_modified                    INTEGER NOT NULL DEFAULT (unixepoch())
+  CHECK(((custom) OR (((open) OR (((approval_needed) OR (((announce_only) OR (subscriber_only)) AND NOT ((announce_only) AND (subscriber_only)))) AND NOT ((approval_needed) AND (((announce_only) OR (subscriber_only)) AND NOT ((announce_only) AND (subscriber_only)))))) AND NOT ((open) AND (((approval_needed) OR (((announce_only) OR (subscriber_only)) AND NOT ((announce_only) AND (subscriber_only)))) AND NOT ((approval_needed) AND (((announce_only) OR (subscriber_only)) AND NOT ((announce_only) AND (subscriber_only)))))))) AND NOT ((custom) AND (((open) OR (((approval_needed) OR (((announce_only) OR (subscriber_only)) AND NOT ((announce_only) AND (subscriber_only)))) AND NOT ((approval_needed) AND (((announce_only) OR (subscriber_only)) AND NOT ((announce_only) AND (subscriber_only)))))) AND NOT ((open) AND (((approval_needed) OR (((announce_only) OR (subscriber_only)) AND NOT ((announce_only) AND (subscriber_only)))) AND NOT ((approval_needed) AND (((announce_only) OR (subscriber_only)) AND NOT ((announce_only) AND (subscriber_only))))))))),
+  FOREIGN KEY (list) REFERENCES list(pk) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS subscribe_policy (
+  pk                                 INTEGER PRIMARY KEY NOT NULL,
+  list                               INTEGER NOT NULL UNIQUE,
+  send_confirmation BOOLEAN CHECK (send_confirmation in (0, 1)) NOT NULL    DEFAULT 1,
+  open BOOLEAN CHECK (open in (0, 1)) NOT NULL                 DEFAULT 0,
+  manual BOOLEAN CHECK (manual in (0, 1)) NOT NULL               DEFAULT 0,
+  request BOOLEAN CHECK (request in (0, 1)) NOT NULL              DEFAULT 0,
+  custom BOOLEAN CHECK (custom in (0, 1)) NOT NULL               DEFAULT 0,
+  created                            INTEGER NOT NULL DEFAULT (unixepoch()),
+  last_modified                      INTEGER NOT NULL DEFAULT (unixepoch()),
+  CHECK(((open) OR (((manual) OR (((request) OR (custom)) AND NOT ((request) AND (custom)))) AND NOT ((manual) AND (((request) OR (custom)) AND NOT ((request) AND (custom)))))) AND NOT ((open) AND (((manual) OR (((request) OR (custom)) AND NOT ((request) AND (custom)))) AND NOT ((manual) AND (((request) OR (custom)) AND NOT ((request) AND (custom))))))),
+  FOREIGN KEY (list) REFERENCES list(pk) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS membership (
-  pk                      INTEGER PRIMARY KEY NOT NULL,
-  list                    INTEGER NOT NULL,
-  address                 TEXT NOT NULL,
-  name                    TEXT,
-  account                 INTEGER,
-  enabled BOOLEAN CHECK (enabled in (0, 1)) NOT NULL DEFAULT 1,
-  digest BOOLEAN CHECK (digest in (0, 1)) NOT NULL DEFAULT 0,
-  hide_address BOOLEAN CHECK (hide_address in (0, 1)) NOT NULL DEFAULT 0,
-  receive_duplicates BOOLEAN CHECK (receive_duplicates in (0, 1)) NOT NULL DEFAULT 1,
-  receive_own_posts BOOLEAN CHECK (receive_own_posts in (0, 1)) NOT NULL DEFAULT 0,
-  receive_confirmation BOOLEAN CHECK (receive_confirmation in (0, 1)) NOT NULL DEFAULT 1,
-  FOREIGN KEY (list) REFERENCES mailing_lists(pk) ON DELETE CASCADE,
-  FOREIGN KEY (account) REFERENCES account(pk) ON DELETE CASCADE,
+  pk                                    INTEGER PRIMARY KEY NOT NULL,
+  list                                  INTEGER NOT NULL,
+  address                               TEXT NOT NULL,
+  name                                  TEXT,
+  account                               INTEGER,
+  enabled BOOLEAN CHECK (enabled in (0, 1)) NOT NULL                 DEFAULT 1,
+  verified BOOLEAN CHECK (verified in (0, 1)) NOT NULL                DEFAULT 1,
+  digest BOOLEAN CHECK (digest in (0, 1)) NOT NULL                  DEFAULT 0,
+  hide_address BOOLEAN CHECK (hide_address in (0, 1)) NOT NULL            DEFAULT 0,
+  receive_duplicates BOOLEAN CHECK (receive_duplicates in (0, 1)) NOT NULL      DEFAULT 1,
+  receive_own_posts BOOLEAN CHECK (receive_own_posts in (0, 1)) NOT NULL       DEFAULT 0,
+  receive_confirmation BOOLEAN CHECK (receive_confirmation in (0, 1)) NOT NULL    DEFAULT 1,
+  created                               INTEGER NOT NULL DEFAULT (unixepoch()),
+  last_modified                         INTEGER NOT NULL DEFAULT (unixepoch()),
+  FOREIGN KEY (list) REFERENCES list(pk) ON DELETE CASCADE,
+  FOREIGN KEY (account) REFERENCES account(pk) ON DELETE SET NULL,
   UNIQUE (list, address) ON CONFLICT ROLLBACK
 );
 
 CREATE TABLE IF NOT EXISTS account (
-  pk                      INTEGER PRIMARY KEY NOT NULL,
-  name                    TEXT,
-  address                 TEXT NOT NULL UNIQUE,
-  public_key              TEXT,
-  password                TEXT NOT NULL,
-  enabled BOOLEAN CHECK (enabled in (0, 1)) NOT NULL DEFAULT 1
+  pk                       INTEGER PRIMARY KEY NOT NULL,
+  name                     TEXT,
+  address                  TEXT NOT NULL UNIQUE,
+  public_key               TEXT,
+  password                 TEXT NOT NULL,
+  enabled BOOLEAN CHECK (enabled in (0, 1)) NOT NULL    DEFAULT 1,
+  created                  INTEGER NOT NULL DEFAULT (unixepoch()),
+  last_modified            INTEGER NOT NULL DEFAULT (unixepoch())
 );
 
 CREATE TABLE IF NOT EXISTS candidate_membership (
-  pk                      INTEGER PRIMARY KEY NOT NULL,
-  list                    INTEGER NOT NULL,
-  address                 TEXT NOT NULL,
-  name                    TEXT,
-  accepted                INTEGER,
-  FOREIGN KEY (list) REFERENCES mailing_lists(pk) ON DELETE CASCADE,
-  FOREIGN KEY (accepted) REFERENCES membership(pk) ON DELETE CASCADE
+  pk                INTEGER PRIMARY KEY NOT NULL,
+  list              INTEGER NOT NULL,
+  address           TEXT NOT NULL,
+  name              TEXT,
+  accepted          INTEGER UNIQUE,
+  created           INTEGER NOT NULL DEFAULT (unixepoch()),
+  last_modified     INTEGER NOT NULL DEFAULT (unixepoch()),
+  FOREIGN KEY (list) REFERENCES list(pk) ON DELETE CASCADE,
+  FOREIGN KEY (accepted) REFERENCES membership(pk) ON DELETE CASCADE,
+  UNIQUE (list, address) ON CONFLICT ROLLBACK
 );
 
 CREATE TABLE IF NOT EXISTS post (
   pk                      INTEGER PRIMARY KEY NOT NULL,
   list                    INTEGER NOT NULL,
+  envelope_from           TEXT,
   address                 TEXT NOT NULL,
   message_id              TEXT NOT NULL,
   message                 BLOB NOT NULL,
+  headers_json            TEXT,
   timestamp               INTEGER NOT NULL DEFAULT (unixepoch()),
-  datetime                TEXT NOT NULL DEFAULT (datetime())
+  datetime                TEXT NOT NULL DEFAULT (datetime()),
+  created                 INTEGER NOT NULL DEFAULT (unixepoch())
 );
 
-CREATE TABLE IF NOT EXISTS post_event (
+CREATE TABLE IF NOT EXISTS templates (
   pk                      INTEGER PRIMARY KEY NOT NULL,
-  post                    INTEGER NOT NULL,
-  date                    INTEGER NOT NULL,
-  kind                    CHAR(1) CHECK (kind IN ('R', 'S', 'D', 'B', 'O')) NOT NULL,
-  content                 TEXT NOT NULL,
-  FOREIGN KEY (post) REFERENCES post(pk) ON DELETE CASCADE
-);
-
-CREATE TABLE IF NOT EXISTS error_queue (
-  pk                      INTEGER PRIMARY KEY NOT NULL,
-  error                   TEXT NOT NULL,
-  to_address              TEXT NOT NULL,
-  from_address            TEXT NOT NULL,
-  subject                 TEXT NOT NULL,
-  message_id              TEXT NOT NULL,
-  message                 BLOB NOT NULL,
-  timestamp               INTEGER NOT NULL DEFAULT (unixepoch()),
-  datetime                TEXT NOT NULL DEFAULT (datetime())
+  list                    INTEGER UNIQUE,
+  subject                 TEXT,
+  body                    TEXT NOT NULL,
+  created                 INTEGER NOT NULL DEFAULT (unixepoch()),
+  last_modified           INTEGER NOT NULL DEFAULT (unixepoch())
 );
 
 -- # Queues
 --
 -- ## The "maildrop" queue
 --
--- Messages that have been submitted  but not yet processed, await processing in
+-- Messages that have been submitted but not yet processed, await processing in
 -- the "maildrop" queue. Messages can be added to the "maildrop" queue even when
 -- mailpot is not running.
 --
@@ -117,20 +141,97 @@ CREATE TABLE IF NOT EXISTS error_queue (
 -- the "hold" queue. Messages placed in the "hold" queue stay there until the
 -- administrator intervenes. No periodic delivery attempts are made for messages
 -- in the "hold" queue.
+
+-- ## The "out" queue
+--
+-- Emails that must be sent as soon as possible.
 CREATE TABLE IF NOT EXISTS queue (
   pk                      INTEGER PRIMARY KEY NOT NULL,
-  kind                    TEXT CHECK (kind IN ('maildrop', 'hold', 'deferred', 'corrupt')) NOT NULL,
+  which                   TEXT CHECK (which IN ('maildrop', 'hold', 'deferred', 'corrupt', 'error', 'out')) NOT NULL,
+  list                    INTEGER,
+  comment                 TEXT,
   to_addresses            TEXT NOT NULL,
   from_address            TEXT NOT NULL,
   subject                 TEXT NOT NULL,
-  message_id              TEXT NOT NULL,
+  message_id              TEXT NOT NULL UNIQUE,
   message                 BLOB NOT NULL,
   timestamp               INTEGER NOT NULL DEFAULT (unixepoch()),
-  datetime                TEXT NOT NULL DEFAULT (datetime())
+  datetime                TEXT NOT NULL DEFAULT (datetime()),
+  FOREIGN KEY (list) REFERENCES list(pk) ON DELETE CASCADE
 );
 
+CREATE TABLE IF NOT EXISTS bounce (
+  pk                      INTEGER PRIMARY KEY NOT NULL,
+  member                  INTEGER NOT NULL UNIQUE,
+  count                   INTEGER NOT NULL DEFAULT 0,
+  last_bounce             TEXT NOT NULL DEFAULT (datetime()),
+  FOREIGN KEY (member) REFERENCES membership(pk) ON DELETE CASCADE
+);
 
 CREATE INDEX IF NOT EXISTS post_listpk_idx ON post(list);
 CREATE INDEX IF NOT EXISTS post_msgid_idx ON post(message_id);
-CREATE INDEX IF NOT EXISTS mailing_lists_idx ON mailing_lists(id);
+CREATE INDEX IF NOT EXISTS list_idx ON list(id);
 CREATE INDEX IF NOT EXISTS membership_idx ON membership(address);
+
+CREATE TRIGGER IF NOT EXISTS accept_candidate AFTER INSERT ON membership
+FOR EACH ROW
+BEGIN
+  UPDATE candidate_membership SET accepted = NEW.pk, last_modified = unixepoch()
+  WHERE candidate_membership.list = NEW.list AND candidate_membership.address = NEW.address;
+END;
+
+CREATE TRIGGER IF NOT EXISTS verify_candidate AFTER INSERT ON membership
+FOR EACH ROW
+BEGIN
+  UPDATE membership SET verified = 0, last_modified = unixepoch()
+  WHERE membership.pk = NEW.pk AND EXISTS (SELECT 1 FROM list WHERE pk = NEW.list AND verify = 1);
+END;
+
+CREATE TRIGGER IF NOT EXISTS last_modified_list AFTER UPDATE ON list
+FOR EACH ROW
+BEGIN
+  UPDATE list SET last_modified = unixepoch()
+  WHERE pk = NEW.pk;
+END;
+CREATE TRIGGER IF NOT EXISTS last_modified_owner AFTER UPDATE ON owner
+FOR EACH ROW
+BEGIN
+  UPDATE owner SET last_modified = unixepoch()
+  WHERE pk = NEW.pk;
+END;
+CREATE TRIGGER IF NOT EXISTS last_modified_post_policy AFTER UPDATE ON post_policy
+FOR EACH ROW
+BEGIN
+  UPDATE post_policy SET last_modified = unixepoch()
+  WHERE pk = NEW.pk;
+END;
+CREATE TRIGGER IF NOT EXISTS last_modified_subscribe_policy AFTER UPDATE ON subscribe_policy
+FOR EACH ROW
+BEGIN
+  UPDATE subscribe_policy SET last_modified = unixepoch()
+  WHERE pk = NEW.pk;
+END;
+CREATE TRIGGER IF NOT EXISTS last_modified_membership AFTER UPDATE ON membership
+FOR EACH ROW
+BEGIN
+  UPDATE membership SET last_modified = unixepoch()
+  WHERE pk = NEW.pk;
+END;
+CREATE TRIGGER IF NOT EXISTS last_modified_account AFTER UPDATE ON account
+FOR EACH ROW
+BEGIN
+  UPDATE account SET last_modified = unixepoch()
+  WHERE pk = NEW.pk;
+END;
+CREATE TRIGGER IF NOT EXISTS last_modified_candidate_membership AFTER UPDATE ON candidate_membership
+FOR EACH ROW
+BEGIN
+  UPDATE candidate_membership SET last_modified = unixepoch()
+  WHERE pk = NEW.pk;
+END;
+CREATE TRIGGER IF NOT EXISTS last_modified_templates AFTER UPDATE ON templates
+FOR EACH ROW
+BEGIN
+  UPDATE templates SET last_modified = unixepoch()
+  WHERE pk = NEW.pk;
+END;

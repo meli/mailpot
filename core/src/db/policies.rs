@@ -1,0 +1,366 @@
+/*
+ * This file is part of mailpot
+ *
+ * Copyright 2020 - Manos Pitsidianakis
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ */
+
+use super::*;
+
+pub use post_policy::*;
+pub use subscribe_policy::*;
+mod post_policy {
+    use super::*;
+
+    impl Connection {
+        /// Fetch the post policy of a mailing list.
+        pub fn list_policy(&self, pk: i64) -> Result<Option<DbVal<PostPolicy>>> {
+            let mut stmt = self
+                .connection
+                .prepare("SELECT * FROM post_policy WHERE list = ?;")?;
+            let ret = stmt
+                .query_row([&pk], |row| {
+                    let pk = row.get("pk")?;
+                    Ok(DbVal(
+                        PostPolicy {
+                            pk,
+                            list: row.get("list")?,
+                            announce_only: row.get("announce_only")?,
+                            subscriber_only: row.get("subscriber_only")?,
+                            approval_needed: row.get("approval_needed")?,
+                            open: row.get("open")?,
+                            custom: row.get("custom")?,
+                        },
+                        pk,
+                    ))
+                })
+                .optional()?;
+
+            Ok(ret)
+        }
+
+        /// Remove an existing list policy.
+        ///
+        /// ```
+        /// # use mailpot::{models::*, Configuration, Connection, SendMail};
+        /// # use tempfile::TempDir;
+        ///
+        /// # let tmp_dir = TempDir::new().unwrap();
+        /// # let db_path = tmp_dir.path().join("mpot.db");
+        /// # let config = Configuration {
+        /// #     send_mail: SendMail::ShellCommand("/usr/bin/false".to_string()),
+        /// #     db_path: db_path.clone(),
+        /// #     data_path: tmp_dir.path().to_path_buf(),
+        /// # };
+        ///
+        /// # fn do_test(config: Configuration) {
+        /// let db = Connection::open_or_create_db(config).unwrap().trusted();
+        /// let list_pk = db.create_list(MailingList {
+        ///     pk: 0,
+        ///     name: "foobar chat".into(),
+        ///     id: "foo-chat".into(),
+        ///     address: "foo-chat@example.com".into(),
+        ///     description: None,
+        ///     archive_url: None,
+        /// }).unwrap().pk;
+        /// db.set_list_policy(
+        ///     PostPolicy {
+        ///         pk: 0,
+        ///         list: list_pk,
+        ///         announce_only: false,
+        ///         subscriber_only: true,
+        ///         approval_needed: false,
+        ///         open: false,
+        ///         custom: false,
+        ///     },
+        /// ).unwrap();
+        /// db.remove_list_policy(1, 1).unwrap();
+        /// # }
+        /// # do_test(config);
+        /// ```
+        pub fn remove_list_policy(&self, list_pk: i64, policy_pk: i64) -> Result<()> {
+            let mut stmt = self
+                .connection
+                .prepare("DELETE FROM post_policy WHERE pk = ? AND list = ? RETURNING *;")?;
+            stmt.query_row(rusqlite::params![&policy_pk, &list_pk,], |_| Ok(()))
+                .map_err(|err| {
+                    if matches!(err, rusqlite::Error::QueryReturnedNoRows) {
+                        Error::from(err).chain_err(|| NotFound("list or list policy not found!"))
+                    } else {
+                        err.into()
+                    }
+                })?;
+
+            trace!("remove_list_policy {} {}.", list_pk, policy_pk);
+            Ok(())
+        }
+
+        /// ```should_panic
+        /// # use mailpot::{models::*, Configuration, Connection, SendMail};
+        /// # use tempfile::TempDir;
+        ///
+        /// # let tmp_dir = TempDir::new().unwrap();
+        /// # let db_path = tmp_dir.path().join("mpot.db");
+        /// # let config = Configuration {
+        /// #     send_mail: SendMail::ShellCommand("/usr/bin/false".to_string()),
+        /// #     db_path: db_path.clone(),
+        /// #     data_path: tmp_dir.path().to_path_buf(),
+        /// # };
+        ///
+        /// # fn do_test(config: Configuration) {
+        /// let db = Connection::open_or_create_db(config).unwrap().trusted();
+        /// db.remove_list_policy(1, 1).unwrap();
+        /// # }
+        /// # do_test(config);
+        /// ```
+        #[cfg(doc)]
+        pub fn remove_list_policy_panic() {}
+
+        /// Set the unique post policy for a list.
+        pub fn set_list_policy(&self, policy: PostPolicy) -> Result<DbVal<PostPolicy>> {
+            if !(policy.announce_only
+                || policy.subscriber_only
+                || policy.approval_needed
+                || policy.open
+                || policy.custom)
+            {
+                return Err(
+                    "Cannot add empty policy. Having no policies is probably what you want to do."
+                        .into(),
+                );
+            }
+            let list_pk = policy.list;
+
+            let mut stmt = self.connection.prepare("INSERT OR REPLACE INTO post_policy(list, announce_only, subscriber_only, approval_needed, open, custom) VALUES (?, ?, ?, ?, ?, ?) RETURNING *;")?;
+            let ret = stmt
+                .query_row(
+                    rusqlite::params![
+                        &list_pk,
+                        &policy.announce_only,
+                        &policy.subscriber_only,
+                        &policy.approval_needed,
+                        &policy.open,
+                        &policy.custom,
+                    ],
+                    |row| {
+                        let pk = row.get("pk")?;
+                        Ok(DbVal(
+                            PostPolicy {
+                                pk,
+                                list: row.get("list")?,
+                                announce_only: row.get("announce_only")?,
+                                subscriber_only: row.get("subscriber_only")?,
+                                approval_needed: row.get("approval_needed")?,
+                                open: row.get("open")?,
+                                custom: row.get("custom")?,
+                            },
+                            pk,
+                        ))
+                    },
+                )
+                .map_err(|err| {
+                    if matches!(
+                        err,
+                        rusqlite::Error::SqliteFailure(
+                            rusqlite::ffi::Error {
+                                code: rusqlite::ffi::ErrorCode::ConstraintViolation,
+                                extended_code: 787
+                            },
+                            _
+                        )
+                    ) {
+                        Error::from(err)
+                            .chain_err(|| NotFound("Could not find a list with this pk."))
+                    } else {
+                        err.into()
+                    }
+                })?;
+
+            trace!("set_list_policy {:?}.", &ret);
+            Ok(ret)
+        }
+    }
+}
+
+mod subscribe_policy {
+    use super::*;
+
+    impl Connection {
+        /// Fetch the subscribe policy of a mailing list.
+        pub fn list_subscrbe_policy(&self, pk: i64) -> Result<Option<DbVal<SubscribePolicy>>> {
+            let mut stmt = self
+                .connection
+                .prepare("SELECT * FROM subscribe_policy WHERE list = ?;")?;
+            let ret = stmt
+                .query_row([&pk], |row| {
+                    let pk = row.get("pk")?;
+                    Ok(DbVal(
+                        SubscribePolicy {
+                            pk,
+                            list: row.get("list")?,
+                            send_confirmation: row.get("send_confirmation")?,
+                            open: row.get("open")?,
+                            manual: row.get("manual")?,
+                            request: row.get("request")?,
+                            custom: row.get("custom")?,
+                        },
+                        pk,
+                    ))
+                })
+                .optional()?;
+
+            Ok(ret)
+        }
+
+        /// Remove an existing list policy.
+        ///
+        /// ```
+        /// # use mailpot::{models::*, Configuration, Connection, SendMail};
+        /// # use tempfile::TempDir;
+        ///
+        /// # let tmp_dir = TempDir::new().unwrap();
+        /// # let db_path = tmp_dir.path().join("mpot.db");
+        /// # let config = Configuration {
+        /// #     send_mail: SendMail::ShellCommand("/usr/bin/false".to_string()),
+        /// #     db_path: db_path.clone(),
+        /// #     data_path: tmp_dir.path().to_path_buf(),
+        /// # };
+        ///
+        /// # fn do_test(config: Configuration) {
+        /// let db = Connection::open_or_create_db(config).unwrap().trusted();
+        /// let list_pk = db.create_list(MailingList {
+        ///     pk: 0,
+        ///     name: "foobar chat".into(),
+        ///     id: "foo-chat".into(),
+        ///     address: "foo-chat@example.com".into(),
+        ///     description: None,
+        ///     archive_url: None,
+        /// }).unwrap().pk;
+        /// db.set_list_policy(
+        ///     PostPolicy {
+        ///         pk: 0,
+        ///         list: list_pk,
+        ///         announce_only: false,
+        ///         subscriber_only: true,
+        ///         approval_needed: false,
+        ///         open: false,
+        ///         custom: false,
+        ///     },
+        /// ).unwrap();
+        /// db.remove_list_policy(1, 1).unwrap();
+        /// # }
+        /// # do_test(config);
+        /// ```
+        pub fn remove_list_subscribe_policy(&self, list_pk: i64, policy_pk: i64) -> Result<()> {
+            let mut stmt = self
+                .connection
+                .prepare("DELETE FROM subscribe_policy WHERE pk = ? AND list = ? RETURNING *;")?;
+            stmt.query_row(rusqlite::params![&policy_pk, &list_pk,], |_| Ok(()))
+                .map_err(|err| {
+                    if matches!(err, rusqlite::Error::QueryReturnedNoRows) {
+                        Error::from(err).chain_err(|| NotFound("list or list policy not found!"))
+                    } else {
+                        err.into()
+                    }
+                })?;
+
+            trace!("remove_list_subscribe_policy {} {}.", list_pk, policy_pk);
+            Ok(())
+        }
+
+        /// ```should_panic
+        /// # use mailpot::{models::*, Configuration, Connection, SendMail};
+        /// # use tempfile::TempDir;
+        ///
+        /// # let tmp_dir = TempDir::new().unwrap();
+        /// # let db_path = tmp_dir.path().join("mpot.db");
+        /// # let config = Configuration {
+        /// #     send_mail: SendMail::ShellCommand("/usr/bin/false".to_string()),
+        /// #     db_path: db_path.clone(),
+        /// #     data_path: tmp_dir.path().to_path_buf(),
+        /// # };
+        ///
+        /// # fn do_test(config: Configuration) {
+        /// let db = Connection::open_or_create_db(config).unwrap().trusted();
+        /// db.remove_list_policy(1, 1).unwrap();
+        /// # }
+        /// # do_test(config);
+        /// ```
+        #[cfg(doc)]
+        pub fn remove_list_subscribe_policy_panic() {}
+
+        /// Set the unique post policy for a list.
+        pub fn set_list_subscribe_policy(
+            &self,
+            policy: SubscribePolicy,
+        ) -> Result<DbVal<SubscribePolicy>> {
+            if !(policy.open || policy.manual || policy.request || policy.custom) {
+                return Err(
+                    "Cannot add empty policy. Having no policy is probably what you want to do."
+                        .into(),
+                );
+            }
+            let list_pk = policy.list;
+
+            let mut stmt = self.connection.prepare("INSERT OR REPLACE INTO subscribe_policy(list, send_confirmation, open, manual, request, custom) VALUES (?, ?, ?, ?, ?, ?) RETURNING *;")?;
+            let ret = stmt
+                .query_row(
+                    rusqlite::params![
+                        &list_pk,
+                        &policy.send_confirmation,
+                        &policy.open,
+                        &policy.manual,
+                        &policy.request,
+                        &policy.custom,
+                    ],
+                    |row| {
+                        let pk = row.get("pk")?;
+                        Ok(DbVal(
+                            SubscribePolicy {
+                                pk,
+                                list: row.get("list")?,
+                                send_confirmation: row.get("send_confirmation")?,
+                                open: row.get("open")?,
+                                manual: row.get("manual")?,
+                                request: row.get("request")?,
+                                custom: row.get("custom")?,
+                            },
+                            pk,
+                        ))
+                    },
+                )
+                .map_err(|err| {
+                    if matches!(
+                        err,
+                        rusqlite::Error::SqliteFailure(
+                            rusqlite::ffi::Error {
+                                code: rusqlite::ffi::ErrorCode::ConstraintViolation,
+                                extended_code: 787
+                            },
+                            _
+                        )
+                    ) {
+                        Error::from(err)
+                            .chain_err(|| NotFound("Could not find a list with this pk."))
+                    } else {
+                        err.into()
+                    }
+                })?;
+
+            trace!("set_list_subscribe_policy {:?}.", &ret);
+            Ok(ret)
+        }
+    }
+}

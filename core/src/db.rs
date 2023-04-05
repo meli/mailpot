@@ -43,6 +43,8 @@ mod posts;
 pub use posts::*;
 mod members;
 pub use members::*;
+mod policies;
+pub use policies::*;
 
 fn log_callback(error_code: std::ffi::c_int, message: &str) {
     match error_code {
@@ -60,21 +62,21 @@ fn user_authorizer_callback(
     // [ref:sync_auth_doc] sync with `untrusted()` rustdoc when changing this.
     match auth_context.action {
         AuthAction::Delete {
-            table_name: "error_queue" | "queue" | "candidate_membership" | "membership",
+            table_name: "queue" | "candidate_membership" | "membership",
         }
         | AuthAction::Insert {
-            table_name: "post" | "error_queue" | "queue" | "candidate_membership" | "membership",
+            table_name: "post" | "queue" | "candidate_membership" | "membership",
         }
         | AuthAction::Update {
-            table_name: "candidate_membership",
-            column_name: "accepted",
+            table_name: "candidate_membership" | "membership" | "account" | "templates",
+            column_name: "accepted" | "last_modified" | "verified" | "address",
         }
         | AuthAction::Select
         | AuthAction::Savepoint { .. }
         | AuthAction::Transaction { .. }
         | AuthAction::Read { .. }
         | AuthAction::Function {
-            function_name: "strftime",
+            function_name: "strftime" | "unixepoch" | "datetime",
         } => Authorization::Allow,
         _ => Authorization::Deny,
     }
@@ -125,7 +127,7 @@ impl Connection {
     // [tag:sync_auth_doc]
     /// Sets operational limits for this connection.
     ///
-    /// - Allow `INSERT`, `DELETE` only for "error_queue", "queue", "candidate_membership", "membership".
+    /// - Allow `INSERT`, `DELETE` only for "queue", "candidate_membership", "membership".
     /// - Allow `INSERT` only for "post".
     /// - Allow read access to all tables.
     /// - Allow `SELECT`, `TRANSACTION`, `SAVEPOINT`, and the `strftime` function.
@@ -198,7 +200,7 @@ impl Connection {
 
     /// Returns a vector of existing mailing lists.
     pub fn lists(&self) -> Result<Vec<DbVal<MailingList>>> {
-        let mut stmt = self.connection.prepare("SELECT * FROM mailing_lists;")?;
+        let mut stmt = self.connection.prepare("SELECT * FROM list;")?;
         let list_iter = stmt.query_map([], |row| {
             let pk = row.get("pk")?;
             Ok(DbVal(
@@ -226,7 +228,7 @@ impl Connection {
     pub fn list(&self, pk: i64) -> Result<DbVal<MailingList>> {
         let mut stmt = self
             .connection
-            .prepare("SELECT * FROM mailing_lists WHERE pk = ?;")?;
+            .prepare("SELECT * FROM list WHERE pk = ?;")?;
         let ret = stmt
             .query_row([&pk], |row| {
                 let pk = row.get("pk")?;
@@ -254,7 +256,7 @@ impl Connection {
         let id = id.as_ref();
         let mut stmt = self
             .connection
-            .prepare("SELECT * FROM mailing_lists WHERE id = ?;")?;
+            .prepare("SELECT * FROM list WHERE id = ?;")?;
         let ret = stmt
             .query_row([&id], |row| {
                 let pk = row.get("pk")?;
@@ -279,7 +281,7 @@ impl Connection {
     pub fn create_list(&self, new_val: MailingList) -> Result<DbVal<MailingList>> {
         let mut stmt = self
             .connection
-            .prepare("INSERT INTO mailing_lists(name, id, address, description, archive_url) VALUES(?, ?, ?, ?, ?) RETURNING *;")?;
+            .prepare("INSERT INTO list(name, id, address, description, archive_url) VALUES(?, ?, ?, ?, ?) RETURNING *;")?;
         let ret = stmt.query_row(
             rusqlite::params![
                 &new_val.name,
@@ -305,146 +307,6 @@ impl Connection {
         )?;
 
         trace!("create_list {:?}.", &ret);
-        Ok(ret)
-    }
-
-    /// Remove an existing list policy.
-    ///
-    /// ```
-    /// # use mailpot::{models::*, Configuration, Connection, SendMail};
-    /// # use tempfile::TempDir;
-    ///
-    /// # let tmp_dir = TempDir::new().unwrap();
-    /// # let db_path = tmp_dir.path().join("mpot.db");
-    /// # let config = Configuration {
-    /// #     send_mail: SendMail::ShellCommand("/usr/bin/false".to_string()),
-    /// #     db_path: db_path.clone(),
-    /// #     data_path: tmp_dir.path().to_path_buf(),
-    /// # };
-    ///
-    /// # fn do_test(config: Configuration) {
-    /// let db = Connection::open_or_create_db(config).unwrap().trusted();
-    /// let list_pk = db.create_list(MailingList {
-    ///     pk: 0,
-    ///     name: "foobar chat".into(),
-    ///     id: "foo-chat".into(),
-    ///     address: "foo-chat@example.com".into(),
-    ///     description: None,
-    ///     archive_url: None,
-    /// }).unwrap().pk;
-    /// db.set_list_policy(
-    ///     PostPolicy {
-    ///         pk: 0,
-    ///         list: list_pk,
-    ///         announce_only: false,
-    ///         subscriber_only: true,
-    ///         approval_needed: false,
-    ///         no_subscriptions: false,
-    ///         custom: false,
-    ///     },
-    /// ).unwrap();
-    /// db.remove_list_policy(1, 1).unwrap();
-    /// # }
-    /// # do_test(config);
-    /// ```
-    pub fn remove_list_policy(&self, list_pk: i64, policy_pk: i64) -> Result<()> {
-        let mut stmt = self
-            .connection
-            .prepare("DELETE FROM post_policy WHERE pk = ? AND list = ? RETURNING *;")?;
-        stmt.query_row(rusqlite::params![&policy_pk, &list_pk,], |_| Ok(()))
-            .map_err(|err| {
-                if matches!(err, rusqlite::Error::QueryReturnedNoRows) {
-                    Error::from(err).chain_err(|| NotFound("list or list policy not found!"))
-                } else {
-                    err.into()
-                }
-            })?;
-
-        trace!("remove_list_policy {} {}.", list_pk, policy_pk);
-        Ok(())
-    }
-
-    /// ```should_panic
-    /// # use mailpot::{models::*, Configuration, Connection, SendMail};
-    /// # use tempfile::TempDir;
-    ///
-    /// # let tmp_dir = TempDir::new().unwrap();
-    /// # let db_path = tmp_dir.path().join("mpot.db");
-    /// # let config = Configuration {
-    /// #     send_mail: SendMail::ShellCommand("/usr/bin/false".to_string()),
-    /// #     db_path: db_path.clone(),
-    /// #     data_path: tmp_dir.path().to_path_buf(),
-    /// # };
-    ///
-    /// # fn do_test(config: Configuration) {
-    /// let db = Connection::open_or_create_db(config).unwrap().trusted();
-    /// db.remove_list_policy(1, 1).unwrap();
-    /// # }
-    /// # do_test(config);
-    /// ```
-    #[cfg(doc)]
-    pub fn remove_list_policy_panic() {}
-
-    /// Set the unique post policy for a list.
-    pub fn set_list_policy(&self, policy: PostPolicy) -> Result<DbVal<PostPolicy>> {
-        if !(policy.announce_only
-            || policy.subscriber_only
-            || policy.approval_needed
-            || policy.no_subscriptions
-            || policy.custom)
-        {
-            return Err(
-                "Cannot add empty policy. Having no policies is probably what you want to do."
-                    .into(),
-            );
-        }
-        let list_pk = policy.list;
-
-        let mut stmt = self.connection.prepare("INSERT OR REPLACE INTO post_policy(list, announce_only, subscriber_only, approval_needed, no_subscriptions, custom) VALUES (?, ?, ?, ?, ?, ?) RETURNING *;")?;
-        let ret = stmt
-            .query_row(
-                rusqlite::params![
-                    &list_pk,
-                    &policy.announce_only,
-                    &policy.subscriber_only,
-                    &policy.approval_needed,
-                    &policy.no_subscriptions,
-                    &policy.custom,
-                ],
-                |row| {
-                    let pk = row.get("pk")?;
-                    Ok(DbVal(
-                        PostPolicy {
-                            pk,
-                            list: row.get("list")?,
-                            announce_only: row.get("announce_only")?,
-                            subscriber_only: row.get("subscriber_only")?,
-                            approval_needed: row.get("approval_needed")?,
-                            no_subscriptions: row.get("no_subscriptions")?,
-                            custom: row.get("custom")?,
-                        },
-                        pk,
-                    ))
-                },
-            )
-            .map_err(|err| {
-                if matches!(
-                    err,
-                    rusqlite::Error::SqliteFailure(
-                        rusqlite::ffi::Error {
-                            code: rusqlite::ffi::ErrorCode::ConstraintViolation,
-                            extended_code: 787
-                        },
-                        _
-                    )
-                ) {
-                    Error::from(err).chain_err(|| NotFound("Could not find a list with this pk."))
-                } else {
-                    err.into()
-                }
-            })?;
-
-        trace!("set_list_policy {:?}.", &ret);
         Ok(ret)
     }
 
@@ -483,37 +345,11 @@ impl Connection {
         Ok(ret)
     }
 
-    /// Fetch the post policy of a mailing list.
-    pub fn list_policy(&self, pk: i64) -> Result<Option<DbVal<PostPolicy>>> {
-        let mut stmt = self
-            .connection
-            .prepare("SELECT * FROM post_policy WHERE list = ?;")?;
-        let ret = stmt
-            .query_row([&pk], |row| {
-                let pk = row.get("pk")?;
-                Ok(DbVal(
-                    PostPolicy {
-                        pk,
-                        list: row.get("list")?,
-                        announce_only: row.get("announce_only")?,
-                        subscriber_only: row.get("subscriber_only")?,
-                        approval_needed: row.get("approval_needed")?,
-                        no_subscriptions: row.get("no_subscriptions")?,
-                        custom: row.get("custom")?,
-                    },
-                    pk,
-                ))
-            })
-            .optional()?;
-
-        Ok(ret)
-    }
-
     /// Fetch the owners of a mailing list.
     pub fn list_owners(&self, pk: i64) -> Result<Vec<DbVal<ListOwner>>> {
         let mut stmt = self
             .connection
-            .prepare("SELECT * FROM list_owner WHERE list = ?;")?;
+            .prepare("SELECT * FROM owner WHERE list = ?;")?;
         let list_iter = stmt.query_map([&pk], |row| {
             let pk = row.get("pk")?;
             Ok(DbVal(
@@ -539,7 +375,7 @@ impl Connection {
     pub fn remove_list_owner(&self, list_pk: i64, owner_pk: i64) -> Result<()> {
         self.connection
             .query_row(
-                "DELETE FROM list_owner WHERE list = ? AND pk = ? RETURNING *;",
+                "DELETE FROM owner WHERE list = ? AND pk = ? RETURNING *;",
                 rusqlite::params![&list_pk, &owner_pk],
                 |_| Ok(()),
             )
@@ -556,7 +392,7 @@ impl Connection {
     /// Add an owner of a mailing list.
     pub fn add_list_owner(&self, list_owner: ListOwner) -> Result<DbVal<ListOwner>> {
         let mut stmt = self.connection.prepare(
-            "INSERT OR REPLACE INTO list_owner(list, address, name) VALUES (?, ?, ?) RETURNING *;",
+            "INSERT OR REPLACE INTO owner(list, address, name) VALUES (?, ?, ?) RETURNING *;",
         )?;
         let list_pk = list_owner.list;
         let ret = stmt
@@ -606,7 +442,12 @@ impl Connection {
                 id: None,
                 address: None,
                 description: None,
-                archive_url: None
+                archive_url: None,
+                owner_local_part: None,
+                request_local_part: None,
+                verify: None,
+                hidden: None,
+                enabled: None,
             }
         ) {
             return self.list(change_set.pk).map(|_| ());
@@ -619,6 +460,11 @@ impl Connection {
             address,
             description,
             archive_url,
+            owner_local_part,
+            request_local_part,
+            verify,
+            hidden,
+            enabled,
         } = change_set;
         let tx = self.connection.transaction()?;
 
@@ -626,11 +472,7 @@ impl Connection {
             ($field:tt) => {{
                 if let Some($field) = $field {
                     tx.execute(
-                        concat!(
-                            "UPDATE mailing_lists SET ",
-                            stringify!($field),
-                            " = ? WHERE pk = ?;"
-                        ),
+                        concat!("UPDATE list SET ", stringify!($field), " = ? WHERE pk = ?;"),
                         rusqlite::params![&$field, &pk],
                     )?;
                 }
@@ -641,6 +483,11 @@ impl Connection {
         update!(address);
         update!(description);
         update!(archive_url);
+        update!(owner_local_part);
+        update!(request_local_part);
+        update!(verify);
+        update!(hidden);
+        update!(enabled);
 
         tx.commit()?;
         Ok(())

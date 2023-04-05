@@ -67,7 +67,7 @@ fn test_error_queue() {
             announce_only: false,
             subscriber_only: true,
             approval_needed: false,
-            no_subscriptions: false,
+            open: false,
             custom: false,
         })
         .unwrap();

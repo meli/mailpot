@@ -149,7 +149,7 @@ impl PostfixConfiguration {
             match policy.as_deref() {
                 None => log::debug!("Not generating postfix map entry for list {} because it has no post_policy set.", list.id),
                 Some(PostPolicy {
-                    no_subscriptions: true,
+                    open: true,
                     ..
                 }) => {
                     push_addr!(list.address);
@@ -174,6 +174,8 @@ impl PostfixConfiguration {
     ///
     /// If you wish to do it manually, get the text output from [`generate_master_cf_entry`] and
     /// manually append it to the [`master.cf`](https://www.postfix.org/master.5.html) file.
+    ///
+    /// If `master_cf_path` is `None`, the location of the file is assumed to be `/etc/postfix/master.cf`.
     pub fn save_master_cf_entry(
         &self,
         config: &Configuration,
@@ -419,7 +421,7 @@ fn test_postfix_generation() -> Result<()> {
         announce_only: false,
         subscriber_only: false,
         approval_needed: false,
-        no_subscriptions: true,
+        open: true,
         custom: false,
     })?;
 
@@ -439,7 +441,7 @@ fn test_postfix_generation() -> Result<()> {
         announce_only: false,
         subscriber_only: false,
         approval_needed: true,
-        no_subscriptions: false,
+        open: false,
         custom: false,
     })?;
 

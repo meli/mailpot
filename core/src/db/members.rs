@@ -34,11 +34,12 @@ impl Connection {
                     address: row.get("address")?,
                     name: row.get("name")?,
                     digest: row.get("digest")?,
+                    enabled: row.get("enabled")?,
+                    verified: row.get("verified")?,
                     hide_address: row.get("hide_address")?,
                     receive_duplicates: row.get("receive_duplicates")?,
                     receive_own_posts: row.get("receive_own_posts")?,
                     receive_confirmation: row.get("receive_confirmation")?,
-                    enabled: row.get("enabled")?,
                 },
                 pk,
             ))
@@ -68,11 +69,12 @@ impl Connection {
                     address: row.get("address")?,
                     name: row.get("name")?,
                     digest: row.get("digest")?,
+                    enabled: row.get("enabled")?,
+                    verified: row.get("verified")?,
                     hide_address: row.get("hide_address")?,
                     receive_duplicates: row.get("receive_duplicates")?,
                     receive_own_posts: row.get("receive_own_posts")?,
                     receive_confirmation: row.get("receive_confirmation")?,
-                    enabled: row.get("enabled")?,
                 },
                 pk,
             ))
@@ -101,11 +103,12 @@ impl Connection {
                     address: address_,
                     name: row.get("name")?,
                     digest: row.get("digest")?,
+                    enabled: row.get("enabled")?,
+                    verified: row.get("verified")?,
                     hide_address: row.get("hide_address")?,
                     receive_duplicates: row.get("receive_duplicates")?,
                     receive_own_posts: row.get("receive_own_posts")?,
                     receive_confirmation: row.get("receive_confirmation")?,
-                    enabled: row.get("enabled")?,
                 },
                 pk,
             ))
@@ -122,7 +125,7 @@ impl Connection {
         new_val.list = list_pk;
         let mut stmt = self
             .connection
-            .prepare("INSERT INTO membership(list, address, name, enabled, digest, hide_address, receive_duplicates, receive_own_posts, receive_confirmation) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING *;")?;
+            .prepare("INSERT INTO membership(list, address, name, enabled, digest, verified, hide_address, receive_duplicates, receive_own_posts, receive_confirmation) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING *;").unwrap();
         let ret = stmt.query_row(
             rusqlite::params![
                 &new_val.list,
@@ -130,6 +133,7 @@ impl Connection {
                 &new_val.name,
                 &new_val.enabled,
                 &new_val.digest,
+                &new_val.verified,
                 &new_val.hide_address,
                 &new_val.receive_duplicates,
                 &new_val.receive_own_posts,
@@ -144,11 +148,12 @@ impl Connection {
                         address: row.get("address")?,
                         name: row.get("name")?,
                         digest: row.get("digest")?,
+                        enabled: row.get("enabled")?,
+                        verified: row.get("verified")?,
                         hide_address: row.get("hide_address")?,
                         receive_duplicates: row.get("receive_duplicates")?,
                         receive_own_posts: row.get("receive_own_posts")?,
                         receive_confirmation: row.get("receive_confirmation")?,
-                        enabled: row.get("enabled")?,
                     },
                     pk,
                 ))
@@ -188,7 +193,7 @@ impl Connection {
     pub fn accept_candidate_member(&mut self, pk: i64) -> Result<DbVal<ListMembership>> {
         let tx = self.connection.transaction()?;
         let mut stmt = tx
-            .prepare("INSERT INTO membership(list, address, name, enabled, digest, hide_address, receive_duplicates, receive_own_posts, receive_confirmation) SELECT list, address, name, 1, 0, 0, 1, 1, 0 FROM candidate_membership WHERE pk = ? RETURNING *;")?;
+            .prepare("INSERT INTO membership(list, address, name, enabled, digest, verified, hide_address, receive_duplicates, receive_own_posts, receive_confirmation) SELECT list, address, name, 1, 0, 0, 0, 1, 1, 0 FROM candidate_membership WHERE pk = ? RETURNING *;")?;
         let ret = stmt.query_row(rusqlite::params![&pk], |row| {
             let pk = row.get("pk")?;
             Ok(DbVal(
@@ -198,11 +203,12 @@ impl Connection {
                     address: row.get("address")?,
                     name: row.get("name")?,
                     digest: row.get("digest")?,
+                    enabled: row.get("enabled")?,
+                    verified: row.get("verified")?,
                     hide_address: row.get("hide_address")?,
                     receive_duplicates: row.get("receive_duplicates")?,
                     receive_own_posts: row.get("receive_own_posts")?,
                     receive_confirmation: row.get("receive_confirmation")?,
-                    enabled: row.get("enabled")?,
                 },
                 pk,
             ))
@@ -249,6 +255,7 @@ impl Connection {
                 address: _,
                 name: None,
                 digest: None,
+                verified: None,
                 hide_address: None,
                 receive_duplicates: None,
                 receive_own_posts: None,
@@ -264,11 +271,12 @@ impl Connection {
             address: _,
             name,
             digest,
+            enabled,
+            verified,
             hide_address,
             receive_duplicates,
             receive_own_posts,
             receive_confirmation,
-            enabled,
         } = change_set;
         let tx = self.connection.transaction()?;
 
@@ -288,11 +296,12 @@ impl Connection {
         }
         update!(name);
         update!(digest);
+        update!(enabled);
+        update!(verified);
         update!(hide_address);
         update!(receive_duplicates);
         update!(receive_own_posts);
         update!(receive_confirmation);
-        update!(enabled);
 
         tx.commit()?;
         Ok(())
