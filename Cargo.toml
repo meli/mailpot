@@ -5,6 +5,3 @@ members = [
   "core",
   "rest-http",
 ]
-
-#[patch.crates-io]
-#structopt-derive = { git = "https://github.com/epilys/structopt-derive-manpage" }
