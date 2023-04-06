@@ -1,8 +1,8 @@
 [package]
 name = "mailpot"
-version = "0.1.0"
+version = "0.0.0+2023-04-07"
 authors = ["Manos Pitsidianakis <el13635@mail.ntua.gr>"]
-edition = "2018"
+edition = "2021"
 license = "LICENSE"
 readme = "README.md"
 description = "mailing list manager"

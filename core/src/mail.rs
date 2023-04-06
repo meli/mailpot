@@ -134,7 +134,7 @@ impl std::fmt::Display for ListRequest {
     }
 }
 
-impl<S: AsRef<str>> std::convert::TryFrom<(S, &melib::Envelope)> for ListRequest {
+impl<S: AsRef<str>> TryFrom<(S, &melib::Envelope)> for ListRequest {
     type Error = crate::Error;
 
     fn try_from((val, env): (S, &melib::Envelope)) -> std::result::Result<Self, Self::Error> {

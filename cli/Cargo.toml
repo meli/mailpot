@@ -1,8 +1,8 @@
 [package]
 name = "mailpot-cli"
-version = "0.1.0"
+version = "0.0.0+2023-04-07"
 authors = ["Manos Pitsidianakis <el13635@mail.ntua.gr>"]
-edition = "2018"
+edition = "2021"
 license = "LICENSE"
 readme = "README.md"
 description = "mailing list manager"
@@ -18,7 +18,7 @@ path = "src/main.rs"
 [dependencies]
 clap = { version = "^4.2", default-features = false, features = ["derive", "cargo", "unicode", "help", "usage", "error-context", "suggestions"] }
 log = "0.4"
-mailpot = { version = "0.1.0", path = "../core" }
+mailpot = { version = "^0.0", path = "../core" }
 stderrlog = "^0.5"
 
 [build-dependencies]

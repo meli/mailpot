@@ -128,7 +128,6 @@ impl minijinja::value::StructObject for MailingList {
 
 pub fn calendarize(_state: &State, args: Value, hists: Value) -> std::result::Result<Value, Error> {
     use chrono::Month;
-    use std::convert::TryFrom;
 
     macro_rules! month {
         ($int:expr) => {{

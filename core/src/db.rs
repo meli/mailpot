@@ -26,7 +26,6 @@ use melib::Envelope;
 use models::changesets::*;
 use rusqlite::Connection as DbConnection;
 use rusqlite::OptionalExtension;
-use std::convert::TryFrom;
 use std::io::Write;
 use std::process::{Command, Stdio};
 
