@@ -48,7 +48,19 @@ fn run_app(opt: Opt) -> Result<()> {
         println!("{}", Configuration::new("/path/to/sqlite.db").to_toml());
         return Ok(());
     };
-    let config = Configuration::from_file(opt.config.as_path())?;
+    let config_path = if let Some(path) = opt.config.as_ref() {
+        path.as_path()
+    } else {
+        let mut opt = Opt::command();
+        opt.error(
+            clap::error::ErrorKind::MissingRequiredArgument,
+            "--config is required for mailing list operations",
+        )
+        .exit();
+    };
+
+    let config = Configuration::from_file(config_path)?;
+
     use Command::*;
     let mut db = Connection::open_or_create_db(config)?.trusted();
     match opt.cmd {
@@ -543,7 +555,7 @@ fn run_app(opt: Opt) -> Result<()> {
                 transport_name: transport_name.map(std::borrow::Cow::from),
             };
             pfconf.save_maps(db.conf())?;
-            pfconf.save_master_cf_entry(db.conf(), opt.config.as_path(), master_cf.as_deref())?;
+            pfconf.save_master_cf_entry(db.conf(), config_path, master_cf.as_deref())?;
         }
         PrintPostfixConfig {
             config:
@@ -571,7 +583,7 @@ fn run_app(opt: Opt) -> Result<()> {
                 })
                 .collect::<Result<Vec<(DbVal<MailingList>, Option<DbVal<PostPolicy>>)>>>()?;
             let maps = pfconf.generate_maps(&lists_policies);
-            let mastercf = pfconf.generate_master_cf_entry(db.conf(), opt.config.as_path());
+            let mastercf = pfconf.generate_master_cf_entry(db.conf(), config_path);
 
             println!("{maps}\n\n{mastercf}\n");
         }

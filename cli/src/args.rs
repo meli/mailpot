@@ -36,10 +36,9 @@ pub struct Opt {
     /// Print logs.
     #[arg(short, long)]
     pub debug: bool,
-
     /// Configuration file to use.
-    #[arg(short, long, required = true, value_parser)]
-    pub config: PathBuf,
+    #[arg(short, long, value_parser)]
+    pub config: Option<PathBuf>,
     #[command(subcommand)]
     pub cmd: Command,
     /// Silence all output.
