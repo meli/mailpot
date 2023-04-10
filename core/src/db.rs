@@ -36,6 +36,14 @@ pub struct Connection {
     conf: Configuration,
 }
 
+impl std::fmt::Debug for Connection {
+    fn fmt(&self, fmt: &mut std::fmt::Formatter) -> std::fmt::Result {
+        fmt.debug_struct("Connection")
+            .field("conf", &self.conf)
+            .finish()
+    }
+}
+
 mod error_queue;
 pub use error_queue::*;
 mod posts;
@@ -67,8 +75,18 @@ fn user_authorizer_callback(
             table_name: "post" | "queue" | "candidate_membership" | "membership",
         }
         | AuthAction::Update {
-            table_name: "candidate_membership" | "membership" | "account" | "templates",
+            table_name: "candidate_membership" | "account" | "templates",
             column_name: "accepted" | "last_modified" | "verified" | "address",
+        }
+        | AuthAction::Update {
+            table_name: "membership",
+            column_name:
+                "last_modified"
+                | "digest"
+                | "hide_address"
+                | "receive_duplicates"
+                | "receive_own_posts"
+                | "receive_confirmation",
         }
         | AuthAction::Select
         | AuthAction::Savepoint { .. }
@@ -127,6 +145,7 @@ impl Connection {
     /// Sets operational limits for this connection.
     ///
     /// - Allow `INSERT`, `DELETE` only for "queue", "candidate_membership", "membership".
+    /// - Allow `UPDATE` only for "membership" user facing settings.
     /// - Allow `INSERT` only for "post".
     /// - Allow read access to all tables.
     /// - Allow `SELECT`, `TRANSACTION`, `SAVEPOINT`, and the `strftime` function.

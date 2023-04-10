@@ -1,0 +1,22 @@
+<nav class="main-nav">
+    <ul>
+        <li><a href="{{ root_url_prefix }}/">Index</a></li>
+        <li><a href="{{ root_url_prefix }}/help/">Help&nbsp;&amp; Documentation</a></li>
+        {% if current_user %}
+            <li class="push">Settings: <a href="{{ root_url_prefix }}/settings/">{{ current_user.address }}</a></li>
+        {% else %}
+            <li class="push"><a href="{{ root_url_prefix }}/login/">Login with SSH OTP</a></li>
+        {% endif %}
+    </ul>
+</nav>
+<nav aria-label="Breadcrumb" class="breadcrumbs">
+    <ol>
+        {% for crumb in crumbs %}
+            {% if loop.last %}
+                <li class="crumb"><span aria-current="page">{{ crumb.label }}</span></li>
+            {% else %}
+                <li class="crumb"><a href="{{ root_url_prefix }}{{ crumb.url }}">{{ crumb.label }}</a></li>
+            {% endif %}
+        {% endfor %}
+    </ol>
+</nav>

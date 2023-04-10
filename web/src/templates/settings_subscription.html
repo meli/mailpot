@@ -1,0 +1,47 @@
+{% include "header.html" %}
+<div class="body body-grid">
+    <h3>Your subscription to <a href="{{ root_url_prefix|safe }}/lists/{{ list.pk }}/">{{ list.id }}</a>.</h3>
+    <address>
+        {{ list.name }} <a href="mailto:{{ list.address | safe }}"><code>{{ list.address }}</code></a>
+    </address>
+    {% if list.description %}
+        <p>{{ list.description }}</p>
+    {% endif %}
+    {% if list.archive_url %}
+        <p><a href="{{ list.archive_url }}">{{ list.archive_url }}</a></p>
+    {% endif %}
+    <form method="post" class="settings-form">
+        <fieldset>
+            <legend>subscription settings</legend>
+
+            <div>
+                <input type="checkbox" value="true" name="digest" id="id_digest"{% if subscription.digest %} checked{% endif %}>
+                <label for="id_digest">Receive posts as a digest.</label>
+            </div>
+
+            <div>
+                <input type="checkbox" value="true" name="hide_address" id="id_hide_address"{% if subscription.hide_address %} checked{% endif %}>
+                <label for="id_hide_address">Hide your e-mail address in your posts.</label>
+            </div>
+
+            <div>
+                <input type="checkbox" value="true" name="receive_duplicates" id="id_receive_duplicates"{% if subscription.receive_duplicates %} checked{% endif %}>
+                <label for="id_receive_duplicates">Receive mailing list post duplicates, <abbr title="that is">i.e.</abbr> posts addressed both to you and the mailing list to which you are subscribed.</label>
+            </div>
+
+            <div>
+                <input type="checkbox" value="true" name="receive_own_posts" id="id_receive_own_posts"{% if subscription.receive_own_posts %} checked{% endif %}>
+                <label for="id_receive_own_posts">Receive your own mailing list posts from the mailing list.</label>
+            </div>
+
+            <div>
+                <input type="checkbox" value="true" name="receive_confirmation" id="id_receive_confirmation"{% if subscription.receive_confirmation %} checked{% endif %}>
+                <label for="id_receive_confirmation">Receive a plain confirmation for your own mailing list posts.</label>
+            </div>
+        </fieldset>
+
+        <input type="submit" value="Update settings">
+        <input type="hidden" name="next" value="">
+    </form>
+</div>
+{% include "footer.html" %}

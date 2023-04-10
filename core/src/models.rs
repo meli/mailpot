@@ -45,6 +45,12 @@ impl<T> std::ops::Deref for DbVal<T> {
     }
 }
 
+impl<T> std::ops::DerefMut for DbVal<T> {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.0
+    }
+}
+
 impl<T> std::fmt::Display for DbVal<T>
 where
     T: std::fmt::Display,
@@ -335,6 +341,27 @@ pub struct SubscribePolicy {
 }
 
 impl std::fmt::Display for SubscribePolicy {
+    fn fmt(&self, fmt: &mut std::fmt::Formatter) -> std::fmt::Result {
+        write!(fmt, "{:?}", self)
+    }
+}
+
+/// An account entry.
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct Account {
+    /// Database primary key.
+    pub pk: i64,
+    /// Accounts's display name, optional.
+    pub name: Option<String>,
+    /// Account's e-mail address.
+    pub address: String,
+    /// Whether this account is enabled.
+    pub enabled: bool,
+    /// SSH public key.
+    pub password: String,
+}
+
+impl std::fmt::Display for Account {
     fn fmt(&self, fmt: &mut std::fmt::Formatter) -> std::fmt::Result {
         write!(fmt, "{:?}", self)
     }

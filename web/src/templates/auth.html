@@ -1,0 +1,15 @@
+{% include "header.html" %}
+<div class="body body-grid">
+    <p>Sign <mark><code>{{ ssh_challenge }}</code></mark> with your previously configured key within <time title="{{ timeout_left }}" datetime="{{ timeout_left }}">{{ timeout_left }} minutes</time>. Example:</p>
+    <pre class="command-line-example">printf '<ruby><mark>{{ ssh_challenge }}</mark><rp>(</rp><rt>signin challenge</rt><rp>)</rp></ruby>' | ssh-keygen -Y sign -f <ruby>~/.ssh/id_rsa <rp>(</rp><rt>your account's key</rt><rp>)</rp></ruby> -n <ruby>{{ namespace }}<rp>(</rp><rt>namespace</rt><rp>)</rp></ruby></pre>
+    <form method="post" class="login-form login-ssh">
+        <label for="id_address">Email address:</label>
+        <input type="text" name="address" required="" id="id_address">
+        <label for="id_password">SSH signature:</label>
+        <textarea name="password" cols="15" rows="5" placeholder="-----BEGIN SSH SIGNATURE-----&#10;changemechangemechangemechangemechangemechangemechangemechangemechange&#10;mechangemechangemechangemechangemechangemechangemechangemechangemechan&#10;gemechangemechangemechangemechangemechangemechangemechangemechangemech&#10;angemechangemechangemechangemechangemechangemechangemechangemechangeme&#10;changemechangemechangemechangemechangemechangemechangemechangemechange&#10;mechangemechangemechangemechangemechangemechangemechangemechangemechan&#10;gemechangemechangemechangemechangemechangemechangemechangemechangemech&#10;angemechangemechangemechangemechangemechangemechangemechangemechangeme&#10;changemechangemechangemechangemechangemechangemechangemechangemechange&#10;mechangemechangemechangemechangemechangemechangemechangemechangemechan&#10;gemechangemechangemechangemechangemechangemechangemechangemechangemech&#10;angemechangemechangemechangemechangemechangemechangemechangemechangeme&#10;changemechangemechangemechangemechangemechangemechangemechangemechange&#10;mechangemechangemechangemechangemechangemechangemechangemechangemechan&#10;gemechangemechangemechangemechangemechangemechangemechangemechangemech&#10;angemechangemechangemechangemechangemechangemechangemechangemechangeme&#10;changemechangemechangemechangemechangemechangemechangemechangemechange&#10;mechangemechangemechangemechangemechangemechangemechangemechangemechan&#10;gemechangemechangemechangemechangemechangemechangemechangemechangemech&#10;angemechangemechangemechangemechangemechangemechangemechangemechangeme&#10;changemechangemechangemechangemechangemechangemechangemechangemechange&#10;chang=&#10;-----END SSH SIGNATURE-----&#10;" required="" id="id_password"></textarea>
+        <input type="submit" value="login">
+        <input type="hidden" name="next" value="">
+        <input formaction="/accounts/sshlogin/" formnovalidate="true" type="submit" name="refresh" value="refresh token">
+    </form>
+</div>
+{% include "footer.html" %}

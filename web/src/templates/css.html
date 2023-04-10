@@ -1,0 +1,472 @@
+<style>
+    @charset "UTF-8";
+    * Use a more intuitive box-sizing model */
+    *, *::before, *::after {
+        box-sizing: border-box;
+    }
+
+    /* Remove all margins & padding */
+    * {
+        margin: 0;
+        padding: 0;
+        word-wrap: break-word;
+    }
+
+    /* Only show focus outline when the user is tabbing (not when clicking) */
+    *:focus {
+        outline: none;
+    }
+
+    *:focus-visible {
+        outline: 1px solid blue;
+    }
+
+    /* Prevent mobile browsers increasing font-size */
+    html {
+        -moz-text-size-adjust: none;
+        -webkit-text-size-adjust: none;
+        text-size-adjust: none;
+        font-family:-apple-system,BlinkMacSystemFont,Arial,sans-serif;
+        line-height:1.15;
+        -webkit-text-size-adjust:100%;
+        overflow-y:scroll;
+    }
+
+    /* Allow percentage-based heights */
+    /* Setting width: 100% isn't required because it is a default for block-level elements (html & body are block level) */
+    html, body {
+        height: 100%;
+    }
+
+    body {
+        /* Prevent the rubber band effect when the user scrolls to the top or bottom of the page (WebKit only) */
+        overscroll-behavior: none;
+
+        /* Prevent the browser from synthesizing missing typefaces */
+        font-synthesis: none;
+
+        color: black;
+        /* UI controls color (example: range input) */
+        accent-color: black;
+
+        /* Because overscroll-behavior: none only works on WebKit, a background color is set that will show when overscroll occurs  */
+        background: white;
+        margin:0;
+        font-feature-settings:"onum" 1;
+        text-rendering:optimizeLegibility;
+        -webkit-font-smoothing:antialiased;
+        -moz-osx-font-smoothing:grayscale;
+        font-family:-apple-system,BlinkMacSystemFont,Roboto,Roboto Slab,Droid Serif,Segoe UI,system-ui,Arial,sans-serif;
+        font-size:1.125em
+    }
+
+    /* Remove unintuitive behaviour such as gaps around media elements.  */
+    img, picture, video, canvas, svg, iframe {
+        display: block;
+    }
+
+    /* Avoid text overflow */
+    h1, h2, h3, h4, h5, h6, p, strong {
+        overflow-wrap: break-word;
+    }
+
+    a {
+        text-decoration: none;
+    }
+
+    ul, ol {
+        list-style: none;
+    }
+
+    input {
+        border: none;
+    }
+
+    input, button, textarea, select {
+        font: inherit;
+    }
+
+    /* Create a root stacking context (only when using frameworks like Next.js) */
+    #__next {
+        isolation: isolate;
+    }
+
+
+    body>main.layout {
+        width: 100%;
+        overflow-wrap: anywhere;
+
+        display: grid;
+        grid:
+        "header header header" auto
+        "leftside body rightside" 1fr
+        "footer footer footer" auto
+        / auto 1fr auto;
+        gap: 8px;
+    }
+
+    main.layout>.header { grid-area: header; }
+    main.layout>.leftside { grid-area: leftside; }
+    main.layout>div.body { grid-area: body; }
+    main.layout>.rightside { grid-area: rightside; }
+    main.layout>footer {
+        grid-area: footer;
+        padding: 1rem 2rem;
+    }
+
+    main.layout>div.header>h1 {
+        margin: 1rem;
+    }
+    main.layout>div.header>nav + nav {
+        margin-top: 1rem;
+    }
+
+    nav.main-nav {
+        padding: 0rem 1rem;
+        border: 1px solid #4d4e53;
+        border-radius: 2px;
+        padding: 10px 14px 10px 10px;
+        margin-bottom: 10px;
+    }
+
+    nav.main-nav>ul {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+    nav.main-nav>ul>li>a {
+        padding: 1rem;
+    }
+    nav.main-nav > ul > li > a:hover {
+        outline: 0.1rem solid;
+        outline-offset: -0.5rem;
+    }
+    nav.main-nav >ul .push {
+        margin-left: auto;
+    }
+
+    main.layout>div.body h2 {
+        margin: 1rem;
+    }
+
+    nav.breadcrumbs {
+        padding: 10px 14px 10px 10px;
+    }
+
+    nav.breadcrumbs ol {
+        list-style-type: none;
+        padding-left: 0;
+    }
+
+    .crumb {
+        display: inline-block;
+    }
+
+    .crumb a::after {
+        display: inline-block;
+        color: #000;
+        content: '>';
+        font-size: 80%;
+        font-weight: bold;
+        padding: 0 3px;
+    }
+
+    .crumb span[aria-current="page"] {
+        color: GrayText;
+        padding: 0.4rem;
+        margin-left: -0.4rem;
+    }
+
+    div.preamble {
+        border-left: 0.2rem solid GrayText;
+        padding-left: 0.5rem;
+    }
+
+    div.calendar th {
+        padding: 0.5rem;
+        opacity: 0.7;
+    }
+
+    div.calendar tr,
+    div.calendar th {
+        text-align: right;
+        font-variant-numeric: tabular-nums;
+        font-family: monospace;
+    }
+
+    div.calendar table {
+        display: inline-table;
+        border-collapse: collapse;
+    }
+
+    div.calendar td {
+        padding: 0.1rem 0.4rem;
+    }
+
+    div.calendar td.empty {
+        color: GrayText;
+    }
+
+    div.calendar td:not(.empty) {
+        font-weight: bold;
+    }
+
+    div.calendar td:not(:empty) {
+        border: 1px solid black;
+    }
+
+    div.calendar td:empty {
+        background: GrayText;
+        opacity: 0.3;
+    }
+
+    div.calendar {
+        display: flex;
+        flex-wrap: wrap;
+        flex-direction: row;
+        gap: 1rem;
+        align-items: baseline;
+    }
+
+    div.calendar caption {
+        font-weight: bold;
+    }
+
+    div.posts {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    div.posts>div.entry {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    div.posts>div.entry>span.subject {
+        font-size: larger;
+    }
+
+    div.posts>div.entry>span.metadata {
+        color: GrayText;
+    }
+
+    div.posts>div.entry>span.metadata>span.from {
+        margin-inline-end: 1rem;
+    }
+
+    table.headers tr>th {
+        text-align: right;
+        color: GrayText;
+    }
+    table.headers th[scope="row"] {
+        padding-right: .5rem;
+    }
+    table.headers tr>th:after {
+        content:':';
+        display: inline-block;
+    }
+    div.post-body {
+        margin: 1rem;
+    }
+    div.post-body>pre {
+        max-width: 98vw;
+        overflow-wrap: break-word;
+        white-space: pre-line;
+    }
+    td.message-id,
+    span.message-id{
+        color: GrayText;
+    }
+    td.message-id:before,
+    span.message-id:before{
+        content:'<';
+        display: inline-block;
+    }
+    td.message-id:after,
+    span.message-id:after{
+        content:'>';
+        display: inline-block;
+    }
+    span.message-id + span.message-id:before{
+        content:', <';
+        display: inline-block;
+    }
+    td.faded,
+    span.faded {
+        color: GrayText;
+    }
+    td.faded:is(:focus, :hover, :focus-visible, :focus-within),
+    span.faded:is(:focus, :hover, :focus-visible, :focus-within) {
+        color: revert;
+    }
+
+    ul.lists {
+        padding: 1rem 2rem;
+    }
+
+    ul.lists li {
+        list-style: disc;
+    }
+
+    ul.lists li + li {
+        margin-top: 1rem;
+    }
+
+    hr {
+        margin: 1rem 0rem;
+    }
+
+    .command-line-example {
+        user-select: all;
+        display: inline-block;
+        ruby-align: center;
+        ruby-position: under;
+        padding: 0;
+
+        --pre-bg-color: #e9e9e9;
+        background: var(--pre-bg-color);
+        outline: 5px solid var(--pre-bg-color);
+        width: min-content;
+        max-width: 90vw;
+        padding: 2px 7px;
+        overflow-wrap: break-word;
+        overflow: auto;
+        white-space: pre;
+    }
+
+    .login-ssh textarea#id_password {
+        font-family: monospace;
+        font-size: 0.5rem;
+        font-weight: bolder;
+        width: 71ch;
+        height: 29rem;
+        max-width: 88vw;
+        overflow-wrap: break-word;
+        overflow: auto;
+        white-space: pre;
+    }
+
+    .login-ssh textarea#id_password::placeholder {
+        line-height: 1rem;
+    }
+
+    .body-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        grid-auto-rows: min-content;
+        row-gap: min(6vw, 3rem);
+        width: 100%;
+        height: 100%;
+    }
+
+    form.login-form {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        max-width: 98vw;
+        width: max-content;
+    }
+
+    form.login-form > :not([type="hidden"]) + label, fieldset > :not([type="hidden"], legend) + label {
+        margin-top: 1rem;
+    }
+
+    form.settings-form {
+        display: grid;
+        grid-template-columns: auto;
+        gap: 1rem;
+        max-width: 90vw;
+        width: max-content;
+    }
+
+    form.settings-form>input[type="submit"] {
+        place-self: start;
+    }
+
+    form.settings-form>fieldset {
+        padding: 1rem 1.5rem 2rem 1.5rem;
+    }
+
+    form.settings-form>fieldset>legend {
+        padding: .5rem 1rem;
+        border: 1px ridge lightgray;
+        font-weight: bold;
+        font-size: small;
+        margin-left: 0.8rem;
+    }
+
+    form.settings-form>fieldset>div {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+    }
+
+    form.settings-form>fieldset>div>label {
+        padding: 1rem 0 1rem 1rem;
+        flex-grow: 1;
+    }
+
+
+    form.settings-form>fieldset>div>input {
+        margin: 0.8rem;
+    }
+
+    button, input {
+        overflow: visible;
+    }
+
+    button, input, optgroup, select, textarea {
+        font-family: inherit;
+        font-size: 100%;
+        line-height: 1.15;
+        margin: 0;
+    }
+
+    form label {
+        font-weight: 500;
+    }
+
+    textarea {
+        max-width: var(--main-width);
+        width: 100%;
+        resize: both;
+    }
+    textarea {
+        overflow: auto;
+    }
+
+    button, [type="button"], [type="reset"], [type="submit"] {
+        -webkit-appearance: button;
+    }
+
+    input, textarea {
+        display: inline-block;
+        appearance: auto;
+        -moz-default-appearance: textfield;
+        padding: 1px;
+        border: 2px inset ButtonBorder;
+        border-radius: 5px;
+        padding: .5rem;
+        background-color: Field;
+        color: FieldText;
+        font: -moz-field;
+        text-rendering: optimizeLegibility;
+        cursor: text;
+    }
+
+    button, ::file-selector-button, input:is([type="color"], [type="reset"], [type="button"], [type="submit"]) {
+        appearance: auto;
+        -moz-default-appearance: button;
+        padding-block: 1px;
+        padding-inline: 8px;
+        border: 2px outset ButtonBorder;
+        border-radius: 5px;
+        background-color: ButtonFace;
+        cursor: default;
+        box-sizing: border-box;
+        user-select: none;
+        padding: .5rem;
+    }
+</style>

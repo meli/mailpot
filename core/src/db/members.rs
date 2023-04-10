@@ -306,4 +306,86 @@ impl Connection {
         tx.commit()?;
         Ok(())
     }
+
+    /// Fetch account by pk.
+    pub fn account(&self, pk: i64) -> Result<Option<DbVal<Account>>> {
+        let mut stmt = self
+            .connection
+            .prepare("SELECT * FROM account WHERE pk = ?;")?;
+
+        let ret = stmt
+            .query_row(rusqlite::params![&pk], |row| {
+                let _pk: i64 = row.get("pk")?;
+                debug_assert_eq!(pk, _pk);
+                Ok(DbVal(
+                    Account {
+                        pk,
+                        name: row.get("name")?,
+                        address: row.get("address")?,
+                        enabled: row.get("enabled")?,
+                        password: row.get("password")?,
+                    },
+                    pk,
+                ))
+            })
+            .optional()?;
+        Ok(ret)
+    }
+
+    /// Fetch account by address.
+    pub fn account_by_address(&self, address: &str) -> Result<Option<DbVal<Account>>> {
+        let mut stmt = self
+            .connection
+            .prepare("SELECT * FROM account WHERE address = ?;")?;
+
+        let ret = stmt
+            .query_row(rusqlite::params![&address], |row| {
+                let pk = row.get("pk")?;
+                Ok(DbVal(
+                    Account {
+                        pk,
+                        name: row.get("name")?,
+                        address: row.get("address")?,
+                        enabled: row.get("enabled")?,
+                        password: row.get("password")?,
+                    },
+                    pk,
+                ))
+            })
+            .optional()?;
+        Ok(ret)
+    }
+
+    /// Fetch all subscriptions of an account by primary key.
+    pub fn account_subscriptions(&self, pk: i64) -> Result<Vec<DbVal<ListMembership>>> {
+        let mut stmt = self
+            .connection
+            .prepare("SELECT * FROM membership WHERE account = ?;")?;
+        let list_iter = stmt.query_map([&pk], |row| {
+            let pk = row.get("pk")?;
+            Ok(DbVal(
+                ListMembership {
+                    pk: row.get("pk")?,
+                    list: row.get("list")?,
+                    address: row.get("address")?,
+                    name: row.get("name")?,
+                    digest: row.get("digest")?,
+                    enabled: row.get("enabled")?,
+                    verified: row.get("verified")?,
+                    hide_address: row.get("hide_address")?,
+                    receive_duplicates: row.get("receive_duplicates")?,
+                    receive_own_posts: row.get("receive_own_posts")?,
+                    receive_confirmation: row.get("receive_confirmation")?,
+                },
+                pk,
+            ))
+        })?;
+
+        let mut ret = vec![];
+        for list in list_iter {
+            let list = list?;
+            ret.push(list);
+        }
+        Ok(ret)
+    }
 }

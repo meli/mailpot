@@ -1,0 +1,12 @@
+{% include "header.html" %}
+<div class="body body-grid">
+    <p>Address: {{ user.address }}</p>
+    <ol>
+        {% for s in subscriptions %}
+            <li>
+                <a href="{{ root_url_prefix }}/settings/list/{{ s.list }}/">{{ s.list }}</a>
+            </li>
+        {% endfor %}
+    </ol>
+</div>
+{% include "footer.html" %}

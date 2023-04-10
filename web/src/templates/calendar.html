@@ -1,0 +1,43 @@
+{% macro cal(date, hists, root_url_prefix, pk) %}
+    {% set c=calendarize(date, hists) %}
+    {% if c.sum > 0 %}
+        <table>
+            <caption align="top">
+                <!--<a href="{{ root_url_prefix|safe }}/list/{{pk}}/{{ c.month }}">-->
+                <a href="#" style="color: GrayText;">
+                    {{ c.month_name }} {{ c.year }}
+                </a>
+            </caption>
+            <thead>
+                <tr>
+                    <th>M</th>
+                    <th>Tu</th>
+                    <th>W</th>
+                    <th>Th</th>
+                    <th>F</th>
+                    <th>Sa</th>
+                    <th>Su</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for week in c.weeks %}
+                    <tr>
+                        {% for day in week %}
+                            {% if day == 0 %}
+                                <td></td>
+                            {% else %}
+                                {% set num = c.hist[day-1] %}
+                                {% if num > 0 %}
+                                    <td><ruby>{{ day }}<rt>({{ num }})</rt></ruby></td>
+                                {% else %}
+                                    <td class="empty">{{ day }}</td>
+                                {% endif %}
+                            {% endif %}
+                        {% endfor %}
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% endif %}
+{% endmacro %}
+{% set alias = cal %}
