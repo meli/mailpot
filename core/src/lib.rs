@@ -78,17 +78,17 @@
 //!         pk: 0,
 //!         list: list_pk,
 //!         announce_only: false,
-//!         subscriber_only: true,
+//!         subscription_only: true,
 //!         approval_needed: false,
 //!         open: false,
 //!         custom: false,
 //!     },
 //! )?;
 //!
-//! // Drop privileges; we can only process new e-mail and modify memberships from now on.
+//! // Drop privileges; we can only process new e-mail and modify subscriptions from now on.
 //! let mut db = db.untrusted();
 //!
-//! assert_eq!(db.list_members(list_pk)?.len(), 0);
+//! assert_eq!(db.list_subscriptions(list_pk)?.len(), 0);
 //! assert_eq!(db.list_posts(list_pk, None)?.len(), 0);
 //!
 //! // Process a subscription request e-mail
@@ -102,7 +102,7 @@
 //! let envelope = melib::Envelope::from_bytes(subscribe_bytes, None)?;
 //! db.post(&envelope, subscribe_bytes, /* dry_run */ false)?;
 //!
-//! assert_eq!(db.list_members(list_pk)?.len(), 1);
+//! assert_eq!(db.list_subscriptions(list_pk)?.len(), 1);
 //! assert_eq!(db.list_posts(list_pk, None)?.len(), 0);
 //!
 //! // Process a post
@@ -118,7 +118,7 @@
 //!     melib::Envelope::from_bytes(post_bytes, None).expect("Could not parse message");
 //! db.post(&envelope, post_bytes, /* dry_run */ false)?;
 //!
-//! assert_eq!(db.list_members(list_pk)?.len(), 1);
+//! assert_eq!(db.list_subscriptions(list_pk)?.len(), 1);
 //! assert_eq!(db.list_posts(list_pk, None)?.len(), 1);
 //! # Ok(())
 //! # }

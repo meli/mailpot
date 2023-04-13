@@ -31,17 +31,17 @@ CREATE TABLE IF NOT EXISTS post_policy (
   pk                               INTEGER PRIMARY KEY NOT NULL,
   list                             INTEGER NOT NULL UNIQUE,
   announce_only BOOLEAN CHECK (announce_only in (0, 1)) NOT NULL      DEFAULT 0,
-  subscriber_only BOOLEAN CHECK (subscriber_only in (0, 1)) NOT NULL    DEFAULT 0,
+  subscription_only BOOLEAN CHECK (subscription_only in (0, 1)) NOT NULL    DEFAULT 0,
   approval_needed BOOLEAN CHECK (approval_needed in (0, 1)) NOT NULL    DEFAULT 0,
   open BOOLEAN CHECK (open in (0, 1)) NOT NULL               DEFAULT 0,
   custom BOOLEAN CHECK (custom in (0, 1)) NOT NULL             DEFAULT 0,
   created                          INTEGER NOT NULL DEFAULT (unixepoch()),
   last_modified                    INTEGER NOT NULL DEFAULT (unixepoch())
-  CHECK(((custom) OR (((open) OR (((approval_needed) OR (((announce_only) OR (subscriber_only)) AND NOT ((announce_only) AND (subscriber_only)))) AND NOT ((approval_needed) AND (((announce_only) OR (subscriber_only)) AND NOT ((announce_only) AND (subscriber_only)))))) AND NOT ((open) AND (((approval_needed) OR (((announce_only) OR (subscriber_only)) AND NOT ((announce_only) AND (subscriber_only)))) AND NOT ((approval_needed) AND (((announce_only) OR (subscriber_only)) AND NOT ((announce_only) AND (subscriber_only)))))))) AND NOT ((custom) AND (((open) OR (((approval_needed) OR (((announce_only) OR (subscriber_only)) AND NOT ((announce_only) AND (subscriber_only)))) AND NOT ((approval_needed) AND (((announce_only) OR (subscriber_only)) AND NOT ((announce_only) AND (subscriber_only)))))) AND NOT ((open) AND (((approval_needed) OR (((announce_only) OR (subscriber_only)) AND NOT ((announce_only) AND (subscriber_only)))) AND NOT ((approval_needed) AND (((announce_only) OR (subscriber_only)) AND NOT ((announce_only) AND (subscriber_only))))))))),
+  CHECK(((custom) OR (((open) OR (((approval_needed) OR (((announce_only) OR (subscription_only)) AND NOT ((announce_only) AND (subscription_only)))) AND NOT ((approval_needed) AND (((announce_only) OR (subscription_only)) AND NOT ((announce_only) AND (subscription_only)))))) AND NOT ((open) AND (((approval_needed) OR (((announce_only) OR (subscription_only)) AND NOT ((announce_only) AND (subscription_only)))) AND NOT ((approval_needed) AND (((announce_only) OR (subscription_only)) AND NOT ((announce_only) AND (subscription_only)))))))) AND NOT ((custom) AND (((open) OR (((approval_needed) OR (((announce_only) OR (subscription_only)) AND NOT ((announce_only) AND (subscription_only)))) AND NOT ((approval_needed) AND (((announce_only) OR (subscription_only)) AND NOT ((announce_only) AND (subscription_only)))))) AND NOT ((open) AND (((approval_needed) OR (((announce_only) OR (subscription_only)) AND NOT ((announce_only) AND (subscription_only)))) AND NOT ((approval_needed) AND (((announce_only) OR (subscription_only)) AND NOT ((announce_only) AND (subscription_only))))))))),
   FOREIGN KEY (list) REFERENCES list(pk) ON DELETE CASCADE
 );
 
-CREATE TABLE IF NOT EXISTS subscribe_policy (
+CREATE TABLE IF NOT EXISTS subscription_policy (
   pk                                 INTEGER PRIMARY KEY NOT NULL,
   list                               INTEGER NOT NULL UNIQUE,
   send_confirmation BOOLEAN CHECK (send_confirmation in (0, 1)) NOT NULL    DEFAULT 1,
@@ -55,7 +55,7 @@ CREATE TABLE IF NOT EXISTS subscribe_policy (
   FOREIGN KEY (list) REFERENCES list(pk) ON DELETE CASCADE
 );
 
-CREATE TABLE IF NOT EXISTS membership (
+CREATE TABLE IF NOT EXISTS subscription (
   pk                                    INTEGER PRIMARY KEY NOT NULL,
   list                                  INTEGER NOT NULL,
   address                               TEXT NOT NULL,
@@ -86,7 +86,7 @@ CREATE TABLE IF NOT EXISTS account (
   last_modified            INTEGER NOT NULL DEFAULT (unixepoch())
 );
 
-CREATE TABLE IF NOT EXISTS candidate_membership (
+CREATE TABLE IF NOT EXISTS candidate_subscription (
   pk                INTEGER PRIMARY KEY NOT NULL,
   list              INTEGER NOT NULL,
   address           TEXT NOT NULL,
@@ -95,7 +95,7 @@ CREATE TABLE IF NOT EXISTS candidate_membership (
   created           INTEGER NOT NULL DEFAULT (unixepoch()),
   last_modified     INTEGER NOT NULL DEFAULT (unixepoch()),
   FOREIGN KEY (list) REFERENCES list(pk) ON DELETE CASCADE,
-  FOREIGN KEY (accepted) REFERENCES membership(pk) ON DELETE CASCADE,
+  FOREIGN KEY (accepted) REFERENCES subscription(pk) ON DELETE CASCADE,
   UNIQUE (list, address) ON CONFLICT ROLLBACK
 );
 
@@ -162,36 +162,36 @@ CREATE TABLE IF NOT EXISTS queue (
 
 CREATE TABLE IF NOT EXISTS bounce (
   pk                      INTEGER PRIMARY KEY NOT NULL,
-  member                  INTEGER NOT NULL UNIQUE,
+  subscription            INTEGER NOT NULL UNIQUE,
   count                   INTEGER NOT NULL DEFAULT 0,
   last_bounce             TEXT NOT NULL DEFAULT (datetime()),
-  FOREIGN KEY (member) REFERENCES membership(pk) ON DELETE CASCADE
+  FOREIGN KEY (subscription) REFERENCES subscription(pk) ON DELETE CASCADE
 );
 
 CREATE INDEX IF NOT EXISTS post_listpk_idx ON post(list);
 CREATE INDEX IF NOT EXISTS post_msgid_idx ON post(message_id);
 CREATE INDEX IF NOT EXISTS list_idx ON list(id);
-CREATE INDEX IF NOT EXISTS membership_idx ON membership(address);
+CREATE INDEX IF NOT EXISTS subscription_idx ON subscription(address);
 
-CREATE TRIGGER IF NOT EXISTS accept_candidate AFTER INSERT ON membership
+CREATE TRIGGER IF NOT EXISTS accept_candidate AFTER INSERT ON subscription
 FOR EACH ROW
 BEGIN
-  UPDATE candidate_membership SET accepted = NEW.pk, last_modified = unixepoch()
-  WHERE candidate_membership.list = NEW.list AND candidate_membership.address = NEW.address;
+  UPDATE candidate_subscription SET accepted = NEW.pk, last_modified = unixepoch()
+  WHERE candidate_subscription.list = NEW.list AND candidate_subscription.address = NEW.address;
 END;
 
-CREATE TRIGGER IF NOT EXISTS verify_candidate AFTER INSERT ON membership
+CREATE TRIGGER IF NOT EXISTS verify_candidate AFTER INSERT ON subscription
 FOR EACH ROW
 BEGIN
-  UPDATE membership SET verified = 0, last_modified = unixepoch()
-  WHERE membership.pk = NEW.pk AND EXISTS (SELECT 1 FROM list WHERE pk = NEW.list AND verify = 1);
+  UPDATE subscription SET verified = 0, last_modified = unixepoch()
+  WHERE subscription.pk = NEW.pk AND EXISTS (SELECT 1 FROM list WHERE pk = NEW.list AND verify = 1);
 END;
 
 CREATE TRIGGER IF NOT EXISTS add_account AFTER INSERT ON account
 FOR EACH ROW
 BEGIN
-  UPDATE membership SET account = NEW.pk, last_modified = unixepoch()
-  WHERE membership.address = NEW.address;
+  UPDATE subscription SET account = NEW.pk, last_modified = unixepoch()
+  WHERE subscription.address = NEW.address;
 END;
 
 CREATE TRIGGER IF NOT EXISTS last_modified_list AFTER UPDATE ON list
@@ -215,17 +215,17 @@ BEGIN
   WHERE pk = NEW.pk;
 END;
 
-CREATE TRIGGER IF NOT EXISTS last_modified_subscribe_policy AFTER UPDATE ON subscribe_policy
+CREATE TRIGGER IF NOT EXISTS last_modified_subscription_policy AFTER UPDATE ON subscription_policy
 FOR EACH ROW
 BEGIN
-  UPDATE subscribe_policy SET last_modified = unixepoch()
+  UPDATE subscription_policy SET last_modified = unixepoch()
   WHERE pk = NEW.pk;
 END;
 
-CREATE TRIGGER IF NOT EXISTS last_modified_membership AFTER UPDATE ON membership
+CREATE TRIGGER IF NOT EXISTS last_modified_subscription AFTER UPDATE ON subscription
 FOR EACH ROW
 BEGIN
-  UPDATE membership SET last_modified = unixepoch()
+  UPDATE subscription SET last_modified = unixepoch()
   WHERE pk = NEW.pk;
 END;
 
@@ -236,10 +236,10 @@ BEGIN
   WHERE pk = NEW.pk;
 END;
 
-CREATE TRIGGER IF NOT EXISTS last_modified_candidate_membership AFTER UPDATE ON candidate_membership
+CREATE TRIGGER IF NOT EXISTS last_modified_candidate_subscription AFTER UPDATE ON candidate_subscription
 FOR EACH ROW
 BEGIN
-  UPDATE candidate_membership SET last_modified = unixepoch()
+  UPDATE candidate_subscription SET last_modified = unixepoch()
   WHERE pk = NEW.pk;
 END;
 

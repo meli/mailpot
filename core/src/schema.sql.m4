@@ -41,17 +41,17 @@ CREATE TABLE IF NOT EXISTS post_policy (
   pk                               INTEGER PRIMARY KEY NOT NULL,
   list                             INTEGER NOT NULL UNIQUE,
   BOOLEAN_TYPE(announce_only)      DEFAULT BOOLEAN_FALSE(),
-  BOOLEAN_TYPE(subscriber_only)    DEFAULT BOOLEAN_FALSE(),
+  BOOLEAN_TYPE(subscription_only)    DEFAULT BOOLEAN_FALSE(),
   BOOLEAN_TYPE(approval_needed)    DEFAULT BOOLEAN_FALSE(),
   BOOLEAN_TYPE(open)               DEFAULT BOOLEAN_FALSE(),
   BOOLEAN_TYPE(custom)             DEFAULT BOOLEAN_FALSE(),
   created                          INTEGER NOT NULL DEFAULT (unixepoch()),
   last_modified                    INTEGER NOT NULL DEFAULT (unixepoch())
-  CHECK(xor(custom, xor(open, xor(approval_needed, xor(announce_only, subscriber_only))))),
+  CHECK(xor(custom, xor(open, xor(approval_needed, xor(announce_only, subscription_only))))),
   FOREIGN KEY (list) REFERENCES list(pk) ON DELETE CASCADE
 );
 
-CREATE TABLE IF NOT EXISTS subscribe_policy (
+CREATE TABLE IF NOT EXISTS subscription_policy (
   pk                                 INTEGER PRIMARY KEY NOT NULL,
   list                               INTEGER NOT NULL UNIQUE,
   BOOLEAN_TYPE(send_confirmation)    DEFAULT BOOLEAN_TRUE(),
@@ -65,7 +65,7 @@ CREATE TABLE IF NOT EXISTS subscribe_policy (
   FOREIGN KEY (list) REFERENCES list(pk) ON DELETE CASCADE
 );
 
-CREATE TABLE IF NOT EXISTS membership (
+CREATE TABLE IF NOT EXISTS subscription (
   pk                                    INTEGER PRIMARY KEY NOT NULL,
   list                                  INTEGER NOT NULL,
   address                               TEXT NOT NULL,
@@ -96,7 +96,7 @@ CREATE TABLE IF NOT EXISTS account (
   last_modified            INTEGER NOT NULL DEFAULT (unixepoch())
 );
 
-CREATE TABLE IF NOT EXISTS candidate_membership (
+CREATE TABLE IF NOT EXISTS candidate_subscription (
   pk                INTEGER PRIMARY KEY NOT NULL,
   list              INTEGER NOT NULL,
   address           TEXT NOT NULL,
@@ -105,7 +105,7 @@ CREATE TABLE IF NOT EXISTS candidate_membership (
   created           INTEGER NOT NULL DEFAULT (unixepoch()),
   last_modified     INTEGER NOT NULL DEFAULT (unixepoch()),
   FOREIGN KEY (list) REFERENCES list(pk) ON DELETE CASCADE,
-  FOREIGN KEY (accepted) REFERENCES membership(pk) ON DELETE CASCADE,
+  FOREIGN KEY (accepted) REFERENCES subscription(pk) ON DELETE CASCADE,
   UNIQUE (list, address) ON CONFLICT ROLLBACK
 );
 
@@ -172,36 +172,36 @@ CREATE TABLE IF NOT EXISTS queue (
 
 CREATE TABLE IF NOT EXISTS bounce (
   pk                      INTEGER PRIMARY KEY NOT NULL,
-  member                  INTEGER NOT NULL UNIQUE,
+  subscription            INTEGER NOT NULL UNIQUE,
   count                   INTEGER NOT NULL DEFAULT 0,
   last_bounce             TEXT NOT NULL DEFAULT (datetime()),
-  FOREIGN KEY (member) REFERENCES membership(pk) ON DELETE CASCADE
+  FOREIGN KEY (subscription) REFERENCES subscription(pk) ON DELETE CASCADE
 );
 
 CREATE INDEX IF NOT EXISTS post_listpk_idx ON post(list);
 CREATE INDEX IF NOT EXISTS post_msgid_idx ON post(message_id);
 CREATE INDEX IF NOT EXISTS list_idx ON list(id);
-CREATE INDEX IF NOT EXISTS membership_idx ON membership(address);
+CREATE INDEX IF NOT EXISTS subscription_idx ON subscription(address);
 
-CREATE TRIGGER IF NOT EXISTS accept_candidate AFTER INSERT ON membership
+CREATE TRIGGER IF NOT EXISTS accept_candidate AFTER INSERT ON subscription
 FOR EACH ROW
 BEGIN
-  UPDATE candidate_membership SET accepted = NEW.pk, last_modified = unixepoch()
-  WHERE candidate_membership.list = NEW.list AND candidate_membership.address = NEW.address;
+  UPDATE candidate_subscription SET accepted = NEW.pk, last_modified = unixepoch()
+  WHERE candidate_subscription.list = NEW.list AND candidate_subscription.address = NEW.address;
 END;
 
-CREATE TRIGGER IF NOT EXISTS verify_candidate AFTER INSERT ON membership
+CREATE TRIGGER IF NOT EXISTS verify_candidate AFTER INSERT ON subscription
 FOR EACH ROW
 BEGIN
-  UPDATE membership SET verified = BOOLEAN_FALSE(), last_modified = unixepoch()
-  WHERE membership.pk = NEW.pk AND EXISTS (SELECT 1 FROM list WHERE pk = NEW.list AND verify = BOOLEAN_TRUE());
+  UPDATE subscription SET verified = BOOLEAN_FALSE(), last_modified = unixepoch()
+  WHERE subscription.pk = NEW.pk AND EXISTS (SELECT 1 FROM list WHERE pk = NEW.list AND verify = BOOLEAN_TRUE());
 END;
 
 CREATE TRIGGER IF NOT EXISTS add_account AFTER INSERT ON account
 FOR EACH ROW
 BEGIN
-  UPDATE membership SET account = NEW.pk, last_modified = unixepoch()
-  WHERE membership.address = NEW.address;
+  UPDATE subscription SET account = NEW.pk, last_modified = unixepoch()
+  WHERE subscription.address = NEW.address;
 END;
 
 update_last_modified(`list')
@@ -210,12 +210,12 @@ update_last_modified(`owner')
 
 update_last_modified(`post_policy')
 
-update_last_modified(`subscribe_policy')
+update_last_modified(`subscription_policy')
 
-update_last_modified(`membership')
+update_last_modified(`subscription')
 
 update_last_modified(`account')
 
-update_last_modified(`candidate_membership')
+update_last_modified(`candidate_subscription')
 
 update_last_modified(`templates')

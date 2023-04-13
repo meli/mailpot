@@ -20,15 +20,15 @@
 use super::*;
 
 impl Connection {
-    /// Fetch all members of a mailing list.
-    pub fn list_members(&self, pk: i64) -> Result<Vec<DbVal<ListMembership>>> {
+    /// Fetch all subscriptions of a mailing list.
+    pub fn list_subscriptions(&self, pk: i64) -> Result<Vec<DbVal<ListSubscription>>> {
         let mut stmt = self
             .connection
-            .prepare("SELECT * FROM membership WHERE list = ?;")?;
+            .prepare("SELECT * FROM subscription WHERE list = ?;")?;
         let list_iter = stmt.query_map([&pk], |row| {
             let pk = row.get("pk")?;
             Ok(DbVal(
-                ListMembership {
+                ListSubscription {
                     pk: row.get("pk")?,
                     list: row.get("list")?,
                     address: row.get("address")?,
@@ -53,17 +53,17 @@ impl Connection {
         Ok(ret)
     }
 
-    /// Fetch mailing list member.
-    pub fn list_member(&self, list_pk: i64, pk: i64) -> Result<DbVal<ListMembership>> {
+    /// Fetch mailing list subscription.
+    pub fn list_subscription(&self, list_pk: i64, pk: i64) -> Result<DbVal<ListSubscription>> {
         let mut stmt = self
             .connection
-            .prepare("SELECT * FROM membership WHERE list = ? AND pk = ?;")?;
+            .prepare("SELECT * FROM subscription WHERE list = ? AND pk = ?;")?;
 
         let ret = stmt.query_row([&list_pk, &pk], |row| {
             let _pk: i64 = row.get("pk")?;
             debug_assert_eq!(pk, _pk);
             Ok(DbVal(
-                ListMembership {
+                ListSubscription {
                     pk,
                     list: row.get("list")?,
                     address: row.get("address")?,
@@ -82,22 +82,22 @@ impl Connection {
         Ok(ret)
     }
 
-    /// Fetch mailing list member by their address.
-    pub fn list_member_by_address(
+    /// Fetch mailing list subscription by their address.
+    pub fn list_subscription_by_address(
         &self,
         list_pk: i64,
         address: &str,
-    ) -> Result<DbVal<ListMembership>> {
+    ) -> Result<DbVal<ListSubscription>> {
         let mut stmt = self
             .connection
-            .prepare("SELECT * FROM membership WHERE list = ? AND address = ?;")?;
+            .prepare("SELECT * FROM subscription WHERE list = ? AND address = ?;")?;
 
         let ret = stmt.query_row(rusqlite::params![&list_pk, &address], |row| {
             let pk = row.get("pk")?;
             let address_ = row.get("address")?;
             debug_assert_eq!(address, &address_);
             Ok(DbVal(
-                ListMembership {
+                ListSubscription {
                     pk,
                     list: row.get("list")?,
                     address: address_,
@@ -116,16 +116,16 @@ impl Connection {
         Ok(ret)
     }
 
-    /// Add member to mailing list.
-    pub fn add_member(
+    /// Add subscription to mailing list.
+    pub fn add_subscription(
         &self,
         list_pk: i64,
-        mut new_val: ListMembership,
-    ) -> Result<DbVal<ListMembership>> {
+        mut new_val: ListSubscription,
+    ) -> Result<DbVal<ListSubscription>> {
         new_val.list = list_pk;
         let mut stmt = self
             .connection
-            .prepare("INSERT INTO membership(list, address, name, enabled, digest, verified, hide_address, receive_duplicates, receive_own_posts, receive_confirmation) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING *;").unwrap();
+            .prepare("INSERT INTO subscription(list, address, name, enabled, digest, verified, hide_address, receive_duplicates, receive_own_posts, receive_confirmation) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING *;").unwrap();
         let ret = stmt.query_row(
             rusqlite::params![
                 &new_val.list,
@@ -142,7 +142,7 @@ impl Connection {
             |row| {
                 let pk = row.get("pk")?;
                 Ok(DbVal(
-                    ListMembership {
+                    ListSubscription {
                         pk,
                         list: row.get("list")?,
                         address: row.get("address")?,
@@ -160,20 +160,20 @@ impl Connection {
             },
         )?;
 
-        trace!("add_member {:?}.", &ret);
+        trace!("add_subscription {:?}.", &ret);
         Ok(ret)
     }
 
-    /// Create membership candidate.
-    pub fn add_candidate_member(
+    /// Create subscription candidate.
+    pub fn add_candidate_subscription(
         &mut self,
         list_pk: i64,
-        mut new_val: ListMembership,
+        mut new_val: ListSubscription,
     ) -> Result<i64> {
         new_val.list = list_pk;
         let mut stmt = self
             .connection
-            .prepare("INSERT INTO candidate_membership(list, address, name, accepted) VALUES(?, ?, ?, ?) RETURNING pk;")?;
+            .prepare("INSERT INTO candidate_subscription(list, address, name, accepted) VALUES(?, ?, ?, ?) RETURNING pk;")?;
         let ret = stmt.query_row(
             rusqlite::params![&new_val.list, &new_val.address, &new_val.name, None::<i64>,],
             |row| {
@@ -183,21 +183,21 @@ impl Connection {
         )?;
         drop(stmt);
 
-        trace!("add_candidate_member {:?}.", &ret);
-        self.accept_candidate_member(ret)?;
+        trace!("add_candidate_subscription {:?}.", &ret);
+        self.accept_candidate_subscription(ret)?;
         // [ref:FIXME]: add approval required option for subscriptions.
         Ok(ret)
     }
 
-    /// Accept membership candidate.
-    pub fn accept_candidate_member(&mut self, pk: i64) -> Result<DbVal<ListMembership>> {
+    /// Accept subscription candidate.
+    pub fn accept_candidate_subscription(&mut self, pk: i64) -> Result<DbVal<ListSubscription>> {
         let tx = self.connection.transaction()?;
         let mut stmt = tx
-            .prepare("INSERT INTO membership(list, address, name, enabled, digest, verified, hide_address, receive_duplicates, receive_own_posts, receive_confirmation) SELECT list, address, name, 1, 0, 0, 0, 1, 1, 0 FROM candidate_membership WHERE pk = ? RETURNING *;")?;
+            .prepare("INSERT INTO subscription(list, address, name, enabled, digest, verified, hide_address, receive_duplicates, receive_own_posts, receive_confirmation) SELECT list, address, name, 1, 0, 0, 0, 1, 1, 0 FROM candidate_subscription WHERE pk = ? RETURNING *;")?;
         let ret = stmt.query_row(rusqlite::params![&pk], |row| {
             let pk = row.get("pk")?;
             Ok(DbVal(
-                ListMembership {
+                ListSubscription {
                     pk,
                     list: row.get("list")?,
                     address: row.get("address")?,
@@ -215,20 +215,20 @@ impl Connection {
         })?;
         drop(stmt);
         tx.execute(
-            "UPDATE candidate_membership SET accepted = ? WHERE pk = ?;",
+            "UPDATE candidate_subscription SET accepted = ? WHERE pk = ?;",
             [&ret.pk, &pk],
         )?;
         tx.commit()?;
 
-        trace!("accept_candidate_member {:?}.", &ret);
+        trace!("accept_candidate_subscription {:?}.", &ret);
         Ok(ret)
     }
 
-    /// Remove a member by their address.
-    pub fn remove_membership(&self, list_pk: i64, address: &str) -> Result<()> {
+    /// Remove a subscription by their address.
+    pub fn remove_subscription(&self, list_pk: i64, address: &str) -> Result<()> {
         self.connection
             .query_row(
-                "DELETE FROM membership WHERE list_pk = ? AND address = ? RETURNING *;",
+                "DELETE FROM subscription WHERE list_pk = ? AND address = ? RETURNING *;",
                 rusqlite::params![&list_pk, &address],
                 |_| Ok(()),
             )
@@ -243,14 +243,14 @@ impl Connection {
         Ok(())
     }
 
-    /// Update a mailing list membership.
-    pub fn update_member(&mut self, change_set: ListMembershipChangeset) -> Result<()> {
+    /// Update a mailing list subscription.
+    pub fn update_subscription(&mut self, change_set: ListSubscriptionChangeset) -> Result<()> {
         let pk = self
-            .list_member_by_address(change_set.list, &change_set.address)?
+            .list_subscription_by_address(change_set.list, &change_set.address)?
             .pk;
         if matches!(
             change_set,
-            ListMembershipChangeset {
+            ListSubscriptionChangeset {
                 list: _,
                 address: _,
                 name: None,
@@ -266,7 +266,7 @@ impl Connection {
             return Ok(());
         }
 
-        let ListMembershipChangeset {
+        let ListSubscriptionChangeset {
             list,
             address: _,
             name,
@@ -285,7 +285,7 @@ impl Connection {
                 if let Some($field) = $field {
                     tx.execute(
                         concat!(
-                            "UPDATE membership SET ",
+                            "UPDATE subscription SET ",
                             stringify!($field),
                             " = ? WHERE list = ? AND pk = ?;"
                         ),
@@ -359,14 +359,14 @@ impl Connection {
     }
 
     /// Fetch all subscriptions of an account by primary key.
-    pub fn account_subscriptions(&self, pk: i64) -> Result<Vec<DbVal<ListMembership>>> {
+    pub fn account_subscriptions(&self, pk: i64) -> Result<Vec<DbVal<ListSubscription>>> {
         let mut stmt = self
             .connection
-            .prepare("SELECT * FROM membership WHERE account = ?;")?;
+            .prepare("SELECT * FROM subscription WHERE account = ?;")?;
         let list_iter = stmt.query_map([&pk], |row| {
             let pk = row.get("pk")?;
             Ok(DbVal(
-                ListMembership {
+                ListSubscription {
                     pk: row.get("pk")?,
                     list: row.get("list")?,
                     address: row.get("address")?,

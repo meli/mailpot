@@ -65,7 +65,7 @@ fn test_error_queue() {
             pk: 0,
             list: foo_chat.pk(),
             announce_only: false,
-            subscriber_only: true,
+            subscription_only: true,
             approval_needed: false,
             open: false,
             custom: false,

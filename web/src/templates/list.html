@@ -7,31 +7,31 @@
             {% else %}
                 {% if not post_policy.no_subscriptions %}
                     <h2 id="subscribe">Subscribe</h2>
-                    {% set subscribe_mailto=list.subscribe_mailto() %}
-                    {% if subscribe_mailto %}
-                        {% if subscribe_mailto.subject %}
+                    {% set subscription_mailto=list.subscription_mailto() %}
+                    {% if subscription_mailto %}
+                        {% if subscription_mailto.subject %}
                             <p>
-                                <a href="mailto:{{ subscribe_mailto.address|safe }}?subject={{ subscribe_mailto.subject|safe }}"><code>{{ subscribe_mailto.address }}</code></a> with the following subject: <code>{{ subscribe_mailto.subject}}</code>
+                                <a href="mailto:{{ subscription_mailto.address|safe }}?subject={{ subscription_mailto.subject|safe }}"><code>{{ subscription_mailto.address }}</code></a> with the following subject: <code>{{ subscription_mailto.subject}}</code>
                             </p>
                         {% else %}
                             <p>
-                                <a href="mailto:{{ subscribe_mailto.address|safe }}"><code>{{ subscribe_mailto.address }}</code></a>
+                                <a href="mailto:{{ subscription_mailto.address|safe }}"><code>{{ subscription_mailto.address }}</code></a>
                             </p>
                         {% endif %}
                     {% else %}
                         <p>List is not open for subscriptions.</p>
                     {% endif %}
 
-                    {% set unsubscribe_mailto=list.unsubscribe_mailto() %}
-                    {% if unsubscribe_mailto %}
+                    {% set unsubscription_mailto=list.unsubscription_mailto() %}
+                    {% if unsubscription_mailto %}
                         <h2 id="unsubscribe">Unsubscribe</h2>
-                        {% if unsubscribe_mailto.subject %}
+                        {% if unsubscription_mailto.subject %}
                             <p>
-                                <a href="mailto:{{ unsubscribe_mailto.address|safe }}?subject={{ unsubscribe_mailto.subject|safe }}"><code>{{ unsubscribe_mailto.address }}</code></a> with the following subject: <code>{{unsubscribe_mailto.subject}}</code>
+                                <a href="mailto:{{ unsubscription_mailto.address|safe }}?subject={{ unsubscription_mailto.subject|safe }}"><code>{{ unsubscription_mailto.address }}</code></a> with the following subject: <code>{{unsubscription_mailto.subject}}</code>
                             </p>
                         {% else %}
                             <p>
-                                <a href="mailto:{{ unsubscribe_mailto.address|safe }}"><code>{{ unsubscribe_mailto.address }}</code></a>
+                                <a href="mailto:{{ unsubscription_mailto.address|safe }}"><code>{{ unsubscription_mailto.address }}</code></a>
                             </p>
                         {% endif %}
                     {% endif %}
@@ -40,8 +40,8 @@
                 <h2 id="post">Post</h2>
                 {% if post_policy.announce_only %}
                     <p>List is <em>announce-only</em>, i.e. you can only subscribe to receive announcements.</p>
-                {% elif post_policy.subscriber_only %}
-                    <p>List is <em>subscriber-only</em>, i.e. you can only post if you are subscribed.</p>
+                {% elif post_policy.subscription_only %}
+                    <p>List is <em>subscription-only</em>, i.e. you can only post if you are subscribed.</p>
                     <p>If you are subscribed, you can send new posts to:
                         <a href="mailto:{{ list.address| safe }}"><code>{{ list.address }}</code></a>
                     </p>

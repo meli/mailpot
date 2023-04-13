@@ -157,7 +157,7 @@ impl PostfixConfiguration {
                 },
                 Some(PostPolicy { .. }) => {
                     push_addr!(list.address);
-                    push_addr!(list.subscribe_mailto().address);
+                    push_addr!(list.subscription_mailto().address);
                     push_addr!(list.owner_mailto().address);
                     ret.push('\n');
                 }
@@ -419,7 +419,7 @@ fn test_postfix_generation() -> Result<()> {
         pk: 0,
         list: second.pk(),
         announce_only: false,
-        subscriber_only: false,
+        subscription_only: false,
         approval_needed: false,
         open: true,
         custom: false,
@@ -439,7 +439,7 @@ fn test_postfix_generation() -> Result<()> {
         pk: 0,
         list: third.pk(),
         announce_only: false,
-        subscriber_only: false,
+        subscription_only: false,
         approval_needed: true,
         open: false,
         custom: false,

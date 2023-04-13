@@ -134,26 +134,26 @@ Selects mailing list to operate on.
 .ie \n(.g .ds Aq \(aq
 .el .ds Aq '
 .\fB
-.SS mpot list members
+.SS mpot list subscriptions
 .\fR
 .br
 
 .br
 
-List members of list.
+List subscriptions of list.
 .ie \n(.g .ds Aq \(aq
 .el .ds Aq '
 .\fB
-.SS mpot list add-member
+.SS mpot list add-subscription
 .\fR
 .br
 
 .br
 
-mpot list add\-member \-\-address \fIADDRESS\fR [\-\-name \fINAME\fR] [\-\-digest \fIDIGEST\fR] [\-\-hide\-address \fIHIDE_ADDRESS\fR] [\-\-verified \fIVERIFIED\fR] [\-\-receive\-confirmation \fIRECEIVE_CONFIRMATION\fR] [\-\-receive\-duplicates \fIRECEIVE_DUPLICATES\fR] [\-\-receive\-own\-posts \fIRECEIVE_OWN_POSTS\fR] [\-\-enabled \fIENABLED\fR] 
+mpot list add\-subscription \-\-address \fIADDRESS\fR [\-\-name \fINAME\fR] [\-\-digest \fIDIGEST\fR] [\-\-hide\-address \fIHIDE_ADDRESS\fR] [\-\-verified \fIVERIFIED\fR] [\-\-receive\-confirmation \fIRECEIVE_CONFIRMATION\fR] [\-\-receive\-duplicates \fIRECEIVE_DUPLICATES\fR] [\-\-receive\-own\-posts \fIRECEIVE_OWN_POSTS\fR] [\-\-enabled \fIENABLED\fR] 
 .br
 
-Add member to list.
+Add subscription to list.
 .TP
 \-\-address \fIADDRESS\fR
 E\-mail address.
@@ -226,32 +226,32 @@ Is subscription enabled.
 .ie \n(.g .ds Aq \(aq
 .el .ds Aq '
 .\fB
-.SS mpot list remove-member
+.SS mpot list remove-subscription
 .\fR
 .br
 
 .br
 
-mpot list remove\-member \-\-address \fIADDRESS\fR 
+mpot list remove\-subscription \-\-address \fIADDRESS\fR 
 .br
 
-Remove member from list.
+Remove subscription from list.
 .TP
 \-\-address \fIADDRESS\fR
 E\-mail address.
 .ie \n(.g .ds Aq \(aq
 .el .ds Aq '
 .\fB
-.SS mpot list update-membership
+.SS mpot list update-subscription
 .\fR
 .br
 
 .br
 
-mpot list update\-membership [\-\-name \fINAME\fR] [\-\-digest \fIDIGEST\fR] [\-\-hide\-address \fIHIDE_ADDRESS\fR] [\-\-verified \fIVERIFIED\fR] [\-\-receive\-confirmation \fIRECEIVE_CONFIRMATION\fR] [\-\-receive\-duplicates \fIRECEIVE_DUPLICATES\fR] [\-\-receive\-own\-posts \fIRECEIVE_OWN_POSTS\fR] [\-\-enabled \fIENABLED\fR] \fIADDRESS\fR 
+mpot list update\-subscription [\-\-name \fINAME\fR] [\-\-digest \fIDIGEST\fR] [\-\-hide\-address \fIHIDE_ADDRESS\fR] [\-\-verified \fIVERIFIED\fR] [\-\-receive\-confirmation \fIRECEIVE_CONFIRMATION\fR] [\-\-receive\-duplicates \fIRECEIVE_DUPLICATES\fR] [\-\-receive\-own\-posts \fIRECEIVE_OWN_POSTS\fR] [\-\-enabled \fIENABLED\fR] \fIADDRESS\fR 
 .br
 
-Update membership info.
+Update subscription info.
 .TP
 \fIADDRESS\fR
 Address to edit.
@@ -330,7 +330,7 @@ Is subscription enabled.
 
 .br
 
-mpot list add\-policy [\-\-announce\-only \fIANNOUNCE_ONLY\fR] [\-\-subscriber\-only \fISUBSCRIBER_ONLY\fR] [\-\-approval\-needed \fIAPPROVAL_NEEDED\fR] [\-\-open \fIOPEN\fR] [\-\-custom \fICUSTOM\fR] 
+mpot list add\-policy [\-\-announce\-only \fIANNOUNCE_ONLY\fR] [\-\-subscription\-only \fISUBSCRIPTION_ONLY\fR] [\-\-approval\-needed \fIAPPROVAL_NEEDED\fR] [\-\-open \fIOPEN\fR] [\-\-custom \fICUSTOM\fR] 
 .br
 
 Add a new post policy.
@@ -338,11 +338,11 @@ Add a new post policy.
 \-\-announce\-only
 Only list owners can post.
 .TP
-\-\-subscriber\-only
-Only subscribers can post.
+\-\-subscription\-only
+Only subscriptions can post.
 .TP
 \-\-approval\-needed
-Subscribers can post. Other posts must be approved by list owners.
+Subscriptions can post. Other posts must be approved by list owners.
 .TP
 \-\-open
 Anyone can post without restrictions.
@@ -385,7 +385,7 @@ Send confirmation e\-mail when subscription is finalized.
 Anyone can subscribe without restrictions.
 .TP
 \-\-manual
-Only list owners can manually add subscribers.
+Only list owners can manually add subscriptions.
 .TP
 \-\-request
 Anyone can request to subscribe.
@@ -444,35 +444,35 @@ List owner primary key.
 .ie \n(.g .ds Aq \(aq
 .el .ds Aq '
 .\fB
-.SS mpot list enable-membership
+.SS mpot list enable-subscription
 .\fR
 .br
 
 .br
 
-mpot list enable\-membership \fIADDRESS\fR 
+mpot list enable\-subscription \fIADDRESS\fR 
 .br
 
-Alias for update\-membership \-\-enabled true.
+Alias for update\-subscription \-\-enabled true.
 .TP
 \fIADDRESS\fR
-Member address.
+Subscription address.
 .ie \n(.g .ds Aq \(aq
 .el .ds Aq '
 .\fB
-.SS mpot list disable-membership
+.SS mpot list disable-subscription
 .\fR
 .br
 
 .br
 
-mpot list disable\-membership \fIADDRESS\fR 
+mpot list disable\-subscription \fIADDRESS\fR 
 .br
 
-Alias for update\-membership \-\-enabled false.
+Alias for update\-subscription \-\-enabled false.
 .TP
 \fIADDRESS\fR
-Member address.
+Subscription address.
 .ie \n(.g .ds Aq \(aq
 .el .ds Aq '
 .\fB
@@ -511,7 +511,7 @@ New request address local part. If empty, it defaults to \*(Aq+request\*(Aq.
 \-\-verify \fIVERIFY\fR
 Require verification of e\-mails for new subscriptions.
 
-Subscriptions that are initiated from the member\*(Aqs address are verified automatically.
+Subscriptions that are initiated from the subscription\*(Aqs address are verified automatically.
 .br
 
 .br

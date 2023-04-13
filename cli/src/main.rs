@@ -81,7 +81,7 @@ fn run_app(opt: Opt) -> Result<()> {
             let mut stdout = std::io::stdout();
             serde_json::to_writer_pretty(&mut stdout, &lists)?;
             for l in &lists {
-                serde_json::to_writer_pretty(&mut stdout, &db.list_members(l.pk)?)?;
+                serde_json::to_writer_pretty(&mut stdout, &db.list_subscriptions(l.pk)?)?;
             }
         }
         ListLists => {
@@ -118,21 +118,21 @@ fn run_app(opt: Opt) -> Result<()> {
             };
             use ListCommand::*;
             match cmd {
-                Members => {
-                    let members = db.list_members(list.pk)?;
-                    if members.is_empty() {
-                        println!("No members found.");
+                Subscriptions => {
+                    let subscriptions = db.list_subscriptions(list.pk)?;
+                    if subscriptions.is_empty() {
+                        println!("No subscriptions found.");
                     } else {
-                        println!("Members of list {}", list.id);
-                        for l in members {
+                        println!("Subscriptions of list {}", list.id);
+                        for l in subscriptions {
                             println!("- {}", &l);
                         }
                     }
                 }
-                AddMember {
+                AddSubscription {
                     address,
-                    member_options:
-                        MemberOptions {
+                    subscription_options:
+                        SubscriptionOptions {
                             name,
                             digest,
                             hide_address,
@@ -143,9 +143,9 @@ fn run_app(opt: Opt) -> Result<()> {
                             verified,
                         },
                 } => {
-                    db.add_member(
+                    db.add_subscription(
                         list.pk,
-                        ListMembership {
+                        ListSubscription {
                             pk: 0,
                             list: list.pk,
                             name,
@@ -160,11 +160,11 @@ fn run_app(opt: Opt) -> Result<()> {
                         },
                     )?;
                 }
-                RemoveMember { address } => {
+                RemoveSubscription { address } => {
                     let mut input = String::new();
                     loop {
                         println!(
-                            "Are you sure you want to remove membership of {} from list {}? [Yy/n]",
+                            "Are you sure you want to remove subscription of {} from list {}? [Yy/n]",
                             address, list
                         );
                         input.clear();
@@ -176,7 +176,7 @@ fn run_app(opt: Opt) -> Result<()> {
                         }
                     }
 
-                    db.remove_membership(list.pk, &address)?;
+                    db.remove_subscription(list.pk, &address)?;
                 }
                 Health => {
                     println!("{} health:", list);
@@ -199,13 +199,13 @@ fn run_app(opt: Opt) -> Result<()> {
                     println!("{} info:", list);
                     let list_owners = db.list_owners(list.pk)?;
                     let list_policy = db.list_policy(list.pk)?;
-                    let members = db.list_members(list.pk)?;
-                    if members.is_empty() {
-                        println!("No members.");
-                    } else if members.len() == 1 {
-                        println!("1 member.");
+                    let subscriptions = db.list_subscriptions(list.pk)?;
+                    if subscriptions.is_empty() {
+                        println!("No subscriptions.");
+                    } else if subscriptions.len() == 1 {
+                        println!("1 subscription.");
                     } else {
-                        println!("{} members.", members.len());
+                        println!("{} subscriptions.", subscriptions.len());
                     }
                     if list_owners.is_empty() {
                         println!("List owners: None");
@@ -221,10 +221,10 @@ fn run_app(opt: Opt) -> Result<()> {
                         println!("List policy: None");
                     }
                 }
-                UpdateMembership {
+                UpdateSubscription {
                     address,
-                    member_options:
-                        MemberOptions {
+                    subscription_options:
+                        SubscriptionOptions {
                             name,
                             digest,
                             hide_address,
@@ -244,7 +244,7 @@ fn run_app(opt: Opt) -> Result<()> {
                     } else {
                         Some(name)
                     };
-                    let changeset = ListMembershipChangeset {
+                    let changeset = ListSubscriptionChangeset {
                         list: list.pk,
                         address,
                         name,
@@ -256,11 +256,11 @@ fn run_app(opt: Opt) -> Result<()> {
                         receive_confirmation,
                         enabled,
                     };
-                    db.update_member(changeset)?;
+                    db.update_subscription(changeset)?;
                 }
                 AddPolicy {
                     announce_only,
-                    subscriber_only,
+                    subscription_only,
                     approval_needed,
                     open,
                     custom,
@@ -269,7 +269,7 @@ fn run_app(opt: Opt) -> Result<()> {
                         pk: 0,
                         list: list.pk,
                         announce_only,
-                        subscriber_only,
+                        subscription_only,
                         approval_needed,
                         open,
                         custom,
@@ -297,11 +297,11 @@ fn run_app(opt: Opt) -> Result<()> {
                         request,
                         custom,
                     };
-                    let new_val = db.set_list_subscribe_policy(policy)?;
+                    let new_val = db.set_list_subscription_policy(policy)?;
                     println!("Added new subscribe policy with pk = {}", new_val.pk());
                 }
                 RemoveSubscribePolicy { pk } => {
-                    db.remove_list_subscribe_policy(list.pk, pk)?;
+                    db.remove_list_subscription_policy(list.pk, pk)?;
                     println!("Removed subscribe policy with pk = {}", pk);
                 }
                 AddListOwner { address, name } => {
@@ -318,8 +318,8 @@ fn run_app(opt: Opt) -> Result<()> {
                     db.remove_list_owner(list.pk, pk)?;
                     println!("Removed list owner with pk = {}", pk);
                 }
-                EnableMembership { address } => {
-                    let changeset = ListMembershipChangeset {
+                EnableSubscription { address } => {
+                    let changeset = ListSubscriptionChangeset {
                         list: list.pk,
                         address,
                         name: None,
@@ -331,10 +331,10 @@ fn run_app(opt: Opt) -> Result<()> {
                         receive_own_posts: None,
                         receive_confirmation: None,
                     };
-                    db.update_member(changeset)?;
+                    db.update_subscription(changeset)?;
                 }
-                DisableMembership { address } => {
-                    let changeset = ListMembershipChangeset {
+                DisableSubscription { address } => {
+                    let changeset = ListSubscriptionChangeset {
                         list: list.pk,
                         address,
                         name: None,
@@ -346,7 +346,7 @@ fn run_app(opt: Opt) -> Result<()> {
                         receive_own_posts: None,
                         receive_confirmation: None,
                     };
-                    db.update_member(changeset)?;
+                    db.update_subscription(changeset)?;
                 }
                 Update {
                     name,
@@ -603,7 +603,7 @@ fn run_app(opt: Opt) -> Result<()> {
                     println!("No subscriptions found.");
                 } else {
                     for s in subs {
-                        let list = db.list(s.list).unwrap_or_else(|err| panic!("Found subscription with list_pk = {} but no such list exists.\nListMembership = {:?}\n\n{err}", s.list, s));
+                        let list = db.list(s.list).unwrap_or_else(|err| panic!("Found subscription with list_pk = {} but no such list exists.\nListSubscription = {:?}\n\n{err}", s.list, s));
                         println!("- {:?} {}", s, list);
                     }
                 }

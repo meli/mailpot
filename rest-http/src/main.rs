@@ -58,10 +58,10 @@ async fn main() {
     });
 
     let conf4 = conf.clone();
-    //get("/lists/<num>/members")]
-    let lists_members = warp::path!("lists" / i64 / "members").map(move |list_pk| {
+    //get("/lists/<num>/subscriptions")]
+    let lists_subscriptions = warp::path!("lists" / i64 / "subscriptions").map(move |list_pk| {
         let db = Connection::open_db(conf4.clone()).unwrap();
-        db.list_members(list_pk)
+        db.list_subscriptions(list_pk)
             .ok()
             .map(|l| warp::reply::json(&l))
             .unwrap()
@@ -84,7 +84,7 @@ async fn main() {
         lists
             .or(policy)
             .or(lists_num)
-            .or(lists_members)
+            .or(lists_subscriptions)
             .or(lists_owners)
             .or(lists_owner_add),
     );

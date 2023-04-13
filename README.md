@@ -130,8 +130,8 @@ TRACE - Received envelope to post: Envelope {
 TRACE - Is post related to list [#1 test] Test list <test@localhost>? false
 TRACE - Is post related to list [#2 test-announce] test announcements <test-announce@localhost>? true
 TRACE - Examining list "test announcements" <test-announce@localhost>
-TRACE - List members [
-    ListMembership {
+TRACE - List subscriptions [
+    ListSubscription {
         list: 2,
         address: "exxxxx@localhost",
         name: None,
@@ -147,9 +147,9 @@ TRACE - Running FixCRLF filter
 TRACE - Running PostRightsCheck filter
 TRACE - Running AddListHeaders filter
 TRACE - Running FinalizeRecipients filter
-TRACE - examining member ListMembership { list: 2, address: "exxxxx@localhost", name: None, digest: false, hide_address: false, receive_duplicates: false, receive_own_posts: true, receive_confirmation: true, enabled: true }
-TRACE - member is submitter
-TRACE - Member gets copy
+TRACE - examining subscription ListSubscription { list: 2, address: "exxxxx@localhost", name: None, digest: false, hide_address: false, receive_duplicates: false, receive_own_posts: true, receive_confirmation: true, enabled: true }
+TRACE - subscription is submitter
+TRACE - subscription gets copy
 TRACE - result Ok(
     Post {
         list: MailingList {
@@ -164,7 +164,7 @@ TRACE - result Ok(
             display_name: "Mxxxx Pxxxxxxxxxxxx",
             address_spec: "exxxxx@localhost",
         },
-        members: 1,
+        subscriptions: 1,
         bytes: 851,
         policy: None,
         to: [
@@ -217,17 +217,17 @@ db.set_list_policy(
         pk: 0,
         list: list_pk,
         announce_only: false,
-        subscriber_only: true,
+        subscription_only: true,
         approval_needed: false,
         open: false,
         custom: false,
     },
 )?;
 
-// Drop privileges; we can only process new e-mail and modify memberships from now on.
+// Drop privileges; we can only process new e-mail and modify subscriptions from now on.
 let mut db = db.untrusted();
 
-assert_eq!(db.list_members(list_pk)?.len(), 0);
+assert_eq!(db.list_subscriptions(list_pk)?.len(), 0);
 assert_eq!(db.list_posts(list_pk, None)?.len(), 0);
 
 // Process a subscription request e-mail
@@ -241,7 +241,7 @@ Message-ID: <1@example.com>
 let envelope = melib::Envelope::from_bytes(subscribe_bytes, None)?;
 db.post(&envelope, subscribe_bytes, /* dry_run */ false)?;
 
-assert_eq!(db.list_members(list_pk)?.len(), 1);
+assert_eq!(db.list_subscriptions(list_pk)?.len(), 1);
 assert_eq!(db.list_posts(list_pk, None)?.len(), 0);
 
 // Process a post
@@ -257,7 +257,7 @@ let envelope =
     melib::Envelope::from_bytes(post_bytes, None).expect("Could not parse message");
 db.post(&envelope, post_bytes, /* dry_run */ false)?;
 
-assert_eq!(db.list_members(list_pk)?.len(), 1);
+assert_eq!(db.list_subscriptions(list_pk)?.len(), 1);
 assert_eq!(db.list_posts(list_pk, None)?.len(), 1);
 # Ok::<(), Error>(())
 ```

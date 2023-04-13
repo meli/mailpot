@@ -20,7 +20,7 @@
 use super::*;
 
 pub use post_policy::*;
-pub use subscribe_policy::*;
+pub use subscription_policy::*;
 mod post_policy {
     use super::*;
 
@@ -38,7 +38,7 @@ mod post_policy {
                             pk,
                             list: row.get("list")?,
                             announce_only: row.get("announce_only")?,
-                            subscriber_only: row.get("subscriber_only")?,
+                            subscription_only: row.get("subscription_only")?,
                             approval_needed: row.get("approval_needed")?,
                             open: row.get("open")?,
                             custom: row.get("custom")?,
@@ -80,7 +80,7 @@ mod post_policy {
         ///         pk: 0,
         ///         list: list_pk,
         ///         announce_only: false,
-        ///         subscriber_only: true,
+        ///         subscription_only: true,
         ///         approval_needed: false,
         ///         open: false,
         ///         custom: false,
@@ -131,7 +131,7 @@ mod post_policy {
         /// Set the unique post policy for a list.
         pub fn set_list_policy(&self, policy: PostPolicy) -> Result<DbVal<PostPolicy>> {
             if !(policy.announce_only
-                || policy.subscriber_only
+                || policy.subscription_only
                 || policy.approval_needed
                 || policy.open
                 || policy.custom)
@@ -143,13 +143,13 @@ mod post_policy {
             }
             let list_pk = policy.list;
 
-            let mut stmt = self.connection.prepare("INSERT OR REPLACE INTO post_policy(list, announce_only, subscriber_only, approval_needed, open, custom) VALUES (?, ?, ?, ?, ?, ?) RETURNING *;")?;
+            let mut stmt = self.connection.prepare("INSERT OR REPLACE INTO post_policy(list, announce_only, subscription_only, approval_needed, open, custom) VALUES (?, ?, ?, ?, ?, ?) RETURNING *;")?;
             let ret = stmt
                 .query_row(
                     rusqlite::params![
                         &list_pk,
                         &policy.announce_only,
-                        &policy.subscriber_only,
+                        &policy.subscription_only,
                         &policy.approval_needed,
                         &policy.open,
                         &policy.custom,
@@ -161,7 +161,7 @@ mod post_policy {
                                 pk,
                                 list: row.get("list")?,
                                 announce_only: row.get("announce_only")?,
-                                subscriber_only: row.get("subscriber_only")?,
+                                subscription_only: row.get("subscription_only")?,
                                 approval_needed: row.get("approval_needed")?,
                                 open: row.get("open")?,
                                 custom: row.get("custom")?,
@@ -194,7 +194,7 @@ mod post_policy {
     }
 }
 
-mod subscribe_policy {
+mod subscription_policy {
     use super::*;
 
     impl Connection {
@@ -202,7 +202,7 @@ mod subscribe_policy {
         pub fn list_subscrbe_policy(&self, pk: i64) -> Result<Option<DbVal<SubscribePolicy>>> {
             let mut stmt = self
                 .connection
-                .prepare("SELECT * FROM subscribe_policy WHERE list = ?;")?;
+                .prepare("SELECT * FROM subscription_policy WHERE list = ?;")?;
             let ret = stmt
                 .query_row([&pk], |row| {
                     let pk = row.get("pk")?;
@@ -253,7 +253,7 @@ mod subscribe_policy {
         ///         pk: 0,
         ///         list: list_pk,
         ///         announce_only: false,
-        ///         subscriber_only: true,
+        ///         subscription_only: true,
         ///         approval_needed: false,
         ///         open: false,
         ///         custom: false,
@@ -263,10 +263,10 @@ mod subscribe_policy {
         /// # }
         /// # do_test(config);
         /// ```
-        pub fn remove_list_subscribe_policy(&self, list_pk: i64, policy_pk: i64) -> Result<()> {
-            let mut stmt = self
-                .connection
-                .prepare("DELETE FROM subscribe_policy WHERE pk = ? AND list = ? RETURNING *;")?;
+        pub fn remove_list_subscription_policy(&self, list_pk: i64, policy_pk: i64) -> Result<()> {
+            let mut stmt = self.connection.prepare(
+                "DELETE FROM subscription_policy WHERE pk = ? AND list = ? RETURNING *;",
+            )?;
             stmt.query_row(rusqlite::params![&policy_pk, &list_pk,], |_| Ok(()))
                 .map_err(|err| {
                     if matches!(err, rusqlite::Error::QueryReturnedNoRows) {
@@ -276,7 +276,7 @@ mod subscribe_policy {
                     }
                 })?;
 
-            trace!("remove_list_subscribe_policy {} {}.", list_pk, policy_pk);
+            trace!("remove_list_subscription_policy {} {}.", list_pk, policy_pk);
             Ok(())
         }
 
@@ -299,10 +299,10 @@ mod subscribe_policy {
         /// # do_test(config);
         /// ```
         #[cfg(doc)]
-        pub fn remove_list_subscribe_policy_panic() {}
+        pub fn remove_list_subscription_policy_panic() {}
 
         /// Set the unique post policy for a list.
-        pub fn set_list_subscribe_policy(
+        pub fn set_list_subscription_policy(
             &self,
             policy: SubscribePolicy,
         ) -> Result<DbVal<SubscribePolicy>> {
@@ -314,7 +314,7 @@ mod subscribe_policy {
             }
             let list_pk = policy.list;
 
-            let mut stmt = self.connection.prepare("INSERT OR REPLACE INTO subscribe_policy(list, send_confirmation, open, manual, request, custom) VALUES (?, ?, ?, ?, ?, ?) RETURNING *;")?;
+            let mut stmt = self.connection.prepare("INSERT OR REPLACE INTO subscription_policy(list, send_confirmation, open, manual, request, custom) VALUES (?, ?, ?, ?, ?, ?) RETURNING *;")?;
             let ret = stmt
                 .query_row(
                     rusqlite::params![
@@ -359,7 +359,7 @@ mod subscribe_policy {
                     }
                 })?;
 
-            trace!("set_list_subscribe_policy {:?}.", &ret);
+            trace!("set_list_subscription_policy {:?}.", &ret);
             Ok(ret)
         }
     }

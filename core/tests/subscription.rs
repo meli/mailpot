@@ -57,7 +57,7 @@ fn test_list_subscription() {
             pk: 0,
             list: foo_chat.pk(),
             announce_only: false,
-            subscriber_only: true,
+            subscription_only: true,
             approval_needed: false,
             open: false,
             custom: false,
@@ -66,7 +66,7 @@ fn test_list_subscription() {
 
     assert_eq!(post_policy.pk(), 1);
     assert_eq!(db.error_queue().unwrap().len(), 0);
-    assert_eq!(db.list_members(foo_chat.pk()).unwrap().len(), 0);
+    assert_eq!(db.list_subscriptions(foo_chat.pk()).unwrap().len(), 0);
 
     let mut db = db.untrusted();
 
@@ -114,7 +114,7 @@ MIME-Version: 1.0
         melib::Envelope::from_bytes(input_bytes_2, None).expect("Could not parse message");
     db.post(&envelope, input_bytes_2, /* dry_run */ false)
         .unwrap();
-    assert_eq!(db.list_members(foo_chat.pk()).unwrap().len(), 1);
+    assert_eq!(db.list_subscriptions(foo_chat.pk()).unwrap().len(), 1);
     assert_eq!(db.error_queue().unwrap().len(), 1);
     let envelope =
         melib::Envelope::from_bytes(input_bytes_1, None).expect("Could not parse message");

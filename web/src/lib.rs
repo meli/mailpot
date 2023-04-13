@@ -67,9 +67,16 @@ pub use cal::*;
 pub use settings::*;
 pub use utils::*;
 
+#[derive(Debug)]
 pub struct ResponseError {
-    pub inner: Box<dyn std::error::Error + Send + 'static>,
+    pub inner: Box<dyn std::error::Error>,
     pub status: StatusCode,
+}
+
+impl std::fmt::Display for ResponseError {
+    fn fmt(&self, fmt: &mut std::fmt::Formatter) -> std::fmt::Result {
+        write!(fmt, "Inner: {}, status: {}", self.inner, self.status)
+    }
 }
 
 impl ResponseError {
@@ -81,20 +88,20 @@ impl ResponseError {
     }
 }
 
-impl<E: std::error::Error + Send + 'static> From<E> for ResponseError {
+impl<E: Into<Box<dyn std::error::Error>>> From<E> for ResponseError {
     fn from(err: E) -> Self {
         Self {
-            inner: Box::new(err),
+            inner: err.into(),
             status: StatusCode::INTERNAL_SERVER_ERROR,
         }
     }
 }
 
-pub trait IntoResponseError: Send + 'static {
+pub trait IntoResponseError {
     fn with_status(self, status: StatusCode) -> ResponseError;
 }
 
-impl<E: std::error::Error + Send + 'static + Sized> IntoResponseError for E {
+impl<E: Into<Box<dyn std::error::Error>>> IntoResponseError for E {
     fn with_status(self, status: StatusCode) -> ResponseError {
         ResponseError {
             status,
@@ -110,11 +117,11 @@ impl IntoResponse for ResponseError {
     }
 }
 
-pub trait IntoResponseErrorResult<R>: Send + 'static + Sized {
+pub trait IntoResponseErrorResult<R> {
     fn with_status(self, status: StatusCode) -> std::result::Result<R, ResponseError>;
 }
 
-impl<R: Send + 'static + Sized, E> IntoResponseErrorResult<R> for std::result::Result<R, E>
+impl<R, E> IntoResponseErrorResult<R> for std::result::Result<R, E>
 where
     E: IntoResponseError,
 {

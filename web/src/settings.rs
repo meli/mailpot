@@ -18,7 +18,7 @@
  */
 
 use super::*;
-use mailpot::models::changesets::ListMembershipChangeset;
+use mailpot::models::changesets::ListSubscriptionChangeset;
 
 pub async fn settings(
     mut session: WritableSession,
@@ -99,7 +99,7 @@ pub async fn user_list_subscription(
         .with_status(StatusCode::BAD_REQUEST)?;
     subscriptions.retain(|s| s.list == id);
     let subscription = db
-        .list_member(
+        .list_subscription(
             id,
             subscriptions
                 .get(0)
@@ -171,7 +171,7 @@ pub async fn user_list_subscription_post(
 
     subscriptions.retain(|s| s.list == id);
     let mut s = db
-        .list_member(id, subscriptions[0].pk())
+        .list_subscription(id, subscriptions[0].pk())
         .with_status(StatusCode::BAD_REQUEST)?;
 
     let SubscriptionFormPayload {
@@ -182,7 +182,7 @@ pub async fn user_list_subscription_post(
         receive_confirmation,
     } = payload;
 
-    let cset = ListMembershipChangeset {
+    let cset = ListSubscriptionChangeset {
         list: s.list,
         address: std::mem::take(&mut s.address),
         name: None,
@@ -195,7 +195,7 @@ pub async fn user_list_subscription_post(
         verified: None,
     };
 
-    db.update_member(cset)
+    db.update_subscription(cset)
         .with_status(StatusCode::BAD_REQUEST)?;
 
     session.add_message(Message {

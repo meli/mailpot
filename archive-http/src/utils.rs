@@ -98,8 +98,12 @@ impl Object for MailingList {
         _args: &[Value],
     ) -> std::result::Result<Value, Error> {
         match name {
-            "subscribe_mailto" => Ok(Value::from_serializable(&self.inner.subscribe_mailto())),
-            "unsubscribe_mailto" => Ok(Value::from_serializable(&self.inner.unsubscribe_mailto())),
+            "subscription_mailto" => {
+                Ok(Value::from_serializable(&self.inner.subscription_mailto()))
+            }
+            "unsubscription_mailto" => Ok(Value::from_serializable(
+                &self.inner.unsubscription_mailto(),
+            )),
             _ => Err(Error::new(
                 minijinja::ErrorKind::UnknownMethod,
                 format!("aaaobject has no method named {name}"),

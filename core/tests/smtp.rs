@@ -225,7 +225,7 @@ fn test_smtp() {
             pk: 0,
             list: foo_chat.pk(),
             announce_only: false,
-            subscriber_only: true,
+            subscription_only: true,
             approval_needed: false,
             open: false,
             custom: false,
@@ -244,14 +244,14 @@ fn test_smtp() {
                 .kind()
             {
                 mailpot::ErrorKind::PostRejected(reason) => {
-                    trace!("Non-member post succesfully rejected: '{reason}'");
+                    trace!("Non-subscription post succesfully rejected: '{reason}'");
                 }
                 other => panic!("Got unexpected error: {}", other),
             }
 
-            db.add_member(
+            db.add_subscription(
                 foo_chat.pk(),
-                ListMembership {
+                ListSubscription {
                     pk: 0,
                     list: foo_chat.pk(),
                     address: "japoeunp@hotmail.com".into(),
@@ -266,9 +266,9 @@ fn test_smtp() {
                 },
             )
             .unwrap();
-            db.add_member(
+            db.add_subscription(
                 foo_chat.pk(),
-                ListMembership {
+                ListSubscription {
                     pk: 0,
                     list: foo_chat.pk(),
                     address: "manos@example.com".into(),
@@ -345,7 +345,7 @@ fn test_smtp_mailcrab() {
             pk: 0,
             list: foo_chat.pk(),
             announce_only: false,
-            subscriber_only: true,
+            subscription_only: true,
             approval_needed: false,
             open: false,
             custom: false,
@@ -363,13 +363,13 @@ fn test_smtp_mailcrab() {
                 .kind()
             {
                 mailpot::ErrorKind::PostRejected(reason) => {
-                    trace!("Non-member post succesfully rejected: '{reason}'");
+                    trace!("Non-subscription post succesfully rejected: '{reason}'");
                 }
                 other => panic!("Got unexpected error: {}", other),
             }
-            db.add_member(
+            db.add_subscription(
                 foo_chat.pk(),
-                ListMembership {
+                ListSubscription {
                     pk: 0,
                     list: foo_chat.pk(),
                     address: "japoeunp@hotmail.com".into(),
@@ -384,9 +384,9 @@ fn test_smtp_mailcrab() {
                 },
             )
             .unwrap();
-            db.add_member(
+            db.add_subscription(
                 foo_chat.pk(),
-                ListMembership {
+                ListSubscription {
                     pk: 0,
                     list: foo_chat.pk(),
                     address: "manos@example.com".into(),

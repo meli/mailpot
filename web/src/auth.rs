@@ -243,7 +243,7 @@ pub struct SshSignature {
 ///     Ok(())
 /// }
 /// ```
-pub async fn ssh_keygen(sig: SshSignature) -> Result<(), ResponseError> {
+pub async fn ssh_keygen(sig: SshSignature) -> Result<(), Box<dyn std::error::Error>> {
     let SshSignature {
         email,
         ssh_public_key,
@@ -321,15 +321,13 @@ pub async fn ssh_keygen(sig: SshSignature) -> Result<(), ResponseError> {
     let op = child.wait_with_output().await?;
 
     if !op.status.success() {
-        return Err(ResponseError::new(
-            format!(
-                "ssh-keygen exited with {}:\nstdout: {}\n\nstderr: {}",
-                op.status.code().unwrap_or(-1),
-                String::from_utf8_lossy(&op.stdout),
-                String::from_utf8_lossy(&op.stderr)
-            ),
-            StatusCode::BAD_REQUEST,
-        ));
+        return Err(format!(
+            "ssh-keygen exited with {}:\nstdout: {}\n\nstderr: {}",
+            op.status.code().unwrap_or(-1),
+            String::from_utf8_lossy(&op.stdout),
+            String::from_utf8_lossy(&op.stderr)
+        )
+        .into());
     }
 
     Ok(())

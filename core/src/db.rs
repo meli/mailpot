@@ -48,8 +48,8 @@ mod error_queue;
 pub use error_queue::*;
 mod posts;
 pub use posts::*;
-mod members;
-pub use members::*;
+mod subscriptions;
+pub use subscriptions::*;
 mod policies;
 pub use policies::*;
 
@@ -60,7 +60,7 @@ fn log_callback(error_code: std::ffi::c_int, message: &str) {
         _ => log::error!("{error_code} {}", message),
     }
 }
-
+// INSERT INTO subscription(list, address, name, enabled, digest, verified, hide_address, receive_duplicates, receive_own_posts, receive_confirmation) VALUES
 fn user_authorizer_callback(
     auth_context: rusqlite::hooks::AuthContext<'_>,
 ) -> rusqlite::hooks::Authorization {
@@ -69,20 +69,22 @@ fn user_authorizer_callback(
     // [ref:sync_auth_doc] sync with `untrusted()` rustdoc when changing this.
     match auth_context.action {
         AuthAction::Delete {
-            table_name: "queue" | "candidate_membership" | "membership",
+            table_name: "queue" | "candidate_subscription" | "subscription",
         }
         | AuthAction::Insert {
-            table_name: "post" | "queue" | "candidate_membership" | "membership",
+            table_name: "post" | "queue" | "candidate_subscription" | "subscription",
         }
         | AuthAction::Update {
-            table_name: "candidate_membership" | "account" | "templates",
+            table_name: "candidate_subscription" | "account" | "templates",
             column_name: "accepted" | "last_modified" | "verified" | "address",
         }
         | AuthAction::Update {
-            table_name: "membership",
+            table_name: "subscription",
             column_name:
                 "last_modified"
+                | "account"
                 | "digest"
+                | "verified"
                 | "hide_address"
                 | "receive_duplicates"
                 | "receive_own_posts"
@@ -144,8 +146,8 @@ impl Connection {
     // [tag:sync_auth_doc]
     /// Sets operational limits for this connection.
     ///
-    /// - Allow `INSERT`, `DELETE` only for "queue", "candidate_membership", "membership".
-    /// - Allow `UPDATE` only for "membership" user facing settings.
+    /// - Allow `INSERT`, `DELETE` only for "queue", "candidate_subscription", "subscription".
+    /// - Allow `UPDATE` only for "subscription" user facing settings.
     /// - Allow `INSERT` only for "post".
     /// - Allow read access to all tables.
     /// - Allow `SELECT`, `TRANSACTION`, `SAVEPOINT`, and the `strftime` function.

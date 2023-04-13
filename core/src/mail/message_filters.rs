@@ -78,15 +78,15 @@ impl PostFilter for PostRightsCheck {
                     };
                     return Err(());
                 }
-            } else if policy.subscriber_only {
-                trace!("post policy is subscriber_only");
+            } else if policy.subscription_only {
+                trace!("post policy is subscription_only");
                 let email_from = post.from.get_email();
                 trace!("post from is {:?}", &email_from);
-                trace!("post memberships are {:#?}", &ctx.memberships);
-                if !ctx.memberships.iter().any(|lm| lm.address == email_from) {
+                trace!("post subscriptions are {:#?}", &ctx.subscriptions);
+                if !ctx.subscriptions.iter().any(|lm| lm.address == email_from) {
                     trace!("Envelope from is not subscribed to this list");
                     post.action = PostAction::Reject {
-                        reason: "Only subscribers can post to this list.".to_string(),
+                        reason: "Only subscriptions can post to this list.".to_string(),
                     };
                     return Err(());
                 }
@@ -94,8 +94,8 @@ impl PostFilter for PostRightsCheck {
                 trace!("post policy says approval_needed");
                 let email_from = post.from.get_email();
                 trace!("post from is {:?}", &email_from);
-                trace!("post memberships are {:#?}", &ctx.memberships);
-                if !ctx.memberships.iter().any(|lm| lm.address == email_from) {
+                trace!("post subscriptions are {:#?}", &ctx.subscriptions);
+                if !ctx.subscriptions.iter().any(|lm| lm.address == email_from) {
                     trace!("Envelope from is not subscribed to this list");
                     post.action = PostAction::Defer {
                         reason: "Your posting has been deferred. Approval from the list's moderators is required before it is submitted.".to_string(),
@@ -143,7 +143,7 @@ impl PostFilter for AddListHeaders {
         headers.push((&b"List-ID"[..], list_id.as_bytes()));
         headers.push((&b"Sender"[..], sender.as_bytes()));
         let list_post = ctx.list.post_header();
-        let list_unsubscribe = ctx.list.unsubscribe_header();
+        let list_unsubscribe = ctx.list.unsubscription_header();
         let list_archive = ctx.list.archive_header();
         if let Some(post) = list_post.as_ref() {
             headers.push((&b"List-Post"[..], post.as_bytes()));
@@ -189,7 +189,7 @@ impl PostFilter for ArchivedAtLink {
     }
 }
 
-/// Assuming there are no more changes to be done on the post, it finalizes which list members
+/// Assuming there are no more changes to be done on the post, it finalizes which list subscriptions
 /// will receive the post in `post.action` field.
 pub struct FinalizeRecipients;
 impl PostFilter for FinalizeRecipients {
@@ -202,21 +202,21 @@ impl PostFilter for FinalizeRecipients {
         let mut recipients = vec![];
         let mut digests = vec![];
         let email_from = post.from.get_email();
-        for member in ctx.memberships {
-            trace!("examining member {:?}", &member);
-            if member.address == email_from {
-                trace!("member is submitter");
+        for subscription in ctx.subscriptions {
+            trace!("examining subscription {:?}", &subscription);
+            if subscription.address == email_from {
+                trace!("subscription is submitter");
             }
-            if member.digest {
-                if member.address != email_from || member.receive_own_posts {
-                    trace!("Member gets digest");
-                    digests.push(member.address());
+            if subscription.digest {
+                if subscription.address != email_from || subscription.receive_own_posts {
+                    trace!("Subscription gets digest");
+                    digests.push(subscription.address());
                 }
                 continue;
             }
-            if member.address != email_from || member.receive_own_posts {
-                trace!("Member gets copy");
-                recipients.push(member.address());
+            if subscription.address != email_from || subscription.receive_own_posts {
+                trace!("Subscription gets copy");
+                recipients.push(subscription.address());
             }
             // TODO:
             // - check for duplicates (To,Cc,Bcc)

@@ -58,12 +58,12 @@ pub struct MailingListChangeset {
 
 impl_display!(MailingListChangeset);
 
-/// Changeset struct for [`ListMembership`](super::ListMembership).
+/// Changeset struct for [`ListSubscription`](super::ListSubscription).
 #[derive(Debug, Clone, Deserialize, Serialize)]
-pub struct ListMembershipChangeset {
+pub struct ListSubscriptionChangeset {
     /// Mailing list foreign key (See [`MailingList`](super::MailingList)).
     pub list: i64,
-    /// Membership e-mail address.
+    /// Subscription e-mail address.
     pub address: String,
     /// Optional new value.
     pub name: Option<Option<String>>,
@@ -83,7 +83,7 @@ pub struct ListMembershipChangeset {
     pub receive_confirmation: Option<bool>,
 }
 
-impl_display!(ListMembershipChangeset);
+impl_display!(ListSubscriptionChangeset);
 
 /// Changeset struct for [`PostPolicy`](super::PostPolicy).
 #[derive(Debug, Clone, Deserialize, Serialize)]
@@ -95,7 +95,7 @@ pub struct PostPolicyChangeset {
     /// Optional new value.
     pub announce_only: Option<bool>,
     /// Optional new value.
-    pub subscriber_only: Option<bool>,
+    pub subscription_only: Option<bool>,
     /// Optional new value.
     pub approval_needed: Option<bool>,
 }

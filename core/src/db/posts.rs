@@ -150,14 +150,14 @@ impl Connection {
         for mut list in lists {
             trace!("Examining list {}", list.display_name());
             let filters = self.list_filters(&list);
-            let memberships = self.list_members(list.pk)?;
+            let subscriptions = self.list_subscriptions(list.pk)?;
             let owners = self.list_owners(list.pk)?;
-            trace!("List members {:#?}", &memberships);
+            trace!("List subscriptions {:#?}", &subscriptions);
             let mut list_ctx = ListContext {
                 policy: self.list_policy(list.pk)?,
                 list_owners: &owners,
                 list: &mut list,
-                memberships: &memberships,
+                subscriptions: &subscriptions,
                 scheduled_jobs: vec![],
             };
             let mut post = Post {
@@ -252,7 +252,7 @@ impl Connection {
                     .map(|p| p.approval_needed)
                     .unwrap_or(false);
                 for f in env.from() {
-                    let membership = ListMembership {
+                    let subscription = ListSubscription {
                         pk: 0,
                         list: list.pk,
                         address: f.get_email(),
@@ -266,12 +266,12 @@ impl Connection {
                         verified: true,
                     };
                     if approval_needed {
-                        match self.add_candidate_member(list.pk, membership) {
+                        match self.add_candidate_subscription(list.pk, subscription) {
                             Ok(_) => {}
                             Err(_err) => {}
                         }
                         //FIXME: send notification to list-owner
-                    } else if let Err(_err) = self.add_member(list.pk, membership) {
+                    } else if let Err(_err) = self.add_subscription(list.pk, subscription) {
                         //FIXME: send failure notice to f
                     } else {
                         //FIXME: send success notice
@@ -285,7 +285,7 @@ impl Connection {
                     list
                 );
                 for f in env.from() {
-                    if let Err(_err) = self.remove_membership(list.pk, &f.get_email()) {
+                    if let Err(_err) = self.remove_subscription(list.pk, &f.get_email()) {
                         //FIXME: send failure notice to f
                     } else {
                         //FIXME: send success notice to f

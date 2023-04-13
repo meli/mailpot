@@ -50,8 +50,8 @@ pub struct ListContext<'list> {
     pub list: &'list MailingList,
     /// The mailing list owners.
     pub list_owners: &'list [DbVal<ListOwner>],
-    /// The mailing list memberships.
-    pub memberships: &'list [DbVal<ListMembership>],
+    /// The mailing list subscriptions.
+    pub subscriptions: &'list [DbVal<ListSubscription>],
     /// The mailing list post policy.
     pub policy: Option<DbVal<PostPolicy>>,
     /// The scheduled jobs added by each filter in a list's [`PostFilter`](message_filters::PostFilter) stack.
@@ -122,7 +122,7 @@ pub enum ListRequest {
     RetrieveArchive(String, String),
     /// Request reception of specific mailing list posts from `Message-ID` values.
     RetrieveMessages(Vec<String>),
-    /// Request change in digest preferences. (See [`ListMembership`])
+    /// Request change in digest preferences. (See [`ListSubscription`])
     SetDigest(bool),
     /// Other type of request.
     Other(String),

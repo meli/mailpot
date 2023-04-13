@@ -240,9 +240,9 @@ pub enum ErrorQueueCommand {
     },
 }
 
-/// Member options.
+/// Subscription options.
 #[derive(Debug, Args)]
-pub struct MemberOptions {
+pub struct SubscriptionOptions {
     /// Name.
     #[arg(long)]
     pub name: Option<String>,
@@ -286,28 +286,28 @@ pub struct AccountOptions {
 
 #[derive(Debug, Subcommand)]
 pub enum ListCommand {
-    /// List members of list.
-    Members,
-    /// Add member to list.
-    AddMember {
+    /// List subscriptions of list.
+    Subscriptions,
+    /// Add subscription to list.
+    AddSubscription {
         /// E-mail address.
         #[arg(long)]
         address: String,
         #[clap(flatten)]
-        member_options: MemberOptions,
+        subscription_options: SubscriptionOptions,
     },
-    /// Remove member from list.
-    RemoveMember {
+    /// Remove subscription from list.
+    RemoveSubscription {
         #[arg(long)]
         /// E-mail address.
         address: String,
     },
-    /// Update membership info.
-    UpdateMembership {
+    /// Update subscription info.
+    UpdateSubscription {
         /// Address to edit.
         address: String,
         #[clap(flatten)]
-        member_options: MemberOptions,
+        subscription_options: SubscriptionOptions,
     },
     /// Add a new post policy.
     AddPolicy {
@@ -315,10 +315,10 @@ pub enum ListCommand {
         /// Only list owners can post.
         announce_only: bool,
         #[arg(long)]
-        /// Only subscribers can post.
-        subscriber_only: bool,
+        /// Only subscriptions can post.
+        subscription_only: bool,
         #[arg(long)]
-        /// Subscribers can post.
+        /// Subscriptions can post.
         /// Other posts must be approved by list owners.
         approval_needed: bool,
         #[arg(long)]
@@ -343,7 +343,7 @@ pub enum ListCommand {
         /// Anyone can subscribe without restrictions.
         open: bool,
         #[arg(long)]
-        /// Only list owners can manually add subscribers.
+        /// Only list owners can manually add subscriptions.
         manual: bool,
         #[arg(long)]
         /// Anyone can request to subscribe.
@@ -369,14 +369,14 @@ pub enum ListCommand {
         /// List owner primary key.
         pk: i64,
     },
-    /// Alias for update-membership --enabled true.
-    EnableMembership {
-        /// Member address.
+    /// Alias for update-subscription --enabled true.
+    EnableSubscription {
+        /// Subscription address.
         address: String,
     },
-    /// Alias for update-membership --enabled false.
-    DisableMembership {
-        /// Member address.
+    /// Alias for update-subscription --enabled false.
+    DisableSubscription {
+        /// Subscription address.
         address: String,
     },
     /// Update mailing list details.
@@ -406,7 +406,7 @@ pub enum ListCommand {
         request_local_part: Option<String>,
         /// Require verification of e-mails for new subscriptions.
         ///
-        /// Subscriptions that are initiated from the member's address are verified automatically.
+        /// Subscriptions that are initiated from the subscription's address are verified automatically.
         #[arg(long)]
         verify: Option<bool>,
         /// Public visibility of list.
