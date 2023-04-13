@@ -40,6 +40,17 @@ macro_rules! list {
         })
     }};
 }
+
+macro_rules! string_opts {
+    ($field:ident) => {
+        if $field.as_deref().map(str::is_empty).unwrap_or(false) {
+            None
+        } else {
+            Some($field)
+        }
+    };
+}
+
 fn run_app(opt: Opt) -> Result<()> {
     if opt.debug {
         println!("DEBUG: {:?}", &opt);
@@ -150,12 +161,13 @@ fn run_app(opt: Opt) -> Result<()> {
                     )?;
                 }
                 RemoveMember { address } => {
+                    let mut input = String::new();
                     loop {
                         println!(
                             "Are you sure you want to remove membership of {} from list {}? [Yy/n]",
                             address, list
                         );
-                        let mut input = String::new();
+                        input.clear();
                         std::io::stdin().read_line(&mut input)?;
                         if input.trim() == "Y" || input.trim() == "y" || input.trim() == "" {
                             break;
@@ -348,19 +360,6 @@ fn run_app(opt: Opt) -> Result<()> {
                     hidden,
                     enabled,
                 } => {
-                    macro_rules! string_opts {
-                        ($field:ident) => {
-                            if $field
-                                .as_ref()
-                                .map(|s: &String| s.is_empty())
-                                .unwrap_or(false)
-                            {
-                                None
-                            } else {
-                                Some($field)
-                            }
-                        };
-                    }
                     let description = string_opts!(description);
                     let archive_url = string_opts!(archive_url);
                     let owner_local_part = string_opts!(owner_local_part);
@@ -586,6 +585,81 @@ fn run_app(opt: Opt) -> Result<()> {
             let mastercf = pfconf.generate_master_cf_entry(db.conf(), config_path);
 
             println!("{maps}\n\n{mastercf}\n");
+        }
+        Accounts => {
+            let accounts = db.accounts()?;
+            if accounts.is_empty() {
+                println!("No accounts found.");
+            } else {
+                for a in accounts {
+                    println!("- {:?}", a);
+                }
+            }
+        }
+        AccountInfo { address } => {
+            if let Some(acc) = db.account_by_address(&address)? {
+                let subs = db.account_subscriptions(acc.pk())?;
+                if subs.is_empty() {
+                    println!("No subscriptions found.");
+                } else {
+                    for s in subs {
+                        let list = db.list(s.list).unwrap_or_else(|err| panic!("Found subscription with list_pk = {} but no such list exists.\nListMembership = {:?}\n\n{err}", s.list, s));
+                        println!("- {:?} {}", s, list);
+                    }
+                }
+            } else {
+                println!("account with this address not found!");
+            };
+        }
+        AddAccount {
+            address,
+            password,
+            name,
+            public_key,
+            enabled,
+        } => {
+            db.add_account(Account {
+                pk: 0,
+                name,
+                address,
+                public_key,
+                password,
+                enabled: enabled.unwrap_or(true),
+            })?;
+        }
+        RemoveAccount { address } => {
+            let mut input = String::new();
+            loop {
+                println!(
+                    "Are you sure you want to remove account with address {}? [Yy/n]",
+                    address
+                );
+                input.clear();
+                std::io::stdin().read_line(&mut input)?;
+                if input.trim() == "Y" || input.trim() == "y" || input.trim() == "" {
+                    break;
+                } else if input.trim() == "n" {
+                    return Ok(());
+                }
+            }
+
+            db.remove_account(&address)?;
+        }
+        UpdateAccount {
+            address,
+            password,
+            name,
+            public_key,
+            enabled,
+        } => {
+            let changeset = AccountChangeset {
+                address,
+                name,
+                public_key,
+                password,
+                enabled,
+            };
+            db.update_account(changeset)?;
         }
     }
 

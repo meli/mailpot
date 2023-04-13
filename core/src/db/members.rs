@@ -322,8 +322,9 @@ impl Connection {
                         pk,
                         name: row.get("name")?,
                         address: row.get("address")?,
-                        enabled: row.get("enabled")?,
+                        public_key: row.get("public_key")?,
                         password: row.get("password")?,
+                        enabled: row.get("enabled")?,
                     },
                     pk,
                 ))
@@ -346,8 +347,9 @@ impl Connection {
                         pk,
                         name: row.get("name")?,
                         address: row.get("address")?,
-                        enabled: row.get("enabled")?,
+                        public_key: row.get("public_key")?,
                         password: row.get("password")?,
+                        enabled: row.get("enabled")?,
                     },
                     pk,
                 ))
@@ -387,5 +389,136 @@ impl Connection {
             ret.push(list);
         }
         Ok(ret)
+    }
+
+    /// Fetch all accounts.
+    pub fn accounts(&self) -> Result<Vec<DbVal<Account>>> {
+        let mut stmt = self
+            .connection
+            .prepare("SELECT * FROM account ORDER BY pk ASC;")?;
+        let list_iter = stmt.query_map([], |row| {
+            let pk = row.get("pk")?;
+            Ok(DbVal(
+                Account {
+                    pk,
+                    name: row.get("name")?,
+                    address: row.get("address")?,
+                    public_key: row.get("public_key")?,
+                    password: row.get("password")?,
+                    enabled: row.get("enabled")?,
+                },
+                pk,
+            ))
+        })?;
+
+        let mut ret = vec![];
+        for list in list_iter {
+            let list = list?;
+            ret.push(list);
+        }
+        Ok(ret)
+    }
+
+    /// Add account.
+    pub fn add_account(&self, new_val: Account) -> Result<DbVal<Account>> {
+        let mut stmt = self
+            .connection
+            .prepare("INSERT INTO account(name, address, public_key, password, enabled) VALUES(?, ?, ?, ?, ?) RETURNING *;").unwrap();
+        let ret = stmt.query_row(
+            rusqlite::params![
+                &new_val.name,
+                &new_val.address,
+                &new_val.public_key,
+                &new_val.password,
+                &new_val.enabled,
+            ],
+            |row| {
+                let pk = row.get("pk")?;
+                Ok(DbVal(
+                    Account {
+                        pk,
+                        name: row.get("name")?,
+                        address: row.get("address")?,
+                        public_key: row.get("public_key")?,
+                        password: row.get("password")?,
+                        enabled: row.get("enabled")?,
+                    },
+                    pk,
+                ))
+            },
+        )?;
+
+        trace!("add_account {:?}.", &ret);
+        Ok(ret)
+    }
+
+    /// Remove an account by their address.
+    pub fn remove_account(&self, address: &str) -> Result<()> {
+        self.connection
+            .query_row(
+                "DELETE FROM account WHERE address = ? RETURNING *;",
+                rusqlite::params![&address],
+                |_| Ok(()),
+            )
+            .map_err(|err| {
+                if matches!(err, rusqlite::Error::QueryReturnedNoRows) {
+                    Error::from(err).chain_err(|| NotFound("account not found!"))
+                } else {
+                    err.into()
+                }
+            })?;
+
+        Ok(())
+    }
+
+    /// Update an account.
+    pub fn update_account(&mut self, change_set: AccountChangeset) -> Result<()> {
+        let Some(acc) = self.account_by_address(&change_set.address)? else {
+            return Err(NotFound("account with this address not found!").into());
+        };
+        let pk = acc.pk;
+        if matches!(
+            change_set,
+            AccountChangeset {
+                address: _,
+                name: None,
+                public_key: None,
+                password: None,
+                enabled: None,
+            }
+        ) {
+            return Ok(());
+        }
+
+        let AccountChangeset {
+            address: _,
+            name,
+            public_key,
+            password,
+            enabled,
+        } = change_set;
+        let tx = self.connection.transaction()?;
+
+        macro_rules! update {
+            ($field:tt) => {{
+                if let Some($field) = $field {
+                    tx.execute(
+                        concat!(
+                            "UPDATE account SET ",
+                            stringify!($field),
+                            " = ? WHERE pk = ?;"
+                        ),
+                        rusqlite::params![&$field, &pk],
+                    )?;
+                }
+            }};
+        }
+        update!(name);
+        update!(public_key);
+        update!(password);
+        update!(enabled);
+
+        tx.commit()?;
+        Ok(())
     }
 }

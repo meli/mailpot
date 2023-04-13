@@ -187,48 +187,62 @@ BEGIN
   WHERE membership.pk = NEW.pk AND EXISTS (SELECT 1 FROM list WHERE pk = NEW.list AND verify = 1);
 END;
 
+CREATE TRIGGER IF NOT EXISTS add_account AFTER INSERT ON account
+FOR EACH ROW
+BEGIN
+  UPDATE membership SET account = NEW.pk, last_modified = unixepoch()
+  WHERE membership.address = NEW.address;
+END;
+
 CREATE TRIGGER IF NOT EXISTS last_modified_list AFTER UPDATE ON list
 FOR EACH ROW
 BEGIN
   UPDATE list SET last_modified = unixepoch()
   WHERE pk = NEW.pk;
 END;
+
 CREATE TRIGGER IF NOT EXISTS last_modified_owner AFTER UPDATE ON owner
 FOR EACH ROW
 BEGIN
   UPDATE owner SET last_modified = unixepoch()
   WHERE pk = NEW.pk;
 END;
+
 CREATE TRIGGER IF NOT EXISTS last_modified_post_policy AFTER UPDATE ON post_policy
 FOR EACH ROW
 BEGIN
   UPDATE post_policy SET last_modified = unixepoch()
   WHERE pk = NEW.pk;
 END;
+
 CREATE TRIGGER IF NOT EXISTS last_modified_subscribe_policy AFTER UPDATE ON subscribe_policy
 FOR EACH ROW
 BEGIN
   UPDATE subscribe_policy SET last_modified = unixepoch()
   WHERE pk = NEW.pk;
 END;
+
 CREATE TRIGGER IF NOT EXISTS last_modified_membership AFTER UPDATE ON membership
 FOR EACH ROW
 BEGIN
   UPDATE membership SET last_modified = unixepoch()
   WHERE pk = NEW.pk;
 END;
+
 CREATE TRIGGER IF NOT EXISTS last_modified_account AFTER UPDATE ON account
 FOR EACH ROW
 BEGIN
   UPDATE account SET last_modified = unixepoch()
   WHERE pk = NEW.pk;
 END;
+
 CREATE TRIGGER IF NOT EXISTS last_modified_candidate_membership AFTER UPDATE ON candidate_membership
 FOR EACH ROW
 BEGIN
   UPDATE candidate_membership SET last_modified = unixepoch()
   WHERE pk = NEW.pk;
 END;
+
 CREATE TRIGGER IF NOT EXISTS last_modified_templates AFTER UPDATE ON templates
 FOR EACH ROW
 BEGIN

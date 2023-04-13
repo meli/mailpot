@@ -355,10 +355,12 @@ pub struct Account {
     pub name: Option<String>,
     /// Account's e-mail address.
     pub address: String,
-    /// Whether this account is enabled.
-    pub enabled: bool,
+    /// GPG public key.
+    pub public_key: Option<String>,
     /// SSH public key.
     pub password: String,
+    /// Whether this account is enabled.
+    pub enabled: bool,
 }
 
 impl std::fmt::Display for Account {

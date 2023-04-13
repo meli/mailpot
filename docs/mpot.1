@@ -762,5 +762,115 @@ A postfix service is a daemon managed by the postfix process. Each entry in the 
 The `master.cf` file is documented in [`master(5)`](https://www.postfix.org/master.5.html): <https://www.postfix.org/master.5.html>.
 .ie \n(.g .ds Aq \(aq
 .el .ds Aq '
+.\fB
+.SS mpot accounts
+.\fR
+.br
+
+.br
+
+All Accounts.
+.ie \n(.g .ds Aq \(aq
+.el .ds Aq '
+.\fB
+.SS mpot account-info
+.\fR
+.br
+
+.br
+
+mpot account\-info \fIADDRESS\fR 
+.br
+
+Account info.
+.TP
+\fIADDRESS\fR
+Account address.
+.ie \n(.g .ds Aq \(aq
+.el .ds Aq '
+.\fB
+.SS mpot add-account
+.\fR
+.br
+
+.br
+
+mpot add\-account \-\-address \fIADDRESS\fR \-\-password \fIPASSWORD\fR [\-\-name \fINAME\fR] [\-\-public\-key \fIPUBLIC_KEY\fR] [\-\-enabled \fIENABLED\fR] 
+.br
+
+Add account.
+.TP
+\-\-address \fIADDRESS\fR
+E\-mail address.
+.TP
+\-\-password \fIPASSWORD\fR
+SSH public key for authentication.
+.TP
+\-\-name \fINAME\fR
+Name.
+.TP
+\-\-public\-key \fIPUBLIC_KEY\fR
+Public key.
+.TP
+\-\-enabled \fIENABLED\fR
+Is account enabled.
+.br
+
+.br
+
+.br
+[\fIpossible values: \fRtrue, false]
+.ie \n(.g .ds Aq \(aq
+.el .ds Aq '
+.\fB
+.SS mpot remove-account
+.\fR
+.br
+
+.br
+
+mpot remove\-account \-\-address \fIADDRESS\fR 
+.br
+
+Remove account.
+.TP
+\-\-address \fIADDRESS\fR
+E\-mail address.
+.ie \n(.g .ds Aq \(aq
+.el .ds Aq '
+.\fB
+.SS mpot update-account
+.\fR
+.br
+
+.br
+
+mpot update\-account [\-\-password \fIPASSWORD\fR] [\-\-name \fINAME\fR] [\-\-public\-key \fIPUBLIC_KEY\fR] [\-\-enabled \fIENABLED\fR] \fIADDRESS\fR 
+.br
+
+Update account info.
+.TP
+\fIADDRESS\fR
+Address to edit.
+.TP
+\-\-password \fIPASSWORD\fR
+Public key for authentication.
+.TP
+\-\-name \fINAME\fR
+Name.
+.TP
+\-\-public\-key \fIPUBLIC_KEY\fR
+Public key.
+.TP
+\-\-enabled \fIENABLED\fR
+Is account enabled.
+.br
+
+.br
+
+.br
+[\fIpossible values: \fRtrue, false]
+.ie \n(.g .ds Aq \(aq
+.el .ds Aq '
 .SH AUTHORS
 Manos Pitsidianakis <el13635@mail.ntua.gr>

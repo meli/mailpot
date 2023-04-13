@@ -19,6 +19,16 @@
 
 //! Changeset structs: update specific struct fields.
 
+macro_rules! impl_display {
+    ($t:ty) => {
+        impl std::fmt::Display for $t {
+            fn fmt(&self, fmt: &mut std::fmt::Formatter) -> std::fmt::Result {
+                write!(fmt, "{:?}", self)
+            }
+        }
+    };
+}
+
 /// Changeset struct for [`Mailinglist`](super::MailingList).
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct MailingListChangeset {
@@ -46,6 +56,8 @@ pub struct MailingListChangeset {
     pub enabled: Option<bool>,
 }
 
+impl_display!(MailingListChangeset);
+
 /// Changeset struct for [`ListMembership`](super::ListMembership).
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct ListMembershipChangeset {
@@ -71,6 +83,8 @@ pub struct ListMembershipChangeset {
     pub receive_confirmation: Option<bool>,
 }
 
+impl_display!(ListMembershipChangeset);
+
 /// Changeset struct for [`PostPolicy`](super::PostPolicy).
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct PostPolicyChangeset {
@@ -86,6 +100,8 @@ pub struct PostPolicyChangeset {
     pub approval_needed: Option<bool>,
 }
 
+impl_display!(PostPolicyChangeset);
+
 /// Changeset struct for [`ListOwner`](super::ListOwner).
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct ListOwnerChangeset {
@@ -99,24 +115,21 @@ pub struct ListOwnerChangeset {
     pub name: Option<Option<String>>,
 }
 
-impl std::fmt::Display for MailingListChangeset {
-    fn fmt(&self, fmt: &mut std::fmt::Formatter) -> std::fmt::Result {
-        write!(fmt, "{:?}", self)
-    }
+impl_display!(ListOwnerChangeset);
+
+/// Changeset struct for [`Account`](super::Account).
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct AccountChangeset {
+    /// Account e-mail address.
+    pub address: String,
+    /// Optional new value.
+    pub name: Option<Option<String>>,
+    /// Optional new value.
+    pub public_key: Option<Option<String>>,
+    /// Optional new value.
+    pub password: Option<String>,
+    /// Optional new value.
+    pub enabled: Option<Option<bool>>,
 }
 
-impl std::fmt::Display for ListMembershipChangeset {
-    fn fmt(&self, fmt: &mut std::fmt::Formatter) -> std::fmt::Result {
-        write!(fmt, "{:?}", self)
-    }
-}
-impl std::fmt::Display for PostPolicyChangeset {
-    fn fmt(&self, fmt: &mut std::fmt::Formatter) -> std::fmt::Result {
-        write!(fmt, "{:?}", self)
-    }
-}
-impl std::fmt::Display for ListOwnerChangeset {
-    fn fmt(&self, fmt: &mut std::fmt::Formatter) -> std::fmt::Result {
-        write!(fmt, "{:?}", self)
-    }
-}
+impl_display!(AccountChangeset);

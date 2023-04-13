@@ -132,6 +132,54 @@ pub enum Command {
         #[clap(flatten)]
         config: PostfixConfig,
     },
+    /// All Accounts.
+    Accounts,
+    /// Account info.
+    AccountInfo {
+        /// Account address.
+        address: String,
+    },
+    /// Add account.
+    AddAccount {
+        /// E-mail address.
+        #[arg(long)]
+        address: String,
+        /// SSH public key for authentication.
+        #[arg(long)]
+        password: String,
+        /// Name.
+        #[arg(long)]
+        name: Option<String>,
+        /// Public key.
+        #[arg(long)]
+        public_key: Option<String>,
+        #[arg(long)]
+        /// Is account enabled.
+        enabled: Option<bool>,
+    },
+    /// Remove account.
+    RemoveAccount {
+        #[arg(long)]
+        /// E-mail address.
+        address: String,
+    },
+    /// Update account info.
+    UpdateAccount {
+        /// Address to edit.
+        address: String,
+        /// Public key for authentication.
+        #[arg(long)]
+        password: Option<String>,
+        /// Name.
+        #[arg(long)]
+        name: Option<Option<String>>,
+        /// Public key.
+        #[arg(long)]
+        public_key: Option<Option<String>>,
+        #[arg(long)]
+        /// Is account enabled.
+        enabled: Option<Option<bool>>,
+    },
 }
 
 /// Postfix config values.
@@ -219,6 +267,20 @@ pub struct MemberOptions {
     pub receive_own_posts: Option<bool>,
     #[arg(long, default_value = "true")]
     /// Is subscription enabled.
+    pub enabled: Option<bool>,
+}
+
+/// Account options.
+#[derive(Debug, Args)]
+pub struct AccountOptions {
+    /// Name.
+    #[arg(long)]
+    pub name: Option<String>,
+    /// Public key.
+    #[arg(long)]
+    pub public_key: Option<String>,
+    #[arg(long)]
+    /// Is account enabled.
     pub enabled: Option<bool>,
 }
 
