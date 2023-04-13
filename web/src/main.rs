@@ -63,7 +63,7 @@ async fn main() {
             "/settings/",
             get({
                 let shared_state = Arc::clone(&shared_state);
-                move |user| settings(user, shared_state)
+                move |session, user| settings(session, user, shared_state)
             }
             .layer(RequireAuth::login())),
         )
@@ -73,8 +73,8 @@ async fn main() {
                 .layer(RequireAuth::login_with_role(Role::User..))
                 .post({
                     let shared_state = Arc::clone(&shared_state);
-                    move |path, user, body| {
-                        user_list_subscription_post(path, user, body, shared_state)
+                    move |session, path, user, body| {
+                        user_list_subscription_post(session, path, user, body, shared_state)
                     }
                 })
                 .layer(RequireAuth::login_with_role(Role::User..)),
@@ -91,6 +91,7 @@ async fn main() {
 }
 
 async fn root(
+    mut session: WritableSession,
     auth: AuthContext,
     State(state): State<Arc<AppState>>,
 ) -> Result<Html<String>, ResponseError> {
@@ -123,12 +124,14 @@ async fn root(
         lists => &lists,
         root_url_prefix => &root_url_prefix,
         current_user => auth.current_user,
+        messages => session.drain_messages(),
         crumbs => crumbs,
     };
     Ok(Html(TEMPLATES.get_template("lists.html")?.render(context)?))
 }
 
 async fn list(
+    mut session: WritableSession,
     Path(id): Path<i64>,
     auth: AuthContext,
     State(state): State<Arc<AppState>>,
@@ -197,6 +200,7 @@ async fn list(
         root_url_prefix => "",
         list => Value::from_object(MailingList::from(list)),
         current_user => auth.current_user,
+        messages => session.drain_messages(),
         crumbs => crumbs,
     };
     Ok(Html(TEMPLATES.get_template("list.html")?.render(context)?))
@@ -205,6 +209,7 @@ async fn list(
 async fn list_edit(Path(_): Path<i64>, State(_): State<Arc<AppState>>) {}
 
 async fn help(
+    mut session: WritableSession,
     auth: AuthContext,
     State(state): State<Arc<AppState>>,
 ) -> Result<Html<String>, ResponseError> {
@@ -224,6 +229,7 @@ async fn help(
         description => "",
         root_url_prefix => root_url_prefix,
         current_user => auth.current_user,
+        messages => session.drain_messages(),
         crumbs => crumbs,
     };
     Ok(Html(TEMPLATES.get_template("help.html")?.render(context)?))

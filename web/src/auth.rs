@@ -69,6 +69,12 @@ pub async fn ssh_signin(
     State(state): State<Arc<AppState>>,
 ) -> impl IntoResponse {
     if auth.current_user.is_some() {
+        if let Err(err) = session.add_message(Message {
+            message: "You are already logged in.".into(),
+            level: Level::Info,
+        }) {
+            return err.into_response();
+        }
         return Redirect::to("/settings/").into_response();
     }
 
@@ -120,6 +126,7 @@ pub async fn ssh_signin(
         ssh_challenge => token,
         timeout_left => timeout_left,
         current_user => auth.current_user,
+        messages => session.drain_messages(),
         crumbs => crumbs,
     };
     Html(
@@ -133,12 +140,16 @@ pub async fn ssh_signin(
 }
 
 pub async fn ssh_signin_post(
-    session: ReadableSession,
+    mut session: WritableSession,
     mut auth: AuthContext,
     Form(payload): Form<AuthFormPayload>,
     state: Arc<AppState>,
 ) -> Result<Redirect, ResponseError> {
     if auth.current_user.as_ref().is_some() {
+        session.add_message(Message {
+            message: "You are already logged in.".into(),
+            level: Level::Info,
+        })?;
         return Ok(Redirect::to("/settings/"));
     }
 
@@ -147,13 +158,19 @@ pub async fn ssh_signin_post(
     let (prev_token, _) =
         if let Some(tok @ (_, timestamp)) = session.get::<(String, i64)>(TOKEN_KEY) {
             if !(timestamp < now && now - timestamp < EXPIRY_IN_SECS) {
-                // expired
+                session.add_message(Message {
+                    message: "The token has expired. Please retry.".into(),
+                    level: Level::Error,
+                })?;
                 return Ok(Redirect::to("/login/"));
             } else {
                 tok
             }
         } else {
-            // expired
+            session.add_message(Message {
+                message: "The token has expired. Please retry.".into(),
+                level: Level::Error,
+            })?;
             return Ok(Redirect::to("/login/"));
         };
 
@@ -178,7 +195,6 @@ pub async fn ssh_signin_post(
         namespace: "lists.mailpot.rs".into(),
         token: prev_token,
     };
-    // FIXME: show failure to user
     ssh_keygen(sig).await?;
 
     let user = User {

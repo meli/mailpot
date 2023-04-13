@@ -186,3 +186,43 @@ pub struct Crumb {
     pub label: Cow<'static, str>,
     pub url: Cow<'static, str>,
 }
+
+#[derive(Debug, Default, Hash, Copy, Clone, serde::Deserialize, serde::Serialize)]
+pub enum Level {
+    Success,
+    #[default]
+    Info,
+    Warning,
+    Error,
+}
+
+#[derive(Debug, Hash, Clone, serde::Deserialize, serde::Serialize)]
+pub struct Message {
+    pub message: Cow<'static, str>,
+    #[serde(default)]
+    pub level: Level,
+}
+
+impl Message {
+    const MESSAGE_KEY: &str = "session-message";
+}
+
+pub trait SessionMessages {
+    fn drain_messages(&mut self) -> Vec<Message>;
+    fn add_message(&mut self, _: Message) -> Result<(), ResponseError>;
+}
+
+impl SessionMessages for WritableSession {
+    fn drain_messages(&mut self) -> Vec<Message> {
+        let ret = self.get(Message::MESSAGE_KEY).unwrap_or_default();
+        self.remove(Message::MESSAGE_KEY);
+        ret
+    }
+
+    fn add_message(&mut self, message: Message) -> Result<(), ResponseError> {
+        let mut messages: Vec<Message> = self.get(Message::MESSAGE_KEY).unwrap_or_default();
+        messages.push(message);
+        self.insert(Message::MESSAGE_KEY, messages)?;
+        Ok(())
+    }
+}

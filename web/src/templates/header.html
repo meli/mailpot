@@ -13,4 +13,13 @@
                     <p class="description">{{ description }}</p>
                 {% endif %}
                 {% include "menu.html" %}
+                {% if messages %}
+                    <ul class="messagelist">
+                        {% for message in messages %}
+                            <li class="{{ message.level|lower }}">
+                                <span class="label">{{ message.level }}: </span>{{ message.message }}
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
             </div>

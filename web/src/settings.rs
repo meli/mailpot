@@ -21,6 +21,7 @@ use super::*;
 use mailpot::models::changesets::ListMembershipChangeset;
 
 pub async fn settings(
+    mut session: WritableSession,
     Extension(user): Extension<User>,
     state: Arc<AppState>,
 ) -> Result<Html<String>, ResponseError> {
@@ -53,6 +54,7 @@ pub async fn settings(
         user => user,
         subscriptions => subscriptions,
         current_user => user,
+        messages => session.drain_messages(),
         crumbs => crumbs,
     };
     Ok(Html(
@@ -61,6 +63,7 @@ pub async fn settings(
 }
 
 pub async fn user_list_subscription(
+    mut session: WritableSession,
     Extension(user): Extension<User>,
     Path(id): Path<i64>,
     State(state): State<Arc<AppState>>,
@@ -118,6 +121,7 @@ pub async fn user_list_subscription(
         list => list,
         subscription => subscription,
         current_user => user,
+        messages => session.drain_messages(),
         crumbs => crumbs,
     };
     Ok(Html(
@@ -142,11 +146,12 @@ pub struct SubscriptionFormPayload {
 }
 
 pub async fn user_list_subscription_post(
+    mut session: WritableSession,
     Path(id): Path<i64>,
     Extension(user): Extension<User>,
     Form(payload): Form<SubscriptionFormPayload>,
     state: Arc<AppState>,
-) -> Result<impl IntoResponse, ResponseError> {
+) -> Result<Redirect, ResponseError> {
     let mut db = Connection::open_db(state.conf.clone())?;
 
     let _list = db.list(id).with_status(StatusCode::NOT_FOUND)?;
@@ -193,5 +198,13 @@ pub async fn user_list_subscription_post(
     db.update_member(cset)
         .with_status(StatusCode::BAD_REQUEST)?;
 
-    Ok(Redirect::to(&format!("{}/settings/list/{id}/", &state.root_url_prefix)).into_response())
+    session.add_message(Message {
+        message: "Settings saved successfully.".into(),
+        level: Level::Success,
+    })?;
+
+    Ok(Redirect::to(&format!(
+        "{}/settings/list/{id}/",
+        &state.root_url_prefix
+    )))
 }
