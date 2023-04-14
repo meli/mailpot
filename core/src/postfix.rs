@@ -172,7 +172,7 @@ impl PostfixConfiguration {
 
     /// Save service to Postfix's [`master.cf`](https://www.postfix.org/master.5.html) file.
     ///
-    /// If you wish to do it manually, get the text output from [`generate_master_cf_entry`] and
+    /// If you wish to do it manually, get the text output from [`PostfixConfiguration::generate_master_cf_entry`] and
     /// manually append it to the [`master.cf`](https://www.postfix.org/master.5.html) file.
     ///
     /// If `master_cf_path` is `None`, the location of the file is assumed to be `/etc/postfix/master.cf`.

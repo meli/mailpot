@@ -312,7 +312,7 @@ impl Connection {
             }
             ListRequest::RetrieveArchive(ref from, ref to) => {
                 trace!(
-                    "retrieve archie action from {:?} to {:?} for addresses {:?} in list {}",
+                    "retrieve archive action from {:?} to {:?} for addresses {:?} in list {}",
                     from,
                     to,
                     env.from(),

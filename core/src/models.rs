@@ -350,7 +350,7 @@ impl std::fmt::Display for SubscriptionPolicy {
 }
 
 /// An account entry.
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
 pub struct Account {
     /// Database primary key.
     pub pk: i64,

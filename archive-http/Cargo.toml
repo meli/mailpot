@@ -21,10 +21,10 @@ name = "mpot-gen"
 path = "src/gen.rs"
 
 [dependencies]
-chrono = { version = "^0.4", optional = true }
+chrono = { version = "^0.4" }
 lazy_static = "^1.4"
 mailpot = { version = "^0.0", path = "../core" }
-minijinja = { version = "0.31.0", features = ["source", ], optional = true }
+minijinja = { version = "0.31.0", features = ["source", ] }
 percent-encoding = { version = "^2.1", optional = true }
 serde = { version = "^1", features = ["derive", ] }
 serde_json = "^1"
@@ -33,5 +33,5 @@ warp = { version = "^0.3", optional = true }
 
 [features]
 default = ["gen"]
-gen = ["dep:chrono", "dep:minijinja"]
+gen = []
 warp = ["dep:percent-encoding", "dep:tokio", "dep:warp"]

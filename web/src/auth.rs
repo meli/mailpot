@@ -409,7 +409,7 @@ mod tests {
 
         ssh_keygen(sig.clone()).await.unwrap();
 
-        sig.ssh_signature = sig.ssh_signature.replace("J", "0");
+        sig.ssh_signature = sig.ssh_signature.replace('J', "0");
 
         let err = ssh_keygen(sig).await.unwrap_err();
 
