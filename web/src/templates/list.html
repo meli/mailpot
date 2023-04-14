@@ -1,5 +1,20 @@
 {% include "header.html" %}
 <div class="body">
+    {% if current_user and not post_policy.no_subscriptions and subscription_policy.open %}
+        {% if user_context %}
+            <form method="post" action="{{ root_url_prefix }}/settings/" class="settings-form">
+                <input type="hidden" name="type", value="unsubscribe">
+                <input type="hidden" name="list_pk", value="{{ list.pk }}">
+                <input type="submit" name="unsubscribe" value="Unsubscribe as {{ current_user.address }}">
+            </form>
+        {% else %}
+            <form method="post" action="{{ root_url_prefix }}/settings/" class="settings-form">
+                <input type="hidden" name="type", value="subscribe">
+                <input type="hidden" name="list_pk", value="{{ list.pk }}">
+                <input type="submit" name="subscribe" value="Subscribe as {{ current_user.address }}">
+            </form>
+        {% endif %}
+    {% endif %}
     {% if preamble %}
         <div id="preamble" class="preamble">
             {% if preamble.custom %}
@@ -67,7 +82,7 @@
         </div>
         <hr />
         <h2 id="posts">Posts</h2>
-        <div class="posts">
+        <div class="posts entries">
             <p>{{ posts | length }} post(s)</p>
             {% for post in posts %}
                 <div class="entry">

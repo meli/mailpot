@@ -1,10 +1,9 @@
 {% include "header.html" %}
 <div class="entry">
-    <h1>{{title}}</h1>
     <div class="body">
         <ul>
             {% for l in lists %}
-                <li><a href="{{ root_url_prefix|safe }}/lists/{{ l.list.pk }}/">{{l.title}}</a></li>
+                <li><a href="{{ root_url_prefix|safe }}/lists/{{ l.list.pk }}/">{{ l.list.name }}</a></li>
             {% endfor %}
         </ul>
     </div>

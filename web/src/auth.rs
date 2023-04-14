@@ -37,19 +37,31 @@ pub enum Role {
 
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
 pub struct User {
-    pub id: i64,
-    pub password_hash: String,
+    /// SSH signature.
+    pub ssh_signature: String,
+    /// User role.
     pub role: Role,
+    /// Database primary key.
+    pub pk: i64,
+    /// Accounts's display name, optional.
+    pub name: Option<String>,
+    /// Account's e-mail address.
     pub address: String,
+    /// GPG public key.
+    pub public_key: Option<String>,
+    /// SSH public key.
+    pub password: String,
+    /// Whether this account is enabled.
+    pub enabled: bool,
 }
 
 impl AuthUser<i64, Role> for User {
     fn get_id(&self) -> i64 {
-        self.id
+        self.pk
     }
 
     fn get_password_hash(&self) -> SecretVec<u8> {
-        SecretVec::new(self.password_hash.clone().into())
+        SecretVec::new(self.ssh_signature.clone().into())
     }
 
     fn get_role(&self) -> Option<Role> {
@@ -176,7 +188,7 @@ pub async fn ssh_signin_post(
 
     drop(session);
     let db = Connection::open_db(state.conf.clone())?;
-    let acc = match db
+    let mut acc = match db
         .account_by_address(&payload.address)
         .with_status(StatusCode::BAD_REQUEST)?
     {
@@ -198,10 +210,14 @@ pub async fn ssh_signin_post(
     ssh_keygen(sig).await?;
 
     let user = User {
-        id: acc.pk(),
-        password_hash: payload.password,
+        pk: acc.pk(),
+        ssh_signature: payload.password,
         role: Role::User,
+        public_key: std::mem::take(&mut acc.public_key),
+        password: std::mem::take(&mut acc.password),
+        name: std::mem::take(&mut acc.name),
         address: payload.address,
+        enabled: acc.enabled,
     };
     state.insert_user(acc.pk(), user.clone()).await;
     auth.login(&user)

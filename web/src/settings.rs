@@ -18,7 +18,10 @@
  */
 
 use super::*;
-use mailpot::models::changesets::ListSubscriptionChangeset;
+use mailpot::models::{
+    changesets::{AccountChangeset, ListSubscriptionChangeset},
+    ListSubscription,
+};
 
 pub async fn settings(
     mut session: WritableSession,
@@ -45,7 +48,20 @@ pub async fn settings(
         })?;
     let subscriptions = db
         .account_subscriptions(acc.pk())
-        .with_status(StatusCode::BAD_REQUEST)?;
+        .with_status(StatusCode::BAD_REQUEST)?
+        .into_iter()
+        .map(|s| {
+            let list = db.list(s.list)?;
+
+            Ok((s, list))
+        })
+        .collect::<Result<
+            Vec<(
+                DbVal<mailpot::models::ListSubscription>,
+                DbVal<mailpot::models::MailingList>,
+            )>,
+            mailpot::Error,
+        >>()?;
 
     let context = minijinja::context! {
         title => "mailing list archive",
@@ -60,6 +76,169 @@ pub async fn settings(
     Ok(Html(
         TEMPLATES.get_template("settings.html")?.render(context)?,
     ))
+}
+
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[serde(tag = "type", rename_all = "kebab-case")]
+pub enum ChangeSetting {
+    Subscribe { list_pk: IntPOST },
+    Unsubscribe { list_pk: IntPOST },
+    ChangePassword { new: String },
+    ChangePublicKey { new: String },
+    // RemovePassword,
+    RemovePublicKey,
+    ChangeName { new: String },
+}
+
+pub async fn settings_post(
+    mut session: WritableSession,
+    Extension(user): Extension<User>,
+    Form(payload): Form<ChangeSetting>,
+    state: Arc<AppState>,
+) -> Result<Redirect, ResponseError> {
+    let mut db = Connection::open_db(state.conf.clone())?;
+    let acc = db
+        .account_by_address(&user.address)
+        .with_status(StatusCode::BAD_REQUEST)?
+        .ok_or_else(|| {
+            ResponseError::new("Account not found".to_string(), StatusCode::BAD_REQUEST)
+        })?;
+
+    match payload {
+        ChangeSetting::Subscribe {
+            list_pk: IntPOST(list_pk),
+        } => {
+            let subscriptions = db
+                .account_subscriptions(acc.pk())
+                .with_status(StatusCode::BAD_REQUEST)?;
+            if subscriptions.iter().any(|s| s.list == list_pk) {
+                session.add_message(Message {
+                    message: "You are already subscribed to this list.".into(),
+                    level: Level::Info,
+                })?;
+            } else {
+                db.add_subscription(
+                    list_pk,
+                    ListSubscription {
+                        pk: 0,
+                        list: list_pk,
+                        account: Some(acc.pk()),
+                        address: acc.address.clone(),
+                        name: acc.name.clone(),
+                        digest: false,
+                        enabled: true,
+                        verified: true,
+                        hide_address: false,
+                        receive_duplicates: false,
+                        receive_own_posts: false,
+                        receive_confirmation: false,
+                    },
+                )?;
+                session.add_message(Message {
+                    message: "You have subscribed to this list.".into(),
+                    level: Level::Success,
+                })?;
+            }
+        }
+        ChangeSetting::Unsubscribe {
+            list_pk: IntPOST(list_pk),
+        } => {
+            let subscriptions = db
+                .account_subscriptions(acc.pk())
+                .with_status(StatusCode::BAD_REQUEST)?;
+            if !subscriptions.iter().any(|s| s.list == list_pk) {
+                session.add_message(Message {
+                    message: "You are already not subscribed to this list.".into(),
+                    level: Level::Info,
+                })?;
+            } else {
+                let db = db.trusted();
+                db.remove_subscription(list_pk, &acc.address)?;
+                session.add_message(Message {
+                    message: "You have unsubscribed from this list.".into(),
+                    level: Level::Success,
+                })?;
+            }
+        }
+        ChangeSetting::ChangePassword { new } => {
+            db.update_account(AccountChangeset {
+                address: acc.address.clone(),
+                name: None,
+                public_key: None,
+                password: Some(new.clone()),
+                enabled: None,
+            })
+            .with_status(StatusCode::BAD_REQUEST)?;
+            session.add_message(Message {
+                message: "You have successfully updated your SSH public key.".into(),
+                level: Level::Success,
+            })?;
+            let mut user = user.clone();
+            user.password = new;
+            state.insert_user(acc.pk(), user).await;
+        }
+        ChangeSetting::ChangePublicKey { new } => {
+            db.update_account(AccountChangeset {
+                address: acc.address.clone(),
+                name: None,
+                public_key: Some(Some(new.clone())),
+                password: None,
+                enabled: None,
+            })
+            .with_status(StatusCode::BAD_REQUEST)?;
+            session.add_message(Message {
+                message: "You have successfully updated your PGP public key.".into(),
+                level: Level::Success,
+            })?;
+            let mut user = user.clone();
+            user.public_key = Some(new);
+            state.insert_user(acc.pk(), user).await;
+        }
+        ChangeSetting::RemovePublicKey => {
+            db.update_account(AccountChangeset {
+                address: acc.address.clone(),
+                name: None,
+                public_key: Some(None),
+                password: None,
+                enabled: None,
+            })
+            .with_status(StatusCode::BAD_REQUEST)?;
+            session.add_message(Message {
+                message: "You have successfully removed your PGP public key.".into(),
+                level: Level::Success,
+            })?;
+            let mut user = user.clone();
+            user.public_key = None;
+            state.insert_user(acc.pk(), user).await;
+        }
+        ChangeSetting::ChangeName { new } => {
+            let new = if new.trim().is_empty() {
+                None
+            } else {
+                Some(new)
+            };
+            db.update_account(AccountChangeset {
+                address: acc.address.clone(),
+                name: Some(new.clone()),
+                public_key: None,
+                password: None,
+                enabled: None,
+            })
+            .with_status(StatusCode::BAD_REQUEST)?;
+            session.add_message(Message {
+                message: "You have successfully updated your name.".into(),
+                level: Level::Success,
+            })?;
+            let mut user = user.clone();
+            user.name = new.clone();
+            state.insert_user(acc.pk(), user).await;
+        }
+    }
+
+    Ok(Redirect::to(&format!(
+        "{}/settings/",
+        &state.root_url_prefix
+    )))
 }
 
 pub async fn user_list_subscription(
@@ -185,6 +364,7 @@ pub async fn user_list_subscription_post(
     let cset = ListSubscriptionChangeset {
         list: s.list,
         address: std::mem::take(&mut s.address),
+        account: None,
         name: None,
         digest: Some(digest),
         hide_address: Some(hide_address),

@@ -1,12 +1,83 @@
 {% include "header.html" %}
 <div class="body body-grid">
-    <p>Address: {{ user.address }}</p>
-    <ol>
-        {% for s in subscriptions %}
-            <li>
-                <a href="{{ root_url_prefix }}/settings/list/{{ s.list }}/">{{ s.list }}</a>
-            </li>
+    <h2>Your account</h2>
+    <div class="entries">
+        <div class="entry">
+            <span>Display name: <span class="value{% if not user.name %} empty{% endif %}">{{ user.name if user.name else "None" }}</span></span>
+        </div>
+        <div class="entry">
+            <span>Address: <span class="value">{{ user.address }}</span></span>
+        </div>
+        <div class="entry">
+            <span>PGP public key: <span class="value{% if not user.public_key %} empty{% endif %}">{{ user.public_key if user.public_key else "None." }}</span></span>
+        </div>
+        <div class="entry">
+            <span>SSH public key: <span class="value{% if not user.password %} empty{% endif %}">{{ user.password if user.password else "None." }}</span></span>
+        </div>
+    </div>
+
+    <h3>List Subscriptions</h3>
+    <div class="entries">
+        <p>{{ subscriptions | length }} subscription(s)</p>
+        {% for (s, list) in subscriptions %}
+            <div class="entry">
+                <span class="subject"><a href="{{ root_url_prefix }}/settings/list/{{ s.list }}/">{{ list.name }}</a></span>
+                <!-- span class="metadata">📆&nbsp;<span>{{ s.created }}</span></span -->
+            </div>
         {% endfor %}
-    </ol>
+    </div>
+
+    <h3>Account Settings</h3>
+    <form method="post" action="{{ root_url_prefix }}/settings/" class="settings-form">
+        <input type="hidden" name="type", value="change-name">
+        <fieldset>
+            <legend>Change display name</legend>
+
+            <div>
+                <label for="id_name">New name:</label>
+                <input type="text" name="new" id="id_name" value="{{ user.name if user.name else "" }}">
+            </div>
+        </fieldset>
+        <input type="submit" name="change" value="Change">
+    </form>
+
+    <form method="post" action="{{ root_url_prefix }}/settings/" class="settings-form">
+        <input type="hidden" name="type", value="change-password">
+        <fieldset>
+            <legend>Change SSH public key</legend>
+
+            <div>
+                <label for="id_ssh_public_key">New SSH public key:</label>
+                <textarea class="key-or-sig-input wrap" required="" cols="15" rows="5" name="new" id="id_ssh_public_key">{{ user.password if user.password else "" }}</textarea>
+            </div>
+        </fieldset>
+        <input type="submit" name="change" value="Change">
+    </form>
+
+    <form method="post" action="{{ root_url_prefix }}/settings/" class="settings-form">
+        <input type="hidden" name="type", value="change-public-key">
+        <fieldset>
+            <legend>Change PGP public key</legend>
+
+            <div>
+                <label for="id_public_key">New PGP public key:</label>
+                <textarea class="key-or-sig-input wrap" required="" cols="15" rows="5" name="new" id="id_public_key">{{ user.public_key if user.public_key else "" }}</textarea>
+            </div>
+        </fieldset>
+        <input type="submit" name="change-public-key" value="Change">
+    </form>
+
+    <form method="post" action="{{ root_url_prefix }}/settings/" class="settings-form">
+        <input type="hidden" name="type", value="remove-public-key">
+        <fieldset>
+            <legend>Remove PGP public key</legend>
+
+            <div>
+                <input type="checkbox" required="" name="remove-public-keyim-sure" id="remove-public-key-im-sure">
+                <label for="remove-public-key-im-sure">I am certain I want to remove my PGP public key.</label>
+            </div>
+        </fieldset>
+        <input type="submit" name="remove-public-key" value="Remove">
+    </form>
 </div>
 {% include "footer.html" %}

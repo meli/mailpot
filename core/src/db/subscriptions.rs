@@ -32,6 +32,7 @@ impl Connection {
                     pk: row.get("pk")?,
                     list: row.get("list")?,
                     address: row.get("address")?,
+                    account: row.get("account")?,
                     name: row.get("name")?,
                     digest: row.get("digest")?,
                     enabled: row.get("enabled")?,
@@ -67,6 +68,7 @@ impl Connection {
                     pk,
                     list: row.get("list")?,
                     address: row.get("address")?,
+                    account: row.get("account")?,
                     name: row.get("name")?,
                     digest: row.get("digest")?,
                     enabled: row.get("enabled")?,
@@ -101,6 +103,7 @@ impl Connection {
                     pk,
                     list: row.get("list")?,
                     address: address_,
+                    account: row.get("account")?,
                     name: row.get("name")?,
                     digest: row.get("digest")?,
                     enabled: row.get("enabled")?,
@@ -125,11 +128,12 @@ impl Connection {
         new_val.list = list_pk;
         let mut stmt = self
             .connection
-            .prepare("INSERT INTO subscription(list, address, name, enabled, digest, verified, hide_address, receive_duplicates, receive_own_posts, receive_confirmation) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING *;").unwrap();
+            .prepare("INSERT INTO subscription(list, address, account, name, enabled, digest, verified, hide_address, receive_duplicates, receive_own_posts, receive_confirmation) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING *;").unwrap();
         let ret = stmt.query_row(
             rusqlite::params![
                 &new_val.list,
                 &new_val.address,
+                &new_val.account,
                 &new_val.name,
                 &new_val.enabled,
                 &new_val.digest,
@@ -147,6 +151,7 @@ impl Connection {
                         list: row.get("list")?,
                         address: row.get("address")?,
                         name: row.get("name")?,
+                        account: row.get("account")?,
                         digest: row.get("digest")?,
                         enabled: row.get("enabled")?,
                         verified: row.get("verified")?,
@@ -201,6 +206,7 @@ impl Connection {
                     pk,
                     list: row.get("list")?,
                     address: row.get("address")?,
+                    account: row.get("account")?,
                     name: row.get("name")?,
                     digest: row.get("digest")?,
                     enabled: row.get("enabled")?,
@@ -228,7 +234,7 @@ impl Connection {
     pub fn remove_subscription(&self, list_pk: i64, address: &str) -> Result<()> {
         self.connection
             .query_row(
-                "DELETE FROM subscription WHERE list_pk = ? AND address = ? RETURNING *;",
+                "DELETE FROM subscription WHERE list = ? AND address = ? RETURNING *;",
                 rusqlite::params![&list_pk, &address],
                 |_| Ok(()),
             )
@@ -253,6 +259,7 @@ impl Connection {
             ListSubscriptionChangeset {
                 list: _,
                 address: _,
+                account: None,
                 name: None,
                 digest: None,
                 verified: None,
@@ -270,6 +277,7 @@ impl Connection {
             list,
             address: _,
             name,
+            account,
             digest,
             enabled,
             verified,
@@ -295,6 +303,7 @@ impl Connection {
             }};
         }
         update!(name);
+        update!(account);
         update!(digest);
         update!(enabled);
         update!(verified);
@@ -370,6 +379,7 @@ impl Connection {
                     pk: row.get("pk")?,
                     list: row.get("list")?,
                     address: row.get("address")?,
+                    account: row.get("account")?,
                     name: row.get("name")?,
                     digest: row.get("digest")?,
                     enabled: row.get("enabled")?,

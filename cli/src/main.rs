@@ -148,8 +148,9 @@ fn run_app(opt: Opt) -> Result<()> {
                         ListSubscription {
                             pk: 0,
                             list: list.pk,
-                            name,
                             address,
+                            account: None,
+                            name,
                             digest: digest.unwrap_or(false),
                             hide_address: hide_address.unwrap_or(false),
                             receive_confirmation: receive_confirmation.unwrap_or(true),
@@ -181,7 +182,8 @@ fn run_app(opt: Opt) -> Result<()> {
                 Health => {
                     println!("{} health:", list);
                     let list_owners = db.list_owners(list.pk)?;
-                    let list_policy = db.list_policy(list.pk)?;
+                    let post_policy = db.list_policy(list.pk)?;
+                    let subscription_policy = db.list_subscription_policy(list.pk)?;
                     if list_owners.is_empty() {
                         println!("\tList has no owners: you should add at least one.");
                     } else {
@@ -189,16 +191,22 @@ fn run_app(opt: Opt) -> Result<()> {
                             println!("\tList owner: {}.", owner);
                         }
                     }
-                    if let Some(list_policy) = list_policy {
-                        println!("\tList has post policy: {}.", list_policy);
+                    if let Some(p) = post_policy {
+                        println!("\tList has post policy: {p}.");
                     } else {
                         println!("\tList has no post policy: you should add one.");
+                    }
+                    if let Some(p) = subscription_policy {
+                        println!("\tList has subscription policy: {p}.");
+                    } else {
+                        println!("\tList has no subscription policy: you should add one.");
                     }
                 }
                 Info => {
                     println!("{} info:", list);
                     let list_owners = db.list_owners(list.pk)?;
-                    let list_policy = db.list_policy(list.pk)?;
+                    let post_policy = db.list_policy(list.pk)?;
+                    let subscription_policy = db.list_subscription_policy(list.pk)?;
                     let subscriptions = db.list_subscriptions(list.pk)?;
                     if subscriptions.is_empty() {
                         println!("No subscriptions.");
@@ -215,10 +223,15 @@ fn run_app(opt: Opt) -> Result<()> {
                             println!("\t- {}", o);
                         }
                     }
-                    if let Some(s) = list_policy {
-                        println!("List policy: {}", s);
+                    if let Some(s) = post_policy {
+                        println!("Post policy: {s}");
                     } else {
-                        println!("List policy: None");
+                        println!("Post policy: None");
+                    }
+                    if let Some(s) = subscription_policy {
+                        println!("Subscription policy: {s}");
+                    } else {
+                        println!("Subscription policy: None");
                     }
                 }
                 UpdateSubscription {
@@ -247,6 +260,7 @@ fn run_app(opt: Opt) -> Result<()> {
                     let changeset = ListSubscriptionChangeset {
                         list: list.pk,
                         address,
+                        account: None,
                         name,
                         digest,
                         verified,
@@ -288,7 +302,7 @@ fn run_app(opt: Opt) -> Result<()> {
                     request,
                     custom,
                 } => {
-                    let policy = SubscribePolicy {
+                    let policy = SubscriptionPolicy {
                         pk: 0,
                         list: list.pk,
                         send_confirmation,
@@ -322,6 +336,7 @@ fn run_app(opt: Opt) -> Result<()> {
                     let changeset = ListSubscriptionChangeset {
                         list: list.pk,
                         address,
+                        account: None,
                         name: None,
                         digest: None,
                         verified: None,
@@ -337,6 +352,7 @@ fn run_app(opt: Opt) -> Result<()> {
                     let changeset = ListSubscriptionChangeset {
                         list: list.pk,
                         address,
+                        account: None,
                         name: None,
                         digest: None,
                         enabled: Some(false),

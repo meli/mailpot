@@ -18,7 +18,7 @@
  */
 
 //! Database models: [`MailingList`], [`ListOwner`], [`ListSubscription`], [`PostPolicy`],
-//! [`SubscribePolicy`] and [`Post`].
+//! [`SubscriptionPolicy`] and [`Post`].
 
 use super::*;
 pub mod changesets;
@@ -175,6 +175,8 @@ pub struct ListSubscription {
     pub address: String,
     /// Subscription's name, optional.
     pub name: Option<String>,
+    /// Subscription's account foreign key, optional.
+    pub account: Option<i64>,
     /// Whether this subscription is enabled.
     pub enabled: bool,
     /// Whether the e-mail address is verified.
@@ -274,6 +276,7 @@ impl From<ListOwner> for ListSubscription {
             list: val.list,
             address: val.address,
             name: val.name,
+            account: None,
             digest: false,
             hide_address: false,
             receive_duplicates: true,
@@ -323,7 +326,7 @@ impl std::fmt::Display for Post {
 ///
 /// Only one of the policy boolean flags must be set to true.
 #[derive(Debug, Clone, Deserialize, Serialize)]
-pub struct SubscribePolicy {
+pub struct SubscriptionPolicy {
     /// Database primary key.
     pub pk: i64,
     /// Mailing list foreign key (See [`MailingList`]).
@@ -340,7 +343,7 @@ pub struct SubscribePolicy {
     pub custom: bool,
 }
 
-impl std::fmt::Display for SubscribePolicy {
+impl std::fmt::Display for SubscriptionPolicy {
     fn fmt(&self, fmt: &mut std::fmt::Formatter) -> std::fmt::Result {
         write!(fmt, "{:?}", self)
     }

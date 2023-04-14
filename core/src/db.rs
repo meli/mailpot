@@ -75,8 +75,12 @@ fn user_authorizer_callback(
             table_name: "post" | "queue" | "candidate_subscription" | "subscription",
         }
         | AuthAction::Update {
-            table_name: "candidate_subscription" | "account" | "templates",
+            table_name: "candidate_subscription" | "templates",
             column_name: "accepted" | "last_modified" | "verified" | "address",
+        }
+        | AuthAction::Update {
+            table_name: "account",
+            column_name: "last_modified" | "name" | "public_key" | "password",
         }
         | AuthAction::Update {
             table_name: "subscription",

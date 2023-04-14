@@ -198,8 +198,11 @@ mod subscription_policy {
     use super::*;
 
     impl Connection {
-        /// Fetch the subscribe policy of a mailing list.
-        pub fn list_subscrbe_policy(&self, pk: i64) -> Result<Option<DbVal<SubscribePolicy>>> {
+        /// Fetch the subscription policy of a mailing list.
+        pub fn list_subscription_policy(
+            &self,
+            pk: i64,
+        ) -> Result<Option<DbVal<SubscriptionPolicy>>> {
             let mut stmt = self
                 .connection
                 .prepare("SELECT * FROM subscription_policy WHERE list = ?;")?;
@@ -207,7 +210,7 @@ mod subscription_policy {
                 .query_row([&pk], |row| {
                     let pk = row.get("pk")?;
                     Ok(DbVal(
-                        SubscribePolicy {
+                        SubscriptionPolicy {
                             pk,
                             list: row.get("list")?,
                             send_confirmation: row.get("send_confirmation")?,
@@ -304,8 +307,8 @@ mod subscription_policy {
         /// Set the unique post policy for a list.
         pub fn set_list_subscription_policy(
             &self,
-            policy: SubscribePolicy,
-        ) -> Result<DbVal<SubscribePolicy>> {
+            policy: SubscriptionPolicy,
+        ) -> Result<DbVal<SubscriptionPolicy>> {
             if !(policy.open || policy.manual || policy.request || policy.custom) {
                 return Err(
                     "Cannot add empty policy. Having no policy is probably what you want to do."
@@ -328,7 +331,7 @@ mod subscription_policy {
                     |row| {
                         let pk = row.get("pk")?;
                         Ok(DbVal(
-                            SubscribePolicy {
+                            SubscriptionPolicy {
                                 pk,
                                 list: row.get("list")?,
                                 send_confirmation: row.get("send_confirmation")?,

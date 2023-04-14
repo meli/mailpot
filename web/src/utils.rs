@@ -230,3 +230,49 @@ impl SessionMessages for WritableSession {
         Ok(())
     }
 }
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Hash)]
+#[repr(transparent)]
+pub struct IntPOST(pub i64);
+
+impl serde::Serialize for IntPOST {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        serializer.serialize_i64(self.0)
+    }
+}
+
+impl<'de> serde::Deserialize<'de> for IntPOST {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        struct IntVisitor;
+
+        impl<'de> serde::de::Visitor<'de> for IntVisitor {
+            type Value = IntPOST;
+
+            fn expecting(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+                f.write_str("Int as a number or string")
+            }
+
+            fn visit_i64<E>(self, int: i64) -> Result<Self::Value, E>
+            where
+                E: serde::de::Error,
+            {
+                Ok(IntPOST(int))
+            }
+
+            fn visit_str<E>(self, int: &str) -> Result<Self::Value, E>
+            where
+                E: serde::de::Error,
+            {
+                int.parse().map(IntPOST).map_err(serde::de::Error::custom)
+            }
+        }
+
+        deserializer.deserialize_any(IntVisitor)
+    }
+}

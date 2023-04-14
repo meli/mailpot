@@ -66,6 +66,8 @@ pub struct ListSubscriptionChangeset {
     /// Subscription e-mail address.
     pub address: String,
     /// Optional new value.
+    pub account: Option<Option<i64>>,
+    /// Optional new value.
     pub name: Option<Option<String>>,
     /// Optional new value.
     pub digest: Option<bool>,

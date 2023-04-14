@@ -43,5 +43,15 @@
         <input type="submit" value="Update settings">
         <input type="hidden" name="next" value="">
     </form>
+    <form method="post" action="{{ root_url_prefix }}/settings/" class="settings-form">
+        <fieldset>
+            <input type="hidden" name="type", value="unsubscribe">
+            <input type="hidden" name="list_pk", value="{{ list.pk }}">
+            <legend>Unsubscribe</legend>
+            <input type="checkbox" required="" name="im-sure" id="unsubscribe-im-sure">
+            <label for="unsubscribe-im-sure">I am certain I want to unsubscribe.</label>
+        </fieldset>
+        <input type="submit" name="subscribe" value="Unsubscribe">
+    </form>
 </div>
 {% include "footer.html" %}

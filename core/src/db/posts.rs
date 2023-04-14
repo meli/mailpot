@@ -256,6 +256,7 @@ impl Connection {
                         pk: 0,
                         list: list.pk,
                         address: f.get_email(),
+                        account: None,
                         name: f.get_display_name(),
                         digest: false,
                         hide_address: false,

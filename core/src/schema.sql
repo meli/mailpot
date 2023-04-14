@@ -194,6 +194,16 @@ BEGIN
   WHERE subscription.address = NEW.address;
 END;
 
+CREATE TRIGGER IF NOT EXISTS add_account_to_subscription AFTER INSERT ON subscription
+FOR EACH ROW
+BEGIN
+  UPDATE subscription
+     SET account = acc.pk,
+         last_modified = unixepoch()
+    FROM (SELECT * FROM account) AS acc
+    WHERE subscription.account = acc.address;
+END;
+
 CREATE TRIGGER IF NOT EXISTS last_modified_list AFTER UPDATE ON list
 FOR EACH ROW
 BEGIN

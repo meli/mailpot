@@ -65,7 +65,14 @@ async fn main() {
                 let shared_state = Arc::clone(&shared_state);
                 move |session, user| settings(session, user, shared_state)
             }
-            .layer(RequireAuth::login())),
+            .layer(RequireAuth::login()))
+            .post(
+                {
+                    let shared_state = Arc::clone(&shared_state);
+                    move |session, auth, body| settings_post(session, auth, body, shared_state)
+                }
+                .layer(RequireAuth::login()),
+            ),
         )
         .route(
             "/settings/list/:pk/",
@@ -95,7 +102,6 @@ async fn root(
     auth: AuthContext,
     State(state): State<Arc<AppState>>,
 ) -> Result<Html<String>, ResponseError> {
-    let root_url_prefix = &state.root_url_prefix;
     let db = Connection::open_db(state.conf.clone())?;
     let lists_values = db.lists()?;
     let lists = lists_values
@@ -104,11 +110,11 @@ async fn root(
             let months = db.months(list.pk)?;
             let posts = db.list_posts(list.pk, None)?;
             Ok(minijinja::context! {
-                title => &list.name,
+                name => &list.name,
                 posts => &posts,
                 months => &months,
                 body => &list.description.as_deref().unwrap_or_default(),
-                root_url_prefix => &root_url_prefix,
+                root_url_prefix => &state.root_url_prefix,
                 list => Value::from_object(MailingList::from(list.clone())),
             })
         })
@@ -122,7 +128,7 @@ async fn root(
         title => "mailing list archive",
         description => "",
         lists => &lists,
-        root_url_prefix => &root_url_prefix,
+        root_url_prefix => &state.root_url_prefix,
         current_user => auth.current_user,
         messages => session.drain_messages(),
         crumbs => crumbs,
@@ -139,7 +145,12 @@ async fn list(
     let db = Connection::open_db(state.conf.clone())?;
     let list = db.list(id)?;
     let post_policy = db.list_policy(list.pk)?;
+    let subscription_policy = db.list_subscription_policy(list.pk)?;
     let months = db.months(list.pk)?;
+    let user_context = auth
+        .current_user
+        .as_ref()
+        .map(|user| db.list_subscription_by_address(id, &user.address).ok());
 
     let posts = db.list_posts(list.pk, None)?;
     let mut hist = months
@@ -174,7 +185,7 @@ async fn list(
                 message => post.message,
                 timestamp => post.timestamp,
                 datetime => post.datetime,
-                root_url_prefix => "",
+                root_url_prefix => &state.root_url_prefix,
             }
         })
         .collect::<Vec<_>>();
@@ -192,14 +203,16 @@ async fn list(
         title => &list.name,
         description => &list.description,
         post_policy => &post_policy,
+        subscription_policy => &subscription_policy,
         preamble => true,
         months => &months,
         hists => &hist,
         posts => posts_ctx,
         body => &list.description.clone().unwrap_or_default(),
-        root_url_prefix => "",
+        root_url_prefix => &state.root_url_prefix,
         list => Value::from_object(MailingList::from(list)),
         current_user => auth.current_user,
+        user_context => user_context,
         messages => session.drain_messages(),
         crumbs => crumbs,
     };
@@ -213,7 +226,6 @@ async fn help(
     auth: AuthContext,
     State(state): State<Arc<AppState>>,
 ) -> Result<Html<String>, ResponseError> {
-    let root_url_prefix = &state.root_url_prefix;
     let crumbs = vec![
         Crumb {
             label: "Lists".into(),
@@ -227,7 +239,7 @@ async fn help(
     let context = minijinja::context! {
         title => "Help & Documentation",
         description => "",
-        root_url_prefix => root_url_prefix,
+        root_url_prefix => &state.root_url_prefix,
         current_user => auth.current_user,
         messages => session.drain_messages(),
         crumbs => crumbs,
