@@ -236,7 +236,7 @@ impl Connection {
         list: &DbVal<MailingList>,
         request: ListRequest,
         env: &Envelope,
-        _raw: &[u8],
+        raw: &[u8],
     ) -> Result<()> {
         match request {
             ListRequest::Subscribe => {
@@ -300,6 +300,44 @@ impl Connection {
                     list
                 );
                 //FIXME: mail to list-owner
+            }
+            ListRequest::Other(ref req) if req.trim().eq_ignore_ascii_case("password") => {
+                trace!(
+                    "list-request password set action for addresses {:?} in list {}",
+                    env.from(),
+                    list
+                );
+                let body = env.body_bytes(raw);
+                let password = body.text();
+                // FIXME: validate SSH public key with `ssh-keygen`.
+                for f in env.from() {
+                    let email_from = f.get_email();
+                    if let Ok(sub) = self.list_subscription_by_address(list.pk, &email_from) {
+                        match self.account_by_address(&email_from)? {
+                            Some(_acc) => {
+                                let changeset = AccountChangeset {
+                                    address: email_from.clone(),
+                                    name: None,
+                                    public_key: None,
+                                    password: Some(password.clone()),
+                                    enabled: None,
+                                };
+                                self.update_account(changeset)?;
+                            }
+                            None => {
+                                // Create new account.
+                                self.add_account(Account {
+                                    pk: 0,
+                                    name: sub.name.clone(),
+                                    address: sub.address.clone(),
+                                    public_key: None,
+                                    password: password.clone(),
+                                    enabled: sub.enabled,
+                                })?;
+                            }
+                        }
+                    }
+                }
             }
             ListRequest::RetrieveMessages(ref message_ids) => {
                 trace!(

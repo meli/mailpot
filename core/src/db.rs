@@ -72,7 +72,7 @@ fn user_authorizer_callback(
             table_name: "queue" | "candidate_subscription" | "subscription",
         }
         | AuthAction::Insert {
-            table_name: "post" | "queue" | "candidate_subscription" | "subscription",
+            table_name: "post" | "queue" | "candidate_subscription" | "subscription" | "account",
         }
         | AuthAction::Update {
             table_name: "candidate_subscription" | "templates",
