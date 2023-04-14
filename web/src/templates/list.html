@@ -1,5 +1,7 @@
 {% include "header.html" %}
 <div class="body">
+    <p>List Description: {{ list.description if list.description else "None" }}</p>
+    <br />
     {% if current_user and not post_policy.no_subscriptions and subscription_policy.open %}
         {% if user_context %}
             <form method="post" action="{{ root_url_prefix }}/settings/" class="settings-form">
@@ -16,12 +18,13 @@
         {% endif %}
     {% endif %}
     {% if preamble %}
+        <hr />
         <div id="preamble" class="preamble">
             {% if preamble.custom %}
                 {{ preamble.custom|safe }}
             {% else %}
                 {% if not post_policy.no_subscriptions %}
-                    <h2 id="subscribe">Subscribe</h2>
+                    <h3 id="subscribe">Subscribe</h3>
                     {% set subscription_mailto=list.subscription_mailto() %}
                     {% if subscription_mailto %}
                         {% if subscription_mailto.subject %}
@@ -39,7 +42,7 @@
 
                     {% set unsubscription_mailto=list.unsubscription_mailto() %}
                     {% if unsubscription_mailto %}
-                        <h2 id="unsubscribe">Unsubscribe</h2>
+                        <h3 id="unsubscribe">Unsubscribe</h3>
                         {% if unsubscription_mailto.subject %}
                             <p>
                                 <a href="mailto:{{ unsubscription_mailto.address|safe }}?subject={{ unsubscription_mailto.subject|safe }}"><code>{{ unsubscription_mailto.address }}</code></a> with the following subject: <code>{{unsubscription_mailto.subject}}</code>
@@ -52,7 +55,7 @@
                     {% endif %}
                 {% endif %}
 
-                <h2 id="post">Post</h2>
+                <h3 id="post">Post</h3>
                 {% if post_policy.announce_only %}
                     <p>List is <em>announce-only</em>, i.e. you can only subscribe to receive announcements.</p>
                 {% elif post_policy.subscription_only %}
@@ -71,9 +74,11 @@
             {% endif %}
         </div>
         <hr />
+    {% else %}
+        <hr />
     {% endif %}
     <div class="list">
-        <h2 id="calendar">Calendar</h2>
+        <h3 id="calendar">Calendar</h3>
         <div class="calendar">
             {%- from "calendar.html" import cal %}
             {% for date in months %}
@@ -81,7 +86,7 @@
             {% endfor %}
         </div>
         <hr />
-        <h2 id="posts">Posts</h2>
+        <h3 id="posts">Posts</h3>
         <div class="posts entries">
             <p>{{ posts | length }} post(s)</p>
             {% for post in posts %}

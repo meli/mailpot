@@ -64,7 +64,8 @@ pub async fn settings(
         >>()?;
 
     let context = minijinja::context! {
-        title => "mailing list archive",
+        title => state.site_title.as_ref(),
+        page_title => "Account settings",
         description => "",
         root_url_prefix => &root_url_prefix,
         user => user,
@@ -293,7 +294,8 @@ pub async fn user_list_subscription(
         .with_status(StatusCode::BAD_REQUEST)?;
 
     let context = minijinja::context! {
-        title => "mailing list archive",
+        title => state.site_title.as_ref(),
+        page_title => "Subscription settings",
         description => "",
         root_url_prefix => &root_url_prefix,
         user => user,

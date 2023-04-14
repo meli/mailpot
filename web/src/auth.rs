@@ -132,7 +132,8 @@ pub async fn ssh_signin(
 
     let context = minijinja::context! {
         namespace => &state.public_url,
-        title => "mailing list archive",
+        title => state.site_title.as_ref(),
+        page_title => "Log in",
         description => "",
         root_url_prefix => &root_url_prefix,
         ssh_challenge => token,

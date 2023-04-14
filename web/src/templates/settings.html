@@ -1,6 +1,6 @@
 {% include "header.html" %}
 <div class="body body-grid">
-    <h2>Your account</h2>
+    <h3>Your account</h3>
     <div class="entries">
         <div class="entry">
             <span>Display name: <span class="value{% if not user.name %} empty{% endif %}">{{ user.name if user.name else "None" }}</span></span>
@@ -16,7 +16,7 @@
         </div>
     </div>
 
-    <h3>List Subscriptions</h3>
+    <h4>List Subscriptions</h4>
     <div class="entries">
         <p>{{ subscriptions | length }} subscription(s)</p>
         {% for (s, list) in subscriptions %}
@@ -27,7 +27,7 @@
         {% endfor %}
     </div>
 
-    <h3>Account Settings</h3>
+    <h4>Account Settings</h4>
     <form method="post" action="{{ root_url_prefix }}/settings/" class="settings-form">
         <input type="hidden" name="type", value="change-name">
         <fieldset>

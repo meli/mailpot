@@ -41,6 +41,7 @@ async fn main() {
         conf,
         root_url_prefix: String::new(),
         public_url: "lists.mailpot.rs".into(),
+        site_title: "mailing list archive".into(),
         user_store: Arc::new(RwLock::new(HashMap::default())),
     });
 
@@ -125,7 +126,8 @@ async fn root(
     }];
 
     let context = minijinja::context! {
-        title => "mailing list archive",
+        title => state.site_title.as_ref(),
+        page_title => Option::<&'static str>::None,
         description => "",
         lists => &lists,
         root_url_prefix => &state.root_url_prefix,
@@ -200,7 +202,8 @@ async fn list(
         },
     ];
     let context = minijinja::context! {
-        title => &list.name,
+        title => state.site_title.as_ref(),
+        page_title => &list.name,
         description => &list.description,
         post_policy => &post_policy,
         subscription_policy => &subscription_policy,
@@ -237,7 +240,8 @@ async fn help(
         },
     ];
     let context = minijinja::context! {
-        title => "Help & Documentation",
+        title => state.site_title.as_ref(),
+        page_title => "Help & Documentation",
         description => "",
         root_url_prefix => &state.root_url_prefix,
         current_user => auth.current_user,
