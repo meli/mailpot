@@ -1,5 +1,5 @@
 [package]
-name = "mpot-web"
+name = "mailpot-web"
 version = "0.0.0+2023-04-07"
 authors = ["Manos Pitsidianakis <el13635@mail.ntua.gr>"]
 edition = "2021"

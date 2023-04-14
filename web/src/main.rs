@@ -17,7 +17,7 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-use mpot_web::*;
+use mailpot_web::*;
 use rand::Rng;
 
 use minijinja::value::Value;

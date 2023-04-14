@@ -1515,6 +1515,27 @@ dependencies = [
 ]
 
 [[package]]
+name = "mailpot-web"
+version = "0.0.0+2023-04-07"
+dependencies = [
+ "axum",
+ "axum-login",
+ "axum-sessions",
+ "chrono",
+ "eyre",
+ "http",
+ "lazy_static",
+ "mailpot",
+ "minijinja",
+ "percent-encoding",
+ "rand",
+ "serde",
+ "serde_json",
+ "tempfile",
+ "tokio",
+]
+
+[[package]]
 name = "matchit"
 version = "0.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1671,27 +1692,6 @@ dependencies = [
  "serde_json",
  "tokio",
  "warp",
-]
-
-[[package]]
-name = "mpot-web"
-version = "0.0.0+2023-04-07"
-dependencies = [
- "axum",
- "axum-login",
- "axum-sessions",
- "chrono",
- "eyre",
- "http",
- "lazy_static",
- "mailpot",
- "minijinja",
- "percent-encoding",
- "rand",
- "serde",
- "serde_json",
- "tempfile",
- "tokio",
 ]
 
 [[package]]

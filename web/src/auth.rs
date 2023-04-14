@@ -242,7 +242,7 @@ pub struct SshSignature {
 /// Run ssh signature validation with `ssh-keygen` binary.
 ///
 /// ```no_run
-/// use mpot_web::{ssh_keygen, SshSignature};
+/// use mailpot_web::{ssh_keygen, SshSignature};
 ///
 /// async fn key_gen(
 ///     ssh_public_key: String,
