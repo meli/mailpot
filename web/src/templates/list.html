@@ -1,6 +1,10 @@
 {% include "header.html" %}
 <div class="body">
-    <p>List Description: {{ list.description if list.description else "None" }}</p>
+    {% if list.description %}
+        <p>List description: {{ list.description }}</p>
+    {% else %}
+        <p>No list description.</p>
+    {% endif %}
     <br />
     {% if current_user and not post_policy.no_subscriptions and subscription_policy.open %}
         {% if user_context %}
@@ -24,7 +28,7 @@
                 {{ preamble.custom|safe }}
             {% else %}
                 {% if not post_policy.no_subscriptions %}
-                    <h3 id="subscribe">Subscribe</h3>
+                    <h3 id="subscribe">Subscribe<a class="self-link" href="#subscribe"></a></h3>
                     {% set subscription_mailto=list.subscription_mailto() %}
                     {% if subscription_mailto %}
                         {% if subscription_mailto.subject %}
@@ -42,7 +46,7 @@
 
                     {% set unsubscription_mailto=list.unsubscription_mailto() %}
                     {% if unsubscription_mailto %}
-                        <h3 id="unsubscribe">Unsubscribe</h3>
+                        <h3 id="unsubscribe">Unsubscribe<a class="self-link" href="#unsubscribe"></a></h3>
                         {% if unsubscription_mailto.subject %}
                             <p>
                                 <a href="mailto:{{ unsubscription_mailto.address|safe }}?subject={{ unsubscription_mailto.subject|safe }}"><code>{{ unsubscription_mailto.address }}</code></a> with the following subject: <code>{{unsubscription_mailto.subject}}</code>
@@ -55,7 +59,7 @@
                     {% endif %}
                 {% endif %}
 
-                <h3 id="post">Post</h3>
+                <h3 id="post">Post<a class="self-link" href="#post"></a></h3>
                 {% if post_policy.announce_only %}
                     <p>List is <em>announce-only</em>, i.e. you can only subscribe to receive announcements.</p>
                 {% elif post_policy.subscription_only %}
@@ -78,7 +82,7 @@
         <hr />
     {% endif %}
     <div class="list">
-        <h3 id="calendar">Calendar</h3>
+        <h3 id="calendar">Calendar<a class="self-link" href="#calendar"></a></h3>
         <div class="calendar">
             {%- from "calendar.html" import cal %}
             {% for date in months %}
@@ -86,12 +90,12 @@
             {% endfor %}
         </div>
         <hr />
-        <h3 id="posts">Posts</h3>
+        <h3 id="posts">Posts<a class="self-link" href="#posts"></a></h3>
         <div class="posts entries">
             <p>{{ posts | length }} post(s)</p>
             {% for post in posts %}
                 <div class="entry">
-                    <span class="subject"><a href="{{ root_url_prefix|safe }}/list/{{post.list}}/{{ post.message_id }}.html">{{ post.subject }}</a></span>
+                    <span class="subject"><a href="{{ root_url_prefix|safe }}/lists/{{post.list}}/<{{ post.message_id }}>/">{{ post.subject }}</a></span>
                     <span class="metadata">👤&nbsp;<span class="from">{{ post.address }}</span> 📆&nbsp;<span class="date">{{ post.datetime }}</span></span>
                     <span class="metadata">🪪 &nbsp;<span class="message-id">{{ post.message_id }}</span></span>
                 </div>

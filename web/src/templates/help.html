@@ -1,5 +1,20 @@
 {% include "header.html" %}
 <div class="body body-grid">
-    {{ body }}
+    <h3 id="subscribe">Subscribing to a list<a class="self-link" href="#subscribe"></a></h3>
+
+    <p>A mailing list can have different subscription policies, or none at all (which would disable subscriptions). If subscriptions are open or require manual approval by the list owners, you can send an e-mail request to its <code>+request</code> sub-address with the subject <code>subscribe</code>.</p>
+
+    <h3 id="unsubscribe">Unsubscribing from a list<a class="self-link" href="#unsubscribe"></a></h3>
+
+    <p>Similarly to subscribing, send an e-mail request to the list's <code>+request</code> sub-address with the subject <code>unsubscribe</code>.</p>
+
+    <h3 id="do-i-need-an-account">Do I need an account?<a class="self-link" href="#do-i-need-an-account"></a></h3>
+
+    <p>An account's utility is only to manage your subscriptions and preferences from the web interface. Thus you don't need one if you want to perform all list operations from your e-mail client instead.</p>
+
+    <h3 id="create-account">Creating an account<a class="self-link" href="#create-account"></a></h3>
+
+    <p>After successfully subscribing to a list, simply send an e-mail request to its <code>+request</code> sub-address with the subject <code>password</code> and an SSH public key in the e-mail body as plain text.</p>
+    <p>This will either create you an account with this key, or change your existing key if you already have one.</p>
 </div>
 {% include "footer.html" %}

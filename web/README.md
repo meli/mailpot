@@ -1,12 +1,17 @@
-# mailpot REST http server
+# mailpot web server
 
 ```shell
-cargo run --bin mpot-archives
+cargo run --bin mpot-web -- /path/to/conf.toml
 ```
 
-## generate static files
+## Configuration
 
-```shell
-# mpot-gen CONF_FILE OUTPUT_DIR OPTIONAL_ROOT_URL_PREFIX
-cargo run --bin mpot-gen -- ../conf.toml ./out/ "/mailpot"
-```
+By default, the server listens on `0.0.0.0:3000`.
+The following environment variables can be defined to configure various settings:
+
+- `HOSTNAME`, default `0.0.0.0`.
+- `PORT`, default `3000`.
+- `PUBLIC_URL`, default `lists.mailpot.rs`.
+- `SITE_TITLE`, default `mailing list archive`.
+- `ROOT_URL_PREFIX`, default empty.
+- `SSH_NAMESPACE`, default `lists.mailpot.rs`.

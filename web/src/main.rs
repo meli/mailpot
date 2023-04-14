@@ -39,9 +39,11 @@ async fn main() {
 
     let shared_state = Arc::new(AppState {
         conf,
-        root_url_prefix: String::new(),
-        public_url: "lists.mailpot.rs".into(),
-        site_title: "mailing list archive".into(),
+        root_url_prefix: std::env::var("ROOT_URL_PREFIX").unwrap_or_default(),
+        public_url: std::env::var("PUBLIC_URL").unwrap_or_else(|_| "lists.mailpot.rs".to_string()),
+        site_title: std::env::var("SITE_TITLE")
+            .unwrap_or_else(|_| "mailing list archive".to_string())
+            .into(),
         user_store: Arc::new(RwLock::new(HashMap::default())),
     });
 
@@ -50,6 +52,7 @@ async fn main() {
     let app = Router::new()
         .route("/", get(root))
         .route("/lists/:pk/", get(list))
+        .route("/lists/:pk/:msgid/", get(list_post))
         .route("/lists/:pk/edit/", get(list_edit))
         .route("/help/", get(help))
         .route(
@@ -91,8 +94,9 @@ async fn main() {
         .layer(session_layer)
         .with_state(shared_state);
 
-    // run it with hyper on localhost:3000
-    axum::Server::bind(&"0.0.0.0:3000".parse().unwrap())
+    let hostname = std::env::var("HOSTNAME").unwrap_or_else(|_| "0.0.0.0".to_string());
+    let port = std::env::var("PORT").unwrap_or_else(|_| "3000".to_string());
+    axum::Server::bind(&format!("{hostname}:{port}").parse().unwrap())
         .serve(app.into_make_service())
         .await
         .unwrap();
@@ -220,6 +224,80 @@ async fn list(
         crumbs => crumbs,
     };
     Ok(Html(TEMPLATES.get_template("list.html")?.render(context)?))
+}
+
+async fn list_post(
+    mut session: WritableSession,
+    Path((id, msg_id)): Path<(i64, String)>,
+    auth: AuthContext,
+    State(state): State<Arc<AppState>>,
+) -> Result<Html<String>, ResponseError> {
+    let db = Connection::open_db(state.conf.clone())?;
+    let list = db.list(id)?;
+    let user_context = auth
+        .current_user
+        .as_ref()
+        .map(|user| db.list_subscription_by_address(id, &user.address).ok());
+
+    let post = if let Some(post) = db.list_post_by_message_id(list.pk, &msg_id)? {
+        post
+    } else {
+        return Err(ResponseError::new(
+            format!("Post with Message-ID {} not found", msg_id),
+            StatusCode::NOT_FOUND,
+        ));
+    };
+    let envelope = melib::Envelope::from_bytes(post.message.as_slice(), None)
+        .with_status(StatusCode::BAD_REQUEST)?;
+    let body = envelope.body_bytes(post.message.as_slice());
+    let body_text = body.text();
+    let subject = envelope.subject();
+    let mut subject_ref = subject.trim();
+    if subject_ref.starts_with('[')
+        && subject_ref[1..].starts_with(&list.id)
+        && subject_ref[1 + list.id.len()..].starts_with(']')
+    {
+        subject_ref = subject_ref[2 + list.id.len()..].trim();
+    }
+    let crumbs = vec![
+        Crumb {
+            label: "Lists".into(),
+            url: "/".into(),
+        },
+        Crumb {
+            label: list.name.clone().into(),
+            url: format!("/lists/{}/", list.pk).into(),
+        },
+        Crumb {
+            label: format!("{} {msg_id}", subject_ref).into(),
+            url: format!("/lists/{}/{}/", list.pk, msg_id).into(),
+        },
+    ];
+    let context = minijinja::context! {
+        title => state.site_title.as_ref(),
+        page_title => subject_ref,
+        description => &list.description,
+        list => Value::from_object(MailingList::from(list)),
+        pk => post.pk,
+        body => &body_text,
+        from => &envelope.field_from_to_string(),
+        date => &envelope.date_as_str(),
+        to => &envelope.field_to_to_string(),
+        subject => &envelope.subject(),
+        trimmed_subject => subject_ref,
+        in_reply_to => &envelope.in_reply_to_display().map(|r| r.to_string().as_str().strip_carets().to_string()),
+        references => &envelope.references().into_iter().map(|m| m.to_string().as_str().strip_carets().to_string()).collect::<Vec<String>>(),
+        message_id => msg_id,
+        message => post.message,
+        timestamp => post.timestamp,
+        datetime => post.datetime,
+        root_url_prefix => &state.root_url_prefix,
+        current_user => auth.current_user,
+        user_context => user_context,
+        messages => session.drain_messages(),
+        crumbs => crumbs,
+    };
+    Ok(Html(TEMPLATES.get_template("post.html")?.render(context)?))
 }
 
 async fn list_edit(Path(_): Path<i64>, State(_): State<Arc<AppState>>) {}

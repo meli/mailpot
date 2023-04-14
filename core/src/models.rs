@@ -302,6 +302,8 @@ pub struct Post {
     pub pk: i64,
     /// Mailing list foreign key (See [`MailingList`]).
     pub list: i64,
+    /// Envelope `From` of post.
+    pub envelope_from: Option<String>,
     /// `From` header address of post.
     pub address: String,
     /// `Message-ID` header value of post.

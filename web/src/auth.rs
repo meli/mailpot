@@ -87,7 +87,7 @@ pub async fn ssh_signin(
         }) {
             return err.into_response();
         }
-        return Redirect::to("/settings/").into_response();
+        return Redirect::to(&format!("{}/settings/", state.root_url_prefix)).into_response();
     }
 
     let now: i64 = chrono::offset::Utc::now().timestamp();
@@ -163,7 +163,10 @@ pub async fn ssh_signin_post(
             message: "You are already logged in.".into(),
             level: Level::Info,
         })?;
-        return Ok(Redirect::to("/settings/"));
+        return Ok(Redirect::to(&format!(
+            "{}/settings/",
+            state.root_url_prefix
+        )));
     }
 
     let now: i64 = chrono::offset::Utc::now().timestamp();
@@ -175,7 +178,7 @@ pub async fn ssh_signin_post(
                     message: "The token has expired. Please retry.".into(),
                     level: Level::Error,
                 })?;
-                return Ok(Redirect::to("/login/"));
+                return Ok(Redirect::to(&format!("{}/login/", state.root_url_prefix)));
             } else {
                 tok
             }
@@ -184,7 +187,7 @@ pub async fn ssh_signin_post(
                 message: "The token has expired. Please retry.".into(),
                 level: Level::Error,
             })?;
-            return Ok(Redirect::to("/login/"));
+            return Ok(Redirect::to(&format!("{}/login/", state.root_url_prefix)));
         };
 
     drop(session);
@@ -205,7 +208,9 @@ pub async fn ssh_signin_post(
         email: payload.address.clone(),
         ssh_public_key: acc.password.clone(),
         ssh_signature: payload.password.clone(),
-        namespace: "lists.mailpot.rs".into(),
+        namespace: std::env::var("SSH_NAMESPACE")
+            .unwrap_or_else(|_| "lists.mailpot.rs".to_string())
+            .into(),
         token: prev_token,
     };
     ssh_keygen(sig).await?;

@@ -70,8 +70,56 @@
         overflow-wrap: break-word;
     }
 
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
+        position: relative;
+    }
+    h1 > a.self-link,
+    h2 > a.self-link,
+    h3 > a.self-link,
+    h4 > a.self-link,
+    h5 > a.self-link,
+    h6 > a.self-link {
+        font-size: 83%;
+    }
+
+    a.self-link::before {
+        content: "§";
+    }
+
+    a.self-link {
+        --width: 28px;
+        position: absolute;
+        top: 0px;
+        left: calc(var(--width) - 3.5rem);
+        width: calc(-1 * var(--width) + 3.5rem);
+        height: 2em;
+        text-align: center;
+        border: medium none;
+        transition: opacity 0.2s ease 0s;
+        opacity: 0.5;
+    }
+
     a {
         text-decoration: none;
+    }
+
+    a[href]:focus, a[href]:hover {
+        text-decoration-thickness: 2px;
+        text-decoration-skip-ink: none;
+    }
+
+    a[href] {
+        text-decoration: underline;
+        color: #034575;
+        color: var(--a-normal-text);
+        text-decoration-color: #707070;
+        text-decoration-color: var(--a-normal-underline);
+        text-decoration-skip-ink: none;
     }
 
     ul, ol {
@@ -93,6 +141,17 @@
     /* Create a root stacking context (only when using frameworks like Next.js) */
     #__next {
         isolation: isolate;
+    }
+
+    :root {
+        color-scheme: light dark;
+        --a-normal-text: #034575;
+        --a-normal-underline: #bbb;
+        --a-visited-text: var(--a-normal-text);
+        --a-visited-underline: #707070;
+        --a-hover-bg: #bfbfbf40;
+        --a-active-text: #c00;
+        --a-active-underline: #c00;
     }
 
     @media (prefers-color-scheme: light) {
@@ -481,21 +540,29 @@
         text-align: right;
         color: GrayText;
     }
+
     table.headers th[scope="row"] {
         padding-right: .5rem;
+        vertical-align: top;
     }
-    table.headers tr>th:after {
-        content:':';
-        display: inline-block;
+
+    table.headers tr>td {
+        overflow-wrap: break-word;
+        hyphens: auto;
     }
+
     div.post-body {
         margin: 1rem;
     }
+
     div.post-body>pre {
-        max-width: 98vw;
+        max-width: 69vw;
         overflow-wrap: break-word;
         white-space: pre-line;
+        margin-left: min(5rem, 14vw);
+        hyphens: auto;
     }
+
     td.message-id,
     span.message-id{
         color: GrayText;
