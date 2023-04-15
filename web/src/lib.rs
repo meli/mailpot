@@ -18,14 +18,14 @@
  */
 
 pub use axum::{
-    extract::{Path, State},
+    extract::{Path, Query, State},
     handler::Handler,
     response::{Html, IntoResponse, Redirect},
     routing::{get, post},
     Extension, Form, Router,
 };
 
-pub use http::{Request, Response, StatusCode};
+pub use axum_extra::routing::RouterExt;
 
 pub use axum_login::{
     memory_store::MemoryStore as AuthMemoryStore, secrecy::SecretVec, AuthLayer, AuthUser,
@@ -40,7 +40,9 @@ pub use axum_sessions::{
 pub type AuthContext =
     axum_login::extractors::AuthContext<i64, auth::User, Arc<AppState>, auth::Role>;
 
-pub type RequireAuth = RequireAuthorizationLayer<i64, auth::User, auth::Role>;
+pub type RequireAuth = auth::auth_request::RequireAuthorizationLayer<i64, auth::User, auth::Role>;
+
+pub use http::{Request, Response, StatusCode};
 
 use chrono::Datelike;
 use minijinja::value::{Object, Value};

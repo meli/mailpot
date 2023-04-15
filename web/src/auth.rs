@@ -77,6 +77,7 @@ pub struct AuthFormPayload {
 
 pub async fn ssh_signin(
     mut session: WritableSession,
+    Query(next): Query<Next>,
     auth: AuthContext,
     State(state): State<Arc<AppState>>,
 ) -> impl IntoResponse {
@@ -87,7 +88,17 @@ pub async fn ssh_signin(
         }) {
             return err.into_response();
         }
-        return Redirect::to(&format!("{}/settings/", state.root_url_prefix)).into_response();
+        return next
+            .or_else(|| format!("{}/settings/", state.root_url_prefix))
+            .into_response();
+    }
+    if next.next.is_some() {
+        if let Err(err) = session.add_message(Message {
+            message: "You need to be logged in to access this page.".into(),
+            level: Level::Info,
+        }) {
+            return err.into_response();
+        };
     }
 
     let now: i64 = chrono::offset::Utc::now().timestamp();
@@ -154,6 +165,7 @@ pub async fn ssh_signin(
 
 pub async fn ssh_signin_post(
     mut session: WritableSession,
+    Query(next): Query<Next>,
     mut auth: AuthContext,
     Form(payload): Form<AuthFormPayload>,
     state: Arc<AppState>,
@@ -163,10 +175,7 @@ pub async fn ssh_signin_post(
             message: "You are already logged in.".into(),
             level: Level::Info,
         })?;
-        return Ok(Redirect::to(&format!(
-            "{}/settings/",
-            state.root_url_prefix
-        )));
+        return Ok(next.or_else(|| format!("{}/settings/", state.root_url_prefix)));
     }
 
     let now: i64 = chrono::offset::Utc::now().timestamp();
@@ -178,7 +187,15 @@ pub async fn ssh_signin_post(
                     message: "The token has expired. Please retry.".into(),
                     level: Level::Error,
                 })?;
-                return Ok(Redirect::to(&format!("{}/login/", state.root_url_prefix)));
+                return Ok(Redirect::to(&format!(
+                    "{}/login/{}",
+                    state.root_url_prefix,
+                    if let Some(ref next) = next.next {
+                        next.as_str()
+                    } else {
+                        ""
+                    }
+                )));
             } else {
                 tok
             }
@@ -187,7 +204,15 @@ pub async fn ssh_signin_post(
                 message: "The token has expired. Please retry.".into(),
                 level: Level::Error,
             })?;
-            return Ok(Redirect::to(&format!("{}/login/", state.root_url_prefix)));
+            return Ok(Redirect::to(&format!(
+                "{}/login/{}",
+                state.root_url_prefix,
+                if let Some(ref next) = next.next {
+                    next.as_str()
+                } else {
+                    ""
+                }
+            )));
         };
 
     drop(session);
@@ -229,10 +254,7 @@ pub async fn ssh_signin_post(
     auth.login(&user)
         .await
         .map_err(|err| ResponseError::new(err.to_string(), StatusCode::BAD_REQUEST))?;
-    Ok(Redirect::to(&format!(
-        "{}/settings/",
-        state.root_url_prefix
-    )))
+    Ok(next.or_else(|| format!("{}/settings/", state.root_url_prefix)))
 }
 
 #[derive(Debug, Clone, Default)]
@@ -358,6 +380,215 @@ pub async fn ssh_keygen(sig: SshSignature) -> Result<(), Box<dyn std::error::Err
 pub async fn logout_handler(mut auth: AuthContext, State(state): State<Arc<AppState>>) -> Redirect {
     auth.logout().await;
     Redirect::to(&format!("{}/settings/", state.root_url_prefix))
+}
+
+pub mod auth_request {
+    use super::*;
+
+    use std::marker::PhantomData;
+    use std::ops::RangeBounds;
+
+    use axum::body::HttpBody;
+    use dyn_clone::DynClone;
+    use tower_http::auth::AuthorizeRequest;
+
+    trait RoleBounds<Role>: DynClone + Send + Sync {
+        fn contains(&self, role: Option<Role>) -> bool;
+    }
+
+    impl<T, Role> RoleBounds<Role> for T
+    where
+        Role: PartialOrd + PartialEq,
+        T: RangeBounds<Role> + Clone + Send + Sync,
+    {
+        fn contains(&self, role: Option<Role>) -> bool {
+            if let Some(role) = role {
+                RangeBounds::contains(self, &role)
+            } else {
+                role.is_none()
+            }
+        }
+    }
+
+    /// Type that performs login authorization.
+    ///
+    /// See [`RequireAuthorizationLayer::login`] for more details.
+    pub struct Login<UserId, User, ResBody, Role = ()> {
+        login_url: Option<Arc<Cow<'static, str>>>,
+        redirect_field_name: Option<Arc<Cow<'static, str>>>,
+        role_bounds: Box<dyn RoleBounds<Role>>,
+        _user_id_type: PhantomData<UserId>,
+        _user_type: PhantomData<User>,
+        _body_type: PhantomData<fn() -> ResBody>,
+    }
+
+    impl<UserId, User, ResBody, Role> Clone for Login<UserId, User, ResBody, Role> {
+        fn clone(&self) -> Self {
+            Self {
+                login_url: self.login_url.clone(),
+                redirect_field_name: self.redirect_field_name.clone(),
+                role_bounds: dyn_clone::clone_box(&*self.role_bounds),
+                _user_id_type: PhantomData,
+                _user_type: PhantomData,
+                _body_type: PhantomData,
+            }
+        }
+    }
+
+    impl<UserId, User, ReqBody, ResBody, Role> AuthorizeRequest<ReqBody>
+        for Login<UserId, User, ResBody, Role>
+    where
+        Role: PartialOrd + PartialEq + Clone + Send + Sync + 'static,
+        User: AuthUser<UserId, Role>,
+        ResBody: HttpBody + Default,
+    {
+        type ResponseBody = ResBody;
+
+        fn authorize(
+            &mut self,
+            request: &mut Request<ReqBody>,
+        ) -> Result<(), Response<Self::ResponseBody>> {
+            let user = request
+                .extensions()
+                .get::<Option<User>>()
+                .expect("Auth extension missing. Is the auth layer installed?");
+
+            match user {
+                Some(user) if self.role_bounds.contains(user.get_role()) => {
+                    let user = user.clone();
+                    request.extensions_mut().insert(user);
+
+                    Ok(())
+                }
+
+                _ => {
+                    let unauthorized_response = if let Some(ref login_url) = self.login_url {
+                        let url: Cow<'static, str> =
+                            if let Some(ref next) = self.redirect_field_name {
+                                format!(
+                                    "{login_url}?{next}={}",
+                                    percent_encoding::utf8_percent_encode(
+                                        request.uri().path(),
+                                        percent_encoding::CONTROLS
+                                    )
+                                )
+                                .into()
+                            } else {
+                                login_url.as_ref().clone()
+                            };
+                        Response::builder()
+                            .status(http::StatusCode::TEMPORARY_REDIRECT)
+                            .header(http::header::LOCATION, url.as_ref())
+                            .body(Default::default())
+                            .unwrap()
+                    } else {
+                        Response::builder()
+                            .status(http::StatusCode::UNAUTHORIZED)
+                            .body(Default::default())
+                            .unwrap()
+                    };
+
+                    Err(unauthorized_response)
+                }
+            }
+        }
+    }
+
+    /// A wrapper around [`tower_http::auth::RequireAuthorizationLayer`] which
+    /// provides login authorization.
+    pub struct RequireAuthorizationLayer<UserId, User, Role = ()>(UserId, User, Role);
+
+    impl<UserId, User, Role> RequireAuthorizationLayer<UserId, User, Role>
+    where
+        Role: PartialOrd + PartialEq + Clone + Send + Sync + 'static,
+        User: AuthUser<UserId, Role>,
+    {
+        /// Authorizes requests by requiring a logged in user, otherwise it rejects
+        /// with [`http::StatusCode::UNAUTHORIZED`].
+        pub fn login<ResBody>(
+        ) -> tower_http::auth::RequireAuthorizationLayer<Login<UserId, User, ResBody, Role>>
+        where
+            ResBody: HttpBody + Default,
+        {
+            tower_http::auth::RequireAuthorizationLayer::custom(Login::<_, _, _, _> {
+                login_url: None,
+                redirect_field_name: None,
+                role_bounds: Box::new(..),
+                _user_id_type: PhantomData,
+                _user_type: PhantomData,
+                _body_type: PhantomData,
+            })
+        }
+
+        /// Authorizes requests by requiring a logged in user to have a specific
+        /// range of roles, otherwise it rejects with
+        /// [`http::StatusCode::UNAUTHORIZED`].
+        pub fn login_with_role<ResBody>(
+            role_bounds: impl RangeBounds<Role> + Clone + Send + Sync + 'static,
+        ) -> tower_http::auth::RequireAuthorizationLayer<Login<UserId, User, ResBody, Role>>
+        where
+            ResBody: HttpBody + Default,
+        {
+            tower_http::auth::RequireAuthorizationLayer::custom(Login::<_, _, _, _> {
+                login_url: None,
+                redirect_field_name: None,
+                role_bounds: Box::new(role_bounds),
+                _user_id_type: PhantomData,
+                _user_type: PhantomData,
+                _body_type: PhantomData,
+            })
+        }
+
+        /// Authorizes requests by requiring a logged in user, otherwise it redirects to the
+        /// provided login URL.
+        ///
+        /// If `redirect_field_name` is set to a value, the login page will receive the path it was
+        /// redirected from in the URI query part. For example, attempting to visit a protected path
+        /// `/protected` would redirect you to `/login?next=/protected` allowing you to know how to
+        /// return the visitor to their requested page.
+        pub fn login_or_redirect<ResBody>(
+            login_url: Arc<Cow<'static, str>>,
+            redirect_field_name: Option<Arc<Cow<'static, str>>>,
+        ) -> tower_http::auth::RequireAuthorizationLayer<Login<UserId, User, ResBody, Role>>
+        where
+            ResBody: HttpBody + Default,
+        {
+            tower_http::auth::RequireAuthorizationLayer::custom(Login::<_, _, _, _> {
+                login_url: Some(login_url),
+                redirect_field_name,
+                role_bounds: Box::new(..),
+                _user_id_type: PhantomData,
+                _user_type: PhantomData,
+                _body_type: PhantomData,
+            })
+        }
+
+        /// Authorizes requests by requiring a logged in user to have a specific
+        /// range of roles, otherwise it redirects to the
+        /// provided login URL.
+        ///
+        /// If `redirect_field_name` is set to a value, the login page will receive the path it was
+        /// redirected from in the URI query part. For example, attempting to visit a protected path
+        /// `/protected` would redirect you to `/login?next=/protected` allowing you to know how to
+        /// return the visitor to their requested page.
+        pub fn login_with_role_or_redirect<ResBody>(
+            role_bounds: impl RangeBounds<Role> + Clone + Send + Sync + 'static,
+            login_url: Arc<Cow<'static, str>>,
+            redirect_field_name: Option<Arc<Cow<'static, str>>>,
+        ) -> tower_http::auth::RequireAuthorizationLayer<Login<UserId, User, ResBody, Role>>
+        where
+            ResBody: HttpBody + Default,
+        {
+            tower_http::auth::RequireAuthorizationLayer::custom(Login::<_, _, _, _> {
+                login_url: Some(login_url),
+                redirect_field_name,
+                role_bounds: Box::new(role_bounds),
+                _user_id_type: PhantomData,
+                _user_type: PhantomData,
+                _body_type: PhantomData,
+            })
+        }
+    }
 }
 
 #[cfg(test)]

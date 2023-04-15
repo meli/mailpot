@@ -49,46 +49,63 @@ async fn main() {
 
     let auth_layer = AuthLayer::new(shared_state.clone(), &secret);
 
+    let login_url = Arc::new(format!("{}/login/", shared_state.root_url_prefix).into());
     let app = Router::new()
         .route("/", get(root))
-        .route("/lists/:pk/", get(list))
-        .route("/lists/:pk/:msgid/", get(list_post))
-        .route("/lists/:pk/edit/", get(list_edit))
-        .route("/help/", get(help))
-        .route(
+        .route_with_tsr("/lists/:pk/", get(list))
+        .route_with_tsr("/lists/:pk/:msgid/", get(list_post))
+        .route_with_tsr("/lists/:pk/edit/", get(list_edit))
+        .route_with_tsr("/help/", get(help))
+        .route_with_tsr(
             "/login/",
             get(auth::ssh_signin).post({
                 let shared_state = Arc::clone(&shared_state);
-                move |session, auth, body| auth::ssh_signin_post(session, auth, body, shared_state)
+                move |session, query, auth, body| {
+                    auth::ssh_signin_post(session, query, auth, body, shared_state)
+                }
             }),
         )
-        .route("/logout/", get(logout_handler))
-        .route(
+        .route_with_tsr("/logout/", get(logout_handler))
+        .route_with_tsr(
             "/settings/",
             get({
                 let shared_state = Arc::clone(&shared_state);
                 move |session, user| settings(session, user, shared_state)
             }
-            .layer(RequireAuth::login()))
+            .layer(RequireAuth::login_or_redirect(
+                Arc::clone(&login_url),
+                Some(Arc::new("next".into())),
+            )))
             .post(
                 {
                     let shared_state = Arc::clone(&shared_state);
                     move |session, auth, body| settings_post(session, auth, body, shared_state)
                 }
-                .layer(RequireAuth::login()),
+                .layer(RequireAuth::login_or_redirect(
+                    Arc::clone(&login_url),
+                    Some(Arc::new("next".into())),
+                )),
             ),
         )
-        .route(
+        .route_with_tsr(
             "/settings/list/:pk/",
             get(user_list_subscription)
-                .layer(RequireAuth::login_with_role(Role::User..))
+                .layer(RequireAuth::login_with_role_or_redirect(
+                    Role::User..,
+                    Arc::clone(&login_url),
+                    Some(Arc::new("next".into())),
+                ))
                 .post({
                     let shared_state = Arc::clone(&shared_state);
                     move |session, path, user, body| {
                         user_list_subscription_post(session, path, user, body, shared_state)
                     }
                 })
-                .layer(RequireAuth::login_with_role(Role::User..)),
+                .layer(RequireAuth::login_with_role_or_redirect(
+                    Role::User..,
+                    Arc::clone(&login_url),
+                    Some(Arc::new("next".into())),
+                )),
         )
         .layer(auth_layer)
         .layer(session_layer)

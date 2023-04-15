@@ -1519,9 +1519,11 @@ name = "mailpot-web"
 version = "0.0.0+2023-04-07"
 dependencies = [
  "axum",
+ "axum-extra",
  "axum-login",
  "axum-sessions",
  "chrono",
+ "dyn-clone",
  "eyre",
  "http",
  "lazy_static",
@@ -1533,6 +1535,7 @@ dependencies = [
  "serde_json",
  "tempfile",
  "tokio",
+ "tower-http 0.3.5",
 ]
 
 [[package]]

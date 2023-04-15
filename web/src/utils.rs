@@ -276,3 +276,37 @@ impl<'de> serde::Deserialize<'de> for IntPOST {
         deserializer.deserialize_any(IntVisitor)
     }
 }
+
+#[derive(Debug, Clone, serde::Deserialize)]
+pub struct Next {
+    #[serde(default, deserialize_with = "empty_string_as_none")]
+    pub next: Option<String>,
+}
+
+impl Next {
+    #[inline]
+    pub fn or_else(self, cl: impl FnOnce() -> String) -> Redirect {
+        if let Some(next) = self.next {
+            Redirect::to(&next)
+        } else {
+            Redirect::to(&cl())
+        }
+    }
+}
+
+/// Serde deserialization decorator to map empty Strings to None,
+fn empty_string_as_none<'de, D, T>(de: D) -> Result<Option<T>, D::Error>
+where
+    D: serde::Deserializer<'de>,
+    T: std::str::FromStr,
+    T::Err: std::fmt::Display,
+{
+    use serde::Deserialize;
+    let opt = Option::<String>::deserialize(de)?;
+    match opt.as_deref() {
+        None | Some("") => Ok(None),
+        Some(s) => std::str::FromStr::from_str(s)
+            .map_err(serde::de::Error::custom)
+            .map(Some),
+    }
+}
