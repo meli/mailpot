@@ -326,16 +326,32 @@ pub async fn ssh_keygen(sig: SshSignature) -> Result<(), Box<dyn std::error::Err
     cmd.stdin(Stdio::piped());
 
     // Once you have your allowed signers file, verification works like this:
+    //
+    // ```shell
     // ssh-keygen -Y verify -f allowed_signers -I alice@example.com -n file -s file_to_verify.sig < file_to_verify
+    // ```
+    //
     // Here are the arguments you may need to change:
-    //     allowed_signers is the path to the allowed signers file.
-    //     alice@example.com is the email address of the person who allegedly signed the file. This email address is looked up in the allowed signers file to get possible public keys.
-    //     file is the "namespace", which must match the namespace used for signing as described above.
-    //     file_to_verify.sig is the path to the signature file.
-    //     file_to_verify is the path to the file to be verified. Note that this file is read from standard in. In the above command, the < shell operator is used to redirect standard in from this file.
-    // If the signature is valid, the command exits with status 0 and prints a message like this:
-    // Good "file" signature for alice@example.com with ED25519 key SHA256:ZGa8RztddW4kE2XKPPsP9ZYC7JnMObs6yZzyxg8xZSk
-    // Otherwise, the command exits with a non-zero status and prints an error message.
+    //
+    // - `allowed_signers` is the path to the allowed signers file.
+    // - `alice@example.com` is the email address of the person who allegedly signed
+    //   the file. This email address is looked up in the allowed signers file to
+    //   get possible public keys.
+    // - `file` is the "namespace", which must match the namespace used for signing
+    //   as described above.
+    // - `file_to_verify.sig` is the path to the signature file.
+    // - `file_to_verify` is the path to the file to be verified. Note that this
+    //   file is read from standard in. In the above command, the < shell operator
+    //   is used to redirect standard in from this file.
+    //
+    // If the signature is valid, the command exits with status `0` and prints a
+    // message like this:
+    //
+    // > Good "file" signature for alice@example.com with ED25519 key
+    // > SHA256:ZGa8RztddW4kE2XKPPsP9ZYC7JnMObs6yZzyxg8xZSk
+    //
+    // Otherwise, the command exits with a non-zero status and prints an error
+    // message.
 
     let mut child = cmd
         .arg("-Y")

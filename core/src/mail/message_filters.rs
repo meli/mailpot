@@ -19,8 +19,8 @@
 
 #![allow(clippy::result_unit_err)]
 
-//! Filters to pass each mailing list post through. Filters are functions that implement the
-//! [`PostFilter`] trait that can:
+//! Filters to pass each mailing list post through. Filters are functions that
+//! implement the [`PostFilter`] trait that can:
 //!
 //! - transform post content.
 //! - modify the final [`PostAction`] to take.
@@ -40,11 +40,13 @@
 
 use super::*;
 
-/// Filter that modifies and/or verifies a post candidate. On rejection, return a string
-/// describing the error and optionally set `post.action` to `Reject` or `Defer`
+/// Filter that modifies and/or verifies a post candidate. On rejection, return
+/// a string describing the error and optionally set `post.action` to `Reject`
+/// or `Defer`
 pub trait PostFilter {
-    /// Feed post into the filter. Perform modifications to `post` and / or `ctx`, and return them
-    /// with `Result::Ok` unless you want to the processing to stop and return an `Result::Err`.
+    /// Feed post into the filter. Perform modifications to `post` and / or
+    /// `ctx`, and return them with `Result::Ok` unless you want to the
+    /// processing to stop and return an `Result::Err`.
     fn feed<'p, 'list>(
         self: Box<Self>,
         post: &'p mut Post,
@@ -98,7 +100,9 @@ impl PostFilter for PostRightsCheck {
                 if !ctx.subscriptions.iter().any(|lm| lm.address == email_from) {
                     trace!("Envelope from is not subscribed to this list");
                     post.action = PostAction::Defer {
-                        reason: "Your posting has been deferred. Approval from the list's moderators is required before it is submitted.".to_string(),
+                        reason: "Your posting has been deferred. Approval from the list's \
+                                 moderators is required before it is submitted."
+                            .to_string(),
                     };
                     return Err(());
                 }
@@ -189,8 +193,8 @@ impl PostFilter for ArchivedAtLink {
     }
 }
 
-/// Assuming there are no more changes to be done on the post, it finalizes which list subscriptions
-/// will receive the post in `post.action` field.
+/// Assuming there are no more changes to be done on the post, it finalizes
+/// which list subscriptions will receive the post in `post.action` field.
 pub struct FinalizeRecipients;
 impl PostFilter for FinalizeRecipients {
     fn feed<'p, 'list>(

@@ -56,8 +56,8 @@ pub struct Opt {
 pub enum Command {
     /// Prints a sample config file to STDOUT.
     ///
-    /// You can generate a new configuration file by writing the output to a file, e.g:
-    /// mpot sample-config > config.toml
+    /// You can generate a new configuration file by writing the output to a
+    /// file, e.g: mpot sample-config > config.toml
     SampleConfig,
     /// Dumps database data to STDOUT.
     DumpDatabase,
@@ -111,17 +111,18 @@ pub enum Command {
     /// Update postfix maps and master.cf (probably needs root permissions).
     UpdatePostfixConfig {
         #[arg(short = 'p', long)]
-        /// Override location of master.cf file (default: /etc/postfix/master.cf)
+        /// Override location of master.cf file (default:
+        /// /etc/postfix/master.cf)
         master_cf: Option<PathBuf>,
         #[clap(flatten)]
         config: PostfixConfig,
     },
     /// Print postfix maps and master.cf entry to STDOUT.
     ///
-    /// Map output should be added to transport_maps and local_recipient_maps parameters in postfix's main.cf.
-    /// It must be saved in a plain text file.
-    /// To make postfix be able to read them, the postmap application must be executed with the
-    /// path to the map file as its sole argument.
+    /// Map output should be added to transport_maps and local_recipient_maps
+    /// parameters in postfix's main.cf. It must be saved in a plain text
+    /// file. To make postfix be able to read them, the postmap application
+    /// must be executed with the path to the map file as its sole argument.
     ///
     ///   postmap /path/to/mylist_maps
     ///
@@ -188,7 +189,8 @@ pub struct PostfixConfig {
     /// User that runs mailpot when postfix relays a message.
     ///
     /// Must not be the `postfix` user.
-    /// Must have permissions to access the database file and the data directory.
+    /// Must have permissions to access the database file and the data
+    /// directory.
     #[arg(short, long)]
     pub user: String,
     /// The path to the mailpot binary postfix will execute.
@@ -208,7 +210,8 @@ pub struct PostfixConfig {
     /// Default is `mailpot`.
     ///
     /// A postfix service is a daemon managed by the postfix process.
-    /// Each entry in the `master.cf` configuration file defines a single service.
+    /// Each entry in the `master.cf` configuration file defines a single
+    /// service.
     ///
     /// The `master.cf` file is documented in [`master(5)`](https://www.postfix.org/master.5.html):
     /// <https://www.postfix.org/master.5.html>.
@@ -406,7 +409,8 @@ pub enum ListCommand {
         request_local_part: Option<String>,
         /// Require verification of e-mails for new subscriptions.
         ///
-        /// Subscriptions that are initiated from the subscription's address are verified automatically.
+        /// Subscriptions that are initiated from the subscription's address are
+        /// verified automatically.
         #[arg(long)]
         verify: Option<bool>,
         /// Public visibility of list.
@@ -417,8 +421,8 @@ pub enum ListCommand {
         hidden: Option<bool>,
         /// Enable or disable the list's functionality.
         ///
-        /// If not enabled, the list will continue to show up in the database but e-mails and
-        /// requests to it won't work.
+        /// If not enabled, the list will continue to show up in the database
+        /// but e-mails and requests to it won't work.
         #[arg(long)]
         enabled: Option<bool>,
     },

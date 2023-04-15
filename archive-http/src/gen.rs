@@ -23,17 +23,14 @@ use chrono::Datelike;
 mod cal;
 mod utils;
 
-pub use mailpot::models::DbVal;
-pub use mailpot::*;
+use std::{borrow::Cow, fs::OpenOptions, io::Write};
+
+pub use mailpot::{models::DbVal, *};
+use minijinja::{
+    value::{Object, Value},
+    Environment, Error, Source, State,
+};
 use utils::*;
-
-use std::borrow::Cow;
-use std::fs::OpenOptions;
-use std::io::Write;
-
-use minijinja::{Environment, Error, Source, State};
-
-use minijinja::value::{Object, Value};
 
 fn run_app() -> std::result::Result<(), Box<dyn std::error::Error>> {
     let args = std::env::args().collect::<Vec<_>>();

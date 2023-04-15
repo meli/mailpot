@@ -19,9 +19,7 @@
 
 extern crate mailpot;
 
-pub use mailpot::models::*;
-pub use mailpot::*;
-
+pub use mailpot::{models::*, *};
 use warp::Filter;
 
 #[tokio::main]

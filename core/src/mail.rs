@@ -17,14 +17,16 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-//! Types for processing new posts: [`PostFilter`](message_filters::PostFilter), [`ListContext`],
-//! [`MailJob`] and [`PostAction`].
+//! Types for processing new posts: [`PostFilter`](message_filters::PostFilter),
+//! [`ListContext`], [`MailJob`] and [`PostAction`].
+
+use melib::Address;
 
 use super::*;
-use melib::Address;
 pub mod message_filters;
 
-/// Post action returned from a list's [`PostFilter`](message_filters::PostFilter) stack.
+/// Post action returned from a list's
+/// [`PostFilter`](message_filters::PostFilter) stack.
 #[derive(Debug)]
 pub enum PostAction {
     /// Add to `hold` queue.
@@ -43,7 +45,8 @@ pub enum PostAction {
     },
 }
 
-/// List context passed to a list's [`PostFilter`](message_filters::PostFilter) stack.
+/// List context passed to a list's [`PostFilter`](message_filters::PostFilter)
+/// stack.
 #[derive(Debug)]
 pub struct ListContext<'list> {
     /// Which mailing list a post was addressed to.
@@ -54,11 +57,13 @@ pub struct ListContext<'list> {
     pub subscriptions: &'list [DbVal<ListSubscription>],
     /// The mailing list post policy.
     pub policy: Option<DbVal<PostPolicy>>,
-    /// The scheduled jobs added by each filter in a list's [`PostFilter`](message_filters::PostFilter) stack.
+    /// The scheduled jobs added by each filter in a list's
+    /// [`PostFilter`](message_filters::PostFilter) stack.
     pub scheduled_jobs: Vec<MailJob>,
 }
 
-/// Post to be considered by the list's [`PostFilter`](message_filters::PostFilter) stack.
+/// Post to be considered by the list's
+/// [`PostFilter`](message_filters::PostFilter) stack.
 pub struct Post {
     /// `From` address of post.
     pub from: Address,
@@ -66,7 +71,8 @@ pub struct Post {
     pub bytes: Vec<u8>,
     /// `To` addresses of post.
     pub to: Vec<Address>,
-    /// Final action set by each filter in a list's [`PostFilter`](message_filters::PostFilter) stack.
+    /// Final action set by each filter in a list's
+    /// [`PostFilter`](message_filters::PostFilter) stack.
     pub action: PostAction,
 }
 
@@ -81,7 +87,8 @@ impl core::fmt::Debug for Post {
     }
 }
 
-/// Scheduled jobs added to a [`ListContext`] by a list's [`PostFilter`](message_filters::PostFilter) stack.
+/// Scheduled jobs added to a [`ListContext`] by a list's
+/// [`PostFilter`](message_filters::PostFilter) stack.
 #[derive(Debug)]
 pub enum MailJob {
     /// Send post to recipients.
@@ -120,7 +127,8 @@ pub enum ListRequest {
     Unsubscribe,
     /// Request reception of list posts from a month-year range, inclusive.
     RetrieveArchive(String, String),
-    /// Request reception of specific mailing list posts from `Message-ID` values.
+    /// Request reception of specific mailing list posts from `Message-ID`
+    /// values.
     RetrieveMessages(Vec<String>),
     /// Request change in digest preferences. (See [`ListSubscription`])
     SetDigest(bool),

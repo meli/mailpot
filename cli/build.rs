@@ -21,14 +21,15 @@
 //use std::process::Command;e
 extern crate clap;
 
-use std::collections::hash_map::RandomState;
-use std::collections::{HashSet, VecDeque};
-use std::hash::{BuildHasher, Hasher};
+use std::{
+    collections::{hash_map::RandomState, HashSet, VecDeque},
+    hash::{BuildHasher, Hasher},
+    io::Write,
+};
 
 use clap::ArgAction;
 use clap_mangen::{roff, Man};
 use roff::{bold, italic, roman, Inline, Roff};
-use std::io::Write;
 
 include!("src/args.rs");
 
@@ -321,9 +322,9 @@ fn options(roff: &mut Roff, cmd: &clap::Command) {
             if with_help {
                 roff.text([Inline::LineBreak, italic("Possible values:")]);
 
-                // Need to indent twice to get it to look right, because .TP heading indents, but
-                // that indent doesn't Carry over to the .IP for the bullets. The standard shift
-                // size is 7 for terminal devices
+                // Need to indent twice to get it to look right, because .TP heading indents,
+                // but that indent doesn't Carry over to the .IP for the
+                // bullets. The standard shift size is 7 for terminal devices
                 roff.control("RS", ["14"]);
                 for line in possible_values_text {
                     roff.control("IP", ["\\(bu", "2"]);
@@ -389,9 +390,9 @@ fn options(roff: &mut Roff, cmd: &clap::Command) {
             if with_help {
                 roff.text([Inline::LineBreak, italic("Possible values:")]);
 
-                // Need to indent twice to get it to look right, because .TP heading indents, but
-                // that indent doesn't Carry over to the .IP for the bullets. The standard shift
-                // size is 7 for terminal devices
+                // Need to indent twice to get it to look right, because .TP heading indents,
+                // but that indent doesn't Carry over to the .IP for the
+                // bullets. The standard shift size is 7 for terminal devices
                 roff.control("RS", ["14"]);
                 for line in possible_values_text {
                     roff.control("IP", ["\\(bu", "2"]);

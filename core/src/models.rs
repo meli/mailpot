@@ -17,8 +17,8 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-//! Database models: [`MailingList`], [`ListOwner`], [`ListSubscription`], [`PostPolicy`],
-//! [`SubscriptionPolicy`] and [`Post`].
+//! Database models: [`MailingList`], [`ListOwner`], [`ListSubscription`],
+//! [`PostPolicy`], [`SubscriptionPolicy`] and [`Post`].
 
 use super::*;
 pub mod changesets;
@@ -67,7 +67,8 @@ pub struct MailingList {
     pub pk: i64,
     /// Mailing list name.
     pub name: String,
-    /// Mailing list ID (what appears in the subject tag, e.g. `[mailing-list] New post!`).
+    /// Mailing list ID (what appears in the subject tag, e.g. `[mailing-list]
+    /// New post!`).
     pub id: String,
     /// Mailing list e-mail address.
     pub address: String,
@@ -181,17 +182,21 @@ pub struct ListSubscription {
     pub enabled: bool,
     /// Whether the e-mail address is verified.
     pub verified: bool,
-    /// Whether subscription wishes to receive list posts as a periodical digest e-mail.
+    /// Whether subscription wishes to receive list posts as a periodical digest
+    /// e-mail.
     pub digest: bool,
-    /// Whether subscription wishes their e-mail address hidden from public view.
+    /// Whether subscription wishes their e-mail address hidden from public
+    /// view.
     pub hide_address: bool,
-    /// Whether subscription wishes to receive mailing list post duplicates, i.e. posts addressed to them
-    /// and the mailing list to which they are subscribed.
+    /// Whether subscription wishes to receive mailing list post duplicates,
+    /// i.e. posts addressed to them and the mailing list to which they are
+    /// subscribed.
     pub receive_duplicates: bool,
-    /// Whether subscription wishes to receive their own mailing list posts from the mailing list, as a
-    /// confirmation.
+    /// Whether subscription wishes to receive their own mailing list posts from
+    /// the mailing list, as a confirmation.
     pub receive_own_posts: bool,
-    /// Whether subscription wishes to receive a plain confirmation for their own mailing list posts.
+    /// Whether subscription wishes to receive a plain confirmation for their
+    /// own mailing list posts.
     pub receive_confirmation: bool,
 }
 
@@ -229,16 +234,17 @@ pub struct PostPolicy {
     pub pk: i64,
     /// Mailing list foreign key (See [`MailingList`]).
     pub list: i64,
-    /// Whether the policy is announce only (Only list owners can submit posts, and everyone will
-    /// receive them).
+    /// Whether the policy is announce only (Only list owners can submit posts,
+    /// and everyone will receive them).
     pub announce_only: bool,
-    /// Whether the policy is "subscription only" (Only list subscriptions can post).
+    /// Whether the policy is "subscription only" (Only list subscriptions can
+    /// post).
     pub subscription_only: bool,
-    /// Whether the policy is "approval needed" (Anyone can post, but approval from list owners is
-    /// required if they are not subscribed).
+    /// Whether the policy is "approval needed" (Anyone can post, but approval
+    /// from list owners is required if they are not subscribed).
     pub approval_needed: bool,
-    /// Whether the policy is "open" (Anyone can post, but approval from list owners is
-    /// required. Subscriptions are not enabled).
+    /// Whether the policy is "open" (Anyone can post, but approval from list
+    /// owners is required. Subscriptions are not enabled).
     pub open: bool,
     /// Custom policy.
     pub custom: bool,

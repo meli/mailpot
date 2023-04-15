@@ -17,11 +17,15 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-use super::errors::*;
+use std::{
+    io::{Read, Write},
+    os::unix::fs::PermissionsExt,
+    path::{Path, PathBuf},
+};
+
 use chrono::prelude::*;
-use std::io::{Read, Write};
-use std::os::unix::fs::PermissionsExt;
-use std::path::{Path, PathBuf};
+
+use super::errors::*;
 
 /// How to send e-mail.
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -29,7 +33,8 @@ use std::path::{Path, PathBuf};
 pub enum SendMail {
     /// A `melib` configuration for talking to an SMTP server.
     Smtp(melib::smtp::SmtpServerConf),
-    /// A plain shell command passed to `sh -c` with the e-mail passed in the stdin.
+    /// A plain shell command passed to `sh -c` with the e-mail passed in the
+    /// stdin.
     ShellCommand(String),
 }
 
@@ -47,8 +52,10 @@ pub struct Configuration {
 impl Configuration {
     /// Create a new configuration value from a given database path value.
     ///
-    /// If you wish to create a new database with this configuration, use [`Connection::open_or_create_db`](crate::Connection::open_or_create_db).
-    /// To open an existing database, use [`Database::open_db`](crate::Connection::open_db).
+    /// If you wish to create a new database with this configuration, use
+    /// [`Connection::open_or_create_db`](crate::Connection::open_or_create_db).
+    /// To open an existing database, use
+    /// [`Database::open_db`](crate::Connection::open_db).
     pub fn new(db_path: impl Into<PathBuf>) -> Self {
         let db_path = db_path.into();
         Self {

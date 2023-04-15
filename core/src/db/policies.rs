@@ -17,10 +17,10 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-use super::*;
-
 pub use post_policy::*;
 pub use subscription_policy::*;
+
+use super::*;
 mod post_policy {
     use super::*;
 
@@ -67,25 +67,27 @@ mod post_policy {
         ///
         /// # fn do_test(config: Configuration) {
         /// let db = Connection::open_or_create_db(config).unwrap().trusted();
-        /// let list_pk = db.create_list(MailingList {
-        ///     pk: 0,
-        ///     name: "foobar chat".into(),
-        ///     id: "foo-chat".into(),
-        ///     address: "foo-chat@example.com".into(),
-        ///     description: None,
-        ///     archive_url: None,
-        /// }).unwrap().pk;
-        /// db.set_list_policy(
-        ///     PostPolicy {
+        /// let list_pk = db
+        ///     .create_list(MailingList {
         ///         pk: 0,
-        ///         list: list_pk,
-        ///         announce_only: false,
-        ///         subscription_only: true,
-        ///         approval_needed: false,
-        ///         open: false,
-        ///         custom: false,
-        ///     },
-        /// ).unwrap();
+        ///         name: "foobar chat".into(),
+        ///         id: "foo-chat".into(),
+        ///         address: "foo-chat@example.com".into(),
+        ///         description: None,
+        ///         archive_url: None,
+        ///     })
+        ///     .unwrap()
+        ///     .pk;
+        /// db.set_list_policy(PostPolicy {
+        ///     pk: 0,
+        ///     list: list_pk,
+        ///     announce_only: false,
+        ///     subscription_only: true,
+        ///     approval_needed: false,
+        ///     open: false,
+        ///     custom: false,
+        /// })
+        /// .unwrap();
         /// db.remove_list_policy(1, 1).unwrap();
         /// # }
         /// # do_test(config);
@@ -143,7 +145,10 @@ mod post_policy {
             }
             let list_pk = policy.list;
 
-            let mut stmt = self.connection.prepare("INSERT OR REPLACE INTO post_policy(list, announce_only, subscription_only, approval_needed, open, custom) VALUES (?, ?, ?, ?, ?, ?) RETURNING *;")?;
+            let mut stmt = self.connection.prepare(
+                "INSERT OR REPLACE INTO post_policy(list, announce_only, subscription_only, \
+                 approval_needed, open, custom) VALUES (?, ?, ?, ?, ?, ?) RETURNING *;",
+            )?;
             let ret = stmt
                 .query_row(
                     rusqlite::params![
@@ -243,25 +248,27 @@ mod subscription_policy {
         ///
         /// # fn do_test(config: Configuration) {
         /// let db = Connection::open_or_create_db(config).unwrap().trusted();
-        /// let list_pk = db.create_list(MailingList {
-        ///     pk: 0,
-        ///     name: "foobar chat".into(),
-        ///     id: "foo-chat".into(),
-        ///     address: "foo-chat@example.com".into(),
-        ///     description: None,
-        ///     archive_url: None,
-        /// }).unwrap().pk;
-        /// db.set_list_policy(
-        ///     PostPolicy {
+        /// let list_pk = db
+        ///     .create_list(MailingList {
         ///         pk: 0,
-        ///         list: list_pk,
-        ///         announce_only: false,
-        ///         subscription_only: true,
-        ///         approval_needed: false,
-        ///         open: false,
-        ///         custom: false,
-        ///     },
-        /// ).unwrap();
+        ///         name: "foobar chat".into(),
+        ///         id: "foo-chat".into(),
+        ///         address: "foo-chat@example.com".into(),
+        ///         description: None,
+        ///         archive_url: None,
+        ///     })
+        ///     .unwrap()
+        ///     .pk;
+        /// db.set_list_policy(PostPolicy {
+        ///     pk: 0,
+        ///     list: list_pk,
+        ///     announce_only: false,
+        ///     subscription_only: true,
+        ///     approval_needed: false,
+        ///     open: false,
+        ///     custom: false,
+        /// })
+        /// .unwrap();
         /// db.remove_list_policy(1, 1).unwrap();
         /// # }
         /// # do_test(config);
@@ -317,7 +324,10 @@ mod subscription_policy {
             }
             let list_pk = policy.list;
 
-            let mut stmt = self.connection.prepare("INSERT OR REPLACE INTO subscription_policy(list, send_confirmation, open, manual, request, custom) VALUES (?, ?, ?, ?, ?, ?) RETURNING *;")?;
+            let mut stmt = self.connection.prepare(
+                "INSERT OR REPLACE INTO subscription_policy(list, send_confirmation, open, \
+                 manual, request, custom) VALUES (?, ?, ?, ?, ?, ?) RETURNING *;",
+            )?;
             let ret = stmt
                 .query_row(
                     rusqlite::params![

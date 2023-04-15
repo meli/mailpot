@@ -64,26 +64,26 @@
 //! let db = Connection::open_or_create_db(config)?.trusted();
 //!
 //! // Create a new mailing list
-//! let list_pk = db.create_list(MailingList {
-//!     pk: 0,
-//!     name: "foobar chat".into(),
-//!     id: "foo-chat".into(),
-//!     address: "foo-chat@example.com".into(),
-//!     description: None,
-//!     archive_url: None,
-//! })?.pk;
-//!
-//! db.set_list_policy(
-//!     PostPolicy {
+//! let list_pk = db
+//!     .create_list(MailingList {
 //!         pk: 0,
-//!         list: list_pk,
-//!         announce_only: false,
-//!         subscription_only: true,
-//!         approval_needed: false,
-//!         open: false,
-//!         custom: false,
-//!     },
-//! )?;
+//!         name: "foobar chat".into(),
+//!         id: "foo-chat".into(),
+//!         address: "foo-chat@example.com".into(),
+//!         description: None,
+//!         archive_url: None,
+//!     })?
+//!     .pk;
+//!
+//! db.set_list_policy(PostPolicy {
+//!     pk: 0,
+//!     list: list_pk,
+//!     announce_only: false,
+//!     subscription_only: true,
+//!     approval_needed: false,
+//!     open: false,
+//!     custom: false,
+//! })?;
 //!
 //! // Drop privileges; we can only process new e-mail and modify subscriptions from now on.
 //! let mut db = db.untrusted();
@@ -114,8 +114,7 @@
 //!
 //! Hello
 //! ";
-//! let envelope =
-//!     melib::Envelope::from_bytes(post_bytes, None).expect("Could not parse message");
+//! let envelope = melib::Envelope::from_bytes(post_bytes, None).expect("Could not parse message");
 //! db.post(&envelope, post_bytes, /* dry_run */ false)?;
 //!
 //! assert_eq!(db.list_subscriptions(list_pk)?.len(), 1);
@@ -148,7 +147,6 @@ pub mod postfix;
 pub use config::{Configuration, SendMail};
 pub use db::*;
 pub use errors::*;
-
 use models::*;
 
 /// A `mailto:` value.

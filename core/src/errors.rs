@@ -19,8 +19,9 @@
 
 //! Errors of this library.
 
-pub use crate::anyhow::Context;
 pub use error_chain::ChainedError;
+
+pub use crate::anyhow::Context;
 
 // Create the Error, ErrorKind, ResultExt, and Result types
 

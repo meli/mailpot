@@ -17,8 +17,9 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-use super::*;
 use serde_json::{json, Value};
+
+use super::*;
 
 impl Connection {
     /// Insert a received email into the error queue.
@@ -29,7 +30,10 @@ impl Connection {
         raw: &[u8],
         reason: String,
     ) -> Result<i64> {
-        let mut stmt = self.connection.prepare("INSERT INTO queue(which, list, comment, to_addresses, from_address, subject, message_id, message) VALUES('error', ?, ?, ?, ?, ?, ?, ?) RETURNING pk;")?;
+        let mut stmt = self.connection.prepare(
+            "INSERT INTO queue(which, list, comment, to_addresses, from_address, subject, \
+             message_id, message) VALUES('error', ?, ?, ?, ?, ?, ?, ?) RETURNING pk;",
+        )?;
         let pk = stmt.query_row(
             rusqlite::params![
                 &list_pk,

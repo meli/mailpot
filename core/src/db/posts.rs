@@ -41,7 +41,8 @@ impl Connection {
         };
         let message_id = env.message_id_display();
         let mut stmt = self.connection.prepare(
-            "INSERT OR REPLACE INTO post(list, address, message_id, message, datetime, timestamp) VALUES(?, ?, ?, ?, ?, ?) RETURNING pk;",
+            "INSERT OR REPLACE INTO post(list, address, message_id, message, datetime, timestamp) \
+             VALUES(?, ?, ?, ?, ?, ?) RETURNING pk;",
         )?;
         let pk = stmt.query_row(
             rusqlite::params![
@@ -189,9 +190,7 @@ impl Connection {
                                     &self.conf.send_mail
                                 {
                                     let smtp_conf = smtp_conf.clone();
-                                    use melib::futures;
-                                    use melib::smol;
-                                    use melib::smtp::*;
+                                    use melib::{futures, smol, smtp::*};
                                     let mut conn = smol::future::block_on(smol::spawn(
                                         SmtpConnection::new_connection(smtp_conf.clone()),
                                     ))?;
@@ -215,7 +214,8 @@ impl Connection {
                 }
                 PostAction::Defer { reason } => {
                     trace!("PostAction::Defer {{ reason: {} }}", reason);
-                    /* - FIXME Notify submitter
+                    /*
+                     * - FIXME Notify submitter
                      * - FIXME Save in database */
                     return Err(PostRejected(reason).into());
                 }
@@ -378,10 +378,12 @@ impl Connection {
         Ok(())
     }
 
-    /// Fetch all year and month values for which at least one post exists in `yyyy-mm` format.
+    /// Fetch all year and month values for which at least one post exists in
+    /// `yyyy-mm` format.
     pub fn months(&self, list_pk: i64) -> Result<Vec<String>> {
         let mut stmt = self.connection.prepare(
-            "SELECT DISTINCT strftime('%Y-%m', CAST(timestamp AS INTEGER), 'unixepoch') FROM post WHERE list = ?;",
+            "SELECT DISTINCT strftime('%Y-%m', CAST(timestamp AS INTEGER), 'unixepoch') FROM post \
+             WHERE list = ?;",
         )?;
         let months_iter = stmt.query_map([list_pk], |row| {
             let val: String = row.get(0)?;
@@ -402,9 +404,10 @@ impl Connection {
         list_pk: i64,
         message_id: &str,
     ) -> Result<Option<DbVal<Post>>> {
-        let mut stmt = self
-            .connection
-            .prepare("SELECT *, strftime('%Y-%m', CAST(timestamp AS INTEGER), 'unixepoch') AS month_year FROM post WHERE list = ? AND message_id = ?;")?;
+        let mut stmt = self.connection.prepare(
+            "SELECT *, strftime('%Y-%m', CAST(timestamp AS INTEGER), 'unixepoch') AS month_year \
+             FROM post WHERE list = ? AND message_id = ?;",
+        )?;
         let ret = stmt
             .query_row(rusqlite::params![&list_pk, &message_id], |row| {
                 let pk = row.get("pk")?;

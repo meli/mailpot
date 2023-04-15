@@ -19,15 +19,17 @@
 
 //! Mailpot database and methods.
 
-use super::Configuration;
-use super::*;
-use crate::ErrorKind::*;
+use std::{
+    io::Write,
+    process::{Command, Stdio},
+};
+
 use melib::Envelope;
 use models::changesets::*;
-use rusqlite::Connection as DbConnection;
-use rusqlite::OptionalExtension;
-use std::io::Write;
-use std::process::{Command, Stdio};
+use rusqlite::{Connection as DbConnection, OptionalExtension};
+
+use super::{Configuration, *};
+use crate::ErrorKind::*;
 
 /// A connection to a `mailpot` database.
 pub struct Connection {
@@ -60,7 +62,9 @@ fn log_callback(error_code: std::ffi::c_int, message: &str) {
         _ => log::error!("{error_code} {}", message),
     }
 }
-// INSERT INTO subscription(list, address, name, enabled, digest, verified, hide_address, receive_duplicates, receive_own_posts, receive_confirmation) VALUES
+// INSERT INTO subscription(list, address, name, enabled, digest, verified,
+// hide_address, receive_duplicates, receive_own_posts, receive_confirmation)
+// VALUES
 fn user_authorizer_callback(
     auth_context: rusqlite::hooks::AuthContext<'_>,
 ) -> rusqlite::hooks::Authorization {
@@ -112,8 +116,9 @@ impl Connection {
     /// [`Connection::untrusted`]).
     /// Use [`Connection::trusted`] to remove these limits.
     pub fn open_db(conf: Configuration) -> Result<Self> {
-        use rusqlite::config::DbConfig;
         use std::sync::Once;
+
+        use rusqlite::config::DbConfig;
 
         static INIT_SQLITE_LOGGING: Once = Once::new();
 
@@ -137,7 +142,8 @@ impl Connection {
         })
     }
 
-    /// Removes operational limits from this connection. (see [`Connection::untrusted`])
+    /// Removes operational limits from this connection. (see
+    /// [`Connection::untrusted`])
     #[must_use]
     pub fn trusted(self) -> Self {
         self.connection
@@ -150,11 +156,13 @@ impl Connection {
     // [tag:sync_auth_doc]
     /// Sets operational limits for this connection.
     ///
-    /// - Allow `INSERT`, `DELETE` only for "queue", "candidate_subscription", "subscription".
+    /// - Allow `INSERT`, `DELETE` only for "queue", "candidate_subscription",
+    ///   "subscription".
     /// - Allow `UPDATE` only for "subscription" user facing settings.
     /// - Allow `INSERT` only for "post".
     /// - Allow read access to all tables.
-    /// - Allow `SELECT`, `TRANSACTION`, `SAVEPOINT`, and the `strftime` function.
+    /// - Allow `SELECT`, `TRANSACTION`, `SAVEPOINT`, and the `strftime`
+    ///   function.
     /// - Deny everything else.
     pub fn untrusted(self) -> Self {
         self.connection.authorizer(Some(user_authorizer_callback));
@@ -185,7 +193,15 @@ impl Connection {
             });
             let output = child.wait_with_output()?;
             if !output.status.success() {
-                return Err(format!("Could not initialize sqlite3 database at {}: sqlite3 returned exit code {} and stderr {} {}", db_path.display(), output.status.code().unwrap_or_default(), String::from_utf8_lossy(&output.stderr), String::from_utf8_lossy(&output.stdout)).into());
+                return Err(format!(
+                    "Could not initialize sqlite3 database at {}: sqlite3 returned exit code {} \
+                     and stderr {} {}",
+                    db_path.display(),
+                    output.status.code().unwrap_or_default(),
+                    String::from_utf8_lossy(&output.stderr),
+                    String::from_utf8_lossy(&output.stdout)
+                )
+                .into());
             }
 
             let file = std::fs::File::open(db_path)?;
@@ -300,9 +316,10 @@ impl Connection {
 
     /// Create a new list.
     pub fn create_list(&self, new_val: MailingList) -> Result<DbVal<MailingList>> {
-        let mut stmt = self
-            .connection
-            .prepare("INSERT INTO list(name, id, address, description, archive_url) VALUES(?, ?, ?, ?, ?) RETURNING *;")?;
+        let mut stmt = self.connection.prepare(
+            "INSERT INTO list(name, id, address, description, archive_url) VALUES(?, ?, ?, ?, ?) \
+             RETURNING *;",
+        )?;
         let ret = stmt.query_row(
             rusqlite::params![
                 &new_val.name,
@@ -337,9 +354,10 @@ impl Connection {
         list_pk: i64,
         _date_range: Option<(String, String)>,
     ) -> Result<Vec<DbVal<Post>>> {
-        let mut stmt = self
-            .connection
-            .prepare("SELECT *, strftime('%Y-%m', CAST(timestamp AS INTEGER), 'unixepoch') AS month_year FROM post WHERE list = ?;")?;
+        let mut stmt = self.connection.prepare(
+            "SELECT *, strftime('%Y-%m', CAST(timestamp AS INTEGER), 'unixepoch') AS month_year \
+             FROM post WHERE list = ?;",
+        )?;
         let iter = stmt.query_map(rusqlite::params![&list_pk], |row| {
             let pk = row.get("pk")?;
             Ok(DbVal(

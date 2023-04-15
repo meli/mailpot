@@ -23,14 +23,15 @@ use chrono::Datelike;
 mod cal;
 mod utils;
 
-pub use mailpot::models::DbVal;
-pub use mailpot::*;
-use utils::*;
-
-use minijinja::value::{Object, Value};
-use minijinja::{Environment, Error, Source, State};
-use percent_encoding::percent_decode_str;
 use std::borrow::Cow;
+
+pub use mailpot::{models::DbVal, *};
+use minijinja::{
+    value::{Object, Value},
+    Environment, Error, Source, State,
+};
+use percent_encoding::percent_decode_str;
+use utils::*;
 use warp::Filter;
 
 #[tokio::main]
@@ -223,9 +224,10 @@ async fn main() {
         .or(list_handler)
         .or(post_handler);
 
-    // Note that composing filters for many routes may increase compile times (because it uses a lot of generics).
-    // If you wish to use dynamic dispatch instead and speed up compile times while
-    // making it slightly slower at runtime, you can use Filter::boxed().
+    // Note that composing filters for many routes may increase compile times
+    // (because it uses a lot of generics). If you wish to use dynamic dispatch
+    // instead and speed up compile times while making it slightly slower at
+    // runtime, you can use Filter::boxed().
 
     eprintln!("Running at http://127.0.0.1:3030");
     warp::serve(routes).run(([127, 0, 0, 1], 3030)).await;

@@ -19,8 +19,9 @@
 
 mod utils;
 
-use mailpot::{models::*, Configuration, Connection, SendMail};
 use std::error::Error;
+
+use mailpot::{models::*, Configuration, Connection, SendMail};
 use tempfile::TempDir;
 
 #[test]

@@ -128,7 +128,12 @@ impl Connection {
         new_val.list = list_pk;
         let mut stmt = self
             .connection
-            .prepare("INSERT INTO subscription(list, address, account, name, enabled, digest, verified, hide_address, receive_duplicates, receive_own_posts, receive_confirmation) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING *;").unwrap();
+            .prepare(
+                "INSERT INTO subscription(list, address, account, name, enabled, digest, \
+                 verified, hide_address, receive_duplicates, receive_own_posts, \
+                 receive_confirmation) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING *;",
+            )
+            .unwrap();
         let ret = stmt.query_row(
             rusqlite::params![
                 &new_val.list,
@@ -176,9 +181,10 @@ impl Connection {
         mut new_val: ListSubscription,
     ) -> Result<i64> {
         new_val.list = list_pk;
-        let mut stmt = self
-            .connection
-            .prepare("INSERT INTO candidate_subscription(list, address, name, accepted) VALUES(?, ?, ?, ?) RETURNING pk;")?;
+        let mut stmt = self.connection.prepare(
+            "INSERT INTO candidate_subscription(list, address, name, accepted) VALUES(?, ?, ?, ?) \
+             RETURNING pk;",
+        )?;
         let ret = stmt.query_row(
             rusqlite::params![&new_val.list, &new_val.address, &new_val.name, None::<i64>,],
             |row| {
@@ -197,8 +203,12 @@ impl Connection {
     /// Accept subscription candidate.
     pub fn accept_candidate_subscription(&mut self, pk: i64) -> Result<DbVal<ListSubscription>> {
         let tx = self.connection.transaction()?;
-        let mut stmt = tx
-            .prepare("INSERT INTO subscription(list, address, name, enabled, digest, verified, hide_address, receive_duplicates, receive_own_posts, receive_confirmation) SELECT list, address, name, 1, 0, 0, 0, 1, 1, 0 FROM candidate_subscription WHERE pk = ? RETURNING *;")?;
+        let mut stmt = tx.prepare(
+            "INSERT INTO subscription(list, address, name, enabled, digest, verified, \
+             hide_address, receive_duplicates, receive_own_posts, receive_confirmation) SELECT \
+             list, address, name, 1, 0, 0, 0, 1, 1, 0 FROM candidate_subscription WHERE pk = ? \
+             RETURNING *;",
+        )?;
         let ret = stmt.query_row(rusqlite::params![&pk], |row| {
             let pk = row.get("pk")?;
             Ok(DbVal(
@@ -433,7 +443,11 @@ impl Connection {
     pub fn add_account(&self, new_val: Account) -> Result<DbVal<Account>> {
         let mut stmt = self
             .connection
-            .prepare("INSERT INTO account(name, address, public_key, password, enabled) VALUES(?, ?, ?, ?, ?) RETURNING *;").unwrap();
+            .prepare(
+                "INSERT INTO account(name, address, public_key, password, enabled) VALUES(?, ?, \
+                 ?, ?, ?) RETURNING *;",
+            )
+            .unwrap();
         let ret = stmt.query_row(
             rusqlite::params![
                 &new_val.name,

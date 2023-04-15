@@ -21,10 +21,11 @@ extern crate log;
 extern crate mailpot;
 extern crate stderrlog;
 
-pub use mailpot::mail::*;
-pub use mailpot::models::changesets::*;
-pub use mailpot::models::*;
-pub use mailpot::*;
+pub use mailpot::{
+    mail::*,
+    models::{changesets::*, *},
+    *,
+};
 
 mod args;
 use args::*;
@@ -166,7 +167,8 @@ fn run_app(opt: Opt) -> Result<()> {
                     let mut input = String::new();
                     loop {
                         println!(
-                            "Are you sure you want to remove subscription of {} from list {}? [Yy/n]",
+                            "Are you sure you want to remove subscription of {} from list {}? \
+                             [Yy/n]",
                             address, list
                         );
                         input.clear();
@@ -427,8 +429,9 @@ fn run_app(opt: Opt) -> Result<()> {
                 println!("post dry_run{:?}", dry_run);
             }
 
-            use melib::Envelope;
             use std::io::Read;
+
+            use melib::Envelope;
 
             let mut input = String::new();
             std::io::stdin().read_to_string(&mut input)?;
@@ -518,11 +521,13 @@ fn run_app(opt: Opt) -> Result<()> {
                     return Err(format!("No list with id or pk {} was found", list_id).into());
                 }
             };
-            use melib::backends::maildir::MaildirPathTrait;
-            use melib::{Envelope, EnvelopeHash};
-            use std::collections::hash_map::DefaultHasher;
-            use std::hash::{Hash, Hasher};
-            use std::io::Read;
+            use std::{
+                collections::hash_map::DefaultHasher,
+                hash::{Hash, Hasher},
+                io::Read,
+            };
+
+            use melib::{backends::maildir::MaildirPathTrait, Envelope, EnvelopeHash};
 
             if !maildir_path.is_absolute() {
                 maildir_path = std::env::current_dir()
@@ -620,7 +625,22 @@ fn run_app(opt: Opt) -> Result<()> {
                     println!("No subscriptions found.");
                 } else {
                     for s in subs {
-                        let list = db.list(s.list).unwrap_or_else(|err| panic!("Found subscription with list_pk = {} but no such list exists.\nListSubscription = {:?}\n\n{err}", s.list, s)).unwrap_or_else(|| panic!("Found subscription with list_pk = {} but no such list exists.\nListSubscription = {:?}", s.list, s));
+                        let list = db
+                            .list(s.list)
+                            .unwrap_or_else(|err| {
+                                panic!(
+                                    "Found subscription with list_pk = {} but no such list \
+                                     exists.\nListSubscription = {:?}\n\n{err}",
+                                    s.list, s
+                                )
+                            })
+                            .unwrap_or_else(|| {
+                                panic!(
+                                    "Found subscription with list_pk = {} but no such list \
+                                     exists.\nListSubscription = {:?}",
+                                    s.list, s
+                                )
+                            });
                         println!("- {:?} {}", s, list);
                     }
                 }

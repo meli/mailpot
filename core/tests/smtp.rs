@@ -19,12 +19,15 @@
 
 mod utils;
 
+use std::net::IpAddr; //, Ipv4Addr, Ipv6Addr};
+use std::{
+    sync::{Arc, Mutex},
+    thread,
+};
+
 use log::{trace, warn};
 use mailin_embedded::{Handler, Response, Server, SslConfig};
 use mailpot::{melib, models::*, Configuration, Connection, SendMail};
-use std::net::IpAddr; //, Ipv4Addr, Ipv6Addr};
-use std::sync::{Arc, Mutex};
-use std::thread;
 use tempfile::TempDir;
 
 const ADDRESS: &str = "127.0.0.1:8825";
@@ -111,7 +114,8 @@ impl Handler for MyHandler {
         _is8bit: bool,
         _to: &[String],
     ) -> Response {
-        // eprintln!( "data_start() domain {:?} from {:?} is8bit {:?} to {:?}", _domain, _from, _is8bit, _to);
+        // eprintln!( "data_start() domain {:?} from {:?} is8bit {:?} to {:?}", _domain,
+        // _from, _is8bit, _to);
         if let Some(((_, d), ref mut message)) = self.mails.lock().unwrap().last_mut() {
             if d != _domain {
                 return INTERNAL_ERROR;
