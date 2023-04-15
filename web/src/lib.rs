@@ -130,7 +130,7 @@ where
 #[derive(Clone)]
 pub struct AppState {
     pub conf: Configuration,
-    pub root_url_prefix: String,
+    pub root_url_prefix: Value,
     pub public_url: String,
     pub site_title: Cow<'static, str>,
     pub user_store: Arc<RwLock<HashMap<i64, User>>>,

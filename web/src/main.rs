@@ -37,7 +37,9 @@ async fn main() {
 
     let shared_state = Arc::new(AppState {
         conf,
-        root_url_prefix: std::env::var("ROOT_URL_PREFIX").unwrap_or_default(),
+        root_url_prefix: Value::from_safe_string(
+            std::env::var("ROOT_URL_PREFIX").unwrap_or_default(),
+        ),
         public_url: std::env::var("PUBLIC_URL").unwrap_or_else(|_| "lists.mailpot.rs".to_string()),
         site_title: std::env::var("SITE_TITLE")
             .unwrap_or_else(|_| "mailing list archive".to_string())

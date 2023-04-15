@@ -65,6 +65,7 @@ pub struct MailingList {
     pub id: String,
     pub address: String,
     pub description: Option<String>,
+    #[serde(serialize_with = "to_safe_string_opt")]
     pub archive_url: Option<String>,
     pub inner: DbVal<mailpot::models::MailingList>,
 }
@@ -203,6 +204,7 @@ pub fn calendarize(
 #[derive(Debug, PartialEq, Eq, Clone, serde::Deserialize, serde::Serialize)]
 pub struct Crumb {
     pub label: Cow<'static, str>,
+    #[serde(serialize_with = "to_safe_string")]
     pub url: Cow<'static, str>,
 }
 
@@ -324,4 +326,23 @@ where
             .map_err(serde::de::Error::custom)
             .map(Some),
     }
+}
+
+fn to_safe_string<S>(s: impl AsRef<str>, ser: S) -> Result<S::Ok, S::Error>
+where
+    S: serde::Serializer,
+{
+    use serde::Serialize;
+    let s = s.as_ref();
+    Value::from_safe_string(s.to_string()).serialize(ser)
+}
+
+fn to_safe_string_opt<S>(s: &Option<String>, ser: S) -> Result<S::Ok, S::Error>
+where
+    S: serde::Serializer,
+{
+    use serde::Serialize;
+    s.as_ref()
+        .map(|s| Value::from_safe_string(s.to_string()))
+        .serialize(ser)
 }

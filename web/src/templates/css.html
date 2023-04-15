@@ -1,6 +1,5 @@
-<style>
-    @charset "UTF-8";
-    * Use a more intuitive box-sizing model */
+<style>@charset "UTF-8";
+    /* Use a more intuitive box-sizing model */
     *, *::before, *::after {
         box-sizing: border-box;
     }
@@ -318,7 +317,12 @@
 
     main.layout>.header { grid-area: header; }
     main.layout>.leftside { grid-area: leftside; }
-    main.layout>div.body { grid-area: body; }
+    main.layout>div.body {
+        grid-area: body;
+        width: 90vw;
+        justify-self: center;
+        align-self: start;
+    }
     main.layout>.rightside { grid-area: rightside; }
     main.layout>footer {
         grid-area: footer;
@@ -420,7 +424,7 @@
         background: var(--message-background);
         border: .1rem solid var(--border-secondary);
         border-radius: 0.2rem;
-        font-weight: medium;
+        font-weight: 400;
         margin-block-end: 1.0rem;
     }
 
@@ -629,7 +633,7 @@
     textarea.key-or-sig-input {
         font-family: monospace;
         font-size: 0.5rem;
-        font-weight: medium;
+        font-weight: 400;
         width: auto;
         height: 29rem;
         max-width: min(71ch, 75vw);

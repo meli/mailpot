@@ -5,7 +5,7 @@
     {% else %}
         <p>No list description.</p>
     {% endif %}
-    <br />
+    <br>
     {% if current_user and not post_policy.no_subscriptions and subscription_policy.open %}
         {% if user_context %}
             <form method="post" action="{{ root_url_prefix }}{{ settings_path() }}" class="settings-form">
@@ -22,7 +22,7 @@
         {% endif %}
     {% endif %}
     {% if preamble %}
-        <hr />
+        <hr>
         <div id="preamble" class="preamble">
             {% if preamble.custom %}
                 {{ preamble.custom|safe }}
@@ -77,9 +77,9 @@
                 {% endif %}
             {% endif %}
         </div>
-        <hr />
+        <hr>
     {% else %}
-        <hr />
+        <hr>
     {% endif %}
     <div class="list">
         <h3 id="calendar">Calendar<a class="self-link" href="#calendar"></a></h3>
@@ -89,13 +89,13 @@
                 {{ cal(date, hists, root_url_prefix, list.pk) }}
             {% endfor %}
         </div>
-        <hr />
+        <hr>
         <h3 id="posts">Posts<a class="self-link" href="#posts"></a></h3>
         <div class="posts entries">
             <p>{{ posts | length }} post(s)</p>
             {% for post in posts %}
                 <div class="entry">
-                    <span class="subject"><a href="{{ root_url_prefix|safe }}{{ list_post_path(list.id, post.message_id )}}">{{ post.subject }}</a></span>
+                    <span class="subject"><a href="{{ root_url_prefix }}{{ list_post_path(list.id, post.message_id) }}">{{ post.subject }}</a></span>
                     <span class="metadata">👤&nbsp;<span class="from">{{ post.address }}</span> 📆&nbsp;<span class="date">{{ post.datetime }}</span></span>
                     <span class="metadata">🪪 &nbsp;<span class="message-id">{{ post.message_id }}</span></span>
                 </div>

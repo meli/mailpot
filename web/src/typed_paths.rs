@@ -117,7 +117,7 @@ pub struct HelpPath;
 macro_rules! unit_impl {
     ($ident:ident, $ty:expr) => {
         pub fn $ident() -> Value {
-            $ty.to_crumb().into()
+            Value::from_safe_string($ty.to_crumb().to_string())
         }
     };
 }
@@ -131,12 +131,16 @@ macro_rules! list_id_impl {
     ($ident:ident, $ty:tt) => {
         pub fn $ident(id: Value) -> std::result::Result<Value, Error> {
             if let Some(id) = id.as_str() {
-                return Ok($ty(ListPathIdentifier::Id(id.to_string()))
-                    .to_crumb()
-                    .into());
+                return Ok(Value::from_safe_string(
+                    $ty(ListPathIdentifier::Id(id.to_string()))
+                        .to_crumb()
+                        .to_string(),
+                ));
             }
             let pk = id.try_into()?;
-            Ok($ty(ListPathIdentifier::Pk(pk)).to_crumb().into())
+            Ok(Value::from_safe_string(
+                $ty(ListPathIdentifier::Pk(pk)).to_crumb().to_string(),
+            ))
         }
     };
 }
@@ -156,14 +160,18 @@ pub fn list_post_path(id: Value, msg_id: Value) -> std::result::Result<Value, Er
     };
 
     if let Some(id) = id.as_str() {
-        return Ok(ListPostPath(ListPathIdentifier::Id(id.to_string()), msg_id)
-            .to_crumb()
-            .into());
+        return Ok(Value::from_safe_string(
+            ListPostPath(ListPathIdentifier::Id(id.to_string()), msg_id)
+                .to_crumb()
+                .to_string(),
+        ));
     }
     let pk = id.try_into()?;
-    Ok(ListPostPath(ListPathIdentifier::Pk(pk), msg_id)
-        .to_crumb()
-        .into())
+    Ok(Value::from_safe_string(
+        ListPostPath(ListPathIdentifier::Pk(pk), msg_id)
+            .to_crumb()
+            .to_string(),
+    ))
 }
 
 pub mod tsr {
