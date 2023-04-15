@@ -24,13 +24,13 @@
         {% if in_reply_to %}
             <tr>
                 <th scope="row">In-Reply-To:</th>
-                <td class="faded message-id"><a href="{{ root_url_prefix|safe }}/lists/{{ list.pk }}/<{{ in_reply_to }}>/">{{ in_reply_to }}</a></td>
+                <td class="faded message-id"><a href="{{ root_url_prefix|safe }}{{ list_post_path(list.id, in_reply_to) }}">{{ in_reply_to }}</a></td>
             </tr>
         {% endif %}
         {% if references %}
             <tr>
                 <th scope="row">References:</th>
-                <td>{% for r in references %}<span class="faded message-id"><a href="{{ root_url_prefix|safe }}/lists/{{ list.pk }}/<{{ r }}>/">{{ r }}</a></span>{% endfor %}</td>
+                <td>{% for r in references %}<span class="faded message-id"><a href="{{ root_url_prefix|safe }}{{ list_post_path(list.id, r) }}">{{ r }}</a></span>{% endfor %}</td>
             </tr>
         {% endif %}
     </table>

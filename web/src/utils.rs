@@ -22,7 +22,22 @@ use super::*;
 lazy_static::lazy_static! {
     pub static ref TEMPLATES: Environment<'static> = {
         let mut env = Environment::new();
-        env.add_function("calendarize", calendarize);
+        macro_rules! add_function {
+            ($($id:ident),*$(,)?) => {
+                $(env.add_function(stringify!($id), $id);)*
+            }
+        }
+        add_function!(
+            calendarize,
+            login_path,
+            logout_path,
+            settings_path,
+            help_path,
+            list_path,
+            list_settings_path,
+            list_edit_path,
+            list_post_path
+        );
         env.set_source(Source::from_path("web/src/templates/"));
 
         env
@@ -106,7 +121,7 @@ impl Object for MailingList {
             )),
             _ => Err(Error::new(
                 minijinja::ErrorKind::UnknownMethod,
-                format!("aaaobject has no method named {name}"),
+                format!("object has no method named {name}"),
             )),
         }
     }

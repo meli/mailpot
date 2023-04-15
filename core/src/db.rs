@@ -249,7 +249,7 @@ impl Connection {
     }
 
     /// Fetch a mailing list by primary key.
-    pub fn list(&self, pk: i64) -> Result<DbVal<MailingList>> {
+    pub fn list(&self, pk: i64) -> Result<Option<DbVal<MailingList>>> {
         let mut stmt = self
             .connection
             .prepare("SELECT * FROM list WHERE pk = ?;")?;
@@ -269,10 +269,7 @@ impl Connection {
                 ))
             })
             .optional()?;
-        ret.map_or_else(
-            || Err(Error::from(NotFound("list or list policy not found!"))),
-            Ok,
-        )
+        Ok(ret)
     }
 
     /// Fetch a mailing list by id.

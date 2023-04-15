@@ -24,9 +24,7 @@ pub use axum::{
     routing::{get, post},
     Extension, Form, Router,
 };
-
-pub use axum_extra::routing::RouterExt;
-
+pub use axum_extra::routing::TypedPath;
 pub use axum_login::{
     memory_store::MemoryStore as AuthMemoryStore, secrecy::SecretVec, AuthLayer, AuthUser,
     RequireAuthorizationLayer,
@@ -42,31 +40,28 @@ pub type AuthContext =
 
 pub type RequireAuth = auth::auth_request::RequireAuthorizationLayer<i64, auth::User, auth::Role>;
 
-pub use http::{Request, Response, StatusCode};
+pub use std::result::Result;
+use std::{borrow::Cow, collections::HashMap, sync::Arc};
 
 use chrono::Datelike;
-use minijinja::value::{Object, Value};
-use minijinja::{Environment, Error, Source};
-
-use std::borrow::Cow;
-
-use std::collections::HashMap;
-use std::sync::Arc;
+pub use http::{Request, Response, StatusCode};
+pub use mailpot::{models::DbVal, *};
+use minijinja::{
+    value::{Object, Value},
+    Environment, Error, Source,
+};
 use tokio::sync::RwLock;
-
-pub use mailpot::models::DbVal;
-pub use mailpot::*;
-pub use std::result::Result;
 
 pub mod auth;
 pub mod cal;
 pub mod settings;
+pub mod typed_paths;
 pub mod utils;
 
 pub use auth::*;
-pub use cal::calendarize;
-pub use cal::*;
+pub use cal::{calendarize, *};
 pub use settings::*;
+pub use typed_paths::{tsr::RouterExt, *};
 pub use utils::*;
 
 #[derive(Debug)]

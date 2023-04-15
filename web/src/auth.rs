@@ -17,14 +17,12 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-use super::*;
-use std::borrow::Cow;
-use tempfile::NamedTempFile;
-use tokio::fs::File;
-use tokio::io::AsyncWriteExt;
-use tokio::process::Command;
+use std::{borrow::Cow, process::Stdio};
 
-use std::process::Stdio;
+use tempfile::NamedTempFile;
+use tokio::{fs::File, io::AsyncWriteExt, process::Command};
+
+use super::*;
 
 const TOKEN_KEY: &str = "ssh_challenge";
 const EXPIRY_IN_SECS: i64 = 6 * 60;
@@ -76,6 +74,7 @@ pub struct AuthFormPayload {
 }
 
 pub async fn ssh_signin(
+    _: LoginPath,
     mut session: WritableSession,
     Query(next): Query<Next>,
     auth: AuthContext,
@@ -89,7 +88,7 @@ pub async fn ssh_signin(
             return err.into_response();
         }
         return next
-            .or_else(|| format!("{}/settings/", state.root_url_prefix))
+            .or_else(|| format!("{}{}", state.root_url_prefix, SettingsPath.to_uri()))
             .into_response();
     }
     if next.next.is_some() {
@@ -118,8 +117,7 @@ pub async fn ssh_signin(
     let (token, timestamp): (String, i64) = if let Some(tok) = prev_token {
         tok
     } else {
-        use rand::distributions::Alphanumeric;
-        use rand::{thread_rng, Rng};
+        use rand::{distributions::Alphanumeric, thread_rng, Rng};
 
         let mut rng = thread_rng();
         let chars: String = (0..7).map(|_| rng.sample(Alphanumeric) as char).collect();
@@ -132,12 +130,12 @@ pub async fn ssh_signin(
     let root_url_prefix = &state.root_url_prefix;
     let crumbs = vec![
         Crumb {
-            label: "Lists".into(),
+            label: "Home".into(),
             url: "/".into(),
         },
         Crumb {
             label: "Sign in".into(),
-            url: "/login/".into(),
+            url: LoginPath.to_crumb(),
         },
     ];
 
@@ -164,6 +162,7 @@ pub async fn ssh_signin(
 }
 
 pub async fn ssh_signin_post(
+    _: LoginPath,
     mut session: WritableSession,
     Query(next): Query<Next>,
     mut auth: AuthContext,
@@ -175,7 +174,7 @@ pub async fn ssh_signin_post(
             message: "You are already logged in.".into(),
             level: Level::Info,
         })?;
-        return Ok(next.or_else(|| format!("{}/settings/", state.root_url_prefix)));
+        return Ok(next.or_else(|| format!("{}{}", state.root_url_prefix, SettingsPath.to_uri())));
     }
 
     let now: i64 = chrono::offset::Utc::now().timestamp();
@@ -188,8 +187,9 @@ pub async fn ssh_signin_post(
                     level: Level::Error,
                 })?;
                 return Ok(Redirect::to(&format!(
-                    "{}/login/{}",
+                    "{}{}{}",
                     state.root_url_prefix,
+                    LoginPath.to_uri(),
                     if let Some(ref next) = next.next {
                         next.as_str()
                     } else {
@@ -205,8 +205,9 @@ pub async fn ssh_signin_post(
                 level: Level::Error,
             })?;
             return Ok(Redirect::to(&format!(
-                "{}/login/{}",
+                "{}{}{}",
                 state.root_url_prefix,
+                LoginPath.to_uri(),
                 if let Some(ref next) = next.next {
                     next.as_str()
                 } else {
@@ -254,7 +255,7 @@ pub async fn ssh_signin_post(
     auth.login(&user)
         .await
         .map_err(|err| ResponseError::new(err.to_string(), StatusCode::BAD_REQUEST))?;
-    Ok(next.or_else(|| format!("{}/settings/", state.root_url_prefix)))
+    Ok(next.or_else(|| format!("{}{}", state.root_url_prefix, SettingsPath.to_uri())))
 }
 
 #[derive(Debug, Clone, Default)]
@@ -377,20 +378,23 @@ pub async fn ssh_keygen(sig: SshSignature) -> Result<(), Box<dyn std::error::Err
     Ok(())
 }
 
-pub async fn logout_handler(mut auth: AuthContext, State(state): State<Arc<AppState>>) -> Redirect {
+pub async fn logout_handler(
+    _: LogoutPath,
+    mut auth: AuthContext,
+    State(state): State<Arc<AppState>>,
+) -> Redirect {
     auth.logout().await;
-    Redirect::to(&format!("{}/settings/", state.root_url_prefix))
+    Redirect::to(&format!("{}/", state.root_url_prefix))
 }
 
 pub mod auth_request {
-    use super::*;
-
-    use std::marker::PhantomData;
-    use std::ops::RangeBounds;
+    use std::{marker::PhantomData, ops::RangeBounds};
 
     use axum::body::HttpBody;
     use dyn_clone::DynClone;
     use tower_http::auth::AuthorizeRequest;
+
+    use super::*;
 
     trait RoleBounds<Role>: DynClone + Send + Sync {
         fn contains(&self, role: Option<Role>) -> bool;
@@ -503,8 +507,8 @@ pub mod auth_request {
         Role: PartialOrd + PartialEq + Clone + Send + Sync + 'static,
         User: AuthUser<UserId, Role>,
     {
-        /// Authorizes requests by requiring a logged in user, otherwise it rejects
-        /// with [`http::StatusCode::UNAUTHORIZED`].
+        /// Authorizes requests by requiring a logged in user, otherwise it
+        /// rejects with [`http::StatusCode::UNAUTHORIZED`].
         pub fn login<ResBody>(
         ) -> tower_http::auth::RequireAuthorizationLayer<Login<UserId, User, ResBody, Role>>
         where
@@ -539,13 +543,15 @@ pub mod auth_request {
             })
         }
 
-        /// Authorizes requests by requiring a logged in user, otherwise it redirects to the
-        /// provided login URL.
+        /// Authorizes requests by requiring a logged in user, otherwise it
+        /// redirects to the provided login URL.
         ///
-        /// If `redirect_field_name` is set to a value, the login page will receive the path it was
-        /// redirected from in the URI query part. For example, attempting to visit a protected path
-        /// `/protected` would redirect you to `/login?next=/protected` allowing you to know how to
-        /// return the visitor to their requested page.
+        /// If `redirect_field_name` is set to a value, the login page will
+        /// receive the path it was redirected from in the URI query
+        /// part. For example, attempting to visit a protected path
+        /// `/protected` would redirect you to `/login?next=/protected` allowing
+        /// you to know how to return the visitor to their requested
+        /// page.
         pub fn login_or_redirect<ResBody>(
             login_url: Arc<Cow<'static, str>>,
             redirect_field_name: Option<Arc<Cow<'static, str>>>,
@@ -567,10 +573,12 @@ pub mod auth_request {
         /// range of roles, otherwise it redirects to the
         /// provided login URL.
         ///
-        /// If `redirect_field_name` is set to a value, the login page will receive the path it was
-        /// redirected from in the URI query part. For example, attempting to visit a protected path
-        /// `/protected` would redirect you to `/login?next=/protected` allowing you to know how to
-        /// return the visitor to their requested page.
+        /// If `redirect_field_name` is set to a value, the login page will
+        /// receive the path it was redirected from in the URI query
+        /// part. For example, attempting to visit a protected path
+        /// `/protected` would redirect you to `/login?next=/protected` allowing
+        /// you to know how to return the visitor to their requested
+        /// page.
         pub fn login_with_role_or_redirect<ResBody>(
             role_bounds: impl RangeBounds<Role> + Clone + Send + Sync + 'static,
             login_url: Arc<Cow<'static, str>>,

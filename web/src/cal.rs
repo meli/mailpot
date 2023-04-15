@@ -9,8 +9,8 @@
 // copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
 //
-// The above copyright notice and this permission notice shall be included in all
-// copies or substantial portions of the Software.
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
 //
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -25,8 +25,8 @@ use chrono::*;
 #[allow(dead_code)]
 /// Generate a calendar view of the given date's month.
 ///
-/// Each vector element is an array of seven numbers representing weeks (starting on Sundays),
-/// and each value is the numeric date.
+/// Each vector element is an array of seven numbers representing weeks
+/// (starting on Sundays), and each value is the numeric date.
 /// A value of zero means a date that not exists in the current month.
 ///
 /// # Examples
@@ -50,8 +50,8 @@ pub fn calendarize(date: NaiveDate) -> Vec<[u32; 7]> {
 
 /// Generate a calendar view of the given date's month and offset.
 ///
-/// Each vector element is an array of seven numbers representing weeks (starting on Sundays),
-/// and each value is the numeric date.
+/// Each vector element is an array of seven numbers representing weeks
+/// (starting on Sundays), and each value is the numeric date.
 /// A value of zero means a date that not exists in the current month.
 ///
 /// Offset means the number of days from sunday.

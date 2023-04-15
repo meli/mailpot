@@ -17,13 +17,15 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-use super::*;
 use mailpot::models::{
     changesets::{AccountChangeset, ListSubscriptionChangeset},
     ListSubscription,
 };
 
+use super::*;
+
 pub async fn settings(
+    _: SettingsPath,
     mut session: WritableSession,
     Extension(user): Extension<User>,
     state: Arc<AppState>,
@@ -31,12 +33,12 @@ pub async fn settings(
     let root_url_prefix = &state.root_url_prefix;
     let crumbs = vec![
         Crumb {
-            label: "Lists".into(),
+            label: "Home".into(),
             url: "/".into(),
         },
         Crumb {
             label: "Settings".into(),
-            url: "/settings/".into(),
+            url: SettingsPath.to_crumb(),
         },
     ];
     let db = Connection::open_db(state.conf.clone())?;
@@ -50,10 +52,10 @@ pub async fn settings(
         .account_subscriptions(acc.pk())
         .with_status(StatusCode::BAD_REQUEST)?
         .into_iter()
-        .map(|s| {
-            let list = db.list(s.list)?;
-
-            Ok((s, list))
+        .filter_map(|s| match db.list(s.list) {
+            Err(err) => Some(Err(err)),
+            Ok(Some(list)) => Some(Ok((s, list))),
+            Ok(None) => None,
         })
         .collect::<Result<
             Vec<(
@@ -92,6 +94,7 @@ pub enum ChangeSetting {
 }
 
 pub async fn settings_post(
+    _: SettingsPath,
     mut session: WritableSession,
     Extension(user): Extension<User>,
     Form(payload): Form<ChangeSetting>,
@@ -237,34 +240,29 @@ pub async fn settings_post(
     }
 
     Ok(Redirect::to(&format!(
-        "{}/settings/",
-        &state.root_url_prefix
+        "{}/{}",
+        &state.root_url_prefix,
+        SettingsPath.to_uri()
     )))
 }
 
 pub async fn user_list_subscription(
+    ListSettingsPath(id): ListSettingsPath,
     mut session: WritableSession,
     Extension(user): Extension<User>,
-    Path(id): Path<i64>,
     State(state): State<Arc<AppState>>,
 ) -> Result<Html<String>, ResponseError> {
     let root_url_prefix = &state.root_url_prefix;
     let db = Connection::open_db(state.conf.clone())?;
-    let crumbs = vec![
-        Crumb {
-            label: "Lists".into(),
-            url: "/".into(),
-        },
-        Crumb {
-            label: "Settings".into(),
-            url: "/settings/".into(),
-        },
-        Crumb {
-            label: "List Subscription".into(),
-            url: format!("/settings/list/{}/", id).into(),
-        },
-    ];
-    let list = db.list(id)?;
+    let Some(list) = (match id {
+        ListPathIdentifier::Pk(id) => db.list(id)?,
+        ListPathIdentifier::Id(id) => db.list_by_id(id)?,
+    }) else {
+        return Err(ResponseError::new(
+            "List not found".to_string(),
+            StatusCode::NOT_FOUND,
+        ));
+    };
     let acc = match db.account_by_address(&user.address)? {
         Some(v) => v,
         None => {
@@ -277,10 +275,10 @@ pub async fn user_list_subscription(
     let mut subscriptions = db
         .account_subscriptions(acc.pk())
         .with_status(StatusCode::BAD_REQUEST)?;
-    subscriptions.retain(|s| s.list == id);
+    subscriptions.retain(|s| s.list == list.pk());
     let subscription = db
         .list_subscription(
-            id,
+            list.pk(),
             subscriptions
                 .get(0)
                 .ok_or_else(|| {
@@ -292,6 +290,21 @@ pub async fn user_list_subscription(
                 .pk(),
         )
         .with_status(StatusCode::BAD_REQUEST)?;
+
+    let crumbs = vec![
+        Crumb {
+            label: "Home".into(),
+            url: "/".into(),
+        },
+        Crumb {
+            label: "Settings".into(),
+            url: SettingsPath.to_crumb(),
+        },
+        Crumb {
+            label: "List Subscription".into(),
+            url: ListSettingsPath(list.pk().into()).to_crumb(),
+        },
+    ];
 
     let context = minijinja::context! {
         title => state.site_title.as_ref(),
@@ -327,15 +340,23 @@ pub struct SubscriptionFormPayload {
 }
 
 pub async fn user_list_subscription_post(
+    ListSettingsPath(id): ListSettingsPath,
     mut session: WritableSession,
-    Path(id): Path<i64>,
     Extension(user): Extension<User>,
     Form(payload): Form<SubscriptionFormPayload>,
     state: Arc<AppState>,
 ) -> Result<Redirect, ResponseError> {
     let mut db = Connection::open_db(state.conf.clone())?;
 
-    let _list = db.list(id).with_status(StatusCode::NOT_FOUND)?;
+    let Some(list) = (match id {
+        ListPathIdentifier::Pk(id) => db.list(id as _)?,
+        ListPathIdentifier::Id(id) => db.list_by_id(id)?,
+    }) else {
+        return Err(ResponseError::new(
+            "List not found".to_string(),
+            StatusCode::NOT_FOUND,
+        ));
+    };
 
     let acc = match db.account_by_address(&user.address)? {
         Some(v) => v,
@@ -350,9 +371,9 @@ pub async fn user_list_subscription_post(
         .account_subscriptions(acc.pk())
         .with_status(StatusCode::BAD_REQUEST)?;
 
-    subscriptions.retain(|s| s.list == id);
+    subscriptions.retain(|s| s.list == list.pk());
     let mut s = db
-        .list_subscription(id, subscriptions[0].pk())
+        .list_subscription(list.pk(), subscriptions[0].pk())
         .with_status(StatusCode::BAD_REQUEST)?;
 
     let SubscriptionFormPayload {
@@ -386,7 +407,8 @@ pub async fn user_list_subscription_post(
     })?;
 
     Ok(Redirect::to(&format!(
-        "{}/settings/list/{id}/",
-        &state.root_url_prefix
+        "{}{}",
+        &state.root_url_prefix,
+        ListSettingsPath(list.id.clone().into()).to_uri()
     )))
 }

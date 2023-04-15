@@ -37,6 +37,7 @@ macro_rules! list {
                 .ok()
                 .map(|pk| $db.list(pk).ok())
                 .flatten()
+                .flatten()
         })
     }};
 }
@@ -619,7 +620,7 @@ fn run_app(opt: Opt) -> Result<()> {
                     println!("No subscriptions found.");
                 } else {
                     for s in subs {
-                        let list = db.list(s.list).unwrap_or_else(|err| panic!("Found subscription with list_pk = {} but no such list exists.\nListSubscription = {:?}\n\n{err}", s.list, s));
+                        let list = db.list(s.list).unwrap_or_else(|err| panic!("Found subscription with list_pk = {} but no such list exists.\nListSubscription = {:?}\n\n{err}", s.list, s)).unwrap_or_else(|| panic!("Found subscription with list_pk = {} but no such list exists.\nListSubscription = {:?}", s.list, s));
                         println!("- {:?} {}", s, list);
                     }
                 }

@@ -17,13 +17,11 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
+use std::{collections::HashMap, sync::Arc};
+
 use mailpot_web::*;
-use rand::Rng;
-
 use minijinja::value::Value;
-
-use std::collections::HashMap;
-use std::sync::Arc;
+use rand::Rng;
 use tokio::sync::RwLock;
 
 #[tokio::main]
@@ -49,63 +47,64 @@ async fn main() {
 
     let auth_layer = AuthLayer::new(shared_state.clone(), &secret);
 
-    let login_url = Arc::new(format!("{}/login/", shared_state.root_url_prefix).into());
+    let login_url =
+        Arc::new(format!("{}{}", shared_state.root_url_prefix, LoginPath.to_crumb()).into());
     let app = Router::new()
         .route("/", get(root))
-        .route_with_tsr("/lists/:pk/", get(list))
-        .route_with_tsr("/lists/:pk/:msgid/", get(list_post))
-        .route_with_tsr("/lists/:pk/edit/", get(list_edit))
-        .route_with_tsr("/help/", get(help))
-        .route_with_tsr(
-            "/login/",
-            get(auth::ssh_signin).post({
+        .typed_get(list)
+        .typed_get(list_post)
+        .typed_get(list_edit)
+        .typed_get(help)
+        .typed_get(auth::ssh_signin)
+        .typed_post({
+            let shared_state = Arc::clone(&shared_state);
+            move |path, session, query, auth, body| {
+                auth::ssh_signin_post(path, session, query, auth, body, shared_state)
+            }
+        })
+        .typed_get(logout_handler)
+        .typed_post(logout_handler)
+        .typed_get(
+            {
                 let shared_state = Arc::clone(&shared_state);
-                move |session, query, auth, body| {
-                    auth::ssh_signin_post(session, query, auth, body, shared_state)
-                }
-            }),
-        )
-        .route_with_tsr("/logout/", get(logout_handler))
-        .route_with_tsr(
-            "/settings/",
-            get({
-                let shared_state = Arc::clone(&shared_state);
-                move |session, user| settings(session, user, shared_state)
+                move |path, session, user| settings(path, session, user, shared_state)
             }
             .layer(RequireAuth::login_or_redirect(
                 Arc::clone(&login_url),
                 Some(Arc::new("next".into())),
-            )))
-            .post(
-                {
-                    let shared_state = Arc::clone(&shared_state);
-                    move |session, auth, body| settings_post(session, auth, body, shared_state)
-                }
-                .layer(RequireAuth::login_or_redirect(
-                    Arc::clone(&login_url),
-                    Some(Arc::new("next".into())),
-                )),
-            ),
+            )),
         )
-        .route_with_tsr(
-            "/settings/list/:pk/",
-            get(user_list_subscription)
-                .layer(RequireAuth::login_with_role_or_redirect(
-                    Role::User..,
-                    Arc::clone(&login_url),
-                    Some(Arc::new("next".into())),
-                ))
-                .post({
-                    let shared_state = Arc::clone(&shared_state);
-                    move |session, path, user, body| {
-                        user_list_subscription_post(session, path, user, body, shared_state)
-                    }
-                })
-                .layer(RequireAuth::login_with_role_or_redirect(
-                    Role::User..,
-                    Arc::clone(&login_url),
-                    Some(Arc::new("next".into())),
-                )),
+        .typed_post(
+            {
+                let shared_state = Arc::clone(&shared_state);
+                move |path, session, auth, body| {
+                    settings_post(path, session, auth, body, shared_state)
+                }
+            }
+            .layer(RequireAuth::login_or_redirect(
+                Arc::clone(&login_url),
+                Some(Arc::new("next".into())),
+            )),
+        )
+        .typed_get(
+            user_list_subscription.layer(RequireAuth::login_with_role_or_redirect(
+                Role::User..,
+                Arc::clone(&login_url),
+                Some(Arc::new("next".into())),
+            )),
+        )
+        .typed_post(
+            {
+                let shared_state = Arc::clone(&shared_state);
+                move |session, path, user, body| {
+                    user_list_subscription_post(session, path, user, body, shared_state)
+                }
+            }
+            .layer(RequireAuth::login_with_role_or_redirect(
+                Role::User..,
+                Arc::clone(&login_url),
+                Some(Arc::new("next".into())),
+            )),
         )
         .layer(auth_layer)
         .layer(session_layer)
@@ -142,7 +141,7 @@ async fn root(
         })
         .collect::<Result<Vec<_>, mailpot::Error>>()?;
     let crumbs = vec![Crumb {
-        label: "Lists".into(),
+        label: "Home".into(),
         url: "/".into(),
     }];
 
@@ -160,20 +159,28 @@ async fn root(
 }
 
 async fn list(
+    ListPath(id): ListPath,
     mut session: WritableSession,
-    Path(id): Path<i64>,
     auth: AuthContext,
     State(state): State<Arc<AppState>>,
 ) -> Result<Html<String>, ResponseError> {
     let db = Connection::open_db(state.conf.clone())?;
-    let list = db.list(id)?;
+    let Some(list) = (match id {
+        ListPathIdentifier::Pk(id) => db.list(id)?,
+        ListPathIdentifier::Id(id) => db.list_by_id(id)?,
+    }) else {
+        return Err(ResponseError::new(
+            "List not found".to_string(),
+            StatusCode::NOT_FOUND,
+        ));
+    };
     let post_policy = db.list_policy(list.pk)?;
     let subscription_policy = db.list_subscription_policy(list.pk)?;
     let months = db.months(list.pk)?;
     let user_context = auth
         .current_user
         .as_ref()
-        .map(|user| db.list_subscription_by_address(id, &user.address).ok());
+        .map(|user| db.list_subscription_by_address(list.pk, &user.address).ok());
 
     let posts = db.list_posts(list.pk, None)?;
     let mut hist = months
@@ -214,12 +221,12 @@ async fn list(
         .collect::<Vec<_>>();
     let crumbs = vec![
         Crumb {
-            label: "Lists".into(),
+            label: "Home".into(),
             url: "/".into(),
         },
         Crumb {
             label: list.name.clone().into(),
-            url: format!("/lists/{}/", list.pk).into(),
+            url: ListPath(list.pk().into()).to_crumb(),
         },
     ];
     let context = minijinja::context! {
@@ -244,17 +251,25 @@ async fn list(
 }
 
 async fn list_post(
+    ListPostPath(id, msg_id): ListPostPath,
     mut session: WritableSession,
-    Path((id, msg_id)): Path<(i64, String)>,
     auth: AuthContext,
     State(state): State<Arc<AppState>>,
 ) -> Result<Html<String>, ResponseError> {
     let db = Connection::open_db(state.conf.clone())?;
-    let list = db.list(id)?;
-    let user_context = auth
-        .current_user
-        .as_ref()
-        .map(|user| db.list_subscription_by_address(id, &user.address).ok());
+    let Some(list) = (match id {
+        ListPathIdentifier::Pk(id) => db.list(id)?,
+        ListPathIdentifier::Id(id) => db.list_by_id(id)?,
+    }) else {
+        return Err(ResponseError::new(
+            "List not found".to_string(),
+            StatusCode::NOT_FOUND,
+        ));
+    };
+    let user_context = auth.current_user.as_ref().map(|user| {
+        db.list_subscription_by_address(list.pk(), &user.address)
+            .ok()
+    });
 
     let post = if let Some(post) = db.list_post_by_message_id(list.pk, &msg_id)? {
         post
@@ -278,16 +293,16 @@ async fn list_post(
     }
     let crumbs = vec![
         Crumb {
-            label: "Lists".into(),
+            label: "Home".into(),
             url: "/".into(),
         },
         Crumb {
             label: list.name.clone().into(),
-            url: format!("/lists/{}/", list.pk).into(),
+            url: ListPath(list.pk().into()).to_crumb(),
         },
         Crumb {
             label: format!("{} {msg_id}", subject_ref).into(),
-            url: format!("/lists/{}/{}/", list.pk, msg_id).into(),
+            url: ListPostPath(list.pk().into(), msg_id.to_string()).to_crumb(),
         },
     ];
     let context = minijinja::context! {
@@ -317,21 +332,22 @@ async fn list_post(
     Ok(Html(TEMPLATES.get_template("post.html")?.render(context)?))
 }
 
-async fn list_edit(Path(_): Path<i64>, State(_): State<Arc<AppState>>) {}
+async fn list_edit(ListEditPath(_): ListEditPath, State(_): State<Arc<AppState>>) {}
 
 async fn help(
+    _: HelpPath,
     mut session: WritableSession,
     auth: AuthContext,
     State(state): State<Arc<AppState>>,
 ) -> Result<Html<String>, ResponseError> {
     let crumbs = vec![
         Crumb {
-            label: "Lists".into(),
+            label: "Home".into(),
             url: "/".into(),
         },
         Crumb {
             label: "Help".into(),
-            url: "/help/".into(),
+            url: HelpPath.to_crumb(),
         },
     ];
     let context = minijinja::context! {
