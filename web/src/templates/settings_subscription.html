@@ -1,6 +1,6 @@
 {% include "header.html" %}
 <div class="body body-grid">
-  <h3>Your subscription to <a href="{{ root_url_prefix|safe }}{{ list_path(list.pk) }}">{{ list.id }}</a>.</h3>
+    <h3>Your subscription to <a href="{{ root_url_prefix|safe }}{{ list_path(list.pk) }}">{{ list.id }}</a>.</h3>
     <address>
         {{ list.name }} <a href="mailto:{{ list.address | safe }}"><code>{{ list.address }}</code></a>
     </address>
