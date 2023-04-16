@@ -36,6 +36,12 @@ impl<T> DbVal<T> {
     pub fn pk(&self) -> i64 {
         self.1
     }
+
+    /// Unwrap inner value.
+    #[inline(always)]
+    pub fn into_inner(self) -> T {
+        self.0
+    }
 }
 
 impl<T> std::ops::Deref for DbVal<T> {
@@ -102,22 +108,86 @@ impl MailingList {
         format!("\"{}\" <{}>", self.name, self.address)
     }
 
+    #[inline]
+    /// Request subaddress.
+    pub fn request_subaddr(&self) -> String {
+        let p = self.address.split('@').collect::<Vec<&str>>();
+        format!("{}+request@{}", p[0], p[1])
+    }
+
+    /// Value of `List-Id` header.
+    ///
+    /// See RFC2919 Section 3: <https://www.rfc-editor.org/rfc/rfc2919>
+    pub fn id_header(&self) -> String {
+        let p = self.address.split('@').collect::<Vec<&str>>();
+        format!(
+            "{}{}<{}.{}>",
+            self.description.as_deref().unwrap_or(""),
+            self.description.as_ref().map(|_| " ").unwrap_or(""),
+            self.id,
+            p[1]
+        )
+    }
+
+    /// Value of `List-Help` header.
+    ///
+    /// See RFC2369 Section 3.1: <https://www.rfc-editor.org/rfc/rfc2369#section-3.1>
+    pub fn help_header(&self) -> Option<String> {
+        Some(format!("<mailto:{}?subject=help>", self.request_subaddr()))
+    }
+
     /// Value of `List-Post` header.
     ///
     /// See RFC2369 Section 3.4: <https://www.rfc-editor.org/rfc/rfc2369#section-3.4>
-    pub fn post_header(&self) -> Option<String> {
-        Some(format!("<mailto:{}>", self.address))
+    pub fn post_header(&self, policy: Option<&PostPolicy>) -> Option<String> {
+        Some(policy.map_or_else(
+            || "NO".to_string(),
+            |p| {
+                if p.announce_only {
+                    "NO".to_string()
+                } else {
+                    format!("<mailto:{}>", self.address)
+                }
+            },
+        ))
     }
 
     /// Value of `List-Unsubscribe` header.
     ///
     /// See RFC2369 Section 3.2: <https://www.rfc-editor.org/rfc/rfc2369#section-3.2>
-    pub fn unsubscription_header(&self) -> Option<String> {
-        let p = self.address.split('@').collect::<Vec<&str>>();
-        Some(format!(
-            "<mailto:{}+request@{}?subject=subscribe>",
-            p[0], p[1]
-        ))
+    pub fn unsubscribe_header(&self, policy: Option<&SubscriptionPolicy>) -> Option<String> {
+        policy.map_or_else(
+            || None,
+            |p| {
+                if p.open {
+                    None
+                } else {
+                    Some(format!(
+                        "<mailto:{}?subject=unsubscribe>",
+                        self.request_subaddr()
+                    ))
+                }
+            },
+        )
+    }
+
+    /// Value of `List-Subscribe` header.
+    ///
+    /// See RFC2369 Section 3.3: <https://www.rfc-editor.org/rfc/rfc2369#section-3.3>
+    pub fn subscribe_header(&self, policy: Option<&SubscriptionPolicy>) -> Option<String> {
+        policy.map_or_else(
+            || None,
+            |p| {
+                if p.open {
+                    None
+                } else {
+                    Some(format!(
+                        "<mailto:{}?subject=subscribe>",
+                        self.request_subaddr()
+                    ))
+                }
+            },
+        )
     }
 
     /// Value of `List-Archive` header.
@@ -134,18 +204,16 @@ impl MailingList {
 
     /// List unsubscribe action as a [`MailtoAddress`](super::MailtoAddress).
     pub fn unsubscription_mailto(&self) -> MailtoAddress {
-        let p = self.address.split('@').collect::<Vec<&str>>();
         MailtoAddress {
-            address: format!("{}+request@{}", p[0], p[1]),
+            address: self.request_subaddr(),
             subject: Some("unsubscribe".to_string()),
         }
     }
 
     /// List subscribe action as a [`MailtoAddress`](super::MailtoAddress).
     pub fn subscription_mailto(&self) -> MailtoAddress {
-        let p = self.address.split('@').collect::<Vec<&str>>();
         MailtoAddress {
-            address: format!("{}+request@{}", p[0], p[1]),
+            address: self.request_subaddr(),
             subject: Some("subscribe".to_string()),
         }
     }
@@ -377,5 +445,116 @@ pub struct Account {
 impl std::fmt::Display for Account {
     fn fmt(&self, fmt: &mut std::fmt::Formatter) -> std::fmt::Result {
         write!(fmt, "{:?}", self)
+    }
+}
+
+/// A named template.
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
+pub struct Template {
+    /// Database primary key.
+    pub pk: i64,
+    /// Name.
+    pub name: String,
+    /// Associated list foreign key, optional.
+    pub list: Option<i64>,
+    /// Subject template.
+    pub subject: Option<String>,
+    /// Extra headers template.
+    pub headers_json: Option<serde_json::Value>,
+    /// Body template.
+    pub body: String,
+}
+
+impl std::fmt::Display for Template {
+    fn fmt(&self, fmt: &mut std::fmt::Formatter) -> std::fmt::Result {
+        write!(fmt, "{:?}", self)
+    }
+}
+
+impl Template {
+    /// Template name for generic failure e-mail.
+    pub const GENERIC_FAILURE: &str = "generic-failure";
+    /// Template name for generic success e-mail.
+    pub const GENERIC_SUCCESS: &str = "generic-success";
+    /// Template name for subscription confirmation e-mail.
+    pub const SUBSCRIPTION_CONFIRMATION: &str = "subscription-confirmation";
+    /// Template name for unsubscription confirmation e-mail.
+    pub const UNSUBSCRIPTION_CONFIRMATION: &str = "unsubscription-confirmation";
+
+    /// Render a message body from a saved named template.
+    pub fn render(&self, context: minijinja::value::Value) -> Result<melib::Draft> {
+        use melib::{Draft, HeaderName};
+
+        let env = minijinja::Environment::new();
+        let mut draft: Draft = Draft {
+            body: env.render_named_str("body", &self.body, &context)?,
+            ..Draft::default()
+        };
+        if let Some(ref subject) = self.subject {
+            draft.headers.insert(
+                HeaderName::new_unchecked("Subject"),
+                env.render_named_str("subject", subject, &context)?,
+            );
+        }
+
+        Ok(draft)
+    }
+
+    /// Template name for generic failure e-mail.
+    pub fn default_generic_failure() -> Self {
+        Self {
+            pk: -1,
+            name: Self::GENERIC_FAILURE.to_string(),
+            list: None,
+            subject: Some("Your e-mail was not processed successfully.".to_string()),
+            headers_json: None,
+            body: "{{ details|safe if details else \"\" }}".to_string(),
+        }
+    }
+
+    /// Create a plain template for generic success e-mails.
+    pub fn default_generic_success() -> Self {
+        Self {
+            pk: -1,
+            name: Self::GENERIC_SUCCESS.to_string(),
+            list: None,
+            subject: Some("Your e-mail was processed successfully.".to_string()),
+            headers_json: None,
+            body: "{{ details|safe if details else \"\" }}".to_string(),
+        }
+    }
+
+    /// Create a plain template for subscription confirmation.
+    pub fn default_subscription_confirmation() -> Self {
+        Self {
+            pk: -1,
+            name: Self::SUBSCRIPTION_CONFIRMATION.to_string(),
+            list: None,
+            subject: Some(
+                "{% if list and (list.id or list.name) %}{% if list.id %}[{{ list.id }}] {% endif \
+                 %}You have successfully subscribed to {{ list.name if list.name else list.id \
+                 }}{% else %}You have successfully subscribed to this list{% endif %}."
+                    .to_string(),
+            ),
+            headers_json: None,
+            body: "{{ details|safe if details else \"\" }}".to_string(),
+        }
+    }
+
+    /// Create a plain template for unsubscription confirmations.
+    pub fn default_unsubscription_confirmation() -> Self {
+        Self {
+            pk: -1,
+            name: Self::UNSUBSCRIPTION_CONFIRMATION.to_string(),
+            list: None,
+            subject: Some(
+                "{% if list and (list.id or list.name) %}{% if list.id %}[{{ list.id }}] {% endif \
+                 %}You have successfully unsubscribed from {{ list.name if list.name else list.id \
+                 }}{% else %}You have successfully unsubscribed from this list{% endif %}."
+                    .to_string(),
+            ),
+            headers_json: None,
+            body: "{{ details|safe if details else \"\" }}".to_string(),
+        }
     }
 }

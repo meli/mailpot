@@ -124,11 +124,15 @@ CREATE TABLE IF NOT EXISTS post (
 
 CREATE TABLE IF NOT EXISTS templates (
   pk                      INTEGER PRIMARY KEY NOT NULL,
-  list                    INTEGER UNIQUE,
+  name                    TEXT NOT NULL,
+  list                    INTEGER,
   subject                 TEXT,
+  headers_json            TEXT,
   body                    TEXT NOT NULL,
   created                 INTEGER NOT NULL DEFAULT (unixepoch()),
-  last_modified           INTEGER NOT NULL DEFAULT (unixepoch())
+  last_modified           INTEGER NOT NULL DEFAULT (unixepoch()),
+  FOREIGN KEY (list) REFERENCES list(pk) ON DELETE CASCADE,
+  UNIQUE (list, name) ON CONFLICT ROLLBACK
 );
 
 -- # Queues

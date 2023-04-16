@@ -349,7 +349,7 @@ pub async fn user_list_subscription_post(
     let mut db = Connection::open_db(state.conf.clone())?;
 
     let Some(list) = (match id {
-        ListPathIdentifier::Pk(id) => db.list(id as _)?,
+        ListPathIdentifier::Pk(id) => db.list(id)?,
         ListPathIdentifier::Id(id) => db.list_by_id(id)?,
     }) else {
         return Err(ResponseError::new(

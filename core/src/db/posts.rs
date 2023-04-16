@@ -155,7 +155,8 @@ impl Connection {
             let owners = self.list_owners(list.pk)?;
             trace!("List subscriptions {:#?}", &subscriptions);
             let mut list_ctx = ListContext {
-                policy: self.list_policy(list.pk)?,
+                post_policy: self.list_policy(list.pk)?,
+                subscription_policy: self.list_subscription_policy(list.pk)?,
                 list_owners: &owners,
                 list: &mut list,
                 subscriptions: &subscriptions,
@@ -246,8 +247,9 @@ impl Connection {
                     list
                 );
 
-                let list_policy = self.list_policy(list.pk)?;
-                let approval_needed = list_policy
+                let post_policy = self.list_policy(list.pk)?;
+                let subscription_policy = self.list_subscription_policy(list.pk)?;
+                let approval_needed = post_policy
                     .as_ref()
                     .map(|p| p.approval_needed)
                     .unwrap_or(false);
@@ -275,7 +277,48 @@ impl Connection {
                     } else if let Err(_err) = self.add_subscription(list.pk, subscription) {
                         //FIXME: send failure notice to f
                     } else {
-                        //FIXME: send success notice
+                        let templ = self
+                            .fetch_template(Template::SUBSCRIPTION_CONFIRMATION, Some(list.pk))?
+                            .map(DbVal::into_inner)
+                            .unwrap_or_else(Template::default_subscription_confirmation);
+
+                        let mut confirmation = templ.render(minijinja::context! {
+                            list => &list,
+                        })?;
+                        confirmation.headers.insert(
+                            melib::HeaderName::new_unchecked("From"),
+                            list.request_subaddr(),
+                        );
+                        confirmation
+                            .headers
+                            .insert(melib::HeaderName::new_unchecked("To"), f.to_string());
+                        for (hdr, val) in [
+                            ("List-Id", Some(list.id_header())),
+                            ("List-Help", list.help_header()),
+                            ("List-Post", list.post_header(post_policy.as_deref())),
+                            (
+                                "List-Unsubscribe",
+                                list.unsubscribe_header(subscription_policy.as_deref()),
+                            ),
+                            (
+                                "List-Subscribe",
+                                list.subscribe_header(subscription_policy.as_deref()),
+                            ),
+                            ("List-Archive", list.archive_header()),
+                        ] {
+                            if let Some(val) = val {
+                                confirmation
+                                    .headers
+                                    .insert(melib::HeaderName::new_unchecked(hdr), val);
+                            }
+                        }
+                        self.insert_to_queue(
+                            Queue::Out,
+                            Some(list.pk),
+                            None,
+                            confirmation.finalise()?.as_bytes(),
+                            String::new(),
+                        )?;
                     }
                 }
             }

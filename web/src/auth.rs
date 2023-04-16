@@ -27,7 +27,7 @@ use super::*;
 const TOKEN_KEY: &str = "ssh_challenge";
 const EXPIRY_IN_SECS: i64 = 6 * 60;
 
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, Copy, PartialEq, PartialOrd)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, Copy, Eq, PartialEq, PartialOrd)]
 pub enum Role {
     User,
     Admin,
@@ -114,17 +114,18 @@ pub async fn ssh_signin(
         None
     };
 
-    let (token, timestamp): (String, i64) = if let Some(tok) = prev_token {
-        tok
-    } else {
-        use rand::{distributions::Alphanumeric, thread_rng, Rng};
+    let (token, timestamp): (String, i64) = prev_token.map_or_else(
+        || {
+            use rand::{distributions::Alphanumeric, thread_rng, Rng};
 
-        let mut rng = thread_rng();
-        let chars: String = (0..7).map(|_| rng.sample(Alphanumeric) as char).collect();
-        println!("Random chars: {}", chars);
-        session.insert(TOKEN_KEY, (&chars, now)).unwrap();
-        (chars, now)
-    };
+            let mut rng = thread_rng();
+            let chars: String = (0..7).map(|_| rng.sample(Alphanumeric) as char).collect();
+            println!("Random chars: {}", chars);
+            session.insert(TOKEN_KEY, (&chars, now)).unwrap();
+            (chars, now)
+        },
+        |tok| tok,
+    );
     let timeout_left = ((timestamp + EXPIRY_IN_SECS) - now) as f64 / 60.0;
 
     let root_url_prefix = &state.root_url_prefix;
@@ -190,11 +191,7 @@ pub async fn ssh_signin_post(
                     "{}{}{}",
                     state.root_url_prefix,
                     LoginPath.to_uri(),
-                    if let Some(ref next) = next.next {
-                        next.as_str()
-                    } else {
-                        ""
-                    }
+                    next.next.as_ref().map_or("", |next| next.as_str())
                 )));
             } else {
                 tok
@@ -208,11 +205,7 @@ pub async fn ssh_signin_post(
                 "{}{}{}",
                 state.root_url_prefix,
                 LoginPath.to_uri(),
-                if let Some(ref next) = next.next {
-                    next.as_str()
-                } else {
-                    ""
-                }
+                next.next.as_ref().map_or("", |next| next.as_str())
             )));
         };
 
@@ -422,11 +415,8 @@ pub mod auth_request {
         T: RangeBounds<Role> + Clone + Send + Sync,
     {
         fn contains(&self, role: Option<Role>) -> bool {
-            if let Some(role) = role {
-                RangeBounds::contains(self, &role)
-            } else {
-                role.is_none()
-            }
+            role.as_ref()
+                .map_or_else(|| role.is_none(), |role| RangeBounds::contains(self, role))
         }
     }
 
@@ -483,8 +473,9 @@ pub mod auth_request {
 
                 _ => {
                     let unauthorized_response = if let Some(ref login_url) = self.login_url {
-                        let url: Cow<'static, str> =
-                            if let Some(ref next) = self.redirect_field_name {
+                        let url: Cow<'static, str> = self.redirect_field_name.as_ref().map_or_else(
+                            || login_url.as_ref().clone(),
+                            |next| {
                                 format!(
                                     "{login_url}?{next}={}",
                                     percent_encoding::utf8_percent_encode(
@@ -493,9 +484,9 @@ pub mod auth_request {
                                     )
                                 )
                                 .into()
-                            } else {
-                                login_url.as_ref().clone()
-                            };
+                            },
+                        );
+
                         Response::builder()
                             .status(http::StatusCode::TEMPORARY_REDIRECT)
                             .header(http::header::LOCATION, url.as_ref())

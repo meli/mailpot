@@ -63,5 +63,6 @@ error_chain! {
        Io(::std::io::Error) #[doc="Error returned from internal I/O operations."];
        Melib(melib::error::Error) #[doc="Error returned from e-mail protocol operations from `melib` crate."];
        SerdeJson(serde_json::Error) #[doc="Error from deserializing JSON values."];
+       Template(minijinja::Error) #[doc="Error returned from minijinja template engine."];
    }
 }

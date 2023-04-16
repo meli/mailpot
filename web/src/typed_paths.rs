@@ -500,11 +500,10 @@ pub mod tsr {
                     .unwrap_or_else(|| Cow::Owned(format!("{path}/")))
             });
 
-            if let Some(new_uri) = new_uri {
-                Redirect::permanent(&new_uri.to_string()).into_response()
-            } else {
-                StatusCode::BAD_REQUEST.into_response()
-            }
+            new_uri.map_or_else(
+                || StatusCode::BAD_REQUEST.into_response(),
+                |new_uri| Redirect::permanent(&new_uri.to_string()).into_response(),
+            )
         }
 
         if let Some(path_without_trailing_slash) = path.strip_suffix('/') {
@@ -523,18 +522,26 @@ pub mod tsr {
                     .unwrap_or_else(|| Cow::Owned(format!("{path}/")))
             });
 
-            if let Some(new_uri) = new_uri {
-                Redirect::permanent(&new_uri.to_string()).into_response()
-            } else {
-                StatusCode::BAD_REQUEST.into_response()
-            }
+            new_uri.map_or_else(
+                || StatusCode::BAD_REQUEST.into_response(),
+                |new_uri| Redirect::permanent(&new_uri.to_string()).into_response(),
+            )
         }
 
-        if let Some(path_without_trailing_slash) = path.strip_suffix('/') {
-            (Cow::Borrowed(path_without_trailing_slash), redirect_handler)
-        } else {
-            (Cow::Owned(format!("{path}/")), redirect_handler)
-        }
+        path.strip_suffix('/').map_or_else(
+            || {
+                (
+                    Cow::Owned(format!("{path}/")),
+                    redirect_handler as fn(Uri) -> Response,
+                )
+            },
+            |path_without_trailing_slash| {
+                (
+                    Cow::Borrowed(path_without_trailing_slash),
+                    redirect_handler as fn(Uri) -> Response,
+                )
+            },
+        )
     }
 
     #[inline]

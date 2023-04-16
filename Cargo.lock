@@ -1500,6 +1500,7 @@ dependencies = [
  "log",
  "mailin-embedded",
  "melib",
+ "minijinja",
  "reqwest",
  "rusqlite",
  "serde",
@@ -2120,6 +2121,7 @@ dependencies = [
  "fallible-streaming-iterator",
  "hashlink",
  "libsqlite3-sys",
+ "serde_json",
  "smallvec",
 ]
 

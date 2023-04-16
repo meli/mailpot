@@ -17,6 +17,35 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
+#![deny(
+    //missing_docs,
+    rustdoc::broken_intra_doc_links,
+    /* groups */
+    clippy::correctness,
+    clippy::suspicious,
+    clippy::complexity,
+    clippy::perf,
+    clippy::style,
+    clippy::cargo,
+    clippy::nursery,
+    /* restriction */
+    clippy::dbg_macro,
+    clippy::rc_buffer,
+    clippy::as_underscore,
+    clippy::assertions_on_result_states,
+    /* pedantic */
+    clippy::cast_lossless,
+    clippy::cast_possible_wrap,
+    clippy::ptr_as_ptr,
+    clippy::bool_to_int_with_if,
+    clippy::borrow_as_ptr,
+    clippy::case_sensitive_file_extension_comparisons,
+    clippy::cast_lossless,
+    clippy::cast_ptr_alignment,
+    clippy::naive_bytecount
+)]
+#![allow(clippy::multiple_crate_versions, clippy::missing_const_for_fn)]
+
 pub use axum::{
     extract::{Path, Query, State},
     handler::Handler,
@@ -54,12 +83,14 @@ use tokio::sync::RwLock;
 
 pub mod auth;
 pub mod cal;
+pub mod minijinja_utils;
 pub mod settings;
 pub mod typed_paths;
 pub mod utils;
 
 pub use auth::*;
 pub use cal::{calendarize, *};
+pub use minijinja_utils::*;
 pub use settings::*;
 pub use typed_paths::{tsr::RouterExt, *};
 pub use utils::*;

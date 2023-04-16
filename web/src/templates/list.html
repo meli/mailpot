@@ -97,8 +97,8 @@
                 <div class="entry">
                     <span class="subject"><a href="{{ root_url_prefix }}{{ list_post_path(list.id, post.message_id) }}">{{ post.subject }}</a></span>
                     <span class="metadata">👤&nbsp;<span class="from">{{ post.address }}</span> 📆&nbsp;<span class="date">{{ post.datetime }}</span></span>
-                    <span class="metadata">🪪 &nbsp;<span class="message-id">{{ post.message_id }}</span></span>
-                </div>
+                    <span class="metadata">🪪 &nbsp;<span class="message-id">{{ post.message_id }}</span> &olarr;&nbsp;<span class="replies">{{ post.replies }}</span>
+                    </div>
             {% endfor %}
         </div>
     </div>

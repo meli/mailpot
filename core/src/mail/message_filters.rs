@@ -63,7 +63,7 @@ impl PostFilter for PostRightsCheck {
         ctx: &'p mut ListContext<'list>,
     ) -> std::result::Result<(&'p mut Post, &'p mut ListContext<'list>), ()> {
         trace!("Running PostRightsCheck filter");
-        if let Some(ref policy) = ctx.policy {
+        if let Some(ref policy) = ctx.post_policy {
             if policy.announce_only {
                 trace!("post policy is announce_only");
                 let owner_addresses = ctx
@@ -142,22 +142,33 @@ impl PostFilter for AddListHeaders {
     ) -> std::result::Result<(&'p mut Post, &'p mut ListContext<'list>), ()> {
         trace!("Running AddListHeaders filter");
         let (mut headers, body) = melib::email::parser::mail(&post.bytes).unwrap();
-        let list_id = ctx.list.display_name();
         let sender = format!("<{}>", ctx.list.address);
-        headers.push((&b"List-ID"[..], list_id.as_bytes()));
         headers.push((&b"Sender"[..], sender.as_bytes()));
-        let list_post = ctx.list.post_header();
-        let list_unsubscribe = ctx.list.unsubscription_header();
+
+        let list_id = Some(ctx.list.id_header());
+        let list_help = ctx.list.help_header();
+        let list_post = ctx.list.post_header(ctx.post_policy.as_deref());
+        let list_unsubscribe = ctx
+            .list
+            .unsubscribe_header(ctx.subscription_policy.as_deref());
+        let list_subscribe = ctx
+            .list
+            .subscribe_header(ctx.subscription_policy.as_deref());
         let list_archive = ctx.list.archive_header();
-        if let Some(post) = list_post.as_ref() {
-            headers.push((&b"List-Post"[..], post.as_bytes()));
+
+        for (hdr, val) in [
+            (b"List-Id".as_slice(), &list_id),
+            (b"List-Help".as_slice(), &list_help),
+            (b"List-Post".as_slice(), &list_post),
+            (b"List-Unsubscribe".as_slice(), &list_unsubscribe),
+            (b"List-Subscribe".as_slice(), &list_subscribe),
+            (b"List-Archive".as_slice(), &list_archive),
+        ] {
+            if let Some(val) = val {
+                headers.push((hdr, val.as_bytes()));
+            }
         }
-        if let Some(unsubscribe) = list_unsubscribe.as_ref() {
-            headers.push((&b"List-Unsubscribe"[..], unsubscribe.as_bytes()));
-        }
-        if let Some(archive) = list_archive.as_ref() {
-            headers.push((&b"List-Archive"[..], archive.as_bytes()));
-        }
+
         let mut new_vec = Vec::with_capacity(
             headers
                 .iter()

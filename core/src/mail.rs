@@ -56,7 +56,9 @@ pub struct ListContext<'list> {
     /// The mailing list subscriptions.
     pub subscriptions: &'list [DbVal<ListSubscription>],
     /// The mailing list post policy.
-    pub policy: Option<DbVal<PostPolicy>>,
+    pub post_policy: Option<DbVal<PostPolicy>>,
+    /// The mailing list subscription policy.
+    pub subscription_policy: Option<DbVal<SubscriptionPolicy>>,
     /// The scheduled jobs added by each filter in a list's
     /// [`PostFilter`](message_filters::PostFilter) stack.
     pub scheduled_jobs: Vec<MailJob>,

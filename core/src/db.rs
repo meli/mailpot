@@ -46,6 +46,10 @@ impl std::fmt::Debug for Connection {
     }
 }
 
+mod templates;
+pub use templates::*;
+mod queue;
+pub use queue::*;
 mod error_queue;
 pub use error_queue::*;
 mod posts;
@@ -57,14 +61,18 @@ pub use policies::*;
 
 fn log_callback(error_code: std::ffi::c_int, message: &str) {
     match error_code {
-        rusqlite::ffi::SQLITE_NOTICE => log::info!("{}", message),
-        rusqlite::ffi::SQLITE_WARNING => log::warn!("{}", message),
+        rusqlite::ffi::SQLITE_OK
+        | rusqlite::ffi::SQLITE_DONE
+        | rusqlite::ffi::SQLITE_NOTICE
+        | rusqlite::ffi::SQLITE_NOTICE_RECOVER_WAL
+        | rusqlite::ffi::SQLITE_NOTICE_RECOVER_ROLLBACK => log::info!("{}", message),
+        rusqlite::ffi::SQLITE_WARNING | rusqlite::ffi::SQLITE_WARNING_AUTOINDEX => {
+            log::warn!("{}", message)
+        }
         _ => log::error!("{error_code} {}", message),
     }
 }
-// INSERT INTO subscription(list, address, name, enabled, digest, verified,
-// hide_address, receive_duplicates, receive_own_posts, receive_confirmation)
-// VALUES
+
 fn user_authorizer_callback(
     auth_context: rusqlite::hooks::AuthContext<'_>,
 ) -> rusqlite::hooks::Authorization {
@@ -129,6 +137,7 @@ impl Connection {
             unsafe { rusqlite::trace::config_log(Some(log_callback)).unwrap() };
         });
         let conn = DbConnection::open(conf.db_path.to_str().unwrap())?;
+        rusqlite::vtab::array::load_module(&conn)?;
         conn.set_db_config(DbConfig::SQLITE_DBCONFIG_ENABLE_FKEY, true)?;
         conn.set_db_config(DbConfig::SQLITE_DBCONFIG_ENABLE_TRIGGER, true)?;
         conn.set_db_config(DbConfig::SQLITE_DBCONFIG_DEFENSIVE, true)?;

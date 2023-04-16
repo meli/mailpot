@@ -79,12 +79,11 @@ pub fn calendarize_with_offset(date: NaiveDate, offset: u32) -> Vec<[u32; 7]> {
         .unwrap()
         .weekday()
         .num_days_from_sunday();
-    let mut first_date_day;
-    if num_days_from_sunday < offset {
-        first_date_day = num_days_from_sunday + (7 - offset);
+    let mut first_date_day = if num_days_from_sunday < offset {
+        num_days_from_sunday + (7 - offset)
     } else {
-        first_date_day = num_days_from_sunday - offset;
-    }
+        num_days_from_sunday - offset
+    };
     let end_date = NaiveDate::from_ymd_opt(year, month + 1, 1)
         .unwrap_or_else(|| NaiveDate::from_ymd_opt(year + 1, 1, 1).unwrap())
         .pred_opt()
