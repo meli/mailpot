@@ -143,11 +143,13 @@ pub mod mail;
 pub mod models;
 #[cfg(not(target_os = "windows"))]
 pub mod postfix;
+mod templates;
 
 pub use config::{Configuration, SendMail};
 pub use db::*;
 pub use errors::*;
 use models::*;
+pub use templates::*;
 
 /// A `mailto:` value.
 #[derive(Debug, Clone, Deserialize, Serialize)]

@@ -68,6 +68,7 @@ CREATE TABLE IF NOT EXISTS subscription (
   receive_duplicates BOOLEAN CHECK (receive_duplicates in (0, 1)) NOT NULL      DEFAULT 1,
   receive_own_posts BOOLEAN CHECK (receive_own_posts in (0, 1)) NOT NULL       DEFAULT 0,
   receive_confirmation BOOLEAN CHECK (receive_confirmation in (0, 1)) NOT NULL    DEFAULT 1,
+  last_digest                           INTEGER NOT NULL DEFAULT (unixepoch()),
   created                               INTEGER NOT NULL DEFAULT (unixepoch()),
   last_modified                         INTEGER NOT NULL DEFAULT (unixepoch()),
   FOREIGN KEY (list) REFERENCES list(pk) ON DELETE CASCADE,

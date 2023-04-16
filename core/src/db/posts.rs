@@ -17,6 +17,8 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
+use std::borrow::Cow;
+
 use super::*;
 use crate::mail::ListRequest;
 
@@ -205,7 +207,6 @@ impl Connection {
                             }
                         }
                     }
-                    /* - FIXME Save digest metadata in database */
                 }
                 PostAction::Reject { reason } => {
                     /* FIXME - Notify submitter */
@@ -239,6 +240,7 @@ impl Connection {
         env: &Envelope,
         raw: &[u8],
     ) -> Result<()> {
+        let post_policy = self.list_post_policy(list.pk)?;
         match request {
             ListRequest::Subscribe => {
                 trace!(
@@ -247,8 +249,6 @@ impl Connection {
                     list
                 );
 
-                let post_policy = self.list_post_policy(list.pk)?;
-                let subscription_policy = self.list_subscription_policy(list.pk)?;
                 let approval_needed = post_policy
                     .as_ref()
                     .map(|p| p.approval_needed)
@@ -270,54 +270,119 @@ impl Connection {
                     };
                     if approval_needed {
                         match self.add_candidate_subscription(list.pk, subscription) {
-                            Ok(_) => {}
-                            Err(_err) => {}
-                        }
-                        //FIXME: send notification to list-owner
-                    } else if let Err(_err) = self.add_subscription(list.pk, subscription) {
-                        //FIXME: send failure notice to f
-                    } else {
-                        let templ = self
-                            .fetch_template(Template::SUBSCRIPTION_CONFIRMATION, Some(list.pk))?
-                            .map(DbVal::into_inner)
-                            .unwrap_or_else(Template::default_subscription_confirmation);
+                            Ok(v) => {
+                                let list_owners = self.list_owners(list.pk)?;
+                                self.send_reply_with_list_template(
+                                    TemplateRenderContext {
+                                        template: Template::SUBSCRIPTION_REQUEST_NOTICE_OWNER,
+                                        default_fn: Some(
+                                            Template::default_subscription_request_owner,
+                                        ),
+                                        list,
+                                        context: minijinja::context! {
+                                            list => &list,
+                                            candidate => &v,
+                                        },
+                                        queue: Queue::Out,
+                                        comment: Template::SUBSCRIPTION_REQUEST_NOTICE_OWNER
+                                            .to_string(),
+                                    },
+                                    list_owners.iter().map(|owner| Cow::Owned(owner.address())),
+                                )?;
+                            }
+                            Err(err) => {
+                                log::error!(
+                                    "Could not create candidate subscription for {f:?}: {err}"
+                                );
+                                /* send error notice to e-mail sender */
+                                self.send_reply_with_list_template(
+                                    TemplateRenderContext {
+                                        template: Template::GENERIC_FAILURE,
+                                        default_fn: Some(Template::default_generic_failure),
+                                        list,
+                                        context: minijinja::context! {
+                                            list => &list,
+                                        },
+                                        queue: Queue::Out,
+                                        comment: format!(
+                                            "Could not create candidate subscription for {f:?}: \
+                                             {err}"
+                                        ),
+                                    },
+                                    std::iter::once(Cow::Borrowed(f)),
+                                )?;
 
-                        let mut confirmation = templ.render(minijinja::context! {
-                            list => &list,
-                        })?;
-                        confirmation.headers.insert(
-                            melib::HeaderName::new_unchecked("From"),
-                            list.request_subaddr(),
-                        );
-                        confirmation
-                            .headers
-                            .insert(melib::HeaderName::new_unchecked("To"), f.to_string());
-                        for (hdr, val) in [
-                            ("List-Id", Some(list.id_header())),
-                            ("List-Help", list.help_header()),
-                            ("List-Post", list.post_header(post_policy.as_deref())),
-                            (
-                                "List-Unsubscribe",
-                                list.unsubscribe_header(subscription_policy.as_deref()),
-                            ),
-                            (
-                                "List-Subscribe",
-                                list.subscribe_header(subscription_policy.as_deref()),
-                            ),
-                            ("List-Archive", list.archive_header()),
-                        ] {
-                            if let Some(val) = val {
-                                confirmation
-                                    .headers
-                                    .insert(melib::HeaderName::new_unchecked(hdr), val);
+                                /* send error details to list owners */
+
+                                let list_owners = self.list_owners(list.pk)?;
+                                self.send_reply_with_list_template(
+                                    TemplateRenderContext {
+                                        template: Template::ADMIN_NOTICE,
+                                        default_fn: Some(Template::default_admin_notice),
+                                        list,
+                                        context: minijinja::context! {
+                                            list => &list,
+                                            details => err.to_string(),
+                                        },
+                                        queue: Queue::Out,
+                                        comment: format!(
+                                            "Could not create candidate subscription for {f:?}: \
+                                             {err}"
+                                        ),
+                                    },
+                                    list_owners.iter().map(|owner| Cow::Owned(owner.address())),
+                                )?;
                             }
                         }
-                        self.insert_to_queue(
-                            Queue::Out,
-                            Some(list.pk),
-                            None,
-                            confirmation.finalise()?.as_bytes(),
-                            String::new(),
+                    } else if let Err(err) = self.add_subscription(list.pk, subscription) {
+                        log::error!("Could not create subscription for {f:?}: {err}");
+
+                        /* send error notice to e-mail sender */
+
+                        self.send_reply_with_list_template(
+                            TemplateRenderContext {
+                                template: Template::GENERIC_FAILURE,
+                                default_fn: Some(Template::default_generic_failure),
+                                list,
+                                context: minijinja::context! {
+                                    list => &list,
+                                },
+                                queue: Queue::Out,
+                                comment: format!("Could not create subscription for {f:?}: {err}"),
+                            },
+                            std::iter::once(Cow::Borrowed(f)),
+                        )?;
+
+                        /* send error details to list owners */
+
+                        let list_owners = self.list_owners(list.pk)?;
+                        self.send_reply_with_list_template(
+                            TemplateRenderContext {
+                                template: Template::ADMIN_NOTICE,
+                                default_fn: Some(Template::default_admin_notice),
+                                list,
+                                context: minijinja::context! {
+                                    list => &list,
+                                    details => err.to_string(),
+                                },
+                                queue: Queue::Out,
+                                comment: format!("Could not create subscription for {f:?}: {err}"),
+                            },
+                            list_owners.iter().map(|owner| Cow::Owned(owner.address())),
+                        )?;
+                    } else {
+                        self.send_reply_with_list_template(
+                            TemplateRenderContext {
+                                template: Template::SUBSCRIPTION_CONFIRMATION,
+                                default_fn: Some(Template::default_subscription_confirmation),
+                                list,
+                                context: minijinja::context! {
+                                    list => &list,
+                                },
+                                queue: Queue::Out,
+                                comment: Template::SUBSCRIPTION_CONFIRMATION.to_string(),
+                            },
+                            std::iter::once(Cow::Borrowed(f)),
                         )?;
                     }
                 }
@@ -329,10 +394,55 @@ impl Connection {
                     list
                 );
                 for f in env.from() {
-                    if let Err(_err) = self.remove_subscription(list.pk, &f.get_email()) {
-                        //FIXME: send failure notice to f
+                    if let Err(err) = self.remove_subscription(list.pk, &f.get_email()) {
+                        log::error!("Could not unsubscribe {f:?}: {err}");
+                        /* send error notice to e-mail sender */
+
+                        self.send_reply_with_list_template(
+                            TemplateRenderContext {
+                                template: Template::GENERIC_FAILURE,
+                                default_fn: Some(Template::default_generic_failure),
+                                list,
+                                context: minijinja::context! {
+                                    list => &list,
+                                },
+                                queue: Queue::Out,
+                                comment: format!("Could not unsubscribe {f:?}: {err}"),
+                            },
+                            std::iter::once(Cow::Borrowed(f)),
+                        )?;
+
+                        /* send error details to list owners */
+
+                        let list_owners = self.list_owners(list.pk)?;
+                        self.send_reply_with_list_template(
+                            TemplateRenderContext {
+                                template: Template::ADMIN_NOTICE,
+                                default_fn: Some(Template::default_admin_notice),
+                                list,
+                                context: minijinja::context! {
+                                    list => &list,
+                                    details => err.to_string(),
+                                },
+                                queue: Queue::Out,
+                                comment: format!("Could not unsubscribe {f:?}: {err}"),
+                            },
+                            list_owners.iter().map(|owner| Cow::Owned(owner.address())),
+                        )?;
                     } else {
-                        //FIXME: send success notice to f
+                        self.send_reply_with_list_template(
+                            TemplateRenderContext {
+                                template: Template::UNSUBSCRIPTION_CONFIRMATION,
+                                default_fn: Some(Template::default_unsubscription_confirmation),
+                                list,
+                                context: minijinja::context! {
+                                    list => &list,
+                                },
+                                queue: Queue::Out,
+                                comment: Template::UNSUBSCRIPTION_CONFIRMATION.to_string(),
+                            },
+                            std::iter::once(Cow::Borrowed(f)),
+                        )?;
                     }
                 }
             }
@@ -342,7 +452,19 @@ impl Connection {
                     env.from(),
                     list
                 );
+                return Err("list-owner emails are not implemented yet.".into());
                 //FIXME: mail to list-owner
+                /*
+                for _owner in self.list_owners(list.pk)? {
+                        self.insert_to_queue(
+                            Queue::Out,
+                            Some(list.pk),
+                            None,
+                            draft.finalise()?.as_bytes(),
+                            "list-owner-forward".to_string(),
+                        )?;
+                }
+                */
             }
             ListRequest::Other(ref req) if req.trim().eq_ignore_ascii_case("password") => {
                 trace!(
@@ -352,7 +474,7 @@ impl Connection {
                 );
                 let body = env.body_bytes(raw);
                 let password = body.text();
-                // FIXME: validate SSH public key with `ssh-keygen`.
+                // TODO: validate SSH public key with `ssh-keygen`.
                 for f in env.from() {
                     let email_from = f.get_email();
                     if let Ok(sub) = self.list_subscription_by_address(list.pk, &email_from) {
@@ -389,7 +511,7 @@ impl Connection {
                     env.from(),
                     list
                 );
-                //FIXME
+                return Err("message retrievals are not implemented yet.".into());
             }
             ListRequest::RetrieveArchive(ref from, ref to) => {
                 trace!(
@@ -399,7 +521,7 @@ impl Connection {
                     env.from(),
                     list
                 );
-                //FIXME
+                return Err("message retrievals are not implemented yet.".into());
             }
             ListRequest::SetDigest(ref toggle) => {
                 trace!(
@@ -408,6 +530,7 @@ impl Connection {
                     env.from(),
                     list
                 );
+                return Err("setting digest options via e-mail is not implemented yet.".into());
             }
             ListRequest::Other(ref req) => {
                 trace!(
@@ -416,6 +539,7 @@ impl Connection {
                     env.from(),
                     list
                 );
+                return Err(format!("Unknown request {req}.").into());
             }
         }
         Ok(())
@@ -473,4 +597,73 @@ impl Connection {
 
         Ok(ret)
     }
+
+    /// Helper function to send a template reply.
+    pub fn send_reply_with_list_template<'ctx, F: Fn() -> Template>(
+        &self,
+        render_context: TemplateRenderContext<'ctx, F>,
+        recipients: impl Iterator<Item = Cow<'ctx, melib::Address>>,
+    ) -> Result<()> {
+        let TemplateRenderContext {
+            template,
+            default_fn,
+            list,
+            context,
+            queue,
+            comment,
+        } = render_context;
+
+        let post_policy = self.list_post_policy(list.pk)?;
+        let subscription_policy = self.list_subscription_policy(list.pk)?;
+
+        let templ = self
+            .fetch_template(template, Some(list.pk))?
+            .map(DbVal::into_inner)
+            .or_else(|| default_fn.map(|f| f()))
+            .ok_or_else(|| -> crate::Error {
+                format!("Template with name {template:?} was not found.").into()
+            })?;
+
+        let mut draft = templ.render(context)?;
+        draft.headers.insert(
+            melib::HeaderName::new_unchecked("From"),
+            list.request_subaddr(),
+        );
+        for addr in recipients {
+            let mut draft = draft.clone();
+            draft
+                .headers
+                .insert(melib::HeaderName::new_unchecked("To"), addr.to_string());
+            list.insert_headers(
+                &mut draft,
+                post_policy.as_deref(),
+                subscription_policy.as_deref(),
+            );
+            self.insert_to_queue(
+                queue,
+                Some(list.pk),
+                None,
+                draft.finalise()?.as_bytes(),
+                comment.clone(),
+            )?;
+        }
+        Ok(())
+    }
+}
+
+/// Helper type for [`Connection::send_reply_with_list_template`].
+#[derive(Debug)]
+pub struct TemplateRenderContext<'ctx, F: Fn() -> Template> {
+    /// Template name.
+    pub template: &'ctx str,
+    /// If template is not found, call a function that returns one.
+    pub default_fn: Option<F>,
+    /// The pertinent list.
+    pub list: &'ctx DbVal<MailingList>,
+    /// [`minijinja`]'s template context.
+    pub context: minijinja::value::Value,
+    /// Destination queue in the database.
+    pub queue: Queue,
+    /// Comment for the queue entry in the database.
+    pub comment: String,
 }

@@ -179,24 +179,31 @@ impl Connection {
         &mut self,
         list_pk: i64,
         mut new_val: ListSubscription,
-    ) -> Result<i64> {
+    ) -> Result<DbVal<ListCandidateSubscription>> {
         new_val.list = list_pk;
         let mut stmt = self.connection.prepare(
             "INSERT INTO candidate_subscription(list, address, name, accepted) VALUES(?, ?, ?, ?) \
-             RETURNING pk;",
+             RETURNING *;",
         )?;
         let ret = stmt.query_row(
             rusqlite::params![&new_val.list, &new_val.address, &new_val.name, None::<i64>,],
             |row| {
-                let pk: i64 = row.get("pk")?;
-                Ok(pk)
+                let pk = row.get("pk")?;
+                Ok(DbVal(
+                    ListCandidateSubscription {
+                        pk,
+                        list: row.get("list")?,
+                        address: row.get("address")?,
+                        name: row.get("name")?,
+                        accepted: row.get("accepted")?,
+                    },
+                    pk,
+                ))
             },
         )?;
         drop(stmt);
 
         trace!("add_candidate_subscription {:?}.", &ret);
-        self.accept_candidate_subscription(ret)?;
-        // [ref:FIXME]: add approval required option for subscriptions.
         Ok(ret)
     }
 

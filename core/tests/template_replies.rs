@@ -19,7 +19,7 @@
 
 mod utils;
 
-use mailpot::{models::*, Configuration, Connection, Queue, SendMail};
+use mailpot::{models::*, Configuration, Connection, Queue, SendMail, Template};
 use tempfile::TempDir;
 
 #[test]
@@ -142,7 +142,7 @@ MIME-Version: 1.0
     assert_eq!(db.error_queue().unwrap().len(), 0);
 
     let out_queue = db.queue(Queue::Out).unwrap();
-    assert_eq!(out_queue.len(), 1);
+    assert_eq!(out_queue.len(), 2);
 
     let mut _templ = _templ.into_inner();
     let _templ2 = db
@@ -160,8 +160,8 @@ MIME-Version: 1.0
 
     let out_queue = db.queue(Queue::Out).unwrap();
 
-    assert_eq!(out_queue.len(), 2);
-    let out = &out_queue[1];
+    assert_eq!(out_queue.len(), 3);
+    let out = &out_queue[2];
     let out_bytes = serde_json::from_value::<Vec<u8>>(out["message"].clone()).unwrap();
     let out_env = melib::Envelope::from_bytes(&out_bytes, None).unwrap();
     // eprintln!("{}", String::from_utf8_lossy(&out_bytes));
