@@ -50,8 +50,8 @@ fn test_authorizer() {
         })
         .unwrap_err(),
         db.remove_list_owner(1, 1).unwrap_err(),
-        db.remove_list_policy(1, 1).unwrap_err(),
-        db.set_list_policy(PostPolicy {
+        db.remove_list_post_policy(1, 1).unwrap_err(),
+        db.set_list_post_policy(PostPolicy {
             pk: 0,
             list: 1,
             announce_only: false,
@@ -94,7 +94,7 @@ fn test_authorizer() {
             name: None,
         })
         .map(|_| ()),
-        db.set_list_policy(PostPolicy {
+        db.set_list_post_policy(PostPolicy {
             pk: 0,
             list: 1,
             announce_only: false,
@@ -104,7 +104,7 @@ fn test_authorizer() {
             custom: false,
         })
         .map(|_| ()),
-        db.remove_list_policy(1, 1).map(|_| ()),
+        db.remove_list_post_policy(1, 1).map(|_| ()),
         db.remove_list_owner(1, 1).map(|_| ()),
     ] {
         ok.unwrap();

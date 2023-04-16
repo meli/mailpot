@@ -102,7 +102,7 @@ fn run_app(opt: Opt) -> Result<()> {
                             println!("\t- {}", o);
                         }
                     }
-                    if let Some(s) = db.list_policy(l.pk)? {
+                    if let Some(s) = db.list_post_policy(l.pk)? {
                         println!("\tList policy: {}", s);
                     } else {
                         println!("\tList policy: None");
@@ -185,7 +185,7 @@ fn run_app(opt: Opt) -> Result<()> {
                 Health => {
                     println!("{} health:", list);
                     let list_owners = db.list_owners(list.pk)?;
-                    let post_policy = db.list_policy(list.pk)?;
+                    let post_policy = db.list_post_policy(list.pk)?;
                     let subscription_policy = db.list_subscription_policy(list.pk)?;
                     if list_owners.is_empty() {
                         println!("\tList has no owners: you should add at least one.");
@@ -208,7 +208,7 @@ fn run_app(opt: Opt) -> Result<()> {
                 Info => {
                     println!("{} info:", list);
                     let list_owners = db.list_owners(list.pk)?;
-                    let post_policy = db.list_policy(list.pk)?;
+                    let post_policy = db.list_post_policy(list.pk)?;
                     let subscription_policy = db.list_subscription_policy(list.pk)?;
                     let subscriptions = db.list_subscriptions(list.pk)?;
                     if subscriptions.is_empty() {
@@ -291,11 +291,11 @@ fn run_app(opt: Opt) -> Result<()> {
                         open,
                         custom,
                     };
-                    let new_val = db.set_list_policy(policy)?;
+                    let new_val = db.set_list_post_policy(policy)?;
                     println!("Added new policy with pk = {}", new_val.pk());
                 }
                 RemovePolicy { pk } => {
-                    db.remove_list_policy(list.pk, pk)?;
+                    db.remove_list_post_policy(list.pk, pk)?;
                     println!("Removed policy with pk = {}", pk);
                 }
                 AddSubscribePolicy {
@@ -596,14 +596,14 @@ fn run_app(opt: Opt) -> Result<()> {
                 transport_name: transport_name.map(std::borrow::Cow::from),
             };
             let lists = db.lists()?;
-            let lists_policies = lists
+            let lists_post_policies = lists
                 .into_iter()
                 .map(|l| {
                     let pk = l.pk;
-                    Ok((l, db.list_policy(pk)?))
+                    Ok((l, db.list_post_policy(pk)?))
                 })
                 .collect::<Result<Vec<(DbVal<MailingList>, Option<DbVal<PostPolicy>>)>>>()?;
-            let maps = pfconf.generate_maps(&lists_policies);
+            let maps = pfconf.generate_maps(&lists_post_policies);
             let mastercf = pfconf.generate_master_cf_entry(db.conf(), config_path);
 
             println!("{maps}\n\n{mastercf}\n");

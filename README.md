@@ -212,7 +212,7 @@ let list_pk = db.create_list(MailingList {
     archive_url: None,
 })?.pk;
 
-db.set_list_policy(
+db.set_list_post_policy(
     PostPolicy {
         pk: 0,
         list: list_pk,

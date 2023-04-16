@@ -75,7 +75,7 @@
 //!     })?
 //!     .pk;
 //!
-//! db.set_list_policy(PostPolicy {
+//! db.set_list_post_policy(PostPolicy {
 //!     pk: 0,
 //!     list: list_pk,
 //!     announce_only: false,

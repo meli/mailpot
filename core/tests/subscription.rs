@@ -53,7 +53,7 @@ fn test_list_subscription() {
     assert_eq!(lists.len(), 1);
     assert_eq!(lists[0], foo_chat);
     let post_policy = db
-        .set_list_policy(PostPolicy {
+        .set_list_post_policy(PostPolicy {
             pk: 0,
             list: foo_chat.pk(),
             announce_only: false,

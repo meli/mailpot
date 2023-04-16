@@ -277,14 +277,14 @@ impl PostfixConfiguration {
             return Err(Error::from(ErrorKind::Logic(anyhow::Error::msg("Unepected logical error."))));
         };
         let lists = db.lists()?;
-        let lists_policies = lists
+        let lists_post_policies = lists
             .into_iter()
             .map(|l| {
                 let pk = l.pk;
-                Ok((l, db.list_policy(pk)?))
+                Ok((l, db.list_post_policy(pk)?))
             })
             .collect::<Result<Vec<(DbVal<MailingList>, Option<DbVal<PostPolicy>>)>>>()?;
-        let content = self.generate_maps(&lists_policies);
+        let content = self.generate_maps(&lists_post_policies);
         let path = self
             .map_output_path
             .as_deref()
@@ -426,7 +426,7 @@ fn test_postfix_generation() -> Result<()> {
         archive_url: None,
     })?;
     assert_eq!(second.pk(), 2);
-    let post_policy = db.set_list_policy(PostPolicy {
+    let post_policy = db.set_list_post_policy(PostPolicy {
         pk: 0,
         list: second.pk(),
         announce_only: false,
@@ -446,7 +446,7 @@ fn test_postfix_generation() -> Result<()> {
         archive_url: None,
     })?;
     assert_eq!(third.pk(), 3);
-    let post_policy = db.set_list_policy(PostPolicy {
+    let post_policy = db.set_list_post_policy(PostPolicy {
         pk: 0,
         list: third.pk(),
         announce_only: false,
@@ -473,14 +473,14 @@ fn test_postfix_generation() -> Result<()> {
     );
 
     let lists = db.lists()?;
-    let lists_policies = lists
+    let lists_post_policies = lists
         .into_iter()
         .map(|l| {
             let pk = l.pk;
-            Ok((l, db.list_policy(pk)?))
+            Ok((l, db.list_post_policy(pk)?))
         })
         .collect::<Result<Vec<(DbVal<MailingList>, Option<DbVal<PostPolicy>>)>>>()?;
-    let maps = postfix_conf.generate_maps(&lists_policies);
+    let maps = postfix_conf.generate_maps(&lists_post_policies);
 
     let expected = "second@example.com             mailpot:
 

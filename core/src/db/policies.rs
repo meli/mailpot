@@ -26,7 +26,7 @@ mod post_policy {
 
     impl Connection {
         /// Fetch the post policy of a mailing list.
-        pub fn list_policy(&self, pk: i64) -> Result<Option<DbVal<PostPolicy>>> {
+        pub fn list_post_policy(&self, pk: i64) -> Result<Option<DbVal<PostPolicy>>> {
             let mut stmt = self
                 .connection
                 .prepare("SELECT * FROM post_policy WHERE list = ?;")?;
@@ -78,7 +78,7 @@ mod post_policy {
         ///     })
         ///     .unwrap()
         ///     .pk;
-        /// db.set_list_policy(PostPolicy {
+        /// db.set_list_post_policy(PostPolicy {
         ///     pk: 0,
         ///     list: list_pk,
         ///     announce_only: false,
@@ -88,11 +88,11 @@ mod post_policy {
         ///     custom: false,
         /// })
         /// .unwrap();
-        /// db.remove_list_policy(1, 1).unwrap();
+        /// db.remove_list_post_policy(1, 1).unwrap();
         /// # }
         /// # do_test(config);
         /// ```
-        pub fn remove_list_policy(&self, list_pk: i64, policy_pk: i64) -> Result<()> {
+        pub fn remove_list_post_policy(&self, list_pk: i64, policy_pk: i64) -> Result<()> {
             let mut stmt = self
                 .connection
                 .prepare("DELETE FROM post_policy WHERE pk = ? AND list = ? RETURNING *;")?;
@@ -105,7 +105,7 @@ mod post_policy {
                     }
                 })?;
 
-            trace!("remove_list_policy {} {}.", list_pk, policy_pk);
+            trace!("remove_list_post_policy {} {}.", list_pk, policy_pk);
             Ok(())
         }
 
@@ -123,15 +123,15 @@ mod post_policy {
         ///
         /// # fn do_test(config: Configuration) {
         /// let db = Connection::open_or_create_db(config).unwrap().trusted();
-        /// db.remove_list_policy(1, 1).unwrap();
+        /// db.remove_list_post_policy(1, 1).unwrap();
         /// # }
         /// # do_test(config);
         /// ```
         #[cfg(doc)]
-        pub fn remove_list_policy_panic() {}
+        pub fn remove_list_post_policy_panic() {}
 
         /// Set the unique post policy for a list.
-        pub fn set_list_policy(&self, policy: PostPolicy) -> Result<DbVal<PostPolicy>> {
+        pub fn set_list_post_policy(&self, policy: PostPolicy) -> Result<DbVal<PostPolicy>> {
             if !(policy.announce_only
                 || policy.subscription_only
                 || policy.approval_needed
@@ -193,7 +193,7 @@ mod post_policy {
                     }
                 })?;
 
-            trace!("set_list_policy {:?}.", &ret);
+            trace!("set_list_post_policy {:?}.", &ret);
             Ok(ret)
         }
     }
@@ -259,7 +259,7 @@ mod subscription_policy {
         ///     })
         ///     .unwrap()
         ///     .pk;
-        /// db.set_list_policy(PostPolicy {
+        /// db.set_list_post_policy(PostPolicy {
         ///     pk: 0,
         ///     list: list_pk,
         ///     announce_only: false,
@@ -269,7 +269,7 @@ mod subscription_policy {
         ///     custom: false,
         /// })
         /// .unwrap();
-        /// db.remove_list_policy(1, 1).unwrap();
+        /// db.remove_list_post_policy(1, 1).unwrap();
         /// # }
         /// # do_test(config);
         /// ```
@@ -304,7 +304,7 @@ mod subscription_policy {
         ///
         /// # fn do_test(config: Configuration) {
         /// let db = Connection::open_or_create_db(config).unwrap().trusted();
-        /// db.remove_list_policy(1, 1).unwrap();
+        /// db.remove_list_post_policy(1, 1).unwrap();
         /// # }
         /// # do_test(config);
         /// ```

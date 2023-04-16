@@ -45,7 +45,7 @@ async fn main() {
     let list_handler = warp::path!("lists" / i64).map(move |list_pk: i64| {
         let db = Connection::open_db(conf1.clone()).unwrap();
         let list = db.list(list_pk).unwrap();
-        let post_policy = db.list_policy(list.pk).unwrap();
+        let post_policy = db.list_post_policy(list.pk).unwrap();
         let months = db.months(list.pk).unwrap();
         let posts = db.list_posts(list.pk, None).unwrap();
         let mut hist = months

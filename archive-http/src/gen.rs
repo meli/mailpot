@@ -108,7 +108,7 @@ fn run_app() -> std::result::Result<(), Box<dyn std::error::Error>> {
         lists_path.push("index.html");
 
         let list = db.list(list.pk)?.unwrap();
-        let post_policy = db.list_policy(list.pk)?;
+        let post_policy = db.list_post_policy(list.pk)?;
         let months = db.months(list.pk)?;
         let posts = db.list_posts(list.pk, None)?;
         let mut hist = months

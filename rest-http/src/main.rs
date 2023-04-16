@@ -33,7 +33,7 @@ async fn main() {
     // GET /lists/:i64/policy
     let policy = warp::path!("lists" / i64 / "policy").map(move |list_pk| {
         let db = Connection::open_db(conf1.clone()).unwrap();
-        db.list_policy(list_pk)
+        db.list_post_policy(list_pk)
             .ok()
             .map(|l| warp::reply::json(&l.unwrap()))
             .unwrap()

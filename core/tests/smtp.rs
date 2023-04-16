@@ -225,7 +225,7 @@ fn test_smtp() {
 
     assert_eq!(foo_chat.pk(), 1);
     let post_policy = db
-        .set_list_policy(PostPolicy {
+        .set_list_post_policy(PostPolicy {
             pk: 0,
             list: foo_chat.pk(),
             announce_only: false,
@@ -347,7 +347,7 @@ fn test_smtp_mailcrab() {
 
     assert_eq!(foo_chat.pk(), 1);
     let post_policy = db
-        .set_list_policy(PostPolicy {
+        .set_list_post_policy(PostPolicy {
             pk: 0,
             list: foo_chat.pk(),
             announce_only: false,

@@ -176,7 +176,7 @@ async fn list(
             StatusCode::NOT_FOUND,
         ));
     };
-    let post_policy = db.list_policy(list.pk)?;
+    let post_policy = db.list_post_policy(list.pk)?;
     let subscription_policy = db.list_subscription_policy(list.pk)?;
     let months = db.months(list.pk)?;
     let user_context = auth

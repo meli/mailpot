@@ -155,7 +155,7 @@ impl Connection {
             let owners = self.list_owners(list.pk)?;
             trace!("List subscriptions {:#?}", &subscriptions);
             let mut list_ctx = ListContext {
-                post_policy: self.list_policy(list.pk)?,
+                post_policy: self.list_post_policy(list.pk)?,
                 subscription_policy: self.list_subscription_policy(list.pk)?,
                 list_owners: &owners,
                 list: &mut list,
@@ -247,7 +247,7 @@ impl Connection {
                     list
                 );
 
-                let post_policy = self.list_policy(list.pk)?;
+                let post_policy = self.list_post_policy(list.pk)?;
                 let subscription_policy = self.list_subscription_policy(list.pk)?;
                 let approval_needed = post_policy
                     .as_ref()
