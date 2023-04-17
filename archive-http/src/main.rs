@@ -44,7 +44,7 @@ async fn main() {
     let conf1 = conf.clone();
     let list_handler = warp::path!("lists" / i64).map(move |list_pk: i64| {
         let db = Connection::open_db(conf1.clone()).unwrap();
-        let list = db.list(list_pk).unwrap();
+        let list = db.list(list_pk).unwrap().unwrap();
         let post_policy = db.list_post_policy(list.pk).unwrap();
         let months = db.months(list.pk).unwrap();
         let posts = db.list_posts(list.pk, None).unwrap();
@@ -121,7 +121,7 @@ async fn main() {
             let message_id = percent_decode_str(&message_id).decode_utf8().unwrap();
             dbg!(&message_id);
             let db = Connection::open_db(conf2.clone()).unwrap();
-            let list = db.list(list_pk).unwrap();
+            let list = db.list(list_pk).unwrap().unwrap();
             let posts = db.list_posts(list_pk, None).unwrap();
             let post = posts
                 .iter()
