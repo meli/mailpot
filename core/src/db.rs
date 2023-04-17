@@ -46,6 +46,17 @@ impl std::fmt::Debug for Connection {
     }
 }
 
+impl Drop for Connection {
+    fn drop(&mut self) {
+        // make sure pragma optimize does not take too long
+        _ = self.connection.pragma_update(None, "analysis_limit", "400");
+        // gather statistics to improve query optimization
+        _ = self
+            .connection
+            .pragma(None, "optimize", 0xfffe_i64, |_| Ok(()));
+    }
+}
+
 mod templates;
 pub use templates::*;
 mod queue;
@@ -138,6 +149,10 @@ impl Connection {
         });
         let conn = DbConnection::open(conf.db_path.to_str().unwrap())?;
         rusqlite::vtab::array::load_module(&conn)?;
+        conn.pragma_update(None, "journal_mode", "WAL")?;
+        conn.pragma_update(None, "foreign_keys", "on")?;
+        // synchronise less often to the filesystem
+        conn.pragma_update(None, "synchronous", "normal")?;
         conn.set_db_config(DbConfig::SQLITE_DBCONFIG_ENABLE_FKEY, true)?;
         conn.set_db_config(DbConfig::SQLITE_DBCONFIG_ENABLE_TRIGGER, true)?;
         conn.set_db_config(DbConfig::SQLITE_DBCONFIG_DEFENSIVE, true)?;
