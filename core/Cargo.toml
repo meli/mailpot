@@ -27,4 +27,4 @@ xdg = "2.4.1"
 mailin-embedded = { version = "0.7", features = ["rtls"] }
 reqwest = { version = "0.11", default-features = false, features = ["json", "blocking"] }
 stderrlog = "^0.5"
-tempfile = "3.3.0"
+tempfile = "3.3"
