@@ -23,15 +23,13 @@
 
 use std::path::Path;
 
-use assert_cmd::assert::OutputAssertExt;
+use assert_cmd::{assert::OutputAssertExt, Command};
 use mailpot::{models::*, Configuration, Connection, SendMail};
 use predicates::prelude::*;
 use tempfile::TempDir;
 
 #[test]
 fn test_cli_basic_interfaces() {
-    use assert_cmd::Command;
-
     fn no_args() {
         let mut cmd = Command::cargo_bin("mpot").unwrap();
         // 2 -> incorrect usage

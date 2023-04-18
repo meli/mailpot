@@ -1,6 +1,6 @@
 .PHONY: check
 check:
-	cargo check --all
+	cargo check --all-features --all --tests --examples --benches --bins
 
 .PHONY: fmt
 fmt:
@@ -10,4 +10,9 @@ fmt:
 
 .PHONY: lint
 lint:
-	cargo clippy --all
+	cargo clippy --no-deps --all-features --all --tests --examples --benches --bins
+
+
+.PHONY: test
+test: check lint
+	cargo test --all --no-fail-fast --all-features

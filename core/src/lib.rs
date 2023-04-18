@@ -124,6 +124,19 @@
 //! # do_test(config);
 //! ```
 
+/* Annotations:
+ *
+ * Global tags (in tagref format <https://github.com/stepchowfun/tagref>) for source code
+ * annotation:
+ *
+ * - [tag:needs_unit_test]
+ * - [tag:needs_user_doc]
+ * - [tag:needs_dev_doc]
+ * - [tag:FIXME]
+ * - [tag:TODO]
+ * - [tag:VERIFY] Verify whether this is the correct way to do something
+ */
+
 #[macro_use]
 extern crate error_chain;
 extern crate anyhow;
