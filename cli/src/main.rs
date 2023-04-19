@@ -17,12 +17,16 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-extern crate log;
-extern crate mailpot;
-extern crate stderrlog;
+use std::{
+    collections::hash_map::DefaultHasher,
+    hash::{Hash, Hasher},
+    io::{Read, Write},
+    process::Stdio,
+};
 
 pub use mailpot::{
     mail::*,
+    melib::{backends::maildir::MaildirPathTrait, smol, Envelope, EnvelopeHash},
     models::{changesets::*, *},
     *,
 };
@@ -429,10 +433,6 @@ fn run_app(opt: Opt) -> Result<()> {
                 println!("post dry_run{:?}", dry_run);
             }
 
-            use std::io::Read;
-
-            use melib::Envelope;
-
             let mut input = String::new();
             std::io::stdin().read_to_string(&mut input)?;
             match Envelope::from_bytes(input.as_bytes(), None) {
@@ -451,6 +451,80 @@ fn run_app(opt: Opt) -> Result<()> {
                     let p = db.conf().save_message(input)?;
                     eprintln!("Message saved at {}", p.display());
                     return Err(err.into());
+                }
+            }
+        }
+        FlushQueue { dry_run } => {
+            let messages = if opt.debug {
+                println!("flush-queue dry_run {:?}", dry_run);
+                db.queue(Queue::Out)?
+                    .into_iter()
+                    .map(DbVal::into_inner)
+                    .collect()
+            } else {
+                db.delete_from_queue(Queue::Out, vec![])?
+            };
+            if opt.verbose > 0 || opt.debug {
+                println!("Queue out has {} messages.", messages.len());
+            }
+
+            let mut failures = Vec::with_capacity(messages.len());
+
+            let send_mail = db.conf().send_mail.clone();
+            match send_mail {
+                mailpot::SendMail::ShellCommand(cmd) => {
+                    fn submit(cmd: &str, msg: &QueueEntry) -> Result<()> {
+                        let mut child = std::process::Command::new("sh")
+                            .arg("-c")
+                            .arg(cmd)
+                            .stdout(Stdio::piped())
+                            .stdin(Stdio::piped())
+                            .stderr(Stdio::piped())
+                            .spawn()
+                            .context("sh command failed to start")?;
+                        let mut stdin = child.stdin.take().context("Failed to open stdin")?;
+
+                        let builder = std::thread::Builder::new();
+
+                        std::thread::scope(|s| {
+                            let handler = builder
+                                .spawn_scoped(s, move || {
+                                    stdin
+                                        .write_all(&msg.message)
+                                        .expect("Failed to write to stdin");
+                                })
+                                .context(
+                                    "Could not spawn IPC communication thread for SMTP \
+                                     ShellCommand process",
+                                )?;
+
+                            handler.join().map_err(|_| {
+                                ErrorKind::External(mailpot::anyhow::anyhow!(
+                                    "Could not join with IPC communication thread for SMTP \
+                                     ShellCommand process"
+                                ))
+                            })?;
+                            Ok::<(), Error>(())
+                        })?;
+                        Ok(())
+                    }
+                    for msg in messages {
+                        if let Err(err) = submit(&cmd, &msg) {
+                            failures.push((err, msg));
+                        }
+                    }
+                }
+                mailpot::SendMail::Smtp(_) => {
+                    let conn_future = db.new_smtp_connection()?;
+                    smol::future::block_on(smol::spawn(async move {
+                        let mut conn = conn_future.await?;
+                        for msg in messages {
+                            if let Err(err) = Connection::submit(&mut conn, &msg, dry_run).await {
+                                failures.push((err, msg));
+                            }
+                        }
+                        Ok::<(), Error>(())
+                    }))?;
                 }
             }
         }
@@ -521,14 +595,6 @@ fn run_app(opt: Opt) -> Result<()> {
                     return Err(format!("No list with id or pk {} was found", list_id).into());
                 }
             };
-            use std::{
-                collections::hash_map::DefaultHasher,
-                hash::{Hash, Hasher},
-                io::Read,
-            };
-
-            use melib::{backends::maildir::MaildirPathTrait, Envelope, EnvelopeHash};
-
             if !maildir_path.is_absolute() {
                 maildir_path = std::env::current_dir()
                     .expect("could not detect current directory")

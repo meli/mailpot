@@ -30,7 +30,7 @@ macro_rules! impl_display {
 }
 
 /// Changeset struct for [`Mailinglist`](super::MailingList).
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Default, Debug, Clone, Deserialize, Serialize)]
 pub struct MailingListChangeset {
     /// Database primary key.
     pub pk: i64,
@@ -59,7 +59,7 @@ pub struct MailingListChangeset {
 impl_display!(MailingListChangeset);
 
 /// Changeset struct for [`ListSubscription`](super::ListSubscription).
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Default, Debug, Clone, Deserialize, Serialize)]
 pub struct ListSubscriptionChangeset {
     /// Mailing list foreign key (See [`MailingList`](super::MailingList)).
     pub list: i64,
@@ -88,7 +88,7 @@ pub struct ListSubscriptionChangeset {
 impl_display!(ListSubscriptionChangeset);
 
 /// Changeset struct for [`PostPolicy`](super::PostPolicy).
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Default, Debug, Clone, Deserialize, Serialize)]
 pub struct PostPolicyChangeset {
     /// Database primary key.
     pub pk: i64,
@@ -105,7 +105,7 @@ pub struct PostPolicyChangeset {
 impl_display!(PostPolicyChangeset);
 
 /// Changeset struct for [`ListOwner`](super::ListOwner).
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Default, Debug, Clone, Deserialize, Serialize)]
 pub struct ListOwnerChangeset {
     /// Database primary key.
     pub pk: i64,
@@ -120,7 +120,7 @@ pub struct ListOwnerChangeset {
 impl_display!(ListOwnerChangeset);
 
 /// Changeset struct for [`Account`](super::Account).
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Default, Debug, Clone, Deserialize, Serialize)]
 pub struct AccountChangeset {
     /// Account e-mail address.
     pub address: String,

@@ -75,7 +75,7 @@ To: <foo-chat@example.com>
 Subject: This is a post
 Date: Thu, 29 Oct 2020 13:58:16 +0000
 Message-ID:
- <PS1PR0601MB36750BD00EA89E1482FA98A2D5140@PS1PR0601MB3675.apcprd06.prod.outlook.com>
+ <PS1PR0601MB36750BD00EA89E1482FA98A2D5140@PS1PR0601MB3675.apcprd06.example.com>
 Content-Language: en-US
 Content-Type: text/html
 Content-Transfer-Encoding: base64
@@ -103,7 +103,7 @@ To: <foo-chat+subscribe@example.com>
 Subject: subscribe
 Date: Thu, 29 Oct 2020 13:58:16 +0000
 Message-ID:
- <PS1PR0601MB36750BD00EA89E1482FA98A2D5140_2@PS1PR0601MB3675.apcprd06.prod.outlook.com>
+ <PS1PR0601MB36750BD00EA89E1482FA98A2D5140_2@PS1PR0601MB3675.apcprd06.example.com>
 Content-Language: en-US
 Content-Type: text/html
 Content-Transfer-Encoding: base64

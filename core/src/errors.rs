@@ -58,7 +58,7 @@ error_chain! {
        }
    }
    foreign_links {
-       Logic(anyhow::Error) #[doc="Error returned from an external user initiated operation such as deserialization or I/O."];
+       External(anyhow::Error) #[doc="Error returned from an external user initiated operation such as deserialization or I/O."];
        Sql(rusqlite::Error) #[doc="Error returned from sqlite3."];
        Io(::std::io::Error) #[doc="Error returned from internal I/O operations."];
        Melib(melib::error::Error) #[doc="Error returned from e-mail protocol operations from `melib` crate."];

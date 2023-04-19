@@ -27,7 +27,8 @@ use std::{
 
 use log::{trace, warn};
 use mailin_embedded::{Handler, Response, Server, SslConfig};
-use mailpot::{melib, models::*, Configuration, Connection, SendMail};
+use mailpot::{melib, models::*, Configuration, Connection, Queue, SendMail};
+use melib::smol;
 use tempfile::TempDir;
 
 const ADDRESS: &str = "127.0.0.1:8825";
@@ -149,8 +150,8 @@ impl Handler for MyHandler {
     }
 
     fn data_end(&mut self) -> Response {
-        if let Some(((_, _), Message::Data { from: _, to, buf })) = self.mails.lock().unwrap().pop()
-        {
+        let last = self.mails.lock().unwrap().pop();
+        if let Some(((ip, domain), Message::Data { from: _, to, buf })) = last {
             for to in to {
                 match melib::Envelope::from_bytes(&buf, None) {
                     Ok(env) => {
@@ -161,8 +162,13 @@ impl Handler for MyHandler {
                     }
                 }
             }
+            self.mails
+                .lock()
+                .unwrap()
+                .push(((ip, domain), Message::Helo));
             return OK;
         }
+        log::error!("last self.mails item was not Message::Data: {last:?}");
         INTERNAL_ERROR
     }
 }
@@ -258,7 +264,7 @@ fn test_smtp() {
                 ListSubscription {
                     pk: 0,
                     list: foo_chat.pk(),
-                    address: "japoeunp@hotmail.com".into(),
+                    address: "japoeunp@example.com".into(),
                     name: Some("Jamaica Poe".into()),
                     account: None,
                     digest: false,
@@ -296,6 +302,17 @@ fn test_smtp() {
             panic!("Could not parse message: {}", err);
         }
     }
+    let messages = db.delete_from_queue(Queue::Out, vec![]).unwrap();
+    eprintln!("Queue out has {} messages.", messages.len());
+    let conn_future = db.new_smtp_connection().unwrap();
+    smol::future::block_on(smol::spawn(async move {
+        let mut conn = conn_future.await.unwrap();
+        for msg in messages {
+            Connection::submit(&mut conn, &msg, /* dry_run */ false)
+                .await
+                .unwrap();
+        }
+    }));
     assert_eq!(handler.stored.lock().unwrap().len(), 2);
 }
 
@@ -378,7 +395,7 @@ fn test_smtp_mailcrab() {
                 ListSubscription {
                     pk: 0,
                     list: foo_chat.pk(),
-                    address: "japoeunp@hotmail.com".into(),
+                    address: "japoeunp@example.com".into(),
                     name: Some("Jamaica Poe".into()),
                     account: None,
                     digest: false,

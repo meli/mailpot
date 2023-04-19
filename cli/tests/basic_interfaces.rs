@@ -40,7 +40,7 @@ fn test_cli_basic_interfaces() {
         // --version is successful
         for arg in ["--version", "-V"] {
             let mut cmd = Command::cargo_bin("mpot").unwrap();
-            let output = cmd.arg(dbg!(arg)).output().unwrap().assert();
+            let output = cmd.arg(arg).output().unwrap().assert();
             output.code(0).stdout(predicates::str::starts_with("mpot "));
         }
     }
@@ -52,7 +52,7 @@ fn test_cli_basic_interfaces() {
             ("-h", "mailing list manager"),
         ] {
             let mut cmd = Command::cargo_bin("mpot").unwrap();
-            let output = cmd.arg(dbg!(arg)).output().unwrap().assert();
+            let output = cmd.arg(arg).output().unwrap().assert();
             output
                 .code(0)
                 .stdout(predicates::str::starts_with(starts_with))
@@ -103,7 +103,7 @@ For more information, try '--help'."#,
 
     let config_str = config.to_toml();
 
-    std::fs::write(&conf_path, &config_str.as_bytes()).unwrap();
+    std::fs::write(&conf_path, config_str.as_bytes()).unwrap();
 
     fn list_lists(conf: &Path, eq: &str) {
         let mut cmd = Command::cargo_bin("mpot").unwrap();
@@ -123,9 +123,7 @@ For more information, try '--help'."#,
     list_lists(&conf_path, "No lists found.");
 
     {
-        let db = Connection::open_or_create_db(config.clone())
-            .unwrap()
-            .trusted();
+        let db = Connection::open_or_create_db(config).unwrap().trusted();
 
         let foo_chat = db
             .create_list(MailingList {

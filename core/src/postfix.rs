@@ -274,7 +274,7 @@ impl PostfixConfiguration {
     pub fn save_maps(&self, config: &Configuration) -> Result<()> {
         let db = Connection::open_db(config.clone())?;
         let Some(postmap) = find_binary_in_path("postmap") else {
-            return Err(Error::from(ErrorKind::Logic(anyhow::Error::msg("Unepected logical error."))));
+            return Err(Error::from(ErrorKind::External(anyhow::Error::msg("Could not find postmap binary in PATH."))));
         };
         let lists = db.lists()?;
         let lists_post_policies = lists
@@ -317,28 +317,36 @@ impl PostfixConfiguration {
         if !output.status.success() {
             use std::os::unix::process::ExitStatusExt;
             if let Some(code) = output.status.code() {
-                return Err(Error::from(ErrorKind::Logic(anyhow::Error::msg(format!(
-                    "{} exited with {}.\nstderr was:\n---{}---\nstdout was\n---{}---\n",
-                    code,
-                    postmap.display(),
-                    String::from_utf8_lossy(&output.stderr),
-                    String::from_utf8_lossy(&output.stdout)
-                )))));
+                return Err(Error::from(ErrorKind::External(anyhow::Error::msg(
+                    format!(
+                        "{} exited with {}.\nstderr was:\n---{}---\nstdout was\n---{}---\n",
+                        code,
+                        postmap.display(),
+                        String::from_utf8_lossy(&output.stderr),
+                        String::from_utf8_lossy(&output.stdout)
+                    ),
+                ))));
             } else if let Some(signum) = output.status.signal() {
-                return Err(Error::from(ErrorKind::Logic(anyhow::Error::msg(format!(
-                    "{} was killed with signal {}.\nstderr was:\n---{}---\nstdout was\n---{}---\n",
-                    signum,
-                    postmap.display(),
-                    String::from_utf8_lossy(&output.stderr),
-                    String::from_utf8_lossy(&output.stdout)
-                )))));
+                return Err(Error::from(ErrorKind::External(anyhow::Error::msg(
+                    format!(
+                        "{} was killed with signal {}.\nstderr was:\n---{}---\nstdout \
+                         was\n---{}---\n",
+                        signum,
+                        postmap.display(),
+                        String::from_utf8_lossy(&output.stderr),
+                        String::from_utf8_lossy(&output.stdout)
+                    ),
+                ))));
             } else {
-                return Err(Error::from(ErrorKind::Logic(anyhow::Error::msg(format!(
-                    "{} failed for unknown reason.\nstderr was:\n---{}---\nstdout was\n---{}---\n",
-                    postmap.display(),
-                    String::from_utf8_lossy(&output.stderr),
-                    String::from_utf8_lossy(&output.stdout)
-                )))));
+                return Err(Error::from(ErrorKind::External(anyhow::Error::msg(
+                    format!(
+                        "{} failed for unknown reason.\nstderr was:\n---{}---\nstdout \
+                         was\n---{}---\n",
+                        postmap.display(),
+                        String::from_utf8_lossy(&output.stderr),
+                        String::from_utf8_lossy(&output.stdout)
+                    ),
+                ))));
             }
         }
 

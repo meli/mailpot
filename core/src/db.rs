@@ -48,6 +48,10 @@ impl std::fmt::Debug for Connection {
 
 impl Drop for Connection {
     fn drop(&mut self) {
+        self.connection
+            .authorizer::<fn(rusqlite::hooks::AuthContext<'_>) -> rusqlite::hooks::Authorization>(
+                None,
+            );
         // make sure pragma optimize does not take too long
         _ = self.connection.pragma_update(None, "analysis_limit", "400");
         // gather statistics to improve query optimization

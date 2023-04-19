@@ -17,8 +17,6 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-extern crate stderrlog;
-
 use std::path::PathBuf;
 
 pub use clap::{Args, CommandFactory, Parser, Subcommand};
@@ -90,6 +88,12 @@ pub enum Command {
     },
     /// Post message from STDIN to list.
     Post {
+        /// Show e-mail processing result without actually consuming it.
+        #[arg(long)]
+        dry_run: bool,
+    },
+    /// Flush outgoing e-mail queue.
+    FlushQueue {
         /// Show e-mail processing result without actually consuming it.
         #[arg(long)]
         dry_run: bool,

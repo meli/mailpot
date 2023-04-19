@@ -17,10 +17,6 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-//use std::io::Write;
-//use std::process::Command;e
-extern crate clap;
-
 use std::{
     collections::{hash_map::RandomState, HashSet, VecDeque},
     hash::{BuildHasher, Hasher},

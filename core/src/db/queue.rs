@@ -21,8 +21,6 @@
 
 use std::borrow::Cow;
 
-use serde_json::{json, Value};
-
 use super::*;
 
 /// In-database queues of mail.
@@ -62,61 +60,119 @@ impl Queue {
     }
 }
 
-impl Connection {
-    /// Insert a received email into a queue.
-    pub fn insert_to_queue(
-        &self,
+/// A queue entry.
+#[derive(Clone, Debug, Deserialize, Serialize, PartialEq, Eq)]
+pub struct QueueEntry {
+    /// Database primary key.
+    pub pk: i64,
+    /// Owner queue.
+    pub queue: Queue,
+    /// Related list foreign key, optional.
+    pub list: Option<i64>,
+    /// Entry comment, optional.
+    pub comment: Option<String>,
+    /// Entry recipients in rfc5322 format.
+    pub to_addresses: String,
+    /// Entry submitter in rfc5322 format.
+    pub from_address: String,
+    /// Entry subject.
+    pub subject: String,
+    /// Entry Message-ID in rfc5322 format.
+    pub message_id: String,
+    /// Message in rfc5322 format as bytes.
+    pub message: Vec<u8>,
+    /// Unix timestamp of date.
+    pub timestamp: u64,
+    /// Datetime as string.
+    pub datetime: String,
+}
+
+impl std::fmt::Display for QueueEntry {
+    fn fmt(&self, fmt: &mut std::fmt::Formatter) -> std::fmt::Result {
+        write!(fmt, "{:?}", self)
+    }
+}
+
+impl QueueEntry {
+    /// Create new entry.
+    pub fn new(
         queue: Queue,
-        list_pk: Option<i64>,
+        list: Option<i64>,
         env: Option<Cow<'_, Envelope>>,
         raw: &[u8],
-        comment: String,
-    ) -> Result<i64> {
+        comment: Option<String>,
+    ) -> Result<Self> {
         let env = env
             .map(Ok)
             .unwrap_or_else(|| melib::Envelope::from_bytes(raw, None).map(Cow::Owned))?;
+        let now = chrono::offset::Utc::now();
+        Ok(Self {
+            pk: -1,
+            list,
+            queue,
+            comment,
+            to_addresses: env.field_to_to_string(),
+            from_address: env.field_from_to_string(),
+            subject: env.subject().to_string(),
+            message_id: env.message_id().to_string(),
+            message: raw.to_vec(),
+            timestamp: now.timestamp() as u64,
+            datetime: now.to_string(),
+        })
+    }
+}
+
+impl Connection {
+    /// Insert a received email into a queue.
+    pub fn insert_to_queue(&self, mut entry: QueueEntry) -> Result<DbVal<QueueEntry>> {
         let mut stmt = self.connection.prepare(
             "INSERT INTO queue(which, list, comment, to_addresses, from_address, subject, \
-             message_id, message) VALUES(?, ?, ?, ?, ?, ?, ?, ?) RETURNING pk;",
+             message_id, message, timestamp, datetime) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?) \
+             RETURNING pk;",
         )?;
         let pk = stmt.query_row(
             rusqlite::params![
-                queue.as_str(),
-                &list_pk,
-                &comment,
-                &env.field_to_to_string(),
-                &env.field_from_to_string(),
-                &env.subject(),
-                &env.message_id().to_string(),
-                raw,
+                entry.queue.as_str(),
+                &entry.list,
+                &entry.comment,
+                &entry.to_addresses,
+                &entry.from_address,
+                &entry.subject,
+                &entry.message_id,
+                &entry.message,
+                &entry.timestamp,
+                &entry.datetime,
             ],
             |row| {
                 let pk: i64 = row.get("pk")?;
                 Ok(pk)
             },
         )?;
-        Ok(pk)
+        entry.pk = pk;
+        Ok(DbVal(entry, pk))
     }
 
     /// Fetch all queue entries.
-    pub fn queue(&self, queue: Queue) -> Result<Vec<DbVal<Value>>> {
+    pub fn queue(&self, queue: Queue) -> Result<Vec<DbVal<QueueEntry>>> {
         let mut stmt = self
             .connection
             .prepare("SELECT * FROM queue WHERE which = ?;")?;
         let iter = stmt.query_map([&queue.as_str()], |row| {
             let pk = row.get::<_, i64>("pk")?;
             Ok(DbVal(
-                json!({
-                    "pk" : pk,
-                    "comment": row.get::<_, Option<String>>("comment")?,
-                    "to_addresses": row.get::<_, String>("to_addresses")?,
-                    "from_address": row.get::<_, String>("from_address")?,
-                    "subject": row.get::<_, String>("subject")?,
-                    "message_id": row.get::<_, String>("message_id")?,
-                    "message": row.get::<_, Vec<u8>>("message")?,
-                    "timestamp": row.get::<_, u64>("timestamp")?,
-                    "datetime": row.get::<_, String>("datetime")?,
-                }),
+                QueueEntry {
+                    pk,
+                    queue,
+                    list: row.get::<_, Option<i64>>("list")?,
+                    comment: row.get::<_, Option<String>>("comment")?,
+                    to_addresses: row.get::<_, String>("to_addresses")?,
+                    from_address: row.get::<_, String>("from_address")?,
+                    subject: row.get::<_, String>("subject")?,
+                    message_id: row.get::<_, String>("message_id")?,
+                    message: row.get::<_, Vec<u8>>("message")?,
+                    timestamp: row.get::<_, u64>("timestamp")?,
+                    datetime: row.get::<_, String>("datetime")?,
+                },
                 pk,
             ))
         })?;
@@ -130,21 +186,23 @@ impl Connection {
     }
 
     /// Delete queue entries returning the deleted values.
-    pub fn delete_from_queue(&mut self, queue: Queue, index: Vec<i64>) -> Result<Vec<Value>> {
+    pub fn delete_from_queue(&mut self, queue: Queue, index: Vec<i64>) -> Result<Vec<QueueEntry>> {
         let tx = self.connection.transaction()?;
 
         let cl = |row: &rusqlite::Row<'_>| {
-            Ok(json!({
-                "pk" : -1,
-                "comment": row.get::<_, Option<String>>("comment")?,
-                "to_addresses": row.get::<_, String>("to_addresses")?,
-                "from_address": row.get::<_, String>("from_address")?,
-                "subject": row.get::<_, String>("subject")?,
-                "message_id": row.get::<_, String>("message_id")?,
-                "message": row.get::<_, Vec<u8>>("message")?,
-                "timestamp": row.get::<_, u64>("timestamp")?,
-                "datetime": row.get::<_, String>("datetime")?,
-            }))
+            Ok(QueueEntry {
+                pk: -1,
+                queue,
+                list: row.get::<_, Option<i64>>("list")?,
+                comment: row.get::<_, Option<String>>("comment")?,
+                to_addresses: row.get::<_, String>("to_addresses")?,
+                from_address: row.get::<_, String>("from_address")?,
+                subject: row.get::<_, String>("subject")?,
+                message_id: row.get::<_, String>("message_id")?,
+                message: row.get::<_, Vec<u8>>("message")?,
+                timestamp: row.get::<_, u64>("timestamp")?,
+                datetime: row.get::<_, String>("datetime")?,
+            })
         };
         let mut stmt = if index.is_empty() {
             tx.prepare("DELETE FROM queue WHERE which = ? RETURNING *;")?

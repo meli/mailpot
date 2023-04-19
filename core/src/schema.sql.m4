@@ -168,11 +168,12 @@ CREATE TABLE IF NOT EXISTS queue (
   to_addresses            TEXT NOT NULL,
   from_address            TEXT NOT NULL,
   subject                 TEXT NOT NULL,
-  message_id              TEXT NOT NULL UNIQUE,
+  message_id              TEXT NOT NULL,
   message                 BLOB NOT NULL,
   timestamp               INTEGER NOT NULL DEFAULT (unixepoch()),
   datetime                TEXT NOT NULL DEFAULT (datetime()),
-  FOREIGN KEY (list) REFERENCES list(pk) ON DELETE CASCADE
+  FOREIGN KEY (list) REFERENCES list(pk) ON DELETE CASCADE,
+  UNIQUE (to_addresses, message_id) ON CONFLICT ROLLBACK
 );
 
 CREATE TABLE IF NOT EXISTS bounce (

@@ -139,7 +139,7 @@
 
 #[macro_use]
 extern crate error_chain;
-extern crate anyhow;
+pub extern crate anyhow;
 
 #[macro_use]
 pub extern crate serde;
@@ -156,6 +156,7 @@ pub mod mail;
 pub mod models;
 #[cfg(not(target_os = "windows"))]
 pub mod postfix;
+pub mod submission;
 mod templates;
 
 pub use config::{Configuration, SendMail};

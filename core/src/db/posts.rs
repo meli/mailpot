@@ -188,22 +188,19 @@ impl Connection {
                         trace!("job is {:#?}", &job);
                         if let crate::mail::MailJob::Send { recipients } = job {
                             trace!("recipients: {:?}", &recipients);
-                            if !recipients.is_empty() {
-                                if let crate::config::SendMail::Smtp(ref smtp_conf) =
-                                    &self.conf.send_mail
-                                {
-                                    let smtp_conf = smtp_conf.clone();
-                                    use melib::{futures, smol, smtp::*};
-                                    let mut conn = smol::future::block_on(smol::spawn(
-                                        SmtpConnection::new_connection(smtp_conf.clone()),
-                                    ))?;
-                                    futures::executor::block_on(conn.mail_transaction(
-                                        &String::from_utf8_lossy(&bytes),
-                                        Some(recipients),
-                                    ))?;
-                                }
-                            } else {
+                            if recipients.is_empty() {
                                 trace!("list has no recipients");
+                            }
+                            for recipient in recipients {
+                                let mut env = post_env.clone();
+                                env.set_to(melib::smallvec::smallvec![recipient.clone()]);
+                                self.insert_to_queue(QueueEntry::new(
+                                    Queue::Out,
+                                    Some(list.pk),
+                                    Some(Cow::Owned(env)),
+                                    &bytes,
+                                    None,
+                                )?)?;
                             }
                         }
                     }
@@ -639,13 +636,13 @@ impl Connection {
                 post_policy.as_deref(),
                 subscription_policy.as_deref(),
             );
-            self.insert_to_queue(
+            self.insert_to_queue(QueueEntry::new(
                 queue,
                 Some(list.pk),
                 None,
                 draft.finalise()?.as_bytes(),
-                comment.clone(),
-            )?;
+                Some(comment.clone()),
+            )?)?;
         }
         Ok(())
     }

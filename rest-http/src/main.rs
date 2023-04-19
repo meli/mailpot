@@ -17,8 +17,6 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-extern crate mailpot;
-
 pub use mailpot::{models::*, *};
 use warp::Filter;
 

@@ -88,7 +88,7 @@ To: <foo-chat+subscribe@example.com>
 Subject: subscribe
 Date: Thu, 29 Oct 2020 13:58:16 +0000
 Message-ID:
- <PS1PR0601MB36750BD00EA89E1482FA98A2D5140_2@PS1PR0601MB3675.apcprd06.prod.outlook.com>
+ <PS1PR0601MB36750BD00EA89E1482FA98A2D5140_2@PS1PR0601MB3675.apcprd06.example.com>
 Content-Language: en-US
 Content-Type: text/html
 Content-Transfer-Encoding: base64
@@ -103,8 +103,7 @@ MIME-Version: 1.0
     let out_queue = db.queue(Queue::Out).unwrap();
     assert_eq!(out_queue.len(), 1);
     let out = &out_queue[0];
-    let out_bytes = serde_json::from_value::<Vec<u8>>(out["message"].clone()).unwrap();
-    let out_env = melib::Envelope::from_bytes(&out_bytes, None).unwrap();
+    let out_env = melib::Envelope::from_bytes(&out.message, None).unwrap();
     // eprintln!("{}", String::from_utf8_lossy(&out_bytes));
     assert_eq!(
         &out_env.from()[0].get_email(),
@@ -118,7 +117,7 @@ MIME-Version: 1.0
         (Some("Name"), "user@example.com"),
     );
     assert_eq!(
-        &out["subject"],
+        &out.subject,
         &format!("You have subscribed to {}", foo_chat.name)
     );
 
@@ -129,7 +128,7 @@ To: <foo-chat+request@example.com>
 Subject: unsubscribe
 Date: Thu, 29 Oct 2020 13:58:17 +0000
 Message-ID:
- <PS1PR0601MB36750BD00EA89E1482FA98A2D5140_3@PS1PR0601MB3675.apcprd06.prod.outlook.com>
+ <PS1PR0601MB36750BD00EA89E1482FA98A2D5140_3@PS1PR0601MB3675.apcprd06.example.com>
 Content-Language: en-US
 Content-Type: text/html
 Content-Transfer-Encoding: base64
@@ -162,8 +161,7 @@ MIME-Version: 1.0
 
     assert_eq!(out_queue.len(), 3);
     let out = &out_queue[2];
-    let out_bytes = serde_json::from_value::<Vec<u8>>(out["message"].clone()).unwrap();
-    let out_env = melib::Envelope::from_bytes(&out_bytes, None).unwrap();
+    let out_env = melib::Envelope::from_bytes(&out.message, None).unwrap();
     // eprintln!("{}", String::from_utf8_lossy(&out_bytes));
     assert_eq!(
         &out_env.from()[0].get_email(),
@@ -177,7 +175,7 @@ MIME-Version: 1.0
         (Some("Name"), "user@example.com"),
     );
     assert_eq!(
-        out["subject"].as_str().unwrap(),
+        &out.subject,
         &format!(
             "[{}] You have successfully subscribed to {}.",
             foo_chat.id, foo_chat.name

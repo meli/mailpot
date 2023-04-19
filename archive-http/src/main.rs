@@ -17,7 +17,6 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-extern crate mailpot;
 use chrono::Datelike;
 
 mod cal;
