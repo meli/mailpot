@@ -197,6 +197,10 @@ pub struct PostfixConfig {
     /// directory.
     #[arg(short, long)]
     pub user: String,
+    /// Group that runs mailpot when postfix relays a message.
+    /// Optional.
+    #[arg(short, long)]
+    pub group: Option<String>,
     /// The path to the mailpot binary postfix will execute.
     #[arg(long)]
     pub binary_path: PathBuf,

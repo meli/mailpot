@@ -628,6 +628,7 @@ fn run_app(opt: Opt) -> Result<()> {
             config:
                 PostfixConfig {
                     user,
+                    group,
                     binary_path,
                     process_limit,
                     map_output_path,
@@ -636,6 +637,7 @@ fn run_app(opt: Opt) -> Result<()> {
         } => {
             let pfconf = mailpot::postfix::PostfixConfiguration {
                 user: user.into(),
+                group: group.map(Into::into),
                 binary_path,
                 process_limit,
                 map_output_path,
@@ -648,6 +650,7 @@ fn run_app(opt: Opt) -> Result<()> {
             config:
                 PostfixConfig {
                     user,
+                    group,
                     binary_path,
                     process_limit,
                     map_output_path,
@@ -656,6 +659,7 @@ fn run_app(opt: Opt) -> Result<()> {
         } => {
             let pfconf = mailpot::postfix::PostfixConfiguration {
                 user: user.into(),
+                group: group.map(Into::into),
                 binary_path,
                 process_limit,
                 map_output_path,

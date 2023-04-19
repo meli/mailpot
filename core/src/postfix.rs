@@ -58,6 +58,9 @@ pub struct PostfixConfiguration {
     /// The UNIX username under which the mailpot process who processed incoming
     /// mail is launched.
     pub user: Cow<'static, str>,
+    /// The UNIX group under which the mailpot process who processed incoming
+    /// mail is launched.
+    pub group: Option<Cow<'static, str>>,
     /// The absolute path of the `mailpot` binary.
     pub binary_path: PathBuf,
     /// The maximum number of `mailpot` processes to launch. Default is `1`.
@@ -84,6 +87,7 @@ impl Default for PostfixConfiguration {
     fn default() -> Self {
         Self {
             user: "user".into(),
+            group: None,
             binary_path: Path::new("/usr/bin/mailpot").to_path_buf(),
             process_limit: None,
             map_output_path: None,
@@ -98,8 +102,11 @@ impl PostfixConfiguration {
         let transport_name = self.transport_name.as_deref().unwrap_or("mailpot");
         format!(
             "{transport_name} unix - n n - {process_limit} pipe
-  user={user} directory={data_dir} argv={binary_path} -c \"{config_path}\" post",
-            user = &self.user,
+flags=RX user={username}{group_sep}{groupname} directory={{{data_dir}}} argv={{{binary_path}}} -c \
+             {{{config_path}}} post",
+            username = &self.user,
+            group_sep = if self.group.is_none() { "" } else { ":" },
+            groupname = self.group.as_deref().unwrap_or_default(),
             process_limit = self.process_limit.unwrap_or(1),
             binary_path = &self.binary_path.display(),
             config_path = &config_path.display(),
@@ -470,7 +477,7 @@ fn test_postfix_generation() -> Result<()> {
 
     let expected_mastercf_entry = format!(
         "mailpot unix - n n - 1 pipe
-  user={} directory={} argv=/usr/bin/mailpot -c \"{}\" post\n",
+flags=RX user={} directory={{{}}} argv={{/usr/bin/mailpot}} -c {{{}}} post\n",
         &postfix_conf.user,
         tmp_dir.path().display(),
         config_path.display()
@@ -596,7 +603,7 @@ mailman   unix  -       n       n       -       -       pipe
     }
     let expected_mastercf_entry = format!(
         "mailpot unix - n n - 1 pipe
-  user=nobody directory={} argv=/usr/bin/mailpot -c \"{}\" post\n",
+flags=RX user=nobody directory={{{}}} argv={{/usr/bin/mailpot}} -c {{{}}} post\n",
         tmp_dir.path().display(),
         config_path.display()
     );
@@ -621,7 +628,7 @@ mailman   unix  -       n       n       -       -       pipe
     }
     let expected_mastercf_entry = format!(
         "mailpot unix - n n - 1 pipe
-  user=hackerman directory={} argv=/usr/bin/mailpot -c \"{}\" post\n",
+flags=RX user=hackerman directory={{{}}} argv={{/usr/bin/mailpot}} -c {{{}}} post\n",
         tmp_dir.path().display(),
         config_path.display(),
     );
@@ -630,6 +637,32 @@ mailman   unix  -       n       n       -       -       pipe
         "triply edited master.cf has unexpected contents: has\n{:?}\nand should have ended \
          with\n{:?}",
         third,
+        expected_mastercf_entry
+    );
+
+    // test that if groupname is given it is rendered correctly.
+    postfix_conf.group = Some("nobody".into());
+    postfix_conf.save_master_cf_entry(db.conf(), &config_path, Some(&path))?;
+    let mut fourth = String::new();
+    {
+        let mut mastercf = OpenOptions::new()
+            .write(false)
+            .read(true)
+            .create(false)
+            .open(&path)?;
+        mastercf.read_to_string(&mut fourth)?;
+    }
+    let expected_mastercf_entry = format!(
+        "mailpot unix - n n - 1 pipe
+flags=RX user=hackerman:nobody directory={{{}}} argv={{/usr/bin/mailpot}} -c {{{}}} post\n",
+        tmp_dir.path().display(),
+        config_path.display(),
+    );
+    assert!(
+        fourth.ends_with(&expected_mastercf_entry),
+        "fourthly edited master.cf has unexpected contents: has\n{:?}\nand should have ended \
+         with\n{:?}",
+        fourth,
         expected_mastercf_entry
     );
 

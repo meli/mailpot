@@ -706,7 +706,7 @@ Path to a maildir mailbox. Must contain {cur, tmp, new} folders.
 
 .br
 
-mpot update\-postfix\-config [\-p \fIMASTER_CF\fR|\-\-master\-cf] {\-u \fIUSER\fR|\-\-user} \-\-binary\-path \fIBINARY_PATH\fR [\-\-process\-limit \fIPROCESS_LIMIT\fR] [\-\-map\-output\-path \fIMAP_OUTPUT_PATH\fR] [\-\-transport\-name \fITRANSPORT_NAME\fR] 
+mpot update\-postfix\-config [\-p \fIMASTER_CF\fR|\-\-master\-cf] {\-u \fIUSER\fR|\-\-user} [\-g \fIGROUP\fR|\-\-group] \-\-binary\-path \fIBINARY_PATH\fR [\-\-process\-limit \fIPROCESS_LIMIT\fR] [\-\-map\-output\-path \fIMAP_OUTPUT_PATH\fR] [\-\-transport\-name \fITRANSPORT_NAME\fR] 
 .br
 
 Update postfix maps and master.cf (probably needs root permissions).
@@ -718,6 +718,9 @@ Override location of master.cf file (default: /etc/postfix/master.cf).
 User that runs mailpot when postfix relays a message.
 
 Must not be the `postfix` user. Must have permissions to access the database file and the data directory.
+.TP
+\-g, \-\-group \fIGROUP\fR
+Group that runs mailpot when postfix relays a message. Optional.
 .TP
 \-\-binary\-path \fIBINARY_PATH\fR
 The path to the mailpot binary postfix will execute.
@@ -747,7 +750,7 @@ The `master.cf` file is documented in [`master(5)`](https://www.postfix.org/mast
 
 .br
 
-mpot print\-postfix\-config {\-u \fIUSER\fR|\-\-user} \-\-binary\-path \fIBINARY_PATH\fR [\-\-process\-limit \fIPROCESS_LIMIT\fR] [\-\-map\-output\-path \fIMAP_OUTPUT_PATH\fR] [\-\-transport\-name \fITRANSPORT_NAME\fR] 
+mpot print\-postfix\-config {\-u \fIUSER\fR|\-\-user} [\-g \fIGROUP\fR|\-\-group] \-\-binary\-path \fIBINARY_PATH\fR [\-\-process\-limit \fIPROCESS_LIMIT\fR] [\-\-map\-output\-path \fIMAP_OUTPUT_PATH\fR] [\-\-transport\-name \fITRANSPORT_NAME\fR] 
 .br
 
 Print postfix maps and master.cf entry to STDOUT.
@@ -756,6 +759,9 @@ Print postfix maps and master.cf entry to STDOUT.
 User that runs mailpot when postfix relays a message.
 
 Must not be the `postfix` user. Must have permissions to access the database file and the data directory.
+.TP
+\-g, \-\-group \fIGROUP\fR
+Group that runs mailpot when postfix relays a message. Optional.
 .TP
 \-\-binary\-path \fIBINARY_PATH\fR
 The path to the mailpot binary postfix will execute.
