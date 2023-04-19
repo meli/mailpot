@@ -144,6 +144,16 @@ impl PostFilter for AddListHeaders {
         let (mut headers, body) = melib::email::parser::mail(&post.bytes).unwrap();
         let sender = format!("<{}>", ctx.list.address);
         headers.push((&b"Sender"[..], sender.as_bytes()));
+        let mut subject = format!("[{}] ", ctx.list.id).into_bytes();
+        if let Some((_, subj_val)) = headers
+            .iter_mut()
+            .find(|(k, _)| k.eq_ignore_ascii_case(b"Subject"))
+        {
+            subject.extend(subj_val.iter().cloned());
+            *subj_val = subject.as_slice();
+        } else {
+            headers.push((&b"Subject"[..], subject.as_slice()));
+        }
 
         let list_id = Some(ctx.list.id_header());
         let list_help = ctx.list.help_header();
@@ -233,9 +243,6 @@ impl PostFilter for FinalizeRecipients {
                 trace!("Subscription gets copy");
                 recipients.push(subscription.address());
             }
-            // TODO:
-            // - check for duplicates (To,Cc,Bcc)
-            // - send confirmation to submitter
         }
         ctx.scheduled_jobs.push(MailJob::Send { recipients });
         if !digests.is_empty() {

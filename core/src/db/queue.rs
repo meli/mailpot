@@ -61,7 +61,7 @@ impl Queue {
 }
 
 /// A queue entry.
-#[derive(Clone, Debug, Deserialize, Serialize, PartialEq, Eq)]
+#[derive(Clone, Deserialize, Serialize, PartialEq, Eq)]
 pub struct QueueEntry {
     /// Database primary key.
     pub pk: i64,
@@ -90,6 +90,28 @@ pub struct QueueEntry {
 impl std::fmt::Display for QueueEntry {
     fn fmt(&self, fmt: &mut std::fmt::Formatter) -> std::fmt::Result {
         write!(fmt, "{:?}", self)
+    }
+}
+
+impl std::fmt::Debug for QueueEntry {
+    fn fmt(&self, fmt: &mut std::fmt::Formatter) -> std::fmt::Result {
+        fmt.debug_struct(stringify!(QueueEntry))
+            .field("pk", &self.pk)
+            .field("queue", &self.queue)
+            .field("list", &self.list)
+            .field("comment", &self.comment)
+            .field("to_addresses", &self.to_addresses)
+            .field("from_address", &self.from_address)
+            .field("subject", &self.subject)
+            .field("message_id", &self.message_id)
+            .field("message length", &self.message.len())
+            .field(
+                "message",
+                &format!("{:.15}", String::from_utf8_lossy(&self.message)),
+            )
+            .field("timestamp", &self.timestamp)
+            .field("datetime", &self.datetime)
+            .finish()
     }
 }
 
@@ -125,6 +147,7 @@ impl QueueEntry {
 impl Connection {
     /// Insert a received email into a queue.
     pub fn insert_to_queue(&self, mut entry: QueueEntry) -> Result<DbVal<QueueEntry>> {
+        log::trace!("Inserting to queue: {entry}");
         let mut stmt = self.connection.prepare(
             "INSERT INTO queue(which, list, comment, to_addresses, from_address, subject, \
              message_id, message, timestamp, datetime) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?) \

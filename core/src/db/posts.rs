@@ -206,21 +206,65 @@ impl Connection {
                     }
                 }
                 PostAction::Reject { reason } => {
-                    /* FIXME - Notify submitter */
-                    trace!("PostAction::Reject {{ reason: {} }}", reason);
-                    //futures::executor::block_on(conn.mail_transaction(&post.bytes, b)).unwrap();
+                    log::info!("PostAction::Reject {{ reason: {} }}", reason);
+                    for f in env.from() {
+                        /* send error notice to e-mail sender */
+                        self.send_reply_with_list_template(
+                            TemplateRenderContext {
+                                template: Template::GENERIC_FAILURE,
+                                default_fn: Some(Template::default_generic_failure),
+                                list: &list,
+                                context: minijinja::context! {
+                                    list => &list,
+                                    subject => format!("Your post to {} was rejected.", list.id),
+                                    details => &reason,
+                                },
+                                queue: Queue::Out,
+                                comment: format!("PostAction::Reject {{ reason: {} }}", reason),
+                            },
+                            std::iter::once(Cow::Borrowed(f)),
+                        )?;
+                    }
                     return Err(PostRejected(reason).into());
                 }
                 PostAction::Defer { reason } => {
                     trace!("PostAction::Defer {{ reason: {} }}", reason);
-                    /*
-                     * - FIXME Notify submitter
-                     * - FIXME Save in database */
+                    for f in env.from() {
+                        /* send error notice to e-mail sender */
+                        self.send_reply_with_list_template(
+                            TemplateRenderContext {
+                                template: Template::GENERIC_FAILURE,
+                                default_fn: Some(Template::default_generic_failure),
+                                list: &list,
+                                context: minijinja::context! {
+                                    list => &list,
+                                    subject => format!("Your post to {} was deferred.", list.id),
+                                    details => &reason,
+                                },
+                                queue: Queue::Out,
+                                comment: format!("PostAction::Defer {{ reason: {} }}", reason),
+                            },
+                            std::iter::once(Cow::Borrowed(f)),
+                        )?;
+                    }
+                    self.insert_to_queue(QueueEntry::new(
+                        Queue::Deferred,
+                        Some(list.pk),
+                        Some(Cow::Borrowed(&post_env)),
+                        &bytes,
+                        Some(format!("PostAction::Defer {{ reason: {} }}", reason)),
+                    )?)?;
                     return Err(PostRejected(reason).into());
                 }
                 PostAction::Hold => {
                     trace!("PostAction::Hold");
-                    /* FIXME - Save in database */
+                    self.insert_to_queue(QueueEntry::new(
+                        Queue::Hold,
+                        Some(list.pk),
+                        Some(Cow::Borrowed(&post_env)),
+                        &bytes,
+                        Some("PostAction::Hold".to_string()),
+                    )?)?;
                     return Err(PostRejected("Hold".into()).into());
                 }
             }
@@ -245,12 +289,35 @@ impl Connection {
                     env.from(),
                     list
                 );
-
                 let approval_needed = post_policy
                     .as_ref()
                     .map(|p| p.approval_needed)
                     .unwrap_or(false);
                 for f in env.from() {
+                    let email_from = f.get_email();
+                    if self
+                        .list_subscription_by_address(list.pk, &email_from)
+                        .is_ok()
+                    {
+                        /* send error notice to e-mail sender */
+                        self.send_reply_with_list_template(
+                            TemplateRenderContext {
+                                template: Template::GENERIC_FAILURE,
+                                default_fn: Some(Template::default_generic_failure),
+                                list,
+                                context: minijinja::context! {
+                                    list => &list,
+                                    subject => format!("You are already subscribed to {}.", list.id),
+                                    details => "No action has been taken since you are already subscribed to the list.",
+                                },
+                                queue: Queue::Out,
+                                comment: format!("Address {} is already subscribed to list {}", f, list.id),
+                            },
+                            std::iter::once(Cow::Borrowed(f)),
+                        )?;
+                        continue;
+                    }
+
                     let subscription = ListSubscription {
                         pk: 0,
                         list: list.pk,
@@ -368,6 +435,10 @@ impl Connection {
                             list_owners.iter().map(|owner| Cow::Owned(owner.address())),
                         )?;
                     } else {
+                        log::trace!(
+                            "Added subscription to list {list:?} for address {f:?}, sending \
+                             confirmation."
+                        );
                         self.send_reply_with_list_template(
                             TemplateRenderContext {
                                 template: Template::SUBSCRIPTION_CONFIRMATION,

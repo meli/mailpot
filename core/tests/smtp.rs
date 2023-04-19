@@ -158,7 +158,7 @@ impl Handler for MyHandler {
                         self.stored.lock().unwrap().push((to.clone(), env));
                     }
                     Err(err) => {
-                        eprintln!("envelope parse error {}", err);
+                        panic!("envelope parse error {}", err);
                     }
                 }
             }
@@ -168,8 +168,7 @@ impl Handler for MyHandler {
                 .push(((ip, domain), Message::Helo));
             return OK;
         }
-        log::error!("last self.mails item was not Message::Data: {last:?}");
-        INTERNAL_ERROR
+        panic!("last self.mails item was not Message::Data: {last:?}"); //INTERNAL_ERROR
     }
 }
 
@@ -313,7 +312,23 @@ fn test_smtp() {
                 .unwrap();
         }
     }));
-    assert_eq!(handler.stored.lock().unwrap().len(), 2);
+    let stored = handler.stored.lock().unwrap();
+    assert_eq!(stored.len(), 3);
+    assert_eq!(&stored[0].0, "japoeunp@example.com");
+    assert_eq!(
+        &stored[0].1.subject(),
+        "Your post to foo-chat was rejected."
+    );
+    assert_eq!(
+        &stored[1].1.subject(),
+        "[foo-chat] thankful that I had the chance to written report, that I could learn and let \
+         alone the chance $4454.32"
+    );
+    assert_eq!(
+        &stored[2].1.subject(),
+        "[foo-chat] thankful that I had the chance to written report, that I could learn and let \
+         alone the chance $4454.32"
+    );
 }
 
 #[test]

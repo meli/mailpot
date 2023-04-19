@@ -86,7 +86,10 @@ impl Template {
             pk: -1,
             name: Self::GENERIC_FAILURE.to_string(),
             list: None,
-            subject: Some("Your e-mail was not processed successfully.".to_string()),
+            subject: Some(
+                "{{ subject if subject else \"Your e-mail was not processed successfully.\" }}"
+                    .to_string(),
+            ),
             headers_json: None,
             body: "{{ details|safe if details else \"The list owners and administrators have been \
                    notified.\" }}"
@@ -100,7 +103,10 @@ impl Template {
             pk: -1,
             name: Self::GENERIC_SUCCESS.to_string(),
             list: None,
-            subject: Some("Your e-mail was processed successfully.".to_string()),
+            subject: Some(
+                "{{ subject if subject else \"Your e-mail was processed successfully.\" }}"
+                    .to_string(),
+            ),
             headers_json: None,
             body: "{{ details|safe if details else \"\" }}".to_string(),
         }
