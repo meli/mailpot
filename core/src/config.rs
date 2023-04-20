@@ -47,6 +47,9 @@ pub struct Configuration {
     pub db_path: PathBuf,
     /// The directory where data are stored.
     pub data_path: PathBuf,
+    /// Instance administrators (List of e-mail addresses). Optional.
+    #[serde(default)]
+    pub administrators: Vec<String>,
 }
 
 impl Configuration {
@@ -64,6 +67,7 @@ impl Configuration {
                 .parent()
                 .map(Path::to_path_buf)
                 .unwrap_or_else(|| db_path.clone()),
+            administrators: vec![],
             db_path,
         }
     }

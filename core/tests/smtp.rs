@@ -213,6 +213,7 @@ fn test_smtp() {
         send_mail: SendMail::Smtp(get_smtp_conf()),
         db_path,
         data_path: tmp_dir.path().to_path_buf(),
+        administrators: vec![],
     };
 
     let mut db = Connection::open_or_create_db(config).unwrap().trusted();
@@ -362,6 +363,7 @@ fn test_smtp_mailcrab() {
         send_mail: SendMail::Smtp(get_smtp_conf()),
         db_path,
         data_path: tmp_dir.path().to_path_buf(),
+        administrators: vec![],
     };
 
     let mut db = Connection::open_or_create_db(config).unwrap().trusted();

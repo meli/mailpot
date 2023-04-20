@@ -44,6 +44,7 @@ fn test_error_queue() {
         send_mail: SendMail::Smtp(get_smtp_conf()),
         db_path,
         data_path: tmp_dir.path().to_path_buf(),
+        administrators: vec![],
     };
 
     let db = Connection::open_or_create_db(config).unwrap().trusted();

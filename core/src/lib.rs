@@ -58,6 +58,7 @@
 //! #     send_mail: SendMail::ShellCommand("/usr/bin/false".to_string()),
 //! #     db_path: db_path.clone(),
 //! #     data_path: tmp_dir.path().to_path_buf(),
+//! #     administrators: vec![],
 //! # };
 //! #
 //! # fn do_test(config: Configuration) -> mailpot::Result<()> {
@@ -140,6 +141,7 @@
 #[macro_use]
 extern crate error_chain;
 pub extern crate anyhow;
+pub extern crate rusqlite;
 
 #[macro_use]
 pub extern crate serde;

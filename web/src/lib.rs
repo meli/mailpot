@@ -74,7 +74,7 @@ use std::{borrow::Cow, collections::HashMap, sync::Arc};
 
 use chrono::Datelike;
 pub use http::{Request, Response, StatusCode};
-pub use mailpot::{models::DbVal, *};
+pub use mailpot::{models::DbVal, rusqlite::OptionalExtension, *};
 use minijinja::{
     value::{Object, Value},
     Environment, Error, Source,
@@ -83,6 +83,8 @@ use tokio::sync::RwLock;
 
 pub mod auth;
 pub mod cal;
+pub mod help;
+pub mod lists;
 pub mod minijinja_utils;
 pub mod settings;
 pub mod typed_paths;
@@ -90,6 +92,8 @@ pub mod utils;
 
 pub use auth::*;
 pub use cal::{calendarize, *};
+pub use help::*;
+pub use lists::*;
 pub use minijinja_utils::*;
 pub use settings::*;
 pub use typed_paths::{tsr::RouterExt, *};

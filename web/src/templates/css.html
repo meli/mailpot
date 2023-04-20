@@ -728,6 +728,11 @@
         margin: 0.8rem;
     }
 
+    form.settings-form>fieldset>table tr>th {
+        text-align: right;
+        padding-right: 1rem;
+    }
+
     button, input {
         overflow: visible;
     }
@@ -785,6 +790,12 @@
         padding: .5rem;
         min-width: 10rem;
         align-self: start;
+    }
+
+    button:disabled, input:is([type="color"], [type="reset"], [type="button"], [type="submit"]):disabled {
+        color: GrayText;
+        background: Field;
+        cursor: not-allowed;
     }
 
     ol.list {

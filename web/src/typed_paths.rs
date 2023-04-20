@@ -95,6 +95,14 @@ pub struct ListPostPath(pub ListPathIdentifier, pub String);
 pub struct ListEditPath(pub ListPathIdentifier);
 
 #[derive(Debug, PartialEq, Eq, Clone, serde::Deserialize, serde::Serialize, TypedPath)]
+#[typed_path("/list/:id/edit/subscribers/")]
+pub struct ListEditSubscribersPath(pub ListPathIdentifier);
+
+#[derive(Debug, PartialEq, Eq, Clone, serde::Deserialize, serde::Serialize, TypedPath)]
+#[typed_path("/list/:id/edit/candidates/")]
+pub struct ListEditCandidatesPath(pub ListPathIdentifier);
+
+#[derive(Debug, PartialEq, Eq, Clone, serde::Deserialize, serde::Serialize, TypedPath)]
 #[typed_path("/settings/list/:id/")]
 pub struct ListSettingsPath(pub ListPathIdentifier);
 
@@ -148,6 +156,8 @@ macro_rules! list_id_impl {
 list_id_impl!(list_path, ListPath);
 list_id_impl!(list_settings_path, ListSettingsPath);
 list_id_impl!(list_edit_path, ListEditPath);
+list_id_impl!(list_subscribers_path, ListEditSubscribersPath);
+list_id_impl!(list_candidates_path, ListEditCandidatesPath);
 
 pub fn list_post_path(id: Value, msg_id: Value) -> std::result::Result<Value, Error> {
     let Some(msg_id) = msg_id.as_str().map(|s| if s.starts_with('<') && s.ends_with('>') { s.to_string() } else {

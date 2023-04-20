@@ -126,7 +126,7 @@ fn user_authorizer_callback(
         | AuthAction::Transaction { .. }
         | AuthAction::Read { .. }
         | AuthAction::Function {
-            function_name: "strftime" | "unixepoch" | "datetime",
+            function_name: "count" | "strftime" | "unixepoch" | "datetime",
         } => Authorization::Allow,
         _ => Authorization::Deny,
     }

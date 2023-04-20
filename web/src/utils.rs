@@ -112,6 +112,52 @@ impl<'de> serde::Deserialize<'de> for IntPOST {
     }
 }
 
+#[derive(Clone, Copy, Default, Debug, PartialEq, Eq, PartialOrd, Hash)]
+#[repr(transparent)]
+pub struct BoolPOST(pub bool);
+
+impl serde::Serialize for BoolPOST {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        serializer.serialize_bool(self.0)
+    }
+}
+
+impl<'de> serde::Deserialize<'de> for BoolPOST {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        struct BoolVisitor;
+
+        impl<'de> serde::de::Visitor<'de> for BoolVisitor {
+            type Value = BoolPOST;
+
+            fn expecting(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+                f.write_str("Bool as a boolean or \"true\" \"false\"")
+            }
+
+            fn visit_bool<E>(self, val: bool) -> Result<Self::Value, E>
+            where
+                E: serde::de::Error,
+            {
+                Ok(BoolPOST(val))
+            }
+
+            fn visit_str<E>(self, val: &str) -> Result<Self::Value, E>
+            where
+                E: serde::de::Error,
+            {
+                val.parse().map(BoolPOST).map_err(serde::de::Error::custom)
+            }
+        }
+
+        deserializer.deserialize_any(BoolVisitor)
+    }
+}
+
 #[derive(Debug, Clone, serde::Deserialize)]
 pub struct Next {
     #[serde(default, deserialize_with = "empty_string_as_none")]

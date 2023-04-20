@@ -40,6 +40,7 @@ fn test_out_queue_flush() {
         send_mail: SendMail::ShellCommand("/usr/bin/true".to_string()),
         db_path,
         data_path: tmp_dir.path().to_path_buf(),
+        administrators: vec![],
     };
 
     let config_str = config.to_toml();

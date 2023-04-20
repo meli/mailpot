@@ -99,6 +99,7 @@ For more information, try '--help'."#,
         send_mail: SendMail::ShellCommand("/usr/bin/false".to_string()),
         db_path,
         data_path: tmp_dir.path().to_path_buf(),
+        administrators: vec![],
     };
 
     let config_str = config.to_toml();

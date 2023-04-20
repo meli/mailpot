@@ -240,7 +240,7 @@ pub async fn settings_post(
     }
 
     Ok(Redirect::to(&format!(
-        "{}/{}",
+        "{}{}",
         &state.root_url_prefix,
         SettingsPath.to_uri()
     )))

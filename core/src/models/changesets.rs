@@ -87,23 +87,6 @@ pub struct ListSubscriptionChangeset {
 
 impl_display!(ListSubscriptionChangeset);
 
-/// Changeset struct for [`PostPolicy`](super::PostPolicy).
-#[derive(Default, Debug, Clone, Deserialize, Serialize)]
-pub struct PostPolicyChangeset {
-    /// Database primary key.
-    pub pk: i64,
-    /// Mailing list foreign key (See [`MailingList`](super::MailingList)).
-    pub list: i64,
-    /// Optional new value.
-    pub announce_only: Option<bool>,
-    /// Optional new value.
-    pub subscription_only: Option<bool>,
-    /// Optional new value.
-    pub approval_needed: Option<bool>,
-}
-
-impl_display!(PostPolicyChangeset);
-
 /// Changeset struct for [`ListOwner`](super::ListOwner).
 #[derive(Default, Debug, Clone, Deserialize, Serialize)]
 pub struct ListOwnerChangeset {

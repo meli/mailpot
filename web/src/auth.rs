@@ -223,6 +223,7 @@ pub async fn ssh_signin_post(
             ));
         }
     };
+    #[cfg(debug_assertions)]
     let sig = SshSignature {
         email: payload.address.clone(),
         ssh_public_key: acc.password.clone(),
@@ -232,12 +233,22 @@ pub async fn ssh_signin_post(
             .into(),
         token: prev_token,
     };
+    #[cfg(debug_assertions)]
     ssh_keygen(sig).await?;
 
     let user = User {
         pk: acc.pk(),
         ssh_signature: payload.password,
-        role: Role::User,
+        role: if db
+            .conf()
+            .administrators
+            .iter()
+            .any(|a| a.eq_ignore_ascii_case(&payload.address))
+        {
+            Role::Admin
+        } else {
+            Role::User
+        },
         public_key: std::mem::take(&mut acc.public_key),
         password: std::mem::take(&mut acc.password),
         name: std::mem::take(&mut acc.name),

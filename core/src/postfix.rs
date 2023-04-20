@@ -401,6 +401,7 @@ fn test_postfix_generation() -> Result<()> {
         send_mail: SendMail::Smtp(get_smtp_conf()),
         db_path,
         data_path: tmp_dir.path().to_path_buf(),
+        administrators: vec![],
     };
     let config_path = tmp_dir.path().join("conf.toml");
     {

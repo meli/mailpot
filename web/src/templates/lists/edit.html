@@ -1,0 +1,152 @@
+{% include "header.html" %}
+<div class="body body-grid">
+    <h3>Edit <a href="{{ root_url_prefix }}{{ list_path(list.pk) }}">{{ list.id }}</a>.</h3>
+    <address>
+        {{ list.name }} <a href="mailto:{{ list.address | safe }}"><code>{{ list.address }}</code></a>
+    </address>
+    {% if list.description %}
+        <p>{{ list.description }}</p>
+    {% endif %}
+    {% if list.archive_url %}
+        <p><a href="{{ list.archive_url }}">{{ list.archive_url }}</a></p>
+    {% endif %}
+    <p>{{ subs_count }} subscription{{ subs_count|pluralize }}.</p>
+    <p>{{ sub_requests_count }} subscription request{{ sub_requests_count|pluralize }}.</p>
+    <p>{{ post_count }} post{{ post_count|pluralize }}.</p>
+    <form method="post" class="settings-form">
+        <fieldset>
+            <input type="hidden" name="type" value="metadata">
+            <legend>List Metadata</legend>
+
+            <table>
+                <tr>
+                    <th>
+                        <label for="id_name">List name.</label>
+                    </th>
+                    <td>
+                        <input type="text" name="name" id="id_name" value="{{ list.name }}">
+                    </td>
+                </tr>
+                <tr>
+                    <th>
+                        <label for="id_list_id">List ID.</label>
+                    </th>
+                    <td>
+                        <input type="text" name="id" id="id_list_id" value="{{ list.id }}">
+                    </td>
+                </tr>
+                <tr>
+                    <th>
+                        <label for="id_description">List description.</label>
+                    </th>
+                    <td>
+                        <textarea name="description" id="id_description">{{ list.description if list.description else "" }}</textarea>
+                    </td>
+                </tr>
+                <tr>
+                    <th>
+                        <label for="id_list_address">List address.</label>
+                    </th>
+                    <td>
+                        <input type="email" name="address" id="id_list_address" value="{{ list.address }}">
+                    </td>
+                </tr>
+                <tr>
+                    <th>
+                        <label for="id_owner_local_part">List owner local part.</label>
+                    </th>
+                    <td>
+                        <input type="text" name="owner_local_part" id="id_owner_local_part" value="{{ list.owner_local_part if list.owner_local_part else "" }}">
+                    </td>
+                </tr>
+                <tr>
+                    <th>
+                        <label for="id_request_local_part">List request local part.</label>
+                    </th>
+                    <td>
+                        <input type="text" name="request_local_part" id="id_request_local_part" value="{{ list.request_local_part if list.request_local_part else "" }}">
+                    </td>
+                </tr>
+                <tr>
+                    <th>
+                        <label for="id_archive_url">List archive URL.</label>
+                    </th>
+                    <td>
+                        <input type="text" name="archive_url" id="id_archive_url" value="{{ list.archive_url if list.archive_url else "" }}">
+                    </td>
+                </tr>
+            </table>
+        </fieldset>
+
+        <input type="submit" name="metadata" value="Update list">
+    </form>
+    <form method="post" action="{{ root_url_prefix }}{{ list_edit_path(list.id) }}" class="settings-form">
+        <fieldset>
+            <input type="hidden" name="type" value="post-policy">
+            <legend>Post Policy <input type="submit" name="delete-post-policy" value="Delete" disabled></legend>
+            {% if not post_policy %}
+                <ul class="messagelist">
+                    <li class="info">
+                        <span class="label">Info: </span>No post policy set. Press Create to add one.
+                    </li>
+                </ul>
+            {% endif %}
+            <div>
+                <input type="radio" required="" name="post-policy" id="post-announce-only" value="announce-only"{% if post_policy.announce_only %} checked{% endif %}>
+                <label for="post-announce-only">Announce only</label>
+            </div>
+            <div>
+                <input type="radio" required="" name="post-policy" id="post-subscription-only" value="subscription-only"{% if post_policy.subscription_only %} checked{% endif %}>
+                <label for="post-subscription-only">Subscription only</label>
+            </div>
+            <div>
+                <input type="radio" required="" name="post-policy" id="post-approval-needed" value="approval-needed"{% if post_policy.approval_needed %} checked{% endif %}>
+                <label for="post-approval-needed">Approval needed</label>
+            </div>
+            <div>
+                <input type="radio" required="" name="post-policy" id="post-open" value="open"{% if post_policy.open %} checked{% endif %}>
+                <label for="post-open">Open</label>
+            </div>
+            <div>
+                <input type="radio" required="" name="post-policy" id="post-custom" value="custom"{% if post_policy.custom %} checked{% endif %}>
+                <label for="post-custom">Custom</label>
+            </div>
+        </fieldset>
+        <input type="submit" value="{{ "Update" if post_policy else "Create" }} Post Policy">
+    </form>
+    <form method="post" action="{{ root_url_prefix }}{{ list_edit_path(list.id) }}" class="settings-form">
+        <fieldset>
+            <input type="hidden" name="type" value="subscription-policy">
+            <legend>Subscription Policy <input type="submit" name="delete-post-policy" value="Delete" disabled></legend>
+            {% if not subscription_policy %}
+                <ul class="messagelist">
+                    <li class="info">
+                        <span class="label">Info: </span>No subscription policy set. Press Create to add one.
+                    </li>
+                </ul>
+            {% endif %}
+            <div>
+                <input type="checkbox" value="true" name="send-confirmation" id="sub-send-confirmation"{% if subscription_policy.send_confirmation %} checked{% endif %}>
+                <label for="sub-send-confirmation">Send confirmation to new subscribers.</label>
+            </div>
+            <div>
+                <input type="radio" required="" name="subscription-policy" id="sub-open" value="open"{% if subscription_policy.open %} checked{% endif %}>
+                <label for="sub-open">Open</label>
+            </div>
+            <div>
+                <input type="radio" required="" name="subscription-policy" id="sub-manual" value="manual"{% if subscription_policy.manual %} checked{% endif %}>
+                <label for="sub-manual">Manual</label>
+            </div>
+            <div>
+                <input type="radio" required="" name="subscription-policy" id="sub-request" value="request"{% if subscription_policy.request %} checked{% endif %}>
+                <label for="sub-request">Request</label>
+            </div>
+            <div>
+                <input type="radio" required="" name="subscription-policy" id="sub-custom" value="custom"{% if subscription_policy.custom %} checked{% endif %}>
+                <label for="sub-custom">Custom</label>
+            </div>
+        </fieldset>
+        <input type="submit" value="{{ "Update" if subscription_policy else "Create" }} Subscription Policy">
+    </form>
+</div>
+{% include "footer.html" %}

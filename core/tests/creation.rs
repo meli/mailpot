@@ -32,6 +32,7 @@ fn test_init_empty() {
         send_mail: SendMail::ShellCommand("/usr/bin/false".to_string()),
         db_path,
         data_path: tmp_dir.path().to_path_buf(),
+        administrators: vec![],
     };
 
     let db = Connection::open_or_create_db(config).unwrap();
@@ -49,6 +50,7 @@ fn test_list_creation() {
         send_mail: SendMail::ShellCommand("/usr/bin/false".to_string()),
         db_path,
         data_path: tmp_dir.path().to_path_buf(),
+        administrators: vec![],
     };
 
     let db = Connection::open_or_create_db(config).unwrap().trusted();
