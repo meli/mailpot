@@ -483,7 +483,3 @@ pub enum SubscriptionPolicySettings {
     Request,
     Custom,
 }
-
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
-#[serde(rename_all = "kebab-case")]
-pub struct MetadataSettings {}

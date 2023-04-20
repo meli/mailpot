@@ -180,36 +180,47 @@ pub async fn ssh_signin_post(
 
     let now: i64 = chrono::offset::Utc::now().timestamp();
 
-    let (prev_token, _) =
-        if let Some(tok @ (_, timestamp)) = session.get::<(String, i64)>(TOKEN_KEY) {
-            if !(timestamp < now && now - timestamp < EXPIRY_IN_SECS) {
-                session.add_message(Message {
-                    message: "The token has expired. Please retry.".into(),
-                    level: Level::Error,
-                })?;
-                return Ok(Redirect::to(&format!(
-                    "{}{}{}",
-                    state.root_url_prefix,
-                    LoginPath.to_uri(),
-                    next.next.as_ref().map_or("", |next| next.as_str())
-                )));
-            } else {
-                tok
-            }
-        } else {
+    let (_prev_token, _) = if let Some(tok @ (_, timestamp)) =
+        session.get::<(String, i64)>(TOKEN_KEY)
+    {
+        if !(timestamp < now && now - timestamp < EXPIRY_IN_SECS) {
             session.add_message(Message {
                 message: "The token has expired. Please retry.".into(),
                 level: Level::Error,
             })?;
             return Ok(Redirect::to(&format!(
-                "{}{}{}",
+                "{}{}?next={}",
                 state.root_url_prefix,
                 LoginPath.to_uri(),
-                next.next.as_ref().map_or("", |next| next.as_str())
+                next.next.as_ref().map_or(Cow::Borrowed(""), |next| format!(
+                    "?next={}",
+                    percent_encoding::utf8_percent_encode(
+                        next.as_str(),
+                        percent_encoding::CONTROLS
+                    )
+                )
+                .into())
             )));
-        };
+        } else {
+            tok
+        }
+    } else {
+        session.add_message(Message {
+            message: "The token has expired. Please retry.".into(),
+            level: Level::Error,
+        })?;
+        return Ok(Redirect::to(&format!(
+            "{}{}{}",
+            state.root_url_prefix,
+            LoginPath.to_uri(),
+            next.next.as_ref().map_or(Cow::Borrowed(""), |next| format!(
+                "?next={}",
+                percent_encoding::utf8_percent_encode(next.as_str(), percent_encoding::CONTROLS)
+            )
+            .into())
+        )));
+    };
 
-    drop(session);
     let db = Connection::open_db(state.conf.clone())?;
     let mut acc = match db
         .account_by_address(&payload.address)
@@ -217,13 +228,26 @@ pub async fn ssh_signin_post(
     {
         Some(v) => v,
         None => {
-            return Err(ResponseError::new(
-                format!("Account for {} not found", payload.address),
-                StatusCode::NOT_FOUND,
-            ));
+            session.add_message(Message {
+                message: "Invalid account details, please retry.".into(),
+                level: Level::Error,
+            })?;
+            return Ok(Redirect::to(&format!(
+                "{}{}{}",
+                state.root_url_prefix,
+                LoginPath.to_uri(),
+                next.next.as_ref().map_or(Cow::Borrowed(""), |next| format!(
+                    "?next={}",
+                    percent_encoding::utf8_percent_encode(
+                        next.as_str(),
+                        percent_encoding::CONTROLS
+                    )
+                )
+                .into())
+            )));
         }
     };
-    #[cfg(debug_assertions)]
+    #[cfg(not(debug_assertions))]
     let sig = SshSignature {
         email: payload.address.clone(),
         ssh_public_key: acc.password.clone(),
@@ -231,10 +255,25 @@ pub async fn ssh_signin_post(
         namespace: std::env::var("SSH_NAMESPACE")
             .unwrap_or_else(|_| "lists.mailpot.rs".to_string())
             .into(),
-        token: prev_token,
+        token: _prev_token,
     };
-    #[cfg(debug_assertions)]
-    ssh_keygen(sig).await?;
+    #[cfg(not(debug_assertions))]
+    if let Err(err) = ssh_keygen(sig).await {
+        session.add_message(Message {
+            message: format!("Could not verify signature: {err}").into(),
+            level: Level::Error,
+        })?;
+        return Ok(Redirect::to(&format!(
+            "{}{}{}",
+            state.root_url_prefix,
+            LoginPath.to_uri(),
+            next.next.as_ref().map_or(Cow::Borrowed(""), |next| format!(
+                "?next={}",
+                percent_encoding::utf8_percent_encode(next.as_str(), percent_encoding::CONTROLS)
+            )
+            .into())
+        )));
+    }
 
     let user = User {
         pk: acc.pk(),
@@ -256,6 +295,7 @@ pub async fn ssh_signin_post(
         enabled: acc.enabled,
     };
     state.insert_user(acc.pk(), user.clone()).await;
+    drop(session);
     auth.login(&user)
         .await
         .map_err(|err| ResponseError::new(err.to_string(), StatusCode::BAD_REQUEST))?;
