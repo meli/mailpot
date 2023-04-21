@@ -1564,7 +1564,7 @@ dependencies = [
 
 [[package]]
 name = "mailpot"
-version = "0.0.0+2023-04-07"
+version = "0.0.0+2023-04-21"
 dependencies = [
  "anyhow",
  "chrono",
@@ -1585,7 +1585,7 @@ dependencies = [
 
 [[package]]
 name = "mailpot-cli"
-version = "0.0.0+2023-04-07"
+version = "0.0.0+2023-04-21"
 dependencies = [
  "assert_cmd",
  "clap",
@@ -1599,7 +1599,7 @@ dependencies = [
 
 [[package]]
 name = "mailpot-http"
-version = "0.0.0+2023-04-07"
+version = "0.0.0+2023-04-21"
 dependencies = [
  "mailpot",
  "tokio",
@@ -1608,7 +1608,7 @@ dependencies = [
 
 [[package]]
 name = "mailpot-web"
-version = "0.0.0+2023-04-07"
+version = "0.0.0+2023-04-21"
 dependencies = [
  "axum",
  "axum-extra",
@@ -1777,7 +1777,7 @@ dependencies = [
 
 [[package]]
 name = "mpot-archives"
-version = "0.0.0+2023-04-07"
+version = "0.0.0+2023-04-21"
 dependencies = [
  "chrono",
  "lazy_static",

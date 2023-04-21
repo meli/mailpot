@@ -1,24 +1,40 @@
-# mailpot - WIP mailing list manager
+# mailpot - mailing list manager
 
-Rendered rustdoc of `core` crate: <https://meli.github.io/mailpot/docs/mailpot/>
+[![Latest Version]][crates.io]&nbsp;[![docs.rs]][rustdoc]&nbsp;![Top Language]&nbsp;![License]
 
-CLI manpage: [`mpot.1`](./docs/mpot.1) [Rendered](https://git.meli.delivery/meli/mailpot/src/branch/main/docs/mpot.1)
+[Latest Version]: https://img.shields.io/crates/v/mailpot.svg?color=white
+[crates.io]: https://crates.io/crates/mailpot
+[Top Language]: https://img.shields.io/github/languages/top/meli/mailpot?color=white&logo=rust&logoColor=black
+[License]: https://img.shields.io/github/license/meli/mailpot?color=white
+[docs.rs]: https://img.shields.io/docsrs/mailpot?color=white
+[rustdoc]: https://meli.github.io/mailpot/docs/mailpot/
 
-Crates:
+- Official hosted instance of `mailpot-web` crate: <https://lists.meli.delivery/>
+- Rendered rustdoc: <https://meli.github.io/mailpot/docs/mailpot/>
+- CLI manpage: [`mpot.1`](./docs/mpot.1) [Rendered](https://git.meli.delivery/meli/mailpot/src/branch/main/docs/mpot.1)
+
+| ℹ️  Interested in contributing? Consult [`CONTRIBUTING.md`](./CONTRIBUTING.md). |
+| ---                                                                            |
+
+## crates:
 
 - `core` the library
 - `cli` a command line tool to manage lists
+- `web` an `axum` based web server capable of serving archives and authenticating list owners and members
 - `archive-http` static web archive generation or with a dynamic http server
 - `rest-http` a REST http server to manage lists
 
-## Project goals
+## Features
 
 - easy setup
-- extensible through Rust API as a library
+- extensible through Rust API as a [library](./core)
+- basic management through [CLI tool](./cli/)
+- optional lightweight web archiver ([static](./archive-http/) and [dynamic](./web/))
+- useful for both **newsletters**, **communities** and for static **article comments**
+
+## Roadmap
+
 - extensible through HTTP REST API as an HTTP server, with webhooks
-- basic management through CLI
-- optional lightweight web archiver
-- useful for both newsletters, discussions, article comments
 
 ## Initial setup
 
