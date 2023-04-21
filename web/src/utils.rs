@@ -58,6 +58,7 @@ impl SessionMessages for WritableSession {
         ret
     }
 
+    #[allow(clippy::significant_drop_tightening)]
     fn add_message(&mut self, message: Message) -> Result<(), ResponseError> {
         let mut messages: Vec<Message> = self.get(Message::MESSAGE_KEY).unwrap_or_default();
         messages.push(message);

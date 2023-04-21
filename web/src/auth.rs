@@ -699,7 +699,6 @@ mod tests {
             "6PxWKC/OELf3gyEBRPouxsF7xSZQ==\n",
             "-----END SSH SIGNATURE-----\n"
         );
-        const NAMESPACE: &str = "doc-test@example.com";
 
         let mut sig = SshSignature {
             email: "user@example.com".to_string(),

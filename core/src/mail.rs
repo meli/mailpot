@@ -123,6 +123,8 @@ pub enum MailJob {
 /// Type of mailing list request.
 #[derive(Clone, Debug, Deserialize, Serialize, PartialEq, Eq)]
 pub enum ListRequest {
+    /// Get help about a mailing list and its available interfaces.
+    Help,
     /// Request subscription.
     Subscribe,
     /// Request removal of subscription.
@@ -132,8 +134,9 @@ pub enum ListRequest {
     /// Request reception of specific mailing list posts from `Message-ID`
     /// values.
     RetrieveMessages(Vec<String>),
-    /// Request change in digest preferences. (See [`ListSubscription`])
-    SetDigest(bool),
+    /// Request change in subscription settings.
+    /// See [`ListSubscription`].
+    ChangeSetting(String, bool),
     /// Other type of request.
     Other(String),
 }
@@ -152,8 +155,10 @@ impl<S: AsRef<str>> TryFrom<(S, &melib::Envelope)> for ListRequest {
         Ok(match val {
             "subscribe" | "request" if env.subject().trim() == "subscribe" => Self::Subscribe,
             "unsubscribe" | "request" if env.subject().trim() == "unsubscribe" => Self::Unsubscribe,
+            "help" => Self::Help,
             "request" => Self::Other(env.subject().trim().to_string()),
             _ => {
+                // [ref:TODO] add ChangeSetting parsing
                 trace!("unknown action = {} for addresses {:?}", val, env.from(),);
                 Self::Other(val.trim().to_string())
             }

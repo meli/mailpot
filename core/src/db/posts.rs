@@ -220,7 +220,8 @@ impl Connection {
                                     details => &reason,
                                 },
                                 queue: Queue::Out,
-                                comment: format!("PostAction::Reject {{ reason: {} }}", reason),
+                                comment: format!("PostAction::Reject {{ reason: {} }}", reason)
+                                    .into(),
                             },
                             std::iter::once(Cow::Borrowed(f)),
                         )?;
@@ -242,7 +243,8 @@ impl Connection {
                                     details => &reason,
                                 },
                                 queue: Queue::Out,
-                                comment: format!("PostAction::Defer {{ reason: {} }}", reason),
+                                comment: format!("PostAction::Defer {{ reason: {} }}", reason)
+                                    .into(),
                             },
                             std::iter::once(Cow::Borrowed(f)),
                         )?;
@@ -283,6 +285,35 @@ impl Connection {
     ) -> Result<()> {
         let post_policy = self.list_post_policy(list.pk)?;
         match request {
+            ListRequest::Help => {
+                // [ref:TODO] add test for this
+                trace!(
+                    "help action for addresses {:?} in list {}",
+                    env.from(),
+                    list
+                );
+                let subscription_policy = self.list_subscription_policy(list.pk)?;
+                let subject = format!("Help for {}", list.name);
+                let details = list
+                    .generate_help_email(post_policy.as_deref(), subscription_policy.as_deref());
+                for f in env.from() {
+                    self.send_reply_with_list_template(
+                        TemplateRenderContext {
+                            template: Template::GENERIC_HELP,
+                            default_fn: Some(Template::default_generic_help),
+                            list,
+                            context: minijinja::context! {
+                                list => &list,
+                                subject => &subject,
+                                details => &details,
+                            },
+                            queue: Queue::Out,
+                            comment: "Help request".into(),
+                        },
+                        std::iter::once(Cow::Borrowed(f)),
+                    )?;
+                }
+            }
             ListRequest::Subscribe => {
                 trace!(
                     "subscribe action for addresses {:?} in list {}",
@@ -311,7 +342,7 @@ impl Connection {
                                     details => "No action has been taken since you are already subscribed to the list.",
                                 },
                                 queue: Queue::Out,
-                                comment: format!("Address {} is already subscribed to list {}", f, list.id),
+                                comment: format!("Address {} is already subscribed to list {}", f, list.id).into(),
                             },
                             std::iter::once(Cow::Borrowed(f)),
                         )?;
@@ -348,8 +379,7 @@ impl Connection {
                                             candidate => &v,
                                         },
                                         queue: Queue::Out,
-                                        comment: Template::SUBSCRIPTION_REQUEST_NOTICE_OWNER
-                                            .to_string(),
+                                        comment: Template::SUBSCRIPTION_REQUEST_NOTICE_OWNER.into(),
                                     },
                                     list_owners.iter().map(|owner| Cow::Owned(owner.address())),
                                 )?;
@@ -371,7 +401,8 @@ impl Connection {
                                         comment: format!(
                                             "Could not create candidate subscription for {f:?}: \
                                              {err}"
-                                        ),
+                                        )
+                                        .into(),
                                     },
                                     std::iter::once(Cow::Borrowed(f)),
                                 )?;
@@ -392,7 +423,8 @@ impl Connection {
                                         comment: format!(
                                             "Could not create candidate subscription for {f:?}: \
                                              {err}"
-                                        ),
+                                        )
+                                        .into(),
                                     },
                                     list_owners.iter().map(|owner| Cow::Owned(owner.address())),
                                 )?;
@@ -412,7 +444,8 @@ impl Connection {
                                     list => &list,
                                 },
                                 queue: Queue::Out,
-                                comment: format!("Could not create subscription for {f:?}: {err}"),
+                                comment: format!("Could not create subscription for {f:?}: {err}")
+                                    .into(),
                             },
                             std::iter::once(Cow::Borrowed(f)),
                         )?;
@@ -430,7 +463,8 @@ impl Connection {
                                     details => err.to_string(),
                                 },
                                 queue: Queue::Out,
-                                comment: format!("Could not create subscription for {f:?}: {err}"),
+                                comment: format!("Could not create subscription for {f:?}: {err}")
+                                    .into(),
                             },
                             list_owners.iter().map(|owner| Cow::Owned(owner.address())),
                         )?;
@@ -448,7 +482,7 @@ impl Connection {
                                     list => &list,
                                 },
                                 queue: Queue::Out,
-                                comment: Template::SUBSCRIPTION_CONFIRMATION.to_string(),
+                                comment: Template::SUBSCRIPTION_CONFIRMATION.into(),
                             },
                             std::iter::once(Cow::Borrowed(f)),
                         )?;
@@ -475,7 +509,7 @@ impl Connection {
                                     list => &list,
                                 },
                                 queue: Queue::Out,
-                                comment: format!("Could not unsubscribe {f:?}: {err}"),
+                                comment: format!("Could not unsubscribe {f:?}: {err}").into(),
                             },
                             std::iter::once(Cow::Borrowed(f)),
                         )?;
@@ -493,7 +527,7 @@ impl Connection {
                                     details => err.to_string(),
                                 },
                                 queue: Queue::Out,
-                                comment: format!("Could not unsubscribe {f:?}: {err}"),
+                                comment: format!("Could not unsubscribe {f:?}: {err}").into(),
                             },
                             list_owners.iter().map(|owner| Cow::Owned(owner.address())),
                         )?;
@@ -507,7 +541,7 @@ impl Connection {
                                     list => &list,
                                 },
                                 queue: Queue::Out,
-                                comment: Template::UNSUBSCRIPTION_CONFIRMATION.to_string(),
+                                comment: Template::UNSUBSCRIPTION_CONFIRMATION.into(),
                             },
                             std::iter::once(Cow::Borrowed(f)),
                         )?;
@@ -536,9 +570,8 @@ impl Connection {
             }
             ListRequest::Other(ref req) if req.trim().eq_ignore_ascii_case("password") => {
                 trace!(
-                    "list-request password set action for addresses {:?} in list {}",
+                    "list-request password set action for addresses {:?} in list {list}",
                     env.from(),
-                    list
                 );
                 let body = env.body_bytes(raw);
                 let password = body.text();
@@ -574,38 +607,31 @@ impl Connection {
             }
             ListRequest::RetrieveMessages(ref message_ids) => {
                 trace!(
-                    "retrieve messages {:?} action for addresses {:?} in list {}",
-                    message_ids,
+                    "retrieve messages {message_ids:?} action for addresses {:?} in list {list}",
                     env.from(),
-                    list
                 );
                 return Err("message retrievals are not implemented yet.".into());
             }
             ListRequest::RetrieveArchive(ref from, ref to) => {
                 trace!(
-                    "retrieve archive action from {:?} to {:?} for addresses {:?} in list {}",
-                    from,
-                    to,
+                    "retrieve archive action from {from:?} to {to:?} for addresses {:?} in list \
+                     {list}",
                     env.from(),
-                    list
                 );
                 return Err("message retrievals are not implemented yet.".into());
             }
-            ListRequest::SetDigest(ref toggle) => {
+            ListRequest::ChangeSetting(ref setting, ref toggle) => {
                 trace!(
-                    "set digest action with value {} for addresses {:?} in list {}",
-                    toggle,
+                    "change setting {setting}, request with value {toggle:?} for addresses {:?} \
+                     in list {list}",
                     env.from(),
-                    list
                 );
                 return Err("setting digest options via e-mail is not implemented yet.".into());
             }
             ListRequest::Other(ref req) => {
                 trace!(
-                    "unknown request action {} for addresses {:?} in list {}",
-                    req,
+                    "unknown request action {req} for addresses {:?} in list {list}",
                     env.from(),
-                    list
                 );
                 return Err(format!("Unknown request {req}.").into());
             }
@@ -712,7 +738,7 @@ impl Connection {
                 Some(list.pk),
                 None,
                 draft.finalise()?.as_bytes(),
-                Some(comment.clone()),
+                Some(comment.to_string()),
             )?)?;
         }
         Ok(())
@@ -733,5 +759,5 @@ pub struct TemplateRenderContext<'ctx, F: Fn() -> Template> {
     /// Destination queue in the database.
     pub queue: Queue,
     /// Comment for the queue entry in the database.
-    pub comment: String,
+    pub comment: Cow<'static, str>,
 }

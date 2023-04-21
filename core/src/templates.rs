@@ -45,6 +45,8 @@ impl std::fmt::Display for Template {
 }
 
 impl Template {
+    /// Template name for generic list help e-mail.
+    pub const GENERIC_HELP: &str = "generic-help";
     /// Template name for generic failure e-mail.
     pub const GENERIC_FAILURE: &str = "generic-failure";
     /// Template name for generic success e-mail.
@@ -185,6 +187,18 @@ impl Template {
             subject: Some("Your subscription to {{ list.id }} is now active.".to_string()),
             headers_json: None,
             body: "{{ details|safe if details else \"\" }}".to_string(),
+        }
+    }
+
+    /// Create a plain template for generic list help replies.
+    pub fn default_generic_help() -> Self {
+        Self {
+            pk: -1,
+            name: Self::GENERIC_HELP.to_string(),
+            list: None,
+            subject: Some("{{ subject if subject else \"Help for mailing list\" }}".to_string()),
+            headers_json: None,
+            body: "{{ details }}".to_string(),
         }
     }
 }

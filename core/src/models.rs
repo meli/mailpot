@@ -23,6 +23,8 @@
 use super::*;
 pub mod changesets;
 
+use std::borrow::Cow;
+
 use melib::email::Address;
 
 /// A database entry and its primary key. Derefs to its inner type.
@@ -256,6 +258,65 @@ impl MailingList {
                     .insert(melib::HeaderName::new_unchecked(hdr), val);
             }
         }
+    }
+
+    /// Generate help e-mail body containing information on how to subscribe,
+    /// unsubscribe, post and how to contact the list owners.
+    pub fn generate_help_email(
+        &self,
+        post_policy: Option<&PostPolicy>,
+        subscription_policy: Option<&SubscriptionPolicy>,
+    ) -> String {
+        format!(
+            "Help for {list_name}\n\n{subscribe}\n\n{post}\n\nTo contact the list owners, send an \
+             e-mail to {contact}\n",
+            list_name = self.name,
+            subscribe = subscription_policy.map_or(
+                Cow::Borrowed("This list is not open to subscriptions."),
+                |p| if p.open {
+                    Cow::Owned(format!(
+                        "Anyone can subscribe without restrictions. Send an e-mail to {} with the \
+                         subject `subscribe`.",
+                        self.request_subaddr(),
+                    ))
+                } else if p.manual {
+                    Cow::Borrowed(
+                        "The list owners must manually add you to the list of subscriptions.",
+                    )
+                } else if p.request {
+                    Cow::Owned(format!(
+                        "Anyone can request to subscribe. Send an e-mail to {} with the subject \
+                         `subscribe` and a confirmation will be sent to you when your request is \
+                         approved.",
+                        self.request_subaddr(),
+                    ))
+                } else {
+                    Cow::Borrowed("Please contact the list owners for details on how to subscribe.")
+                }
+            ),
+            post = post_policy.map_or(Cow::Borrowed("This list does not allow posting."), |p| {
+                if p.announce_only {
+                    Cow::Borrowed(
+                        "This list is announce only, which means that you can only receive posts \
+                         from the list owners.",
+                    )
+                } else if p.subscription_only {
+                    Cow::Owned(format!(
+                        "Only list subscriptions can post to this list. Send your post to {}",
+                        self.address
+                    ))
+                } else if p.approval_needed {
+                    Cow::Owned(format!(
+                        "Anyone can post, but approval from list owners is required if they are \
+                         not subscribed. Send your post to {}",
+                        self.address
+                    ))
+                } else {
+                    Cow::Borrowed("This list does not allow posting.")
+                }
+            }),
+            contact = self.owner_mailto().address,
+        )
     }
 }
 
