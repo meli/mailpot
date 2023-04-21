@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["ChangeSetting","PostPolicySettings","SubscriptionPolicySettings"],"fn":["list","list_edit","list_edit_post","list_post"]};

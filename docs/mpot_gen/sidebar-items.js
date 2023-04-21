@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["ErrorKind","Queue","SendMail"],"fn":["main","run_app"],"mod":["anyhow","cal","log","mail","melib","models","postfix","rusqlite","serde","serde_json","submission","utils"],"struct":["Configuration","Connection","DbVal","MailtoAddress","QueueEntry","Template","TemplateRenderContext"],"trait":["ChainedError","Context","ResultExt"],"type":["Result"]};

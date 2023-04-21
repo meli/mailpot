@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/src/db.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>db.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-93196c7a1c3542a8.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-3367e395607fafc1.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../mailpot/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/src/db.rs`."><title>db.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-c4dbdcde0fbd8430.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-db279b6232be9c13.css"><link rel="stylesheet" disabled href="../../static.files/dark-cf923f49f397b216.css"><link rel="stylesheet" disabled href="../../static.files/ayu-be46fdc453a55015.css"><script src="../../static.files/storage-3891ce972e3a2bf8.js"></script><script defer src="../../static.files/source-script-1b95b7cca98b26e5.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-98a684e84ae5b08b.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../mailpot/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -575,88 +575,6 @@
 <a href="#575" id="575">575</a>
 <a href="#576" id="576">576</a>
 <a href="#577" id="577">577</a>
-<a href="#578" id="578">578</a>
-<a href="#579" id="579">579</a>
-<a href="#580" id="580">580</a>
-<a href="#581" id="581">581</a>
-<a href="#582" id="582">582</a>
-<a href="#583" id="583">583</a>
-<a href="#584" id="584">584</a>
-<a href="#585" id="585">585</a>
-<a href="#586" id="586">586</a>
-<a href="#587" id="587">587</a>
-<a href="#588" id="588">588</a>
-<a href="#589" id="589">589</a>
-<a href="#590" id="590">590</a>
-<a href="#591" id="591">591</a>
-<a href="#592" id="592">592</a>
-<a href="#593" id="593">593</a>
-<a href="#594" id="594">594</a>
-<a href="#595" id="595">595</a>
-<a href="#596" id="596">596</a>
-<a href="#597" id="597">597</a>
-<a href="#598" id="598">598</a>
-<a href="#599" id="599">599</a>
-<a href="#600" id="600">600</a>
-<a href="#601" id="601">601</a>
-<a href="#602" id="602">602</a>
-<a href="#603" id="603">603</a>
-<a href="#604" id="604">604</a>
-<a href="#605" id="605">605</a>
-<a href="#606" id="606">606</a>
-<a href="#607" id="607">607</a>
-<a href="#608" id="608">608</a>
-<a href="#609" id="609">609</a>
-<a href="#610" id="610">610</a>
-<a href="#611" id="611">611</a>
-<a href="#612" id="612">612</a>
-<a href="#613" id="613">613</a>
-<a href="#614" id="614">614</a>
-<a href="#615" id="615">615</a>
-<a href="#616" id="616">616</a>
-<a href="#617" id="617">617</a>
-<a href="#618" id="618">618</a>
-<a href="#619" id="619">619</a>
-<a href="#620" id="620">620</a>
-<a href="#621" id="621">621</a>
-<a href="#622" id="622">622</a>
-<a href="#623" id="623">623</a>
-<a href="#624" id="624">624</a>
-<a href="#625" id="625">625</a>
-<a href="#626" id="626">626</a>
-<a href="#627" id="627">627</a>
-<a href="#628" id="628">628</a>
-<a href="#629" id="629">629</a>
-<a href="#630" id="630">630</a>
-<a href="#631" id="631">631</a>
-<a href="#632" id="632">632</a>
-<a href="#633" id="633">633</a>
-<a href="#634" id="634">634</a>
-<a href="#635" id="635">635</a>
-<a href="#636" id="636">636</a>
-<a href="#637" id="637">637</a>
-<a href="#638" id="638">638</a>
-<a href="#639" id="639">639</a>
-<a href="#640" id="640">640</a>
-<a href="#641" id="641">641</a>
-<a href="#642" id="642">642</a>
-<a href="#643" id="643">643</a>
-<a href="#644" id="644">644</a>
-<a href="#645" id="645">645</a>
-<a href="#646" id="646">646</a>
-<a href="#647" id="647">647</a>
-<a href="#648" id="648">648</a>
-<a href="#649" id="649">649</a>
-<a href="#650" id="650">650</a>
-<a href="#651" id="651">651</a>
-<a href="#652" id="652">652</a>
-<a href="#653" id="653">653</a>
-<a href="#654" id="654">654</a>
-<a href="#655" id="655">655</a>
-<a href="#656" id="656">656</a>
-<a href="#657" id="657">657</a>
-<a href="#658" id="658">658</a>
-<a href="#659" id="659">659</a>
 </pre><pre class="rust"><code><span class="comment">/*
  * This file is part of mailpot
  *
@@ -678,16 +596,17 @@
 
 </span><span class="doccomment">//! Mailpot database and methods.
 
-</span><span class="kw">use </span><span class="kw">super</span>::Configuration;
-<span class="kw">use super</span>::<span class="kw-2">*</span>;
-<span class="kw">use </span><span class="kw">crate</span>::ErrorKind::<span class="kw-2">*</span>;
+</span><span class="kw">use </span>std::{
+    io::Write,
+    process::{Command, Stdio},
+};
+
 <span class="kw">use </span>melib::Envelope;
 <span class="kw">use </span>models::changesets::<span class="kw-2">*</span>;
-<span class="kw">use </span>rusqlite::Connection <span class="kw">as </span>DbConnection;
-<span class="kw">use </span>rusqlite::OptionalExtension;
-<span class="kw">use </span>std::convert::TryFrom;
-<span class="kw">use </span>std::io::Write;
-<span class="kw">use </span>std::process::{Command, Stdio};
+<span class="kw">use </span>rusqlite::{Connection <span class="kw">as </span>DbConnection, OptionalExtension};
+
+<span class="kw">use super</span>::{Configuration, <span class="kw-2">*</span>};
+<span class="kw">use </span><span class="kw">crate</span>::ErrorKind::<span class="kw-2">*</span>;
 
 <span class="doccomment">/// A connection to a `mailpot` database.
 </span><span class="kw">pub struct </span>Connection {
@@ -696,17 +615,52 @@
     conf: Configuration,
 }
 
+<span class="kw">impl </span>std::fmt::Debug <span class="kw">for </span>Connection {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>std::fmt::Formatter) -&gt; std::fmt::Result {
+        fmt.debug_struct(<span class="string">&quot;Connection&quot;</span>)
+            .field(<span class="string">&quot;conf&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.conf)
+            .finish()
+    }
+}
+
+<span class="kw">impl </span>Drop <span class="kw">for </span>Connection {
+    <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="self">self</span>.connection
+            .authorizer::&lt;<span class="kw">fn</span>(rusqlite::hooks::AuthContext&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; rusqlite::hooks::Authorization&gt;(
+                <span class="prelude-val">None</span>,
+            );
+        <span class="comment">// make sure pragma optimize does not take too long
+        </span><span class="kw">_ </span>= <span class="self">self</span>.connection.pragma_update(<span class="prelude-val">None</span>, <span class="string">&quot;analysis_limit&quot;</span>, <span class="string">&quot;400&quot;</span>);
+        <span class="comment">// gather statistics to improve query optimization
+        </span><span class="kw">_ </span>= <span class="self">self
+            </span>.connection
+            .pragma(<span class="prelude-val">None</span>, <span class="string">&quot;optimize&quot;</span>, <span class="number">0xfffe_i64</span>, |<span class="kw">_</span>| <span class="prelude-val">Ok</span>(()));
+    }
+}
+
+<span class="kw">mod </span>templates;
+<span class="kw">pub use </span>templates::<span class="kw-2">*</span>;
+<span class="kw">mod </span>queue;
+<span class="kw">pub use </span>queue::<span class="kw-2">*</span>;
 <span class="kw">mod </span>error_queue;
 <span class="kw">pub use </span>error_queue::<span class="kw-2">*</span>;
 <span class="kw">mod </span>posts;
 <span class="kw">pub use </span>posts::<span class="kw-2">*</span>;
-<span class="kw">mod </span>members;
-<span class="kw">pub use </span>members::<span class="kw-2">*</span>;
+<span class="kw">mod </span>subscriptions;
+<span class="kw">pub use </span>subscriptions::<span class="kw-2">*</span>;
+<span class="kw">mod </span>policies;
+<span class="kw">pub use </span>policies::<span class="kw-2">*</span>;
 
 <span class="kw">fn </span>log_callback(error_code: std::ffi::c_int, message: <span class="kw-2">&amp;</span>str) {
     <span class="kw">match </span>error_code {
-        rusqlite::ffi::SQLITE_NOTICE =&gt; <span class="macro">log::info!</span>(<span class="string">&quot;{}&quot;</span>, message),
-        rusqlite::ffi::SQLITE_WARNING =&gt; <span class="macro">log::warn!</span>(<span class="string">&quot;{}&quot;</span>, message),
+        rusqlite::ffi::SQLITE_OK
+        | rusqlite::ffi::SQLITE_DONE
+        | rusqlite::ffi::SQLITE_NOTICE
+        | rusqlite::ffi::SQLITE_NOTICE_RECOVER_WAL
+        | rusqlite::ffi::SQLITE_NOTICE_RECOVER_ROLLBACK =&gt; <span class="macro">log::info!</span>(<span class="string">&quot;{}&quot;</span>, message),
+        rusqlite::ffi::SQLITE_WARNING | rusqlite::ffi::SQLITE_WARNING_AUTOINDEX =&gt; {
+            <span class="macro">log::warn!</span>(<span class="string">&quot;{}&quot;</span>, message)
+        }
         <span class="kw">_ </span>=&gt; <span class="macro">log::error!</span>(<span class="string">&quot;{error_code} {}&quot;</span>, message),
     }
 }
@@ -719,17 +673,37 @@
     <span class="comment">// [ref:sync_auth_doc] sync with `untrusted()` rustdoc when changing this.
     </span><span class="kw">match </span>auth_context.action {
         AuthAction::Delete {
-            table_name: <span class="string">&quot;error_queue&quot; </span>| <span class="string">&quot;queue&quot; </span>| <span class="string">&quot;candidate_membership&quot; </span>| <span class="string">&quot;membership&quot;</span>,
+            table_name: <span class="string">&quot;queue&quot; </span>| <span class="string">&quot;candidate_subscription&quot; </span>| <span class="string">&quot;subscription&quot;</span>,
         }
         | AuthAction::Insert {
-            table_name: <span class="string">&quot;post&quot; </span>| <span class="string">&quot;error_queue&quot; </span>| <span class="string">&quot;queue&quot; </span>| <span class="string">&quot;candidate_membership&quot; </span>| <span class="string">&quot;membership&quot;</span>,
+            table_name: <span class="string">&quot;post&quot; </span>| <span class="string">&quot;queue&quot; </span>| <span class="string">&quot;candidate_subscription&quot; </span>| <span class="string">&quot;subscription&quot; </span>| <span class="string">&quot;account&quot;</span>,
+        }
+        | AuthAction::Update {
+            table_name: <span class="string">&quot;candidate_subscription&quot; </span>| <span class="string">&quot;templates&quot;</span>,
+            column_name: <span class="string">&quot;accepted&quot; </span>| <span class="string">&quot;last_modified&quot; </span>| <span class="string">&quot;verified&quot; </span>| <span class="string">&quot;address&quot;</span>,
+        }
+        | AuthAction::Update {
+            table_name: <span class="string">&quot;account&quot;</span>,
+            column_name: <span class="string">&quot;last_modified&quot; </span>| <span class="string">&quot;name&quot; </span>| <span class="string">&quot;public_key&quot; </span>| <span class="string">&quot;password&quot;</span>,
+        }
+        | AuthAction::Update {
+            table_name: <span class="string">&quot;subscription&quot;</span>,
+            column_name:
+                <span class="string">&quot;last_modified&quot;
+                </span>| <span class="string">&quot;account&quot;
+                </span>| <span class="string">&quot;digest&quot;
+                </span>| <span class="string">&quot;verified&quot;
+                </span>| <span class="string">&quot;hide_address&quot;
+                </span>| <span class="string">&quot;receive_duplicates&quot;
+                </span>| <span class="string">&quot;receive_own_posts&quot;
+                </span>| <span class="string">&quot;receive_confirmation&quot;</span>,
         }
         | AuthAction::Select
         | AuthAction::Savepoint { .. }
         | AuthAction::Transaction { .. }
         | AuthAction::Read { .. }
         | AuthAction::Function {
-            function_name: <span class="string">&quot;strftime&quot;</span>,
+            function_name: <span class="string">&quot;count&quot; </span>| <span class="string">&quot;strftime&quot; </span>| <span class="string">&quot;unixepoch&quot; </span>| <span class="string">&quot;datetime&quot;</span>,
         } =&gt; Authorization::Allow,
         <span class="kw">_ </span>=&gt; Authorization::Deny,
     }
@@ -742,8 +716,9 @@
     /// [`Connection::untrusted`]).
     /// Use [`Connection::trusted`] to remove these limits.
     </span><span class="kw">pub fn </span>open_db(conf: Configuration) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
-        <span class="kw">use </span>rusqlite::config::DbConfig;
         <span class="kw">use </span>std::sync::Once;
+
+        <span class="kw">use </span>rusqlite::config::DbConfig;
 
         <span class="kw">static </span>INIT_SQLITE_LOGGING: Once = Once::new();
 
@@ -754,6 +729,11 @@
             <span class="kw">unsafe </span>{ rusqlite::trace::config_log(<span class="prelude-val">Some</span>(log_callback)).unwrap() };
         });
         <span class="kw">let </span>conn = DbConnection::open(conf.db_path.to_str().unwrap())<span class="question-mark">?</span>;
+        rusqlite::vtab::array::load_module(<span class="kw-2">&amp;</span>conn)<span class="question-mark">?</span>;
+        conn.pragma_update(<span class="prelude-val">None</span>, <span class="string">&quot;journal_mode&quot;</span>, <span class="string">&quot;WAL&quot;</span>)<span class="question-mark">?</span>;
+        conn.pragma_update(<span class="prelude-val">None</span>, <span class="string">&quot;foreign_keys&quot;</span>, <span class="string">&quot;on&quot;</span>)<span class="question-mark">?</span>;
+        <span class="comment">// synchronise less often to the filesystem
+        </span>conn.pragma_update(<span class="prelude-val">None</span>, <span class="string">&quot;synchronous&quot;</span>, <span class="string">&quot;normal&quot;</span>)<span class="question-mark">?</span>;
         conn.set_db_config(DbConfig::SQLITE_DBCONFIG_ENABLE_FKEY, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
         conn.set_db_config(DbConfig::SQLITE_DBCONFIG_ENABLE_TRIGGER, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
         conn.set_db_config(DbConfig::SQLITE_DBCONFIG_DEFENSIVE, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
@@ -761,13 +741,14 @@
         conn.busy_timeout(core::time::Duration::from_millis(<span class="number">500</span>))<span class="question-mark">?</span>;
         conn.busy_handler(<span class="prelude-val">Some</span>(|times: i32| -&gt; bool { times &lt; <span class="number">5 </span>}))<span class="question-mark">?</span>;
         conn.authorizer(<span class="prelude-val">Some</span>(user_authorizer_callback));
-        <span class="prelude-val">Ok</span>(Connection {
+        <span class="prelude-val">Ok</span>(<span class="self">Self </span>{
             conf,
             connection: conn,
         })
     }
 
-    <span class="doccomment">/// Removes operational limits from this connection. (see [`Connection::untrusted`])
+    <span class="doccomment">/// Removes operational limits from this connection. (see
+    /// [`Connection::untrusted`])
     </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>trusted(<span class="self">self</span>) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.connection
@@ -780,10 +761,13 @@
     <span class="comment">// [tag:sync_auth_doc]
     </span><span class="doccomment">/// Sets operational limits for this connection.
     ///
-    /// - Allow `INSERT`, `DELETE` only for &quot;error_queue&quot;, &quot;queue&quot;, &quot;candidate_membership&quot;, &quot;membership&quot;.
+    /// - Allow `INSERT`, `DELETE` only for &quot;queue&quot;, &quot;candidate_subscription&quot;,
+    ///   &quot;subscription&quot;.
+    /// - Allow `UPDATE` only for &quot;subscription&quot; user facing settings.
     /// - Allow `INSERT` only for &quot;post&quot;.
     /// - Allow read access to all tables.
-    /// - Allow `SELECT`, `TRANSACTION`, `SAVEPOINT`, and the `strftime` function.
+    /// - Allow `SELECT`, `TRANSACTION`, `SAVEPOINT`, and the `strftime`
+    ///   function.
     /// - Deny everything else.
     </span><span class="kw">pub fn </span>untrusted(<span class="self">self</span>) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.connection.authorizer(<span class="prelude-val">Some</span>(user_authorizer_callback));
@@ -814,7 +798,15 @@
             });
             <span class="kw">let </span>output = child.wait_with_output()<span class="question-mark">?</span>;
             <span class="kw">if </span>!output.status.success() {
-                <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="macro">format!</span>(<span class="string">&quot;Could not initialize sqlite3 database at {}: sqlite3 returned exit code {} and stderr {} {}&quot;</span>, db_path.display(), output.status.code().unwrap_or_default(), String::from_utf8_lossy(<span class="kw-2">&amp;</span>output.stderr), String::from_utf8_lossy(<span class="kw-2">&amp;</span>output.stdout)).into());
+                <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="macro">format!</span>(
+                    <span class="string">&quot;Could not initialize sqlite3 database at {}: sqlite3 returned exit code {} \
+                     and stderr {} {}&quot;</span>,
+                    db_path.display(),
+                    output.status.code().unwrap_or_default(),
+                    String::from_utf8_lossy(<span class="kw-2">&amp;</span>output.stderr),
+                    String::from_utf8_lossy(<span class="kw-2">&amp;</span>output.stdout)
+                )
+                .into());
             }
 
             <span class="kw">let </span>file = std::fs::File::open(db_path)<span class="question-mark">?</span>;
@@ -853,7 +845,7 @@
 
     <span class="doccomment">/// Returns a vector of existing mailing lists.
     </span><span class="kw">pub fn </span>lists(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;DbVal&lt;MailingList&gt;&gt;&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>stmt = <span class="self">self</span>.connection.prepare(<span class="string">&quot;SELECT * FROM mailing_lists;&quot;</span>)<span class="question-mark">?</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>stmt = <span class="self">self</span>.connection.prepare(<span class="string">&quot;SELECT * FROM list;&quot;</span>)<span class="question-mark">?</span>;
         <span class="kw">let </span>list_iter = stmt.query_map([], |row| {
             <span class="kw">let </span>pk = row.get(<span class="string">&quot;pk&quot;</span>)<span class="question-mark">?</span>;
             <span class="prelude-val">Ok</span>(DbVal(
@@ -878,10 +870,10 @@
     }
 
     <span class="doccomment">/// Fetch a mailing list by primary key.
-    </span><span class="kw">pub fn </span>list(<span class="kw-2">&amp;</span><span class="self">self</span>, pk: i64) -&gt; <span class="prelude-ty">Result</span>&lt;DbVal&lt;MailingList&gt;&gt; {
+    </span><span class="kw">pub fn </span>list(<span class="kw-2">&amp;</span><span class="self">self</span>, pk: i64) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;DbVal&lt;MailingList&gt;&gt;&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>stmt = <span class="self">self
             </span>.connection
-            .prepare(<span class="string">&quot;SELECT * FROM mailing_lists WHERE pk = ?;&quot;</span>)<span class="question-mark">?</span>;
+            .prepare(<span class="string">&quot;SELECT * FROM list WHERE pk = ?;&quot;</span>)<span class="question-mark">?</span>;
         <span class="kw">let </span>ret = stmt
             .query_row([<span class="kw-2">&amp;</span>pk], |row| {
                 <span class="kw">let </span>pk = row.get(<span class="string">&quot;pk&quot;</span>)<span class="question-mark">?</span>;
@@ -898,11 +890,7 @@
                 ))
             })
             .optional()<span class="question-mark">?</span>;
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(ret) = ret {
-            <span class="prelude-val">Ok</span>(ret)
-        } <span class="kw">else </span>{
-            <span class="prelude-val">Err</span>(Error::from(NotFound(<span class="string">&quot;list or list policy not found!&quot;</span>)))
-        }
+        <span class="prelude-val">Ok</span>(ret)
     }
 
     <span class="doccomment">/// Fetch a mailing list by id.
@@ -910,7 +898,7 @@
         <span class="kw">let </span>id = id.as_ref();
         <span class="kw">let </span><span class="kw-2">mut </span>stmt = <span class="self">self
             </span>.connection
-            .prepare(<span class="string">&quot;SELECT * FROM mailing_lists WHERE id = ?;&quot;</span>)<span class="question-mark">?</span>;
+            .prepare(<span class="string">&quot;SELECT * FROM list WHERE id = ?;&quot;</span>)<span class="question-mark">?</span>;
         <span class="kw">let </span>ret = stmt
             .query_row([<span class="kw-2">&amp;</span>id], |row| {
                 <span class="kw">let </span>pk = row.get(<span class="string">&quot;pk&quot;</span>)<span class="question-mark">?</span>;
@@ -933,9 +921,10 @@
 
     <span class="doccomment">/// Create a new list.
     </span><span class="kw">pub fn </span>create_list(<span class="kw-2">&amp;</span><span class="self">self</span>, new_val: MailingList) -&gt; <span class="prelude-ty">Result</span>&lt;DbVal&lt;MailingList&gt;&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>stmt = <span class="self">self
-            </span>.connection
-            .prepare(<span class="string">&quot;INSERT INTO mailing_lists(name, id, address, description, archive_url) VALUES(?, ?, ?, ?, ?) RETURNING *;&quot;</span>)<span class="question-mark">?</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>stmt = <span class="self">self</span>.connection.prepare(
+            <span class="string">&quot;INSERT INTO list(name, id, address, description, archive_url) VALUES(?, ?, ?, ?, ?) \
+             RETURNING *;&quot;</span>,
+        )<span class="question-mark">?</span>;
         <span class="kw">let </span>ret = stmt.query_row(
             <span class="macro">rusqlite::params!</span>[
                 <span class="kw-2">&amp;</span>new_val.name,
@@ -964,161 +953,23 @@
         <span class="prelude-val">Ok</span>(ret)
     }
 
-    <span class="doccomment">/// Remove an existing list policy.
-    ///
-    /// ```
-    /// # use mailpot::{models::*, Configuration, Connection, SendMail};
-    /// # use tempfile::TempDir;
-    ///
-    /// # let tmp_dir = TempDir::new().unwrap();
-    /// # let db_path = tmp_dir.path().join(&quot;mpot.db&quot;);
-    /// # let config = Configuration {
-    /// #     send_mail: SendMail::ShellCommand(&quot;/usr/bin/false&quot;.to_string()),
-    /// #     db_path: db_path.clone(),
-    /// #     data_path: tmp_dir.path().to_path_buf(),
-    /// # };
-    ///
-    /// # fn do_test(config: Configuration) {
-    /// let db = Connection::open_or_create_db(config).unwrap().trusted();
-    /// let list_pk = db.create_list(MailingList {
-    ///     pk: 0,
-    ///     name: &quot;foobar chat&quot;.into(),
-    ///     id: &quot;foo-chat&quot;.into(),
-    ///     address: &quot;foo-chat@example.com&quot;.into(),
-    ///     description: None,
-    ///     archive_url: None,
-    /// }).unwrap().pk;
-    /// db.set_list_policy(
-    ///     PostPolicy {
-    ///         pk: 0,
-    ///         list: list_pk,
-    ///         announce_only: false,
-    ///         subscriber_only: true,
-    ///         approval_needed: false,
-    ///         no_subscriptions: false,
-    ///         custom: false,
-    ///     },
-    /// ).unwrap();
-    /// db.remove_list_policy(1, 1).unwrap();
-    /// # }
-    /// # do_test(config);
-    /// ```
-    </span><span class="kw">pub fn </span>remove_list_policy(<span class="kw-2">&amp;</span><span class="self">self</span>, list_pk: i64, policy_pk: i64) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>stmt = <span class="self">self
-            </span>.connection
-            .prepare(<span class="string">&quot;DELETE FROM post_policy WHERE pk = ? AND list = ? RETURNING *;&quot;</span>)<span class="question-mark">?</span>;
-        stmt.query_row(<span class="macro">rusqlite::params!</span>[<span class="kw-2">&amp;</span>policy_pk, <span class="kw-2">&amp;</span>list_pk,], |<span class="kw">_</span>| <span class="prelude-val">Ok</span>(()))
-            .map_err(|err| {
-                <span class="kw">if </span><span class="macro">matches!</span>(err, rusqlite::Error::QueryReturnedNoRows) {
-                    Error::from(err).chain_err(|| NotFound(<span class="string">&quot;list or list policy not found!&quot;</span>))
-                } <span class="kw">else </span>{
-                    err.into()
-                }
-            })<span class="question-mark">?</span>;
-
-        <span class="macro">trace!</span>(<span class="string">&quot;remove_list_policy {} {}.&quot;</span>, list_pk, policy_pk);
-        <span class="prelude-val">Ok</span>(())
-    }
-
-    <span class="doccomment">/// ```should_panic
-    /// # use mailpot::{models::*, Configuration, Connection, SendMail};
-    /// # use tempfile::TempDir;
-    ///
-    /// # let tmp_dir = TempDir::new().unwrap();
-    /// # let db_path = tmp_dir.path().join(&quot;mpot.db&quot;);
-    /// # let config = Configuration {
-    /// #     send_mail: SendMail::ShellCommand(&quot;/usr/bin/false&quot;.to_string()),
-    /// #     db_path: db_path.clone(),
-    /// #     data_path: tmp_dir.path().to_path_buf(),
-    /// # };
-    ///
-    /// # fn do_test(config: Configuration) {
-    /// let db = Connection::open_or_create_db(config).unwrap().trusted();
-    /// db.remove_list_policy(1, 1).unwrap();
-    /// # }
-    /// # do_test(config);
-    /// ```
-    </span><span class="attr">#[cfg(doc)]
-    </span><span class="kw">pub fn </span>remove_list_policy_panic() {}
-
-    <span class="doccomment">/// Set the unique post policy for a list.
-    </span><span class="kw">pub fn </span>set_list_policy(<span class="kw-2">&amp;</span><span class="self">self</span>, policy: PostPolicy) -&gt; <span class="prelude-ty">Result</span>&lt;DbVal&lt;PostPolicy&gt;&gt; {
-        <span class="kw">if </span>!(policy.announce_only
-            || policy.subscriber_only
-            || policy.approval_needed
-            || policy.no_subscriptions
-            || policy.custom)
-        {
-            <span class="kw">return </span><span class="prelude-val">Err</span>(
-                <span class="string">&quot;Cannot add empty policy. Having no policies is probably what you want to do.&quot;
-                    </span>.into(),
-            );
-        }
-        <span class="kw">let </span>list_pk = policy.list;
-
-        <span class="kw">let </span><span class="kw-2">mut </span>stmt = <span class="self">self</span>.connection.prepare(<span class="string">&quot;INSERT OR REPLACE INTO post_policy(list, announce_only, subscriber_only, approval_needed, no_subscriptions, custom) VALUES (?, ?, ?, ?, ?, ?) RETURNING *;&quot;</span>)<span class="question-mark">?</span>;
-        <span class="kw">let </span>ret = stmt
-            .query_row(
-                <span class="macro">rusqlite::params!</span>[
-                    <span class="kw-2">&amp;</span>list_pk,
-                    <span class="kw-2">&amp;</span>policy.announce_only,
-                    <span class="kw-2">&amp;</span>policy.subscriber_only,
-                    <span class="kw-2">&amp;</span>policy.approval_needed,
-                    <span class="kw-2">&amp;</span>policy.no_subscriptions,
-                    <span class="kw-2">&amp;</span>policy.custom,
-                ],
-                |row| {
-                    <span class="kw">let </span>pk = row.get(<span class="string">&quot;pk&quot;</span>)<span class="question-mark">?</span>;
-                    <span class="prelude-val">Ok</span>(DbVal(
-                        PostPolicy {
-                            pk,
-                            list: row.get(<span class="string">&quot;list&quot;</span>)<span class="question-mark">?</span>,
-                            announce_only: row.get(<span class="string">&quot;announce_only&quot;</span>)<span class="question-mark">?</span>,
-                            subscriber_only: row.get(<span class="string">&quot;subscriber_only&quot;</span>)<span class="question-mark">?</span>,
-                            approval_needed: row.get(<span class="string">&quot;approval_needed&quot;</span>)<span class="question-mark">?</span>,
-                            no_subscriptions: row.get(<span class="string">&quot;no_subscriptions&quot;</span>)<span class="question-mark">?</span>,
-                            custom: row.get(<span class="string">&quot;custom&quot;</span>)<span class="question-mark">?</span>,
-                        },
-                        pk,
-                    ))
-                },
-            )
-            .map_err(|err| {
-                <span class="kw">if </span><span class="macro">matches!</span>(
-                    err,
-                    rusqlite::Error::SqliteFailure(
-                        rusqlite::ffi::Error {
-                            code: rusqlite::ffi::ErrorCode::ConstraintViolation,
-                            extended_code: <span class="number">787
-                        </span>},
-                        <span class="kw">_
-                    </span>)
-                ) {
-                    Error::from(err).chain_err(|| NotFound(<span class="string">&quot;Could not find a list with this pk.&quot;</span>))
-                } <span class="kw">else </span>{
-                    err.into()
-                }
-            })<span class="question-mark">?</span>;
-
-        <span class="macro">trace!</span>(<span class="string">&quot;set_list_policy {:?}.&quot;</span>, <span class="kw-2">&amp;</span>ret);
-        <span class="prelude-val">Ok</span>(ret)
-    }
-
     <span class="doccomment">/// Fetch all posts of a mailing list.
     </span><span class="kw">pub fn </span>list_posts(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         list_pk: i64,
         _date_range: <span class="prelude-ty">Option</span>&lt;(String, String)&gt;,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;DbVal&lt;Post&gt;&gt;&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>stmt = <span class="self">self
-            </span>.connection
-            .prepare(<span class="string">&quot;SELECT pk, list, address, message_id, message, timestamp, datetime, strftime(&#39;%Y-%m&#39;, CAST(timestamp AS INTEGER), &#39;unixepoch&#39;) as month_year FROM post WHERE list = ?;&quot;</span>)<span class="question-mark">?</span>;
-        <span class="kw">let </span>iter = stmt.query_map(<span class="macro">rusqlite::params!</span>[<span class="kw-2">&amp;</span>list_pk,], |row| {
+        <span class="kw">let </span><span class="kw-2">mut </span>stmt = <span class="self">self</span>.connection.prepare(
+            <span class="string">&quot;SELECT *, strftime(&#39;%Y-%m&#39;, CAST(timestamp AS INTEGER), &#39;unixepoch&#39;) AS month_year \
+             FROM post WHERE list = ?;&quot;</span>,
+        )<span class="question-mark">?</span>;
+        <span class="kw">let </span>iter = stmt.query_map(<span class="macro">rusqlite::params!</span>[<span class="kw-2">&amp;</span>list_pk], |row| {
             <span class="kw">let </span>pk = row.get(<span class="string">&quot;pk&quot;</span>)<span class="question-mark">?</span>;
             <span class="prelude-val">Ok</span>(DbVal(
                 Post {
                     pk,
                     list: row.get(<span class="string">&quot;list&quot;</span>)<span class="question-mark">?</span>,
+                    envelope_from: row.get(<span class="string">&quot;envelope_from&quot;</span>)<span class="question-mark">?</span>,
                     address: row.get(<span class="string">&quot;address&quot;</span>)<span class="question-mark">?</span>,
                     message_id: row.get(<span class="string">&quot;message_id&quot;</span>)<span class="question-mark">?</span>,
                     message: row.get(<span class="string">&quot;message&quot;</span>)<span class="question-mark">?</span>,
@@ -1139,37 +990,11 @@
         <span class="prelude-val">Ok</span>(ret)
     }
 
-    <span class="doccomment">/// Fetch the post policy of a mailing list.
-    </span><span class="kw">pub fn </span>list_policy(<span class="kw-2">&amp;</span><span class="self">self</span>, pk: i64) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;DbVal&lt;PostPolicy&gt;&gt;&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>stmt = <span class="self">self
-            </span>.connection
-            .prepare(<span class="string">&quot;SELECT * FROM post_policy WHERE list = ?;&quot;</span>)<span class="question-mark">?</span>;
-        <span class="kw">let </span>ret = stmt
-            .query_row([<span class="kw-2">&amp;</span>pk], |row| {
-                <span class="kw">let </span>pk = row.get(<span class="string">&quot;pk&quot;</span>)<span class="question-mark">?</span>;
-                <span class="prelude-val">Ok</span>(DbVal(
-                    PostPolicy {
-                        pk,
-                        list: row.get(<span class="string">&quot;list&quot;</span>)<span class="question-mark">?</span>,
-                        announce_only: row.get(<span class="string">&quot;announce_only&quot;</span>)<span class="question-mark">?</span>,
-                        subscriber_only: row.get(<span class="string">&quot;subscriber_only&quot;</span>)<span class="question-mark">?</span>,
-                        approval_needed: row.get(<span class="string">&quot;approval_needed&quot;</span>)<span class="question-mark">?</span>,
-                        no_subscriptions: row.get(<span class="string">&quot;no_subscriptions&quot;</span>)<span class="question-mark">?</span>,
-                        custom: row.get(<span class="string">&quot;custom&quot;</span>)<span class="question-mark">?</span>,
-                    },
-                    pk,
-                ))
-            })
-            .optional()<span class="question-mark">?</span>;
-
-        <span class="prelude-val">Ok</span>(ret)
-    }
-
     <span class="doccomment">/// Fetch the owners of a mailing list.
     </span><span class="kw">pub fn </span>list_owners(<span class="kw-2">&amp;</span><span class="self">self</span>, pk: i64) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;DbVal&lt;ListOwner&gt;&gt;&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>stmt = <span class="self">self
             </span>.connection
-            .prepare(<span class="string">&quot;SELECT * FROM list_owner WHERE list = ?;&quot;</span>)<span class="question-mark">?</span>;
+            .prepare(<span class="string">&quot;SELECT * FROM owner WHERE list = ?;&quot;</span>)<span class="question-mark">?</span>;
         <span class="kw">let </span>list_iter = stmt.query_map([<span class="kw-2">&amp;</span>pk], |row| {
             <span class="kw">let </span>pk = row.get(<span class="string">&quot;pk&quot;</span>)<span class="question-mark">?</span>;
             <span class="prelude-val">Ok</span>(DbVal(
@@ -1195,7 +1020,7 @@
     </span><span class="kw">pub fn </span>remove_list_owner(<span class="kw-2">&amp;</span><span class="self">self</span>, list_pk: i64, owner_pk: i64) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
         <span class="self">self</span>.connection
             .query_row(
-                <span class="string">&quot;DELETE FROM list_owner WHERE list = ? AND pk = ? RETURNING *;&quot;</span>,
+                <span class="string">&quot;DELETE FROM owner WHERE list = ? AND pk = ? RETURNING *;&quot;</span>,
                 <span class="macro">rusqlite::params!</span>[<span class="kw-2">&amp;</span>list_pk, <span class="kw-2">&amp;</span>owner_pk],
                 |<span class="kw">_</span>| <span class="prelude-val">Ok</span>(()),
             )
@@ -1212,7 +1037,7 @@
     <span class="doccomment">/// Add an owner of a mailing list.
     </span><span class="kw">pub fn </span>add_list_owner(<span class="kw-2">&amp;</span><span class="self">self</span>, list_owner: ListOwner) -&gt; <span class="prelude-ty">Result</span>&lt;DbVal&lt;ListOwner&gt;&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>stmt = <span class="self">self</span>.connection.prepare(
-            <span class="string">&quot;INSERT OR REPLACE INTO list_owner(list, address, name) VALUES (?, ?, ?) RETURNING *;&quot;</span>,
+            <span class="string">&quot;INSERT OR REPLACE INTO owner(list, address, name) VALUES (?, ?, ?) RETURNING *;&quot;</span>,
         )<span class="question-mark">?</span>;
         <span class="kw">let </span>list_pk = list_owner.list;
         <span class="kw">let </span>ret = stmt
@@ -1262,8 +1087,13 @@
                 id: <span class="prelude-val">None</span>,
                 address: <span class="prelude-val">None</span>,
                 description: <span class="prelude-val">None</span>,
-                archive_url: <span class="prelude-val">None
-            </span>}
+                archive_url: <span class="prelude-val">None</span>,
+                owner_local_part: <span class="prelude-val">None</span>,
+                request_local_part: <span class="prelude-val">None</span>,
+                verify: <span class="prelude-val">None</span>,
+                hidden: <span class="prelude-val">None</span>,
+                enabled: <span class="prelude-val">None</span>,
+            }
         ) {
             <span class="kw">return </span><span class="self">self</span>.list(change_set.pk).map(|<span class="kw">_</span>| ());
         }
@@ -1275,6 +1105,11 @@
             address,
             description,
             archive_url,
+            owner_local_part,
+            request_local_part,
+            verify,
+            hidden,
+            enabled,
         } = change_set;
         <span class="kw">let </span>tx = <span class="self">self</span>.connection.transaction()<span class="question-mark">?</span>;
 
@@ -1282,11 +1117,7 @@
             (<span class="macro-nonterminal">$field</span>:tt) =&gt; {{
                 <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="macro-nonterminal">$field</span>) = <span class="macro-nonterminal">$field </span>{
                     tx.execute(
-                        <span class="macro">concat!</span>(
-                            <span class="string">&quot;UPDATE mailing_lists SET &quot;</span>,
-                            <span class="macro">stringify!</span>(<span class="macro-nonterminal">$field</span>),
-                            <span class="string">&quot; = ? WHERE pk = ?;&quot;
-                        </span>),
+                        <span class="macro">concat!</span>(<span class="string">&quot;UPDATE list SET &quot;</span>, <span class="macro">stringify!</span>(<span class="macro-nonterminal">$field</span>), <span class="string">&quot; = ? WHERE pk = ?;&quot;</span>),
                         <span class="macro">rusqlite::params!</span>[<span class="kw-2">&amp;</span><span class="macro-nonterminal">$field</span>, <span class="kw-2">&amp;</span>pk],
                     )<span class="question-mark">?</span>;
                 }
@@ -1297,6 +1128,11 @@
         <span class="macro">update!</span>(address);
         <span class="macro">update!</span>(description);
         <span class="macro">update!</span>(archive_url);
+        <span class="macro">update!</span>(owner_local_part);
+        <span class="macro">update!</span>(request_local_part);
+        <span class="macro">update!</span>(verify);
+        <span class="macro">update!</span>(hidden);
+        <span class="macro">update!</span>(enabled);
 
         tx.commit()<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(())
@@ -1317,4 +1153,4 @@
     }
 }
 </code></pre></div>
-</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="mailpot" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.2 (9eb3afe9e 2023-03-27)" data-search-js="search-98d53477a794af0b.js" data-settings-js="settings-c3c521c753752a1a.js" data-settings-css="settings-08ddfdda51b8ee2e.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="mailpot" data-themes="" data-resource-suffix="" data-rustdoc-version="1.69.0 (84c898d65 2023-04-16)" data-search-js="search-8a59a8356673ec1f.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-0bcba95ff279c1db.css" ></div></body></html>

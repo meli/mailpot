@@ -1,0 +1,131 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Extension trait that adds additional methods to `Router`."><title>RouterExt in mailpot_web::typed_paths::tsr - Rust</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-c4dbdcde0fbd8430.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-db279b6232be9c13.css"><link rel="stylesheet" disabled href="../../../static.files/dark-cf923f49f397b216.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-be46fdc453a55015.css"><script src="../../../static.files/storage-3891ce972e3a2bf8.js"></script><script defer src="sidebar-items.js"></script><script defer src="../../../static.files/main-98a684e84ae5b08b.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc trait"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="logo-container" href="../../../mailpot_web/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><h2></h2></nav><nav class="sidebar"><a class="logo-container" href="../../../mailpot_web/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><h2 class="location"><a href="#">RouterExt</a></h2><div class="sidebar-elems"><section><h3><a href="#required-methods">Required Methods</a></h3><ul class="block"><li><a href="#tymethod.route_service_with_tsr">route_service_with_tsr</a></li><li><a href="#tymethod.route_with_tsr">route_with_tsr</a></li><li><a href="#tymethod.typed_delete">typed_delete</a></li><li><a href="#tymethod.typed_get">typed_get</a></li><li><a href="#tymethod.typed_head">typed_head</a></li><li><a href="#tymethod.typed_options">typed_options</a></li><li><a href="#tymethod.typed_patch">typed_patch</a></li><li><a href="#tymethod.typed_post">typed_post</a></li><li><a href="#tymethod.typed_put">typed_put</a></li><li><a href="#tymethod.typed_trace">typed_trace</a></li></ul><h3><a href="#implementors">Implementors</a></h3></section><h2><a href="index.html">In mailpot_web::typed_paths::tsr</a></h2></div></nav><main><div class="width-limiter"><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="main-heading"><h1>Trait <a href="../../index.html">mailpot_web</a>::<wbr><a href="../index.html">typed_paths</a>::<wbr><a href="index.html">tsr</a>::<wbr><a class="trait" href="#">RouterExt</a><button id="copy-path" title="Copy item path to clipboard"><img src="../../../static.files/clipboard-7571035ce49a181d.svg" width="19" height="18" alt="Copy item path"></button></h1><span class="out-of-band"><a class="srclink" href="../../../src/mailpot_web/typed_paths.rs.html#201-342">source</a> · <button id="toggle-all-docs" title="collapse all docs">[<span>&#x2212;</span>]</button></span></div><pre class="rust item-decl"><code>pub trait RouterExt&lt;S, B&gt;: ExtraRouterExt&lt;S, B&gt; {
+    // Required methods
+    fn <a href="#tymethod.typed_get" class="fn">typed_get</a>&lt;H, T, P&gt;(self, handler: H) -&gt; Self
+       <span class="where">where H: <a class="trait" href="../../trait.Handler.html" title="trait mailpot_web::Handler">Handler</a>&lt;T, S, B&gt;,
+             T: SecondElementIs&lt;P&gt; + 'static,
+             P: <a class="trait" href="../../trait.TypedPath.html" title="trait mailpot_web::TypedPath">TypedPath</a></span>;
+<span class="item-spacer"></span>    fn <a href="#tymethod.typed_delete" class="fn">typed_delete</a>&lt;H, T, P&gt;(self, handler: H) -&gt; Self
+       <span class="where">where H: <a class="trait" href="../../trait.Handler.html" title="trait mailpot_web::Handler">Handler</a>&lt;T, S, B&gt;,
+             T: SecondElementIs&lt;P&gt; + 'static,
+             P: <a class="trait" href="../../trait.TypedPath.html" title="trait mailpot_web::TypedPath">TypedPath</a></span>;
+<span class="item-spacer"></span>    fn <a href="#tymethod.typed_head" class="fn">typed_head</a>&lt;H, T, P&gt;(self, handler: H) -&gt; Self
+       <span class="where">where H: <a class="trait" href="../../trait.Handler.html" title="trait mailpot_web::Handler">Handler</a>&lt;T, S, B&gt;,
+             T: SecondElementIs&lt;P&gt; + 'static,
+             P: <a class="trait" href="../../trait.TypedPath.html" title="trait mailpot_web::TypedPath">TypedPath</a></span>;
+<span class="item-spacer"></span>    fn <a href="#tymethod.typed_options" class="fn">typed_options</a>&lt;H, T, P&gt;(self, handler: H) -&gt; Self
+       <span class="where">where H: <a class="trait" href="../../trait.Handler.html" title="trait mailpot_web::Handler">Handler</a>&lt;T, S, B&gt;,
+             T: SecondElementIs&lt;P&gt; + 'static,
+             P: <a class="trait" href="../../trait.TypedPath.html" title="trait mailpot_web::TypedPath">TypedPath</a></span>;
+<span class="item-spacer"></span>    fn <a href="#tymethod.typed_patch" class="fn">typed_patch</a>&lt;H, T, P&gt;(self, handler: H) -&gt; Self
+       <span class="where">where H: <a class="trait" href="../../trait.Handler.html" title="trait mailpot_web::Handler">Handler</a>&lt;T, S, B&gt;,
+             T: SecondElementIs&lt;P&gt; + 'static,
+             P: <a class="trait" href="../../trait.TypedPath.html" title="trait mailpot_web::TypedPath">TypedPath</a></span>;
+<span class="item-spacer"></span>    fn <a href="#tymethod.typed_post" class="fn">typed_post</a>&lt;H, T, P&gt;(self, handler: H) -&gt; Self
+       <span class="where">where H: <a class="trait" href="../../trait.Handler.html" title="trait mailpot_web::Handler">Handler</a>&lt;T, S, B&gt;,
+             T: SecondElementIs&lt;P&gt; + 'static,
+             P: <a class="trait" href="../../trait.TypedPath.html" title="trait mailpot_web::TypedPath">TypedPath</a></span>;
+<span class="item-spacer"></span>    fn <a href="#tymethod.typed_put" class="fn">typed_put</a>&lt;H, T, P&gt;(self, handler: H) -&gt; Self
+       <span class="where">where H: <a class="trait" href="../../trait.Handler.html" title="trait mailpot_web::Handler">Handler</a>&lt;T, S, B&gt;,
+             T: SecondElementIs&lt;P&gt; + 'static,
+             P: <a class="trait" href="../../trait.TypedPath.html" title="trait mailpot_web::TypedPath">TypedPath</a></span>;
+<span class="item-spacer"></span>    fn <a href="#tymethod.typed_trace" class="fn">typed_trace</a>&lt;H, T, P&gt;(self, handler: H) -&gt; Self
+       <span class="where">where H: <a class="trait" href="../../trait.Handler.html" title="trait mailpot_web::Handler">Handler</a>&lt;T, S, B&gt;,
+             T: SecondElementIs&lt;P&gt; + 'static,
+             P: <a class="trait" href="../../trait.TypedPath.html" title="trait mailpot_web::TypedPath">TypedPath</a></span>;
+<span class="item-spacer"></span>    fn <a href="#tymethod.route_with_tsr" class="fn">route_with_tsr</a>(self, path: &amp;<a class="primitive" href="https://doc.rust-lang.org/1.69.0/std/primitive.str.html">str</a>, method_router: MethodRouter&lt;S, B&gt;) -&gt; Self
+       <span class="where">where Self: <a class="trait" href="https://doc.rust-lang.org/1.69.0/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a></span>;
+<span class="item-spacer"></span>    fn <a href="#tymethod.route_service_with_tsr" class="fn">route_service_with_tsr</a>&lt;T&gt;(self, path: &amp;<a class="primitive" href="https://doc.rust-lang.org/1.69.0/std/primitive.str.html">str</a>, service: T) -&gt; Self
+       <span class="where">where T: Service&lt;<a class="struct" href="../../struct.Request.html" title="struct mailpot_web::Request">Request</a>&lt;B&gt;, Error = <a class="enum" href="../../melib/nom/lib/std/convert/enum.Infallible.html" title="enum mailpot_web::melib::nom::lib::std::convert::Infallible">Infallible</a>&gt; + <a class="trait" href="https://doc.rust-lang.org/1.69.0/core/clone/trait.Clone.html" title="trait core::clone::Clone">Clone</a> + <a class="trait" href="https://doc.rust-lang.org/1.69.0/core/marker/trait.Send.html" title="trait core::marker::Send">Send</a> + 'static,
+             T::Response: <a class="trait" href="../../trait.IntoResponse.html" title="trait mailpot_web::IntoResponse">IntoResponse</a>,
+             T::Future: <a class="trait" href="https://doc.rust-lang.org/1.69.0/core/marker/trait.Send.html" title="trait core::marker::Send">Send</a> + 'static,
+             Self: <a class="trait" href="https://doc.rust-lang.org/1.69.0/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a></span>;
+}</code></pre><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Extension trait that adds additional methods to <a href="../../struct.Router.html" title="struct mailpot_web::Router"><code>Router</code></a>.</p>
+</div></details><h2 id="required-methods" class="small-section-header">Required Methods<a href="#required-methods" class="anchor">§</a></h2><div class="methods"><details class="toggle method-toggle" open><summary><section id="tymethod.typed_get" class="method"><a class="srclink rightside" href="../../../src/mailpot_web/typed_paths.rs.html#208-212">source</a><h4 class="code-header">fn <a href="#tymethod.typed_get" class="fn">typed_get</a>&lt;H, T, P&gt;(self, handler: H) -&gt; Self<span class="where fmt-newline">where
+    H: <a class="trait" href="../../trait.Handler.html" title="trait mailpot_web::Handler">Handler</a>&lt;T, S, B&gt;,
+    T: SecondElementIs&lt;P&gt; + 'static,
+    P: <a class="trait" href="../../trait.TypedPath.html" title="trait mailpot_web::TypedPath">TypedPath</a>,</span></h4></section></summary><div class="docblock"><p>Add a typed <code>GET</code> route to the router.</p>
+<p>The path will be inferred from the first argument to the handler
+function which must implement <a href="../../trait.TypedPath.html" title="trait mailpot_web::TypedPath"><code>TypedPath</code></a>.</p>
+<p>See <a href="../../trait.TypedPath.html" title="trait mailpot_web::TypedPath"><code>TypedPath</code></a> for more details and examples.</p>
+</div></details><details class="toggle method-toggle" open><summary><section id="tymethod.typed_delete" class="method"><a class="srclink rightside" href="../../../src/mailpot_web/typed_paths.rs.html#220-224">source</a><h4 class="code-header">fn <a href="#tymethod.typed_delete" class="fn">typed_delete</a>&lt;H, T, P&gt;(self, handler: H) -&gt; Self<span class="where fmt-newline">where
+    H: <a class="trait" href="../../trait.Handler.html" title="trait mailpot_web::Handler">Handler</a>&lt;T, S, B&gt;,
+    T: SecondElementIs&lt;P&gt; + 'static,
+    P: <a class="trait" href="../../trait.TypedPath.html" title="trait mailpot_web::TypedPath">TypedPath</a>,</span></h4></section></summary><div class="docblock"><p>Add a typed <code>DELETE</code> route to the router.</p>
+<p>The path will be inferred from the first argument to the handler
+function which must implement <a href="../../trait.TypedPath.html" title="trait mailpot_web::TypedPath"><code>TypedPath</code></a>.</p>
+<p>See <a href="../../trait.TypedPath.html" title="trait mailpot_web::TypedPath"><code>TypedPath</code></a> for more details and examples.</p>
+</div></details><details class="toggle method-toggle" open><summary><section id="tymethod.typed_head" class="method"><a class="srclink rightside" href="../../../src/mailpot_web/typed_paths.rs.html#232-236">source</a><h4 class="code-header">fn <a href="#tymethod.typed_head" class="fn">typed_head</a>&lt;H, T, P&gt;(self, handler: H) -&gt; Self<span class="where fmt-newline">where
+    H: <a class="trait" href="../../trait.Handler.html" title="trait mailpot_web::Handler">Handler</a>&lt;T, S, B&gt;,
+    T: SecondElementIs&lt;P&gt; + 'static,
+    P: <a class="trait" href="../../trait.TypedPath.html" title="trait mailpot_web::TypedPath">TypedPath</a>,</span></h4></section></summary><div class="docblock"><p>Add a typed <code>HEAD</code> route to the router.</p>
+<p>The path will be inferred from the first argument to the handler
+function which must implement <a href="../../trait.TypedPath.html" title="trait mailpot_web::TypedPath"><code>TypedPath</code></a>.</p>
+<p>See <a href="../../trait.TypedPath.html" title="trait mailpot_web::TypedPath"><code>TypedPath</code></a> for more details and examples.</p>
+</div></details><details class="toggle method-toggle" open><summary><section id="tymethod.typed_options" class="method"><a class="srclink rightside" href="../../../src/mailpot_web/typed_paths.rs.html#244-248">source</a><h4 class="code-header">fn <a href="#tymethod.typed_options" class="fn">typed_options</a>&lt;H, T, P&gt;(self, handler: H) -&gt; Self<span class="where fmt-newline">where
+    H: <a class="trait" href="../../trait.Handler.html" title="trait mailpot_web::Handler">Handler</a>&lt;T, S, B&gt;,
+    T: SecondElementIs&lt;P&gt; + 'static,
+    P: <a class="trait" href="../../trait.TypedPath.html" title="trait mailpot_web::TypedPath">TypedPath</a>,</span></h4></section></summary><div class="docblock"><p>Add a typed <code>OPTIONS</code> route to the router.</p>
+<p>The path will be inferred from the first argument to the handler
+function which must implement <a href="../../trait.TypedPath.html" title="trait mailpot_web::TypedPath"><code>TypedPath</code></a>.</p>
+<p>See <a href="../../trait.TypedPath.html" title="trait mailpot_web::TypedPath"><code>TypedPath</code></a> for more details and examples.</p>
+</div></details><details class="toggle method-toggle" open><summary><section id="tymethod.typed_patch" class="method"><a class="srclink rightside" href="../../../src/mailpot_web/typed_paths.rs.html#256-260">source</a><h4 class="code-header">fn <a href="#tymethod.typed_patch" class="fn">typed_patch</a>&lt;H, T, P&gt;(self, handler: H) -&gt; Self<span class="where fmt-newline">where
+    H: <a class="trait" href="../../trait.Handler.html" title="trait mailpot_web::Handler">Handler</a>&lt;T, S, B&gt;,
+    T: SecondElementIs&lt;P&gt; + 'static,
+    P: <a class="trait" href="../../trait.TypedPath.html" title="trait mailpot_web::TypedPath">TypedPath</a>,</span></h4></section></summary><div class="docblock"><p>Add a typed <code>PATCH</code> route to the router.</p>
+<p>The path will be inferred from the first argument to the handler
+function which must implement <a href="../../trait.TypedPath.html" title="trait mailpot_web::TypedPath"><code>TypedPath</code></a>.</p>
+<p>See <a href="../../trait.TypedPath.html" title="trait mailpot_web::TypedPath"><code>TypedPath</code></a> for more details and examples.</p>
+</div></details><details class="toggle method-toggle" open><summary><section id="tymethod.typed_post" class="method"><a class="srclink rightside" href="../../../src/mailpot_web/typed_paths.rs.html#268-272">source</a><h4 class="code-header">fn <a href="#tymethod.typed_post" class="fn">typed_post</a>&lt;H, T, P&gt;(self, handler: H) -&gt; Self<span class="where fmt-newline">where
+    H: <a class="trait" href="../../trait.Handler.html" title="trait mailpot_web::Handler">Handler</a>&lt;T, S, B&gt;,
+    T: SecondElementIs&lt;P&gt; + 'static,
+    P: <a class="trait" href="../../trait.TypedPath.html" title="trait mailpot_web::TypedPath">TypedPath</a>,</span></h4></section></summary><div class="docblock"><p>Add a typed <code>POST</code> route to the router.</p>
+<p>The path will be inferred from the first argument to the handler
+function which must implement <a href="../../trait.TypedPath.html" title="trait mailpot_web::TypedPath"><code>TypedPath</code></a>.</p>
+<p>See <a href="../../trait.TypedPath.html" title="trait mailpot_web::TypedPath"><code>TypedPath</code></a> for more details and examples.</p>
+</div></details><details class="toggle method-toggle" open><summary><section id="tymethod.typed_put" class="method"><a class="srclink rightside" href="../../../src/mailpot_web/typed_paths.rs.html#280-284">source</a><h4 class="code-header">fn <a href="#tymethod.typed_put" class="fn">typed_put</a>&lt;H, T, P&gt;(self, handler: H) -&gt; Self<span class="where fmt-newline">where
+    H: <a class="trait" href="../../trait.Handler.html" title="trait mailpot_web::Handler">Handler</a>&lt;T, S, B&gt;,
+    T: SecondElementIs&lt;P&gt; + 'static,
+    P: <a class="trait" href="../../trait.TypedPath.html" title="trait mailpot_web::TypedPath">TypedPath</a>,</span></h4></section></summary><div class="docblock"><p>Add a typed <code>PUT</code> route to the router.</p>
+<p>The path will be inferred from the first argument to the handler
+function which must implement <a href="../../trait.TypedPath.html" title="trait mailpot_web::TypedPath"><code>TypedPath</code></a>.</p>
+<p>See <a href="../../trait.TypedPath.html" title="trait mailpot_web::TypedPath"><code>TypedPath</code></a> for more details and examples.</p>
+</div></details><details class="toggle method-toggle" open><summary><section id="tymethod.typed_trace" class="method"><a class="srclink rightside" href="../../../src/mailpot_web/typed_paths.rs.html#292-296">source</a><h4 class="code-header">fn <a href="#tymethod.typed_trace" class="fn">typed_trace</a>&lt;H, T, P&gt;(self, handler: H) -&gt; Self<span class="where fmt-newline">where
+    H: <a class="trait" href="../../trait.Handler.html" title="trait mailpot_web::Handler">Handler</a>&lt;T, S, B&gt;,
+    T: SecondElementIs&lt;P&gt; + 'static,
+    P: <a class="trait" href="../../trait.TypedPath.html" title="trait mailpot_web::TypedPath">TypedPath</a>,</span></h4></section></summary><div class="docblock"><p>Add a typed <code>TRACE</code> route to the router.</p>
+<p>The path will be inferred from the first argument to the handler
+function which must implement <a href="../../trait.TypedPath.html" title="trait mailpot_web::TypedPath"><code>TypedPath</code></a>.</p>
+<p>See <a href="../../trait.TypedPath.html" title="trait mailpot_web::TypedPath"><code>TypedPath</code></a> for more details and examples.</p>
+</div></details><details class="toggle method-toggle" open><summary><section id="tymethod.route_with_tsr" class="method"><a class="srclink rightside" href="../../../src/mailpot_web/typed_paths.rs.html#327-329">source</a><h4 class="code-header">fn <a href="#tymethod.route_with_tsr" class="fn">route_with_tsr</a>(self, path: &amp;<a class="primitive" href="https://doc.rust-lang.org/1.69.0/std/primitive.str.html">str</a>, method_router: MethodRouter&lt;S, B&gt;) -&gt; Self<span class="where fmt-newline">where
+    Self: <a class="trait" href="https://doc.rust-lang.org/1.69.0/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a>,</span></h4></section></summary><div class="docblock"><p>Add another route to the router with an additional “trailing slash
+redirect” route.</p>
+<p>If you add a route <em>without</em> a trailing slash, such as <code>/foo</code>, this
+method will also add a route for <code>/foo/</code> that redirects to
+<code>/foo</code>.</p>
+<p>If you add a route <em>with</em> a trailing slash, such as <code>/bar/</code>, this
+method will also add a route for <code>/bar</code> that redirects to
+<code>/bar/</code>.</p>
+<p>This is similar to what axum 0.5.x did by default, except this
+explicitly adds another route, so trying to add a <code>/foo/</code>
+route after calling <code>.route_with_tsr(&quot;/foo&quot;, /* ... */)</code>
+will result in a panic due to route overlap.</p>
+<h5 id="example"><a href="#example">Example</a></h5>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>axum::{routing::get, Router};
+<span class="kw">use </span>axum_extra::routing::RouterExt;
+
+<span class="kw">let </span>app = Router::new()
+    <span class="comment">// `/foo/` will redirect to `/foo`
+    </span>.route_with_tsr(<span class="string">&quot;/foo&quot;</span>, get(|| <span class="kw">async </span>{}))
+    <span class="comment">// `/bar` will redirect to `/bar/`
+    </span>.route_with_tsr(<span class="string">&quot;/bar/&quot;</span>, get(|| <span class="kw">async </span>{}));</code></pre></div>
+</div></details><details class="toggle method-toggle" open><summary><section id="tymethod.route_service_with_tsr" class="method"><a class="srclink rightside" href="../../../src/mailpot_web/typed_paths.rs.html#336-341">source</a><h4 class="code-header">fn <a href="#tymethod.route_service_with_tsr" class="fn">route_service_with_tsr</a>&lt;T&gt;(self, path: &amp;<a class="primitive" href="https://doc.rust-lang.org/1.69.0/std/primitive.str.html">str</a>, service: T) -&gt; Self<span class="where fmt-newline">where
+    T: Service&lt;<a class="struct" href="../../struct.Request.html" title="struct mailpot_web::Request">Request</a>&lt;B&gt;, Error = <a class="enum" href="../../melib/nom/lib/std/convert/enum.Infallible.html" title="enum mailpot_web::melib::nom::lib::std::convert::Infallible">Infallible</a>&gt; + <a class="trait" href="https://doc.rust-lang.org/1.69.0/core/clone/trait.Clone.html" title="trait core::clone::Clone">Clone</a> + <a class="trait" href="https://doc.rust-lang.org/1.69.0/core/marker/trait.Send.html" title="trait core::marker::Send">Send</a> + 'static,
+    T::Response: <a class="trait" href="../../trait.IntoResponse.html" title="trait mailpot_web::IntoResponse">IntoResponse</a>,
+    T::Future: <a class="trait" href="https://doc.rust-lang.org/1.69.0/core/marker/trait.Send.html" title="trait core::marker::Send">Send</a> + 'static,
+    Self: <a class="trait" href="https://doc.rust-lang.org/1.69.0/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a>,</span></h4></section></summary><div class="docblock"><p>Add another route to the router with an additional “trailing slash
+redirect” route.</p>
+<p>This works like <a href="trait.RouterExt.html#tymethod.route_with_tsr" title="method mailpot_web::typed_paths::tsr::RouterExt::route_with_tsr"><code>RouterExt::route_with_tsr</code></a> but accepts any
+[<code>Service</code>].</p>
+</div></details></div><h2 id="implementors" class="small-section-header">Implementors<a href="#implementors" class="anchor">§</a></h2><div id="implementors-list"><section id="impl-RouterExt%3CS,+B%3E-for-Router%3CS,+B%3E" class="impl"><a class="srclink rightside" href="../../../src/mailpot_web/typed_paths.rs.html#344-491">source</a><a href="#impl-RouterExt%3CS,+B%3E-for-Router%3CS,+B%3E" class="anchor">§</a><h3 class="code-header">impl&lt;S, B&gt; <a class="trait" href="trait.RouterExt.html" title="trait mailpot_web::typed_paths::tsr::RouterExt">RouterExt</a>&lt;S, B&gt; for <a class="struct" href="../../struct.Router.html" title="struct mailpot_web::Router">Router</a>&lt;S, B&gt;<span class="where fmt-newline">where
+    B: <a class="trait" href="https://docs.rs/http-body/0.4.5/http_body/trait.Body.html" title="trait http_body::Body">HttpBody</a> + <a class="trait" href="https://doc.rust-lang.org/1.69.0/core/marker/trait.Send.html" title="trait core::marker::Send">Send</a> + 'static,
+    S: <a class="trait" href="https://doc.rust-lang.org/1.69.0/core/clone/trait.Clone.html" title="trait core::clone::Clone">Clone</a> + <a class="trait" href="https://doc.rust-lang.org/1.69.0/core/marker/trait.Send.html" title="trait core::marker::Send">Send</a> + <a class="trait" href="https://doc.rust-lang.org/1.69.0/core/marker/trait.Sync.html" title="trait core::marker::Sync">Sync</a> + 'static,</span></h3></section></div><script src="../../../implementors/mailpot_web/typed_paths/tsr/trait.RouterExt.js" data-ignore-extern-crates="axum" async></script></section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="mailpot_web" data-themes="" data-resource-suffix="" data-rustdoc-version="1.69.0 (84c898d65 2023-04-16)" data-search-js="search-8a59a8356673ec1f.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-0bcba95ff279c1db.css" ></div></body></html>

@@ -1,0 +1,214 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="A type safe path."><title>TypedPath in mailpot_web - Rust</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../static.files/rustdoc-c4dbdcde0fbd8430.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../static.files/light-db279b6232be9c13.css"><link rel="stylesheet" disabled href="../static.files/dark-cf923f49f397b216.css"><link rel="stylesheet" disabled href="../static.files/ayu-be46fdc453a55015.css"><script src="../static.files/storage-3891ce972e3a2bf8.js"></script><script defer src="sidebar-items.js"></script><script defer src="../static.files/main-98a684e84ae5b08b.js"></script><noscript><link rel="stylesheet" href="../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc trait"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="logo-container" href="../mailpot_web/index.html"><img class="rust-logo" src="../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><h2></h2></nav><nav class="sidebar"><a class="logo-container" href="../mailpot_web/index.html"><img class="rust-logo" src="../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><h2 class="location"><a href="#">TypedPath</a></h2><div class="sidebar-elems"><section><h3><a href="#required-associated-consts">Required Associated Constants</a></h3><ul class="block"><li><a href="#associatedconstant.PATH">PATH</a></li></ul><h3><a href="#provided-methods">Provided Methods</a></h3><ul class="block"><li><a href="#method.to_uri">to_uri</a></li><li><a href="#method.with_query_params">with_query_params</a></li></ul><h3><a href="#implementors">Implementors</a></h3></section><h2><a href="index.html">In mailpot_web</a></h2></div></nav><main><div class="width-limiter"><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="main-heading"><h1>Trait <a href="index.html">mailpot_web</a>::<wbr><a class="trait" href="#">TypedPath</a><button id="copy-path" title="Copy item path to clipboard"><img src="../static.files/clipboard-7571035ce49a181d.svg" width="19" height="18" alt="Copy item path"></button></h1><span class="out-of-band"><button id="toggle-all-docs" title="collapse all docs">[<span>&#x2212;</span>]</button></span></div><pre class="rust item-decl"><code>pub trait TypedPath: <a class="trait" href="https://doc.rust-lang.org/1.69.0/core/fmt/trait.Display.html" title="trait core::fmt::Display">Display</a> {
+    const <a href="#associatedconstant.PATH" class="constant">PATH</a>: &amp;'static <a class="primitive" href="https://doc.rust-lang.org/1.69.0/std/primitive.str.html">str</a>;
+
+    // Provided methods
+    fn <a href="#method.to_uri" class="fn">to_uri</a>(&amp;self) -&gt; <a class="struct" href="https://docs.rs/http/0.2.9/http/uri/struct.Uri.html" title="struct http::uri::Uri">Uri</a> { ... }
+<span class="item-spacer"></span>    fn <a href="#method.with_query_params" class="fn">with_query_params</a>&lt;T&gt;(self, params: T) -&gt; WithQueryParams&lt;Self, T&gt;
+       <span class="where">where T: <a class="trait" href="serde/trait.Serialize.html" title="trait mailpot_web::serde::Serialize">Serialize</a>,
+             Self: <a class="trait" href="https://doc.rust-lang.org/1.69.0/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a></span> { ... }
+}</code></pre><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>A type safe path.</p>
+<p>This is used to statically connect a path to its corresponding handler using
+<a href="super::RouterExt::typed_get"><code>RouterExt::typed_get</code></a>, <a href="super::RouterExt::typed_post"><code>RouterExt::typed_post</code></a>, etc.</p>
+<h2 id="example"><a href="#example">Example</a></h2>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>serde::Deserialize;
+<span class="kw">use </span>axum::{Router, extract::Json};
+<span class="kw">use </span>axum_extra::routing::{
+    TypedPath,
+    RouterExt, <span class="comment">// for `Router::typed_*`
+</span>};
+
+<span class="comment">// A type safe route with `/users/:id` as its associated path.
+</span><span class="attr">#[derive(TypedPath, Deserialize)]
+#[typed_path(<span class="string">&quot;/users/:id&quot;</span>)]
+</span><span class="kw">struct </span>UsersMember {
+    id: u32,
+}
+
+<span class="comment">// A regular handler function that takes `UsersMember` as the first argument
+// and thus creates a typed connection between this handler and the `/users/:id` path.
+//
+// The `TypedPath` must be the first argument to the function.
+</span><span class="kw">async fn </span>users_show(
+    UsersMember { id }: UsersMember,
+) {
+    <span class="comment">// ...
+</span>}
+
+<span class="kw">let </span>app = Router::new()
+    <span class="comment">// Add our typed route to the router.
+    //
+    // The path will be inferred to `/users/:id` since `users_show`&#39;s
+    // first argument is `UsersMember` which implements `TypedPath`
+    </span>.typed_get(users_show)
+    .typed_post(users_create)
+    .typed_delete(users_destroy);
+
+<span class="attr">#[derive(TypedPath)]
+#[typed_path(<span class="string">&quot;/users&quot;</span>)]
+</span><span class="kw">struct </span>UsersCollection;
+
+<span class="attr">#[derive(Deserialize)]
+</span><span class="kw">struct </span>UsersCreatePayload { <span class="comment">/* ... */ </span>}
+
+<span class="kw">async fn </span>users_create(
+    <span class="kw">_</span>: UsersCollection,
+    <span class="comment">// Our handlers can accept other extractors.
+    </span>Json(payload): Json&lt;UsersCreatePayload&gt;,
+) {
+    <span class="comment">// ...
+</span>}
+
+<span class="kw">async fn </span>users_destroy(<span class="kw">_</span>: UsersCollection) { <span class="comment">/* ... */ </span>}
+</code></pre></div>
+<h2 id="using-derivetypedpath"><a href="#using-derivetypedpath">Using <code>#[derive(TypedPath)]</code></a></h2>
+<p>While <code>TypedPath</code> can be implemented manually, it’s <em>highly</em> recommended to derive it:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>serde::Deserialize;
+<span class="kw">use </span>axum_extra::routing::TypedPath;
+
+<span class="attr">#[derive(TypedPath, Deserialize)]
+#[typed_path(<span class="string">&quot;/users/:id&quot;</span>)]
+</span><span class="kw">struct </span>UsersMember {
+    id: u32,
+}</code></pre></div>
+<p>The macro expands to:</p>
+<ul>
+<li>A <code>TypedPath</code> implementation.</li>
+<li>A <a href="axum::extract::FromRequest"><code>FromRequest</code></a> implementation compatible with <a href="super::RouterExt::typed_get"><code>RouterExt::typed_get</code></a>,
+<a href="super::RouterExt::typed_post"><code>RouterExt::typed_post</code></a>, etc. This implementation uses <a href="struct.Path.html" title="struct mailpot_web::Path"><code>Path</code></a> and thus your struct must
+also implement <a href="serde/trait.Deserialize.html" title="trait mailpot_web::serde::Deserialize"><code>serde::Deserialize</code></a>, unless it’s a unit struct.</li>
+<li>A <a href="https://doc.rust-lang.org/1.69.0/core/fmt/trait.Display.html" title="trait core::fmt::Display"><code>Display</code></a> implementation that interpolates the captures. This can be used to, among other
+things, create links to known paths and have them verified statically. Note that the
+<a href="https://doc.rust-lang.org/1.69.0/core/fmt/trait.Display.html" title="trait core::fmt::Display"><code>Display</code></a> implementation for each field must return something that’s compatible with its
+<a href="serde/trait.Deserialize.html" title="trait mailpot_web::serde::Deserialize"><code>Deserialize</code></a> implementation.</li>
+</ul>
+<p>Additionally the macro will verify the captures in the path matches the fields of the struct.
+For example this fails to compile since the struct doesn’t have a <code>team_id</code> field:</p>
+
+<div class="example-wrap compile_fail"><a href="#" class="tooltip" title="This example deliberately fails to compile">ⓘ</a><pre class="rust rust-example-rendered"><code><span class="kw">use </span>serde::Deserialize;
+<span class="kw">use </span>axum_extra::routing::TypedPath;
+
+<span class="attr">#[derive(TypedPath, Deserialize)]
+#[typed_path(<span class="string">&quot;/users/:id/teams/:team_id&quot;</span>)]
+</span><span class="kw">struct </span>UsersMember {
+    id: u32,
+}</code></pre></div>
+<p>Unit and tuple structs are also supported:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>serde::Deserialize;
+<span class="kw">use </span>axum_extra::routing::TypedPath;
+
+<span class="attr">#[derive(TypedPath)]
+#[typed_path(<span class="string">&quot;/users&quot;</span>)]
+</span><span class="kw">struct </span>UsersCollection;
+
+<span class="attr">#[derive(TypedPath, Deserialize)]
+#[typed_path(<span class="string">&quot;/users/:id&quot;</span>)]
+</span><span class="kw">struct </span>UsersMember(u32);</code></pre></div>
+<h3 id="percent-encoding"><a href="#percent-encoding">Percent encoding</a></h3>
+<p>The generated <a href="https://doc.rust-lang.org/1.69.0/core/fmt/trait.Display.html" title="trait core::fmt::Display"><code>Display</code></a> implementation will automatically percent-encode the arguments:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>serde::Deserialize;
+<span class="kw">use </span>axum_extra::routing::TypedPath;
+
+<span class="attr">#[derive(TypedPath, Deserialize)]
+#[typed_path(<span class="string">&quot;/users/:id&quot;</span>)]
+</span><span class="kw">struct </span>UsersMember {
+    id: String,
+}
+
+<span class="macro">assert_eq!</span>(
+    UsersMember {
+        id: <span class="string">&quot;foo bar&quot;</span>.to_string(),
+    }.to_string(),
+    <span class="string">&quot;/users/foo%20bar&quot;</span>,
+);</code></pre></div>
+<h3 id="customizing-the-rejection"><a href="#customizing-the-rejection">Customizing the rejection</a></h3>
+<p>By default the rejection used in the <a href="axum::extract::FromRequest"><code>FromRequest</code></a> implemetation will be <a href="axum::extract::rejection::PathRejection"><code>PathRejection</code></a>.</p>
+<p>That can be customized using <code>#[typed_path(&quot;...&quot;, rejection(YourType))]</code>:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>serde::Deserialize;
+<span class="kw">use </span>axum_extra::routing::TypedPath;
+<span class="kw">use </span>axum::{
+    response::{IntoResponse, Response},
+    extract::rejection::PathRejection,
+};
+
+<span class="attr">#[derive(TypedPath, Deserialize)]
+#[typed_path(<span class="string">&quot;/users/:id&quot;</span>, rejection(UsersMemberRejection))]
+</span><span class="kw">struct </span>UsersMember {
+    id: String,
+}
+
+<span class="kw">struct </span>UsersMemberRejection;
+
+<span class="comment">// Your rejection type must implement `From&lt;PathRejection&gt;`.
+//
+// Here you can grab whatever details from the inner rejection
+// that you need.
+</span><span class="kw">impl </span>From&lt;PathRejection&gt; <span class="kw">for </span>UsersMemberRejection {
+    <span class="kw">fn </span>from(rejection: PathRejection) -&gt; <span class="self">Self </span>{
+        <span class="comment">// ...
+    </span>}
+}
+
+<span class="comment">// Your rejection must implement `IntoResponse`, like all rejections.
+</span><span class="kw">impl </span>IntoResponse <span class="kw">for </span>UsersMemberRejection {
+    <span class="kw">fn </span>into_response(<span class="self">self</span>) -&gt; Response {
+        <span class="comment">// ...
+    </span>}
+}</code></pre></div>
+<p>The <code>From&lt;PathRejection&gt;</code> requirement only applies if your typed path is a struct with named
+fields or a tuple struct. For unit structs your rejection type must implement <code>Default</code>:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>axum_extra::routing::TypedPath;
+<span class="kw">use </span>axum::response::{IntoResponse, Response};
+
+<span class="attr">#[derive(TypedPath)]
+#[typed_path(<span class="string">&quot;/users&quot;</span>, rejection(UsersCollectionRejection))]
+</span><span class="kw">struct </span>UsersCollection;
+
+<span class="attr">#[derive(Default)]
+</span><span class="kw">struct </span>UsersCollectionRejection;
+
+<span class="kw">impl </span>IntoResponse <span class="kw">for </span>UsersCollectionRejection {
+    <span class="kw">fn </span>into_response(<span class="self">self</span>) -&gt; Response {
+        <span class="comment">// ...
+    </span>}
+}</code></pre></div>
+</div></details><h2 id="required-associated-consts" class="small-section-header">Required Associated Constants<a href="#required-associated-consts" class="anchor">§</a></h2><div class="methods"><details class="toggle" open><summary><section id="associatedconstant.PATH" class="method"><h4 class="code-header">const <a href="#associatedconstant.PATH" class="constant">PATH</a>: &amp;'static <a class="primitive" href="https://doc.rust-lang.org/1.69.0/std/primitive.str.html">str</a></h4></section></summary><div class="docblock"><p>The path with optional captures such as <code>/users/:id</code>.</p>
+</div></details></div><h2 id="provided-methods" class="small-section-header">Provided Methods<a href="#provided-methods" class="anchor">§</a></h2><div class="methods"><details class="toggle method-toggle" open><summary><section id="method.to_uri" class="method"><h4 class="code-header">fn <a href="#method.to_uri" class="fn">to_uri</a>(&amp;self) -&gt; <a class="struct" href="https://docs.rs/http/0.2.9/http/uri/struct.Uri.html" title="struct http::uri::Uri">Uri</a></h4></section></summary><div class="docblock"><p>Convert the path into a <code>Uri</code>.</p>
+<h5 id="panics"><a href="#panics">Panics</a></h5>
+<p>The default implementation parses the required <a href="https://doc.rust-lang.org/1.69.0/core/fmt/trait.Display.html" title="trait core::fmt::Display"><code>Display</code></a> implementation. If that fails it
+will panic.</p>
+<p>Using <code>#[derive(TypedPath)]</code> will never result in a panic since it percent-encodes
+arguments.</p>
+</div></details><details class="toggle method-toggle" open><summary><section id="method.with_query_params" class="method"><h4 class="code-header">fn <a href="#method.with_query_params" class="fn">with_query_params</a>&lt;T&gt;(self, params: T) -&gt; WithQueryParams&lt;Self, T&gt;<span class="where fmt-newline">where
+    T: <a class="trait" href="serde/trait.Serialize.html" title="trait mailpot_web::serde::Serialize">Serialize</a>,
+    Self: <a class="trait" href="https://doc.rust-lang.org/1.69.0/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a>,</span></h4></section></summary><div class="docblock"><p>Add query parameters to a path.</p>
+<h5 id="example-1"><a href="#example-1">Example</a></h5>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>axum_extra::routing::TypedPath;
+<span class="kw">use </span>serde::Serialize;
+
+<span class="attr">#[derive(TypedPath)]
+#[typed_path(<span class="string">&quot;/users&quot;</span>)]
+</span><span class="kw">struct </span>Users;
+
+<span class="attr">#[derive(Serialize)]
+</span><span class="kw">struct </span>Pagination {
+    page: u32,
+    per_page: u32,
+}
+
+<span class="kw">let </span>path = Users.with_query_params(Pagination {
+    page: <span class="number">1</span>,
+    per_page: <span class="number">10</span>,
+});
+
+<span class="macro">assert_eq!</span>(path.to_uri(), <span class="string">&quot;/users?&amp;page=1&amp;per_page=10&quot;</span>);</code></pre></div>
+<h5 id="panics-1"><a href="#panics-1">Panics</a></h5>
+<p>If <code>params</code> doesn’t support being serialized as query params [<code>WithQueryParams</code>]’s <a href="https://doc.rust-lang.org/1.69.0/core/fmt/trait.Display.html" title="trait core::fmt::Display"><code>Display</code></a>
+implementation will panic, and thus <a href="trait.TypedPath.html#method.to_uri" title="method mailpot_web::TypedPath::to_uri"><code>WithQueryParams::to_uri</code></a> will also panic.</p>
+</div></details></div><h2 id="implementors" class="small-section-header">Implementors<a href="#implementors" class="anchor">§</a></h2><div id="implementors-list"><details class="toggle implementors-toggle"><summary><section id="impl-TypedPath-for-HelpPath" class="impl"><a class="srclink rightside" href="../src/mailpot_web/typed_paths.rs.html#122">source</a><a href="#impl-TypedPath-for-HelpPath" class="anchor">§</a><h3 class="code-header">impl <a class="trait" href="trait.TypedPath.html" title="trait mailpot_web::TypedPath">TypedPath</a> for <a class="struct" href="typed_paths/struct.HelpPath.html" title="struct mailpot_web::typed_paths::HelpPath">HelpPath</a></h3></section></summary><div class="impl-items"><section id="associatedconstant.PATH-1" class="associatedconstant trait-impl"><a class="srclink rightside" href="../src/mailpot_web/typed_paths.rs.html#122">source</a><a href="#associatedconstant.PATH-1" class="anchor">§</a><h4 class="code-header">const <a href="#associatedconstant.PATH" class="constant">PATH</a>: &amp;'static <a class="primitive" href="https://doc.rust-lang.org/1.69.0/std/primitive.str.html">str</a> = &quot;/help/&quot;</h4></section></div></details><details class="toggle implementors-toggle"><summary><section id="impl-TypedPath-for-ListEditCandidatesPath" class="impl"><a class="srclink rightside" href="../src/mailpot_web/typed_paths.rs.html#102">source</a><a href="#impl-TypedPath-for-ListEditCandidatesPath" class="anchor">§</a><h3 class="code-header">impl <a class="trait" href="trait.TypedPath.html" title="trait mailpot_web::TypedPath">TypedPath</a> for <a class="struct" href="typed_paths/struct.ListEditCandidatesPath.html" title="struct mailpot_web::typed_paths::ListEditCandidatesPath">ListEditCandidatesPath</a></h3></section></summary><div class="impl-items"><section id="associatedconstant.PATH-2" class="associatedconstant trait-impl"><a class="srclink rightside" href="../src/mailpot_web/typed_paths.rs.html#102">source</a><a href="#associatedconstant.PATH-2" class="anchor">§</a><h4 class="code-header">const <a href="#associatedconstant.PATH" class="constant">PATH</a>: &amp;'static <a class="primitive" href="https://doc.rust-lang.org/1.69.0/std/primitive.str.html">str</a> = &quot;/list/:id/edit/candidates/&quot;</h4></section></div></details><details class="toggle implementors-toggle"><summary><section id="impl-TypedPath-for-ListEditPath" class="impl"><a class="srclink rightside" href="../src/mailpot_web/typed_paths.rs.html#94">source</a><a href="#impl-TypedPath-for-ListEditPath" class="anchor">§</a><h3 class="code-header">impl <a class="trait" href="trait.TypedPath.html" title="trait mailpot_web::TypedPath">TypedPath</a> for <a class="struct" href="typed_paths/struct.ListEditPath.html" title="struct mailpot_web::typed_paths::ListEditPath">ListEditPath</a></h3></section></summary><div class="impl-items"><section id="associatedconstant.PATH-3" class="associatedconstant trait-impl"><a class="srclink rightside" href="../src/mailpot_web/typed_paths.rs.html#94">source</a><a href="#associatedconstant.PATH-3" class="anchor">§</a><h4 class="code-header">const <a href="#associatedconstant.PATH" class="constant">PATH</a>: &amp;'static <a class="primitive" href="https://doc.rust-lang.org/1.69.0/std/primitive.str.html">str</a> = &quot;/list/:id/edit/&quot;</h4></section></div></details><details class="toggle implementors-toggle"><summary><section id="impl-TypedPath-for-ListEditSubscribersPath" class="impl"><a class="srclink rightside" href="../src/mailpot_web/typed_paths.rs.html#98">source</a><a href="#impl-TypedPath-for-ListEditSubscribersPath" class="anchor">§</a><h3 class="code-header">impl <a class="trait" href="trait.TypedPath.html" title="trait mailpot_web::TypedPath">TypedPath</a> for <a class="struct" href="typed_paths/struct.ListEditSubscribersPath.html" title="struct mailpot_web::typed_paths::ListEditSubscribersPath">ListEditSubscribersPath</a></h3></section></summary><div class="impl-items"><section id="associatedconstant.PATH-4" class="associatedconstant trait-impl"><a class="srclink rightside" href="../src/mailpot_web/typed_paths.rs.html#98">source</a><a href="#associatedconstant.PATH-4" class="anchor">§</a><h4 class="code-header">const <a href="#associatedconstant.PATH" class="constant">PATH</a>: &amp;'static <a class="primitive" href="https://doc.rust-lang.org/1.69.0/std/primitive.str.html">str</a> = &quot;/list/:id/edit/subscribers/&quot;</h4></section></div></details><details class="toggle implementors-toggle"><summary><section id="impl-TypedPath-for-ListPath" class="impl"><a class="srclink rightside" href="../src/mailpot_web/typed_paths.rs.html#80">source</a><a href="#impl-TypedPath-for-ListPath" class="anchor">§</a><h3 class="code-header">impl <a class="trait" href="trait.TypedPath.html" title="trait mailpot_web::TypedPath">TypedPath</a> for <a class="struct" href="typed_paths/struct.ListPath.html" title="struct mailpot_web::typed_paths::ListPath">ListPath</a></h3></section></summary><div class="impl-items"><section id="associatedconstant.PATH-5" class="associatedconstant trait-impl"><a class="srclink rightside" href="../src/mailpot_web/typed_paths.rs.html#80">source</a><a href="#associatedconstant.PATH-5" class="anchor">§</a><h4 class="code-header">const <a href="#associatedconstant.PATH" class="constant">PATH</a>: &amp;'static <a class="primitive" href="https://doc.rust-lang.org/1.69.0/std/primitive.str.html">str</a> = &quot;/list/:id/&quot;</h4></section></div></details><details class="toggle implementors-toggle"><summary><section id="impl-TypedPath-for-ListPostPath" class="impl"><a class="srclink rightside" href="../src/mailpot_web/typed_paths.rs.html#90">source</a><a href="#impl-TypedPath-for-ListPostPath" class="anchor">§</a><h3 class="code-header">impl <a class="trait" href="trait.TypedPath.html" title="trait mailpot_web::TypedPath">TypedPath</a> for <a class="struct" href="typed_paths/struct.ListPostPath.html" title="struct mailpot_web::typed_paths::ListPostPath">ListPostPath</a></h3></section></summary><div class="impl-items"><section id="associatedconstant.PATH-6" class="associatedconstant trait-impl"><a class="srclink rightside" href="../src/mailpot_web/typed_paths.rs.html#90">source</a><a href="#associatedconstant.PATH-6" class="anchor">§</a><h4 class="code-header">const <a href="#associatedconstant.PATH" class="constant">PATH</a>: &amp;'static <a class="primitive" href="https://doc.rust-lang.org/1.69.0/std/primitive.str.html">str</a> = &quot;/list/:id/posts/:msgid/&quot;</h4></section></div></details><details class="toggle implementors-toggle"><summary><section id="impl-TypedPath-for-ListSettingsPath" class="impl"><a class="srclink rightside" href="../src/mailpot_web/typed_paths.rs.html#106">source</a><a href="#impl-TypedPath-for-ListSettingsPath" class="anchor">§</a><h3 class="code-header">impl <a class="trait" href="trait.TypedPath.html" title="trait mailpot_web::TypedPath">TypedPath</a> for <a class="struct" href="typed_paths/struct.ListSettingsPath.html" title="struct mailpot_web::typed_paths::ListSettingsPath">ListSettingsPath</a></h3></section></summary><div class="impl-items"><section id="associatedconstant.PATH-7" class="associatedconstant trait-impl"><a class="srclink rightside" href="../src/mailpot_web/typed_paths.rs.html#106">source</a><a href="#associatedconstant.PATH-7" class="anchor">§</a><h4 class="code-header">const <a href="#associatedconstant.PATH" class="constant">PATH</a>: &amp;'static <a class="primitive" href="https://doc.rust-lang.org/1.69.0/std/primitive.str.html">str</a> = &quot;/settings/list/:id/&quot;</h4></section></div></details><details class="toggle implementors-toggle"><summary><section id="impl-TypedPath-for-LoginPath" class="impl"><a class="srclink rightside" href="../src/mailpot_web/typed_paths.rs.html#110">source</a><a href="#impl-TypedPath-for-LoginPath" class="anchor">§</a><h3 class="code-header">impl <a class="trait" href="trait.TypedPath.html" title="trait mailpot_web::TypedPath">TypedPath</a> for <a class="struct" href="typed_paths/struct.LoginPath.html" title="struct mailpot_web::typed_paths::LoginPath">LoginPath</a></h3></section></summary><div class="impl-items"><section id="associatedconstant.PATH-8" class="associatedconstant trait-impl"><a class="srclink rightside" href="../src/mailpot_web/typed_paths.rs.html#110">source</a><a href="#associatedconstant.PATH-8" class="anchor">§</a><h4 class="code-header">const <a href="#associatedconstant.PATH" class="constant">PATH</a>: &amp;'static <a class="primitive" href="https://doc.rust-lang.org/1.69.0/std/primitive.str.html">str</a> = &quot;/login/&quot;</h4></section></div></details><details class="toggle implementors-toggle"><summary><section id="impl-TypedPath-for-LogoutPath" class="impl"><a class="srclink rightside" href="../src/mailpot_web/typed_paths.rs.html#114">source</a><a href="#impl-TypedPath-for-LogoutPath" class="anchor">§</a><h3 class="code-header">impl <a class="trait" href="trait.TypedPath.html" title="trait mailpot_web::TypedPath">TypedPath</a> for <a class="struct" href="typed_paths/struct.LogoutPath.html" title="struct mailpot_web::typed_paths::LogoutPath">LogoutPath</a></h3></section></summary><div class="impl-items"><section id="associatedconstant.PATH-9" class="associatedconstant trait-impl"><a class="srclink rightside" href="../src/mailpot_web/typed_paths.rs.html#114">source</a><a href="#associatedconstant.PATH-9" class="anchor">§</a><h4 class="code-header">const <a href="#associatedconstant.PATH" class="constant">PATH</a>: &amp;'static <a class="primitive" href="https://doc.rust-lang.org/1.69.0/std/primitive.str.html">str</a> = &quot;/logout/&quot;</h4></section></div></details><details class="toggle implementors-toggle"><summary><section id="impl-TypedPath-for-SettingsPath" class="impl"><a class="srclink rightside" href="../src/mailpot_web/typed_paths.rs.html#118">source</a><a href="#impl-TypedPath-for-SettingsPath" class="anchor">§</a><h3 class="code-header">impl <a class="trait" href="trait.TypedPath.html" title="trait mailpot_web::TypedPath">TypedPath</a> for <a class="struct" href="typed_paths/struct.SettingsPath.html" title="struct mailpot_web::typed_paths::SettingsPath">SettingsPath</a></h3></section></summary><div class="impl-items"><section id="associatedconstant.PATH-10" class="associatedconstant trait-impl"><a class="srclink rightside" href="../src/mailpot_web/typed_paths.rs.html#118">source</a><a href="#associatedconstant.PATH-10" class="anchor">§</a><h4 class="code-header">const <a href="#associatedconstant.PATH" class="constant">PATH</a>: &amp;'static <a class="primitive" href="https://doc.rust-lang.org/1.69.0/std/primitive.str.html">str</a> = &quot;/settings/&quot;</h4></section></div></details><details class="toggle implementors-toggle"><summary><section id="impl-TypedPath-for-WithQueryParams%3CP,+T%3E" class="impl"><a href="#impl-TypedPath-for-WithQueryParams%3CP,+T%3E" class="anchor">§</a><h3 class="code-header">impl&lt;P, T&gt; <a class="trait" href="trait.TypedPath.html" title="trait mailpot_web::TypedPath">TypedPath</a> for WithQueryParams&lt;P, T&gt;<span class="where fmt-newline">where
+    P: <a class="trait" href="trait.TypedPath.html" title="trait mailpot_web::TypedPath">TypedPath</a>,
+    T: <a class="trait" href="serde/trait.Serialize.html" title="trait mailpot_web::serde::Serialize">Serialize</a>,</span></h3></section></summary><div class="impl-items"><section id="associatedconstant.PATH-11" class="associatedconstant trait-impl"><a href="#associatedconstant.PATH-11" class="anchor">§</a><h4 class="code-header">const <a href="#associatedconstant.PATH" class="constant">PATH</a>: &amp;'static <a class="primitive" href="https://doc.rust-lang.org/1.69.0/std/primitive.str.html">str</a> = P::PATH</h4></section></div></details></div><script src="../implementors/axum_extra/routing/typed/trait.TypedPath.js" data-ignore-extern-crates="axum_extra" async></script></section></div></main><div id="rustdoc-vars" data-root-path="../" data-static-root-path="../static.files/" data-current-crate="mailpot_web" data-themes="" data-resource-suffix="" data-rustdoc-version="1.69.0 (84c898d65 2023-04-16)" data-search-js="search-8a59a8356673ec1f.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-0bcba95ff279c1db.css" ></div></body></html>

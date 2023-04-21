@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["add_tsr_redirect_route","map_path","redirect_handler","tsr_handler_into_async","tsr_redirect_route","validate_tsr_path"],"trait":["RouterExt"]};

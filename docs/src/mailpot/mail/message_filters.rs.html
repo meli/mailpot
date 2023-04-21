@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/src/mail/message_filters.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>message_filters.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-93196c7a1c3542a8.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-3367e395607fafc1.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../mailpot/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/src/mail/message_filters.rs`."><title>message_filters.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-c4dbdcde0fbd8430.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-db279b6232be9c13.css"><link rel="stylesheet" disabled href="../../../static.files/dark-cf923f49f397b216.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-be46fdc453a55015.css"><script src="../../../static.files/storage-3891ce972e3a2bf8.js"></script><script defer src="../../../static.files/source-script-1b95b7cca98b26e5.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-98a684e84ae5b08b.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../mailpot/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -225,6 +225,35 @@
 <a href="#225" id="225">225</a>
 <a href="#226" id="226">226</a>
 <a href="#227" id="227">227</a>
+<a href="#228" id="228">228</a>
+<a href="#229" id="229">229</a>
+<a href="#230" id="230">230</a>
+<a href="#231" id="231">231</a>
+<a href="#232" id="232">232</a>
+<a href="#233" id="233">233</a>
+<a href="#234" id="234">234</a>
+<a href="#235" id="235">235</a>
+<a href="#236" id="236">236</a>
+<a href="#237" id="237">237</a>
+<a href="#238" id="238">238</a>
+<a href="#239" id="239">239</a>
+<a href="#240" id="240">240</a>
+<a href="#241" id="241">241</a>
+<a href="#242" id="242">242</a>
+<a href="#243" id="243">243</a>
+<a href="#244" id="244">244</a>
+<a href="#245" id="245">245</a>
+<a href="#246" id="246">246</a>
+<a href="#247" id="247">247</a>
+<a href="#248" id="248">248</a>
+<a href="#249" id="249">249</a>
+<a href="#250" id="250">250</a>
+<a href="#251" id="251">251</a>
+<a href="#252" id="252">252</a>
+<a href="#253" id="253">253</a>
+<a href="#254" id="254">254</a>
+<a href="#255" id="255">255</a>
+<a href="#256" id="256">256</a>
 </pre><pre class="rust"><code><span class="comment">/*
  * This file is part of mailpot
  *
@@ -246,8 +275,8 @@
 
 </span><span class="attr">#![allow(clippy::result_unit_err)]
 
-</span><span class="doccomment">//! Filters to pass each mailing list post through. Filters are functions that implement the
-//! [`PostFilter`] trait that can:
+</span><span class="doccomment">//! Filters to pass each mailing list post through. Filters are functions that
+//! implement the [`PostFilter`] trait that can:
 //!
 //! - transform post content.
 //! - modify the final [`PostAction`] to take.
@@ -267,11 +296,13 @@
 
 </span><span class="kw">use super</span>::<span class="kw-2">*</span>;
 
-<span class="doccomment">/// Filter that modifies and/or verifies a post candidate. On rejection, return a string
-/// describing the error and optionally set `post.action` to `Reject` or `Defer`
+<span class="doccomment">/// Filter that modifies and/or verifies a post candidate. On rejection, return
+/// a string describing the error and optionally set `post.action` to `Reject`
+/// or `Defer`
 </span><span class="kw">pub trait </span>PostFilter {
-    <span class="doccomment">/// Feed post into the filter. Perform modifications to `post` and / or `ctx`, and return them
-    /// with `Result::Ok` unless you want to the processing to stop and return an `Result::Err`.
+    <span class="doccomment">/// Feed post into the filter. Perform modifications to `post` and / or
+    /// `ctx`, and return them with `Result::Ok` unless you want to the
+    /// processing to stop and return an `Result::Err`.
     </span><span class="kw">fn </span>feed&lt;<span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;list</span>&gt;(
         <span class="self">self</span>: Box&lt;<span class="self">Self</span>&gt;,
         post: <span class="kw-2">&amp;</span><span class="lifetime">&#39;p </span><span class="kw-2">mut </span>Post,
@@ -288,7 +319,7 @@
         ctx: <span class="kw-2">&amp;</span><span class="lifetime">&#39;p </span><span class="kw-2">mut </span>ListContext&lt;<span class="lifetime">&#39;list</span>&gt;,
     ) -&gt; std::result::Result&lt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;p </span><span class="kw-2">mut </span>Post, <span class="kw-2">&amp;</span><span class="lifetime">&#39;p </span><span class="kw-2">mut </span>ListContext&lt;<span class="lifetime">&#39;list</span>&gt;), ()&gt; {
         <span class="macro">trace!</span>(<span class="string">&quot;Running PostRightsCheck filter&quot;</span>);
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>policy) = ctx.policy {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>policy) = ctx.post_policy {
             <span class="kw">if </span>policy.announce_only {
                 <span class="macro">trace!</span>(<span class="string">&quot;post policy is announce_only&quot;</span>);
                 <span class="kw">let </span>owner_addresses = ctx
@@ -305,23 +336,32 @@
                     };
                     <span class="kw">return </span><span class="prelude-val">Err</span>(());
                 }
-            } <span class="kw">else if </span>policy.subscriber_only {
-                <span class="macro">trace!</span>(<span class="string">&quot;post policy is subscriber_only&quot;</span>);
+            } <span class="kw">else if </span>policy.subscription_only {
+                <span class="macro">trace!</span>(<span class="string">&quot;post policy is subscription_only&quot;</span>);
                 <span class="kw">let </span>email_from = post.from.get_email();
                 <span class="macro">trace!</span>(<span class="string">&quot;post from is {:?}&quot;</span>, <span class="kw-2">&amp;</span>email_from);
-                <span class="macro">trace!</span>(<span class="string">&quot;post memberships are {:#?}&quot;</span>, <span class="kw-2">&amp;</span>ctx.memberships);
-                <span class="kw">if </span>!ctx.memberships.iter().any(|lm| lm.address == email_from) {
+                <span class="macro">trace!</span>(<span class="string">&quot;post subscriptions are {:#?}&quot;</span>, <span class="kw-2">&amp;</span>ctx.subscriptions);
+                <span class="kw">if </span>!ctx.subscriptions.iter().any(|lm| lm.address == email_from) {
                     <span class="macro">trace!</span>(<span class="string">&quot;Envelope from is not subscribed to this list&quot;</span>);
                     post.action = PostAction::Reject {
-                        reason: <span class="string">&quot;Only subscribers can post to this list.&quot;</span>.to_string(),
+                        reason: <span class="string">&quot;Only subscriptions can post to this list.&quot;</span>.to_string(),
                     };
                     <span class="kw">return </span><span class="prelude-val">Err</span>(());
                 }
             } <span class="kw">else if </span>policy.approval_needed {
                 <span class="macro">trace!</span>(<span class="string">&quot;post policy says approval_needed&quot;</span>);
-                post.action = PostAction::Defer {
-                    reason: <span class="string">&quot;Your posting has been deferred. Approval from the list&#39;s moderators is required before it is submitted.&quot;</span>.to_string(),
-                };
+                <span class="kw">let </span>email_from = post.from.get_email();
+                <span class="macro">trace!</span>(<span class="string">&quot;post from is {:?}&quot;</span>, <span class="kw-2">&amp;</span>email_from);
+                <span class="macro">trace!</span>(<span class="string">&quot;post subscriptions are {:#?}&quot;</span>, <span class="kw-2">&amp;</span>ctx.subscriptions);
+                <span class="kw">if </span>!ctx.subscriptions.iter().any(|lm| lm.address == email_from) {
+                    <span class="macro">trace!</span>(<span class="string">&quot;Envelope from is not subscribed to this list&quot;</span>);
+                    post.action = PostAction::Defer {
+                        reason: <span class="string">&quot;Your posting has been deferred. Approval from the list&#39;s \
+                                 moderators is required before it is submitted.&quot;
+                            </span>.to_string(),
+                    };
+                    <span class="kw">return </span><span class="prelude-val">Err</span>(());
+                }
             }
         }
         <span class="prelude-val">Ok</span>((post, ctx))
@@ -358,22 +398,43 @@
     ) -&gt; std::result::Result&lt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;p </span><span class="kw-2">mut </span>Post, <span class="kw-2">&amp;</span><span class="lifetime">&#39;p </span><span class="kw-2">mut </span>ListContext&lt;<span class="lifetime">&#39;list</span>&gt;), ()&gt; {
         <span class="macro">trace!</span>(<span class="string">&quot;Running AddListHeaders filter&quot;</span>);
         <span class="kw">let </span>(<span class="kw-2">mut </span>headers, body) = melib::email::parser::mail(<span class="kw-2">&amp;</span>post.bytes).unwrap();
-        <span class="kw">let </span>list_id = ctx.list.display_name();
         <span class="kw">let </span>sender = <span class="macro">format!</span>(<span class="string">&quot;&lt;{}&gt;&quot;</span>, ctx.list.address);
-        headers.push((<span class="kw-2">&amp;</span><span class="string">b&quot;List-ID&quot;</span>[..], list_id.as_bytes()));
         headers.push((<span class="kw-2">&amp;</span><span class="string">b&quot;Sender&quot;</span>[..], sender.as_bytes()));
-        <span class="kw">let </span>list_post = ctx.list.post_header();
-        <span class="kw">let </span>list_unsubscribe = ctx.list.unsubscribe_header();
+        <span class="kw">let </span><span class="kw-2">mut </span>subject = <span class="macro">format!</span>(<span class="string">&quot;[{}] &quot;</span>, ctx.list.id).into_bytes();
+        <span class="kw">if let </span><span class="prelude-val">Some</span>((<span class="kw">_</span>, subj_val)) = headers
+            .iter_mut()
+            .find(|(k, <span class="kw">_</span>)| k.eq_ignore_ascii_case(<span class="string">b&quot;Subject&quot;</span>))
+        {
+            subject.extend(subj_val.iter().cloned());
+            <span class="kw-2">*</span>subj_val = subject.as_slice();
+        } <span class="kw">else </span>{
+            headers.push((<span class="kw-2">&amp;</span><span class="string">b&quot;Subject&quot;</span>[..], subject.as_slice()));
+        }
+
+        <span class="kw">let </span>list_id = <span class="prelude-val">Some</span>(ctx.list.id_header());
+        <span class="kw">let </span>list_help = ctx.list.help_header();
+        <span class="kw">let </span>list_post = ctx.list.post_header(ctx.post_policy.as_deref());
+        <span class="kw">let </span>list_unsubscribe = ctx
+            .list
+            .unsubscribe_header(ctx.subscription_policy.as_deref());
+        <span class="kw">let </span>list_subscribe = ctx
+            .list
+            .subscribe_header(ctx.subscription_policy.as_deref());
         <span class="kw">let </span>list_archive = ctx.list.archive_header();
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(post) = list_post.as_ref() {
-            headers.push((<span class="kw-2">&amp;</span><span class="string">b&quot;List-Post&quot;</span>[..], post.as_bytes()));
+
+        <span class="kw">for </span>(hdr, val) <span class="kw">in </span>[
+            (<span class="string">b&quot;List-Id&quot;</span>.as_slice(), <span class="kw-2">&amp;</span>list_id),
+            (<span class="string">b&quot;List-Help&quot;</span>.as_slice(), <span class="kw-2">&amp;</span>list_help),
+            (<span class="string">b&quot;List-Post&quot;</span>.as_slice(), <span class="kw-2">&amp;</span>list_post),
+            (<span class="string">b&quot;List-Unsubscribe&quot;</span>.as_slice(), <span class="kw-2">&amp;</span>list_unsubscribe),
+            (<span class="string">b&quot;List-Subscribe&quot;</span>.as_slice(), <span class="kw-2">&amp;</span>list_subscribe),
+            (<span class="string">b&quot;List-Archive&quot;</span>.as_slice(), <span class="kw-2">&amp;</span>list_archive),
+        ] {
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(val) = val {
+                headers.push((hdr, val.as_bytes()));
+            }
         }
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(unsubscribe) = list_unsubscribe.as_ref() {
-            headers.push((<span class="kw-2">&amp;</span><span class="string">b&quot;List-Unsubscribe&quot;</span>[..], unsubscribe.as_bytes()));
-        }
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(archive) = list_archive.as_ref() {
-            headers.push((<span class="kw-2">&amp;</span><span class="string">b&quot;List-Archive&quot;</span>[..], archive.as_bytes()));
-        }
+
         <span class="kw">let </span><span class="kw-2">mut </span>new_vec = Vec::with_capacity(
             headers
                 .iter()
@@ -409,8 +470,8 @@
     }
 }
 
-<span class="doccomment">/// Assuming there are no more changes to be done on the post, it finalizes which list members
-/// will receive the post in `post.action` field.
+<span class="doccomment">/// Assuming there are no more changes to be done on the post, it finalizes
+/// which list subscriptions will receive the post in `post.action` field.
 </span><span class="kw">pub struct </span>FinalizeRecipients;
 <span class="kw">impl </span>PostFilter <span class="kw">for </span>FinalizeRecipients {
     <span class="kw">fn </span>feed&lt;<span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;list</span>&gt;(
@@ -422,26 +483,23 @@
         <span class="kw">let </span><span class="kw-2">mut </span>recipients = <span class="macro">vec!</span>[];
         <span class="kw">let </span><span class="kw-2">mut </span>digests = <span class="macro">vec!</span>[];
         <span class="kw">let </span>email_from = post.from.get_email();
-        <span class="kw">for </span>member <span class="kw">in </span>ctx.memberships {
-            <span class="macro">trace!</span>(<span class="string">&quot;examining member {:?}&quot;</span>, <span class="kw-2">&amp;</span>member);
-            <span class="kw">if </span>member.address == email_from {
-                <span class="macro">trace!</span>(<span class="string">&quot;member is submitter&quot;</span>);
+        <span class="kw">for </span>subscription <span class="kw">in </span>ctx.subscriptions {
+            <span class="macro">trace!</span>(<span class="string">&quot;examining subscription {:?}&quot;</span>, <span class="kw-2">&amp;</span>subscription);
+            <span class="kw">if </span>subscription.address == email_from {
+                <span class="macro">trace!</span>(<span class="string">&quot;subscription is submitter&quot;</span>);
             }
-            <span class="kw">if </span>member.digest {
-                <span class="kw">if </span>member.address != email_from || member.receive_own_posts {
-                    <span class="macro">trace!</span>(<span class="string">&quot;Member gets digest&quot;</span>);
-                    digests.push(member.address());
+            <span class="kw">if </span>subscription.digest {
+                <span class="kw">if </span>subscription.address != email_from || subscription.receive_own_posts {
+                    <span class="macro">trace!</span>(<span class="string">&quot;Subscription gets digest&quot;</span>);
+                    digests.push(subscription.address());
                 }
                 <span class="kw">continue</span>;
             }
-            <span class="kw">if </span>member.address != email_from || member.receive_own_posts {
-                <span class="macro">trace!</span>(<span class="string">&quot;Member gets copy&quot;</span>);
-                recipients.push(member.address());
+            <span class="kw">if </span>subscription.address != email_from || subscription.receive_own_posts {
+                <span class="macro">trace!</span>(<span class="string">&quot;Subscription gets copy&quot;</span>);
+                recipients.push(subscription.address());
             }
-            <span class="comment">// TODO:
-            // - check for duplicates (To,Cc,Bcc)
-            // - send confirmation to submitter
-        </span>}
+        }
         ctx.scheduled_jobs.push(MailJob::Send { recipients });
         <span class="kw">if </span>!digests.is_empty() {
             ctx.scheduled_jobs.push(MailJob::StoreDigest {
@@ -453,4 +511,4 @@
     }
 }
 </code></pre></div>
-</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="mailpot" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.2 (9eb3afe9e 2023-03-27)" data-search-js="search-98d53477a794af0b.js" data-settings-js="settings-c3c521c753752a1a.js" data-settings-css="settings-08ddfdda51b8ee2e.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="mailpot" data-themes="" data-resource-suffix="" data-rustdoc-version="1.69.0 (84c898d65 2023-04-16)" data-search-js="search-8a59a8356673ec1f.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-0bcba95ff279c1db.css" ></div></body></html>

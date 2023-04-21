@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"type":["Role","User","UserId"]};

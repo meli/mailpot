@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"mod":["post_policy","subscription_policy"]};

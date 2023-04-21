@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["__stability","__static_ref_initialize","calendarize","pluralize"],"macro":["add","int_try_from","month"],"static":["LAZY"],"struct":["MailingList","TEMPLATES"],"trait":["StripCarets"]};

@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["ListMembershipChangeset","Changeset struct for `ListMembership`."],["ListOwnerChangeset","Changeset struct for `ListOwner`."],["MailingListChangeset","Changeset struct for `Mailinglist`."],["PostPolicyChangeset","Changeset struct for `PostPolicy`."]]};
+window.SIDEBAR_ITEMS = {"macro":["impl_display"],"struct":["AccountChangeset","ListOwnerChangeset","ListSubscriptionChangeset","MailingListChangeset"]};
