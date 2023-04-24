@@ -380,7 +380,7 @@ fn test_postfix_generation() -> Result<()> {
 
     use crate::*;
 
-    crate::init_stderr_logging();
+    mailpot_tests::init_stderr_logging();
 
     fn get_smtp_conf() -> melib::smtp::SmtpServerConf {
         use melib::smtp::*;

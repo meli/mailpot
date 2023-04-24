@@ -1584,6 +1584,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "mailpot-archives"
+version = "0.0.0+2023-04-21"
+dependencies = [
+ "chrono",
+ "lazy_static",
+ "mailpot",
+ "minijinja",
+ "percent-encoding",
+ "serde",
+ "serde_json",
+ "tokio",
+ "warp",
+]
+
+[[package]]
 name = "mailpot-cli"
 version = "0.0.0+2023-04-21"
 dependencies = [
@@ -1787,21 +1802,6 @@ dependencies = [
  "net2",
  "winapi 0.2.8",
  "ws2_32-sys",
-]
-
-[[package]]
-name = "mpot-archives"
-version = "0.0.0+2023-04-21"
-dependencies = [
- "chrono",
- "lazy_static",
- "mailpot",
- "minijinja",
- "percent-encoding",
- "serde",
- "serde_json",
- "tokio",
- "warp",
 ]
 
 [[package]]

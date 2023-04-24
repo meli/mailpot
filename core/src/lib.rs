@@ -179,28 +179,3 @@ pub struct MailtoAddress {
 #[doc = include_str!("../../README.md")]
 #[cfg(doctest)]
 pub struct ReadmeDoctests;
-
-#[cfg(test)]
-use tests::init_stderr_logging;
-
-#[cfg(test)]
-mod tests {
-
-    // Initialize logging only once per process in tests.
-
-    use std::sync::Once;
-
-    static INIT_STDERR_LOGGING: Once = Once::new();
-
-    pub fn init_stderr_logging() {
-        INIT_STDERR_LOGGING.call_once(|| {
-            stderrlog::new()
-                .quiet(false)
-                .verbosity(15)
-                .show_module_names(true)
-                .timestamp(stderrlog::Timestamp::Millisecond)
-                .init()
-                .unwrap();
-        });
-    }
-}
