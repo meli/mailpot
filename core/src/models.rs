@@ -321,7 +321,7 @@ impl MailingList {
 }
 
 /// A mailing list subscription entry.
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
 pub struct ListSubscription {
     /// Database primary key.
     pub pk: i64,
@@ -383,7 +383,7 @@ impl ListSubscription {
 /// A mailing list post policy entry.
 ///
 /// Only one of the boolean flags must be set to true.
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
 pub struct PostPolicy {
     /// Database primary key.
     pub pk: i64,
@@ -412,7 +412,7 @@ impl std::fmt::Display for PostPolicy {
 }
 
 /// A mailing list owner entry.
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
 pub struct ListOwner {
     /// Database primary key.
     pub pk: i64,
@@ -488,7 +488,7 @@ impl std::fmt::Display for Post {
 /// A mailing list subscription policy entry.
 ///
 /// Only one of the policy boolean flags must be set to true.
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
 pub struct SubscriptionPolicy {
     /// Database primary key.
     pub pk: i64,
@@ -536,7 +536,7 @@ impl std::fmt::Display for Account {
 }
 
 /// A mailing list subscription candidate.
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
 pub struct ListCandidateSubscription {
     /// Database primary key.
     pub pk: i64,
