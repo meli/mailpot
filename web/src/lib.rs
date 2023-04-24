@@ -77,7 +77,7 @@ pub use http::{Request, Response, StatusCode};
 pub use mailpot::{models::DbVal, rusqlite::OptionalExtension, *};
 use minijinja::{
     value::{Object, Value},
-    Environment, Error, Source,
+    Environment, Error,
 };
 use tokio::sync::RwLock;
 
@@ -199,3 +199,26 @@ mod auth_impls {
         }
     }
 }
+
+const fn _get_package_git_sha() -> Option<&'static str> {
+    option_env!("PACKAGE_GIT_SHA")
+}
+
+const _PACKAGE_COMMIT_SHA: Option<&str> = _get_package_git_sha();
+
+pub fn get_git_sha() -> std::borrow::Cow<'static, str> {
+    if let Some(r) = _PACKAGE_COMMIT_SHA {
+        return r.into();
+    }
+    build_info::build_info!(fn build_info);
+    let info = build_info();
+    info.version_control
+        .as_ref()
+        .and_then(|v| v.git())
+        .map(|g| g.commit_short_id.clone())
+        .map_or_else(|| "<unknown>".into(), |v| v.into())
+}
+
+pub const VERSION_INFO: &str = build_info::format!("{}", $.crate_info.version);
+pub const BUILD_INFO: &str = build_info::format!("{}\t{}\t{}\t{}", $.crate_info.version, $.compiler, $.timestamp, $.crate_info.enabled_features);
+pub const CLI_INFO: &str = build_info::format!("{} Version: {}\nAuthors: {}\nLicense: AGPL version 3 or later\nCompiler: {}\nBuild-Date: {}\nEnabled-features: {}", $.crate_info.name, $.crate_info.version, $.crate_info.authors, $.compiler, $.timestamp, $.crate_info.enabled_features);

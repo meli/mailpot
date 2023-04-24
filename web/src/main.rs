@@ -29,6 +29,12 @@ async fn main() {
     let config_path = std::env::args()
         .nth(1)
         .expect("Expected configuration file path as first argument.");
+    if ["-v", "--version", "info"].contains(&config_path.as_str()) {
+        println!("{}", crate::get_git_sha());
+        println!("{CLI_INFO}");
+
+        return;
+    }
     let conf = Configuration::from_file(config_path).unwrap();
 
     let store = MemoryStore::new();
