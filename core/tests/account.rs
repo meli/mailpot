@@ -17,7 +17,7 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-use mailpot::{models::*, Configuration, Connection, SendMail};
+use mailpot::{models::*, Configuration, Connection, Queue, SendMail};
 use mailpot_tests::init_stderr_logging;
 use tempfile::TempDir;
 
@@ -67,7 +67,7 @@ fn test_accounts() {
         .unwrap();
 
     assert_eq!(post_policy.pk(), 1);
-    assert_eq!(db.error_queue().unwrap().len(), 0);
+    assert_eq!(db.queue(Queue::Error).unwrap().len(), 0);
     assert_eq!(db.list_subscriptions(foo_chat.pk()).unwrap().len(), 0);
 
     let mut db = db.untrusted();
@@ -89,7 +89,7 @@ MIME-Version: 1.0
     db.post(&envelope, subscribe_bytes, /* dry_run */ false)
         .unwrap();
     assert_eq!(db.list_subscriptions(foo_chat.pk()).unwrap().len(), 1);
-    assert_eq!(db.error_queue().unwrap().len(), 0);
+    assert_eq!(db.queue(Queue::Error).unwrap().len(), 0);
 
     assert_eq!(db.account_by_address("user@example.com").unwrap(), None);
 
@@ -115,7 +115,7 @@ MIME-Version: 1.0
         melib::Envelope::from_bytes(&set_password_bytes, None).expect("Could not parse message");
     db.post(&envelope, &set_password_bytes, /* dry_run */ false)
         .unwrap();
-    assert_eq!(db.error_queue().unwrap().len(), 0);
+    assert_eq!(db.queue(Queue::Error).unwrap().len(), 0);
     let acc = db.account_by_address("user@example.com").unwrap().unwrap();
 
     assert_eq!(
@@ -136,7 +136,7 @@ MIME-Version: 1.0
         melib::Envelope::from_bytes(&set_password_bytes, None).expect("Could not parse message");
     db.post(&envelope, &set_password_bytes, /* dry_run */ false)
         .unwrap();
-    assert_eq!(db.error_queue().unwrap().len(), 0);
+    assert_eq!(db.queue(Queue::Error).unwrap().len(), 0);
     let acc = db.account_by_address("user@example.com").unwrap().unwrap();
 
     assert!(

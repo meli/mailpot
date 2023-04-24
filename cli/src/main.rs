@@ -530,24 +530,20 @@ fn run_app(opt: Opt) -> Result<()> {
         }
         ErrorQueue { cmd } => match cmd {
             ErrorQueueCommand::List => {
-                let errors = db.error_queue()?;
+                let errors = db.queue(Queue::Error)?;
                 if errors.is_empty() {
                     println!("Error queue is empty.");
                 } else {
                     for e in errors {
                         println!(
                             "- {} {} {} {} {}",
-                            e["pk"],
-                            e["datetime"],
-                            e["from_address"],
-                            e["to_address"],
-                            e["subject"]
+                            e.pk, e.datetime, e.from_address, e.to_addresses, e.subject
                         );
                     }
                 }
             }
-            ErrorQueueCommand::Print { index, json } => {
-                let mut errors = db.error_queue()?;
+            ErrorQueueCommand::Print { index } => {
+                let mut errors = db.queue(Queue::Error)?;
                 if !index.is_empty() {
                     errors.retain(|el| index.contains(&el.pk()));
                 }
@@ -555,16 +551,12 @@ fn run_app(opt: Opt) -> Result<()> {
                     println!("Error queue is empty.");
                 } else {
                     for e in errors {
-                        if json {
-                            println!("{:#}", e);
-                        } else {
-                            println!("{}", e["message"]);
-                        }
+                        println!("{e:?}");
                     }
                 }
             }
             ErrorQueueCommand::Delete { index, quiet } => {
-                let mut errors = db.error_queue()?;
+                let mut errors = db.queue(Queue::Error)?;
                 if !index.is_empty() {
                     errors.retain(|el| index.contains(&el.pk()));
                 }
@@ -576,10 +568,10 @@ fn run_app(opt: Opt) -> Result<()> {
                     if !quiet {
                         println!("Deleting error queue elements {:?}", &index);
                     }
-                    db.delete_from_error_queue(index)?;
+                    db.delete_from_queue(Queue::Error, index)?;
                     if !quiet {
                         for e in errors {
-                            println!("{}", e["message"]);
+                            println!("{e:?}");
                         }
                     }
                 }

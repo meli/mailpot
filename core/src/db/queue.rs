@@ -45,6 +45,8 @@ pub enum Queue {
     Corrupt,
     /// Emails that must be sent as soon as possible.
     Out,
+    /// Error queue
+    Error,
 }
 
 impl Queue {
@@ -56,6 +58,7 @@ impl Queue {
             Self::Deferred => "deferred",
             Self::Corrupt => "corrupt",
             Self::Out => "out",
+            Self::Error => "error",
         }
     }
 }

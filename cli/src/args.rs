@@ -236,9 +236,6 @@ pub enum ErrorQueueCommand {
         /// index of entry.
         #[arg(long)]
         index: Vec<i64>,
-        /// JSON format.
-        #[arg(long)]
-        json: bool,
     },
     /// Delete entry and print it in stdout.
     Delete {

@@ -65,7 +65,7 @@ fn test_template_replies() {
         .unwrap();
 
     assert_eq!(post_policy.pk(), 1);
-    assert_eq!(db.error_queue().unwrap().len(), 0);
+    assert_eq!(db.queue(Queue::Error).unwrap().len(), 0);
     assert_eq!(db.list_subscriptions(foo_chat.pk()).unwrap().len(), 0);
 
     /* create custom subscribe confirm template, and check that it is used in
@@ -98,7 +98,7 @@ MIME-Version: 1.0
     let subenvelope = melib::Envelope::from_bytes(bytes, None).expect("Could not parse message");
     db.post(&subenvelope, bytes, /* dry_run */ false).unwrap();
     assert_eq!(db.list_subscriptions(foo_chat.pk()).unwrap().len(), 1);
-    assert_eq!(db.error_queue().unwrap().len(), 0);
+    assert_eq!(db.queue(Queue::Error).unwrap().len(), 0);
 
     let out_queue = db.queue(Queue::Out).unwrap();
     assert_eq!(out_queue.len(), 1);
@@ -138,7 +138,7 @@ MIME-Version: 1.0
     let envelope = melib::Envelope::from_bytes(unbytes, None).expect("Could not parse message");
     db.post(&envelope, unbytes, /* dry_run */ false).unwrap();
     assert_eq!(db.list_subscriptions(foo_chat.pk()).unwrap().len(), 0);
-    assert_eq!(db.error_queue().unwrap().len(), 0);
+    assert_eq!(db.queue(Queue::Error).unwrap().len(), 0);
 
     let out_queue = db.queue(Queue::Out).unwrap();
     assert_eq!(out_queue.len(), 2);
@@ -155,7 +155,7 @@ MIME-Version: 1.0
 
     db.post(&subenvelope, bytes, /* dry_run */ false).unwrap();
     assert_eq!(db.list_subscriptions(foo_chat.pk()).unwrap().len(), 1);
-    assert_eq!(db.error_queue().unwrap().len(), 0);
+    assert_eq!(db.queue(Queue::Error).unwrap().len(), 0);
 
     let out_queue = db.queue(Queue::Out).unwrap();
 

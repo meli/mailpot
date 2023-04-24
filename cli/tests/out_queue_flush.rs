@@ -156,7 +156,7 @@ fn test_out_queue_flush() {
         let out_queue = db.queue(Queue::Out).unwrap();
         assert_eq!(out_queue.len(), 2);
         assert_eq!(db.list_subscriptions(foo_chat.pk()).unwrap().len(), 2);
-        assert_eq!(db.error_queue().unwrap().len(), 0);
+        assert_eq!(db.queue(Queue::Error).unwrap().len(), 0);
     }
 
     log::info!("Flush out queue, subscription confirmations should be sent to the new users.");
@@ -340,7 +340,7 @@ fn test_list_requests_submission() {
         let out_queue = db.queue(Queue::Out).unwrap();
         assert_eq!(out_queue.len(), 1);
         assert_eq!(db.list_subscriptions(foo_chat.pk()).unwrap().len(), 0);
-        assert_eq!(db.error_queue().unwrap().len(), 0);
+        assert_eq!(db.queue(Queue::Error).unwrap().len(), 0);
     }
 
     log::info!("Flush out queue, help reply should go to Αλίκη.");

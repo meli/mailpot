@@ -65,8 +65,6 @@ mod templates;
 pub use templates::*;
 mod queue;
 pub use queue::*;
-mod error_queue;
-pub use error_queue::*;
 mod posts;
 pub use posts::*;
 mod subscriptions;

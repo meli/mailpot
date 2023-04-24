@@ -17,7 +17,7 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-use mailpot::{models::*, Configuration, Connection, SendMail};
+use mailpot::{models::*, Configuration, Connection, Queue, SendMail};
 use mailpot_tests::init_stderr_logging;
 use tempfile::TempDir;
 
@@ -65,7 +65,7 @@ fn test_list_subscription() {
         .unwrap();
 
     assert_eq!(post_policy.pk(), 1);
-    assert_eq!(db.error_queue().unwrap().len(), 0);
+    assert_eq!(db.queue(Queue::Error).unwrap().len(), 0);
     assert_eq!(db.list_subscriptions(foo_chat.pk()).unwrap().len(), 0);
 
     let mut db = db.untrusted();
@@ -96,7 +96,7 @@ eT48L2h0bWw+
         mailpot::ErrorKind::PostRejected(_reason) => {}
         other => panic!("Got unexpected error: {}", other),
     }
-    assert_eq!(db.error_queue().unwrap().len(), 1);
+    assert_eq!(db.queue(Queue::Error).unwrap().len(), 1);
 
     let input_bytes_2 = b"From: Name <user@example.com>
 To: <foo-chat+subscribe@example.com>
@@ -115,11 +115,11 @@ MIME-Version: 1.0
     db.post(&envelope, input_bytes_2, /* dry_run */ false)
         .unwrap();
     assert_eq!(db.list_subscriptions(foo_chat.pk()).unwrap().len(), 1);
-    assert_eq!(db.error_queue().unwrap().len(), 1);
+    assert_eq!(db.queue(Queue::Error).unwrap().len(), 1);
     let envelope =
         melib::Envelope::from_bytes(input_bytes_1, None).expect("Could not parse message");
     db.post(&envelope, input_bytes_1, /* dry_run */ false)
         .unwrap();
-    assert_eq!(db.error_queue().unwrap().len(), 1);
+    assert_eq!(db.queue(Queue::Error).unwrap().len(), 1);
     assert_eq!(db.list_posts(foo_chat.pk(), None).unwrap().len(), 1);
 }

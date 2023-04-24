@@ -17,7 +17,7 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-use mailpot::{melib, models::*, Configuration, Connection, SendMail};
+use mailpot::{melib, models::*, Configuration, Connection, Queue, SendMail};
 use mailpot_tests::init_stderr_logging;
 use tempfile::TempDir;
 
@@ -73,7 +73,7 @@ fn test_error_queue() {
         .unwrap();
 
     assert_eq!(post_policy.pk(), 1);
-    assert_eq!(db.error_queue().unwrap().len(), 0);
+    assert_eq!(db.queue(Queue::Error).unwrap().len(), 0);
 
     // drop privileges
     let mut db = db.untrusted();
@@ -88,5 +88,5 @@ fn test_error_queue() {
         mailpot::ErrorKind::PostRejected(_reason) => {}
         other => panic!("Got unexpected error: {}", other),
     }
-    assert_eq!(db.error_queue().unwrap().len(), 1);
+    assert_eq!(db.queue(Queue::Error).unwrap().len(), 1);
 }
