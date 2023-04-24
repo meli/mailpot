@@ -1,6 +1,6 @@
 # mailpot - mailing list manager
 
-[![Latest Version]][crates.io]&nbsp;[![docs.rs]][rustdoc]&nbsp;![Top Language]&nbsp;![License]
+[![Latest Version]][crates.io]&nbsp;[![Coverage]][grcov-rport]&nbsp;[![docs.rs]][rustdoc]&nbsp;![Top Language]&nbsp;![License]
 
 [Latest Version]: https://img.shields.io/crates/v/mailpot.svg?color=white
 [crates.io]: https://crates.io/crates/mailpot
@@ -8,6 +8,8 @@
 [License]: https://img.shields.io/github/license/meli/mailpot?color=white
 [docs.rs]: https://img.shields.io/docsrs/mailpot?color=white
 [rustdoc]: https://meli.github.io/mailpot/docs/mailpot/
+[Coverage]: https://img.shields.io/endpoint?color=white&url=https://meli.github.io/mailpot/coverage/coverage.json
+[grcov-rport]: https://meli.github.io/mailpot/coverage/
 
 - Official hosted instance of `mailpot-web` crate: <https://lists.meli.delivery/>
 - Rendered rustdoc: <https://meli.github.io/mailpot/docs/mailpot/>
