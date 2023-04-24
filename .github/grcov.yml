@@ -1,0 +1,5 @@
+ignore-not-existing: true
+branch: true
+output-type: html
+binary-path: ./target/debug/
+output-path: ./coverage/

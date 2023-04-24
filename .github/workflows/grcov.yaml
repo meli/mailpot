@@ -1,0 +1,95 @@
+name: Code coverage
+
+env:
+  RUST_BACKTRACE: 1
+  CARGO_REGISTRIES_CRATES_IO_PROTOCOL: sparse
+
+on:
+  workflow_dispatch:
+  workflow_run:
+    workflows: [Tests]
+    types: [completed]
+    branches: [main]
+
+jobs:
+  on-success:
+    runs-on: ubuntu-latest #if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    steps:
+      - uses: actions/checkout@v1
+      - id: cache-rustup
+        name: Cache Rust toolchain
+        uses: actions/cache@v3
+        with:
+          path: ~/.rustup
+          key: toolchain-grcov
+      - id: cache-cargo
+        name: Cache Cargo
+        uses: actions/cache@v3
+        with:
+          path: ~/.cargo
+          key: cargo-grcov
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: nightly
+          override: true
+      - uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: --all --all-features --no-fail-fast
+        env:
+          CARGO_INCREMENTAL: '0'
+          RUSTFLAGS: '-Zprofile -Ccodegen-units=1 -Cinline-threshold=0 -Clink-dead-code -Coverflow-checks=off -Cpanic=abort -Zpanic_abort_tests'
+          RUSTDOCFLAGS: '-Zprofile -Ccodegen-units=1 -Cinline-threshold=0 -Clink-dead-code -Coverflow-checks=off -Cpanic=abort -Zpanic_abort_tests'
+      - uses: actions-rs/grcov@v0.1
+        with:
+          config: .github/grcov.yml
+      - name: Upload report artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: report
+          path: coverage
+
+  deploy:
+    # Add a dependency to the build job
+    needs: on-success
+
+    # Grant GITHUB_TOKEN the permissions required to make a Pages deployment
+    permissions:
+      pages: write      # to deploy to Pages
+      id-token: write   # to verify the deployment originates from an appropriate source
+
+    # Deploy to the github-pages environment
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    # Specify runner + deployment step
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/checkout@v3
+        with:
+          ref: 'gh-pages'
+          token: ${{ secrets.GRCOVGHPAGES }}
+      - name: Download coverage data
+        id: download
+        uses: actions/download-artifact@v3
+        with:
+          name: report
+          path: coverage
+      - name: 'Echo download path'
+        run: echo ${{steps.download.outputs.download-path}}
+      - name: Display structure of downloaded files
+        run: ls -R
+      - name: Push
+        run: |
+          git config --global user.name 'Github Actions'
+          git config --global user.email 'actions@users.noreply.github.com'
+          git show-ref
+          git add coverage
+          git commit -m "Update grcov report"
+          git show-ref
+          git branch --verbose
+          git remote set-url origin "https://${{github.actor}}:${{ secrets.GRCOVGHPAGES }}@github.com/${{github.repository}}.git"
+          git push
