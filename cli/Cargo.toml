@@ -23,6 +23,7 @@ stderrlog = "^0.5"
 
 [dev-dependencies]
 assert_cmd = "2"
+mailpot-tests = { version = "^0.0", path = "../mailpot-tests" }
 predicates = "3"
 tempfile = "3.3"
 

@@ -17,14 +17,13 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-mod utils;
-
 use mailpot::{models::*, Configuration, Connection, SendMail};
+use mailpot_tests::init_stderr_logging;
 use tempfile::TempDir;
 
 #[test]
 fn test_init_empty() {
-    utils::init_stderr_logging();
+    init_stderr_logging();
     let tmp_dir = TempDir::new().unwrap();
 
     let db_path = tmp_dir.path().join("mpot.db");
@@ -42,7 +41,7 @@ fn test_init_empty() {
 
 #[test]
 fn test_list_creation() {
-    utils::init_stderr_logging();
+    init_stderr_logging();
     let tmp_dir = TempDir::new().unwrap();
 
     let db_path = tmp_dir.path().join("mpot.db");

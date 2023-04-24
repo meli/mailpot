@@ -24,7 +24,7 @@ toml = "^0.5"
 xdg = "2.4.1"
 
 [dev-dependencies]
-mailin-embedded = { version = "0.7", features = ["rtls"] }
+mailpot-tests = { version = "^0.0", path = "../mailpot-tests" }
 reqwest = { version = "0.11", default-features = false, features = ["json", "blocking"] }
 stderrlog = "^0.5"
 tempfile = "3.3"

@@ -1,0 +1,21 @@
+[package]
+name = "mailpot-tests"
+version = "0.0.0+2023-04-21"
+authors = ["Manos Pitsidianakis <el13635@mail.ntua.gr>"]
+edition = "2021"
+license = "LICENSE"
+readme = "README.md"
+description = "test library for mailpot crates"
+repository = "https://github.com/meli/mailpot"
+publish = false
+
+[dependencies]
+assert_cmd = "2"
+log = "0.4"
+mailin-embedded = { version = "0.7", features = ["rtls"] }
+mailpot = { version = "^0.0", path = "../core" }
+predicates = "3"
+stderrlog = "^0.5"
+tempfile = "3.3"
+
+[dev-dependencies]

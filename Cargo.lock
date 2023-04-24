@@ -1570,7 +1570,7 @@ dependencies = [
  "chrono",
  "error-chain",
  "log",
- "mailin-embedded",
+ "mailpot-tests",
  "melib",
  "minijinja",
  "reqwest",
@@ -1592,6 +1592,7 @@ dependencies = [
  "clap_mangen",
  "log",
  "mailpot",
+ "mailpot-tests",
  "predicates",
  "stderrlog",
  "tempfile",
@@ -1604,6 +1605,19 @@ dependencies = [
  "mailpot",
  "tokio",
  "warp",
+]
+
+[[package]]
+name = "mailpot-tests"
+version = "0.0.0+2023-04-21"
+dependencies = [
+ "assert_cmd",
+ "log",
+ "mailin-embedded",
+ "mailpot",
+ "predicates",
+ "stderrlog",
+ "tempfile",
 ]
 
 [[package]]

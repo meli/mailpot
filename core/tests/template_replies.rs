@@ -17,14 +17,13 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-mod utils;
-
 use mailpot::{models::*, Configuration, Connection, Queue, SendMail, Template};
+use mailpot_tests::init_stderr_logging;
 use tempfile::TempDir;
 
 #[test]
 fn test_template_replies() {
-    utils::init_stderr_logging();
+    init_stderr_logging();
 
     let tmp_dir = TempDir::new().unwrap();
 

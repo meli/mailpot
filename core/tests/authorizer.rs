@@ -17,16 +17,15 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-mod utils;
-
 use std::error::Error;
 
 use mailpot::{models::*, Configuration, Connection, SendMail};
+use mailpot_tests::init_stderr_logging;
 use tempfile::TempDir;
 
 #[test]
 fn test_authorizer() {
-    utils::init_stderr_logging();
+    init_stderr_logging();
     let tmp_dir = TempDir::new().unwrap();
 
     let db_path = tmp_dir.path().join("mpot.db");

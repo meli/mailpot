@@ -17,9 +17,8 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-mod utils;
-
 use mailpot::{melib, models::*, Configuration, Connection, SendMail};
+use mailpot_tests::init_stderr_logging;
 use tempfile::TempDir;
 
 fn get_smtp_conf() -> melib::smtp::SmtpServerConf {
@@ -36,7 +35,7 @@ fn get_smtp_conf() -> melib::smtp::SmtpServerConf {
 
 #[test]
 fn test_error_queue() {
-    utils::init_stderr_logging();
+    init_stderr_logging();
     let tmp_dir = TempDir::new().unwrap();
 
     let db_path = tmp_dir.path().join("mpot.db");

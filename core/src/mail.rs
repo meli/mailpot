@@ -153,9 +153,12 @@ impl<S: AsRef<str>> TryFrom<(S, &melib::Envelope)> for ListRequest {
     fn try_from((val, env): (S, &melib::Envelope)) -> std::result::Result<Self, Self::Error> {
         let val = val.as_ref();
         Ok(match val {
-            "subscribe" | "request" if env.subject().trim() == "subscribe" => Self::Subscribe,
-            "unsubscribe" | "request" if env.subject().trim() == "unsubscribe" => Self::Unsubscribe,
+            "subscribe" => Self::Subscribe,
+            "request" if env.subject().trim() == "subscribe" => Self::Subscribe,
+            "unsubscribe" => Self::Unsubscribe,
+            "request" if env.subject().trim() == "unsubscribe" => Self::Unsubscribe,
             "help" => Self::Help,
+            "request" if env.subject().trim() == "help" => Self::Help,
             "request" => Self::Other(env.subject().trim().to_string()),
             _ => {
                 // [ref:TODO] add ChangeSetting parsing

@@ -17,200 +17,23 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-mod utils;
-
-use std::net::IpAddr; //, Ipv4Addr, Ipv6Addr};
-use std::{
-    sync::{Arc, Mutex},
-    thread,
-};
-
 use log::{trace, warn};
-use mailin_embedded::{Handler, Response, Server, SslConfig};
-use mailpot::{melib, models::*, Configuration, Connection, Queue, SendMail};
+use mailpot::{melib, Configuration, Connection, Queue, SendMail};
+use mailpot_tests::*;
 use melib::smol;
 use tempfile::TempDir;
 
-const ADDRESS: &str = "127.0.0.1:8825";
-#[derive(Debug, Clone)]
-enum Message {
-    Helo,
-    Mail {
-        from: String,
-    },
-    Rcpt {
-        from: String,
-        to: Vec<String>,
-    },
-    DataStart {
-        from: String,
-        to: Vec<String>,
-    },
-    Data {
-        #[allow(dead_code)]
-        from: String,
-        to: Vec<String>,
-        buf: Vec<u8>,
-    },
-}
-
-#[allow(clippy::type_complexity)]
-#[derive(Debug, Clone)]
-struct MyHandler {
-    mails: Arc<Mutex<Vec<((IpAddr, String), Message)>>>,
-    stored: Arc<Mutex<Vec<(String, melib::Envelope)>>>,
-}
-use mailin_embedded::response::{INTERNAL_ERROR, OK};
-
-impl Handler for MyHandler {
-    fn helo(&mut self, ip: IpAddr, domain: &str) -> Response {
-        // eprintln!("helo ip {:?} domain {:?}", ip, domain);
-        self.mails
-            .lock()
-            .unwrap()
-            .push(((ip, domain.to_string()), Message::Helo));
-        OK
-    }
-
-    fn mail(&mut self, ip: IpAddr, domain: &str, from: &str) -> Response {
-        // eprintln!("mail() ip {:?} domain {:?} from {:?}", ip, domain, from);
-        if let Some((_, message)) = self
-            .mails
-            .lock()
-            .unwrap()
-            .iter_mut()
-            .find(|((i, d), _)| (i, d.as_str()) == (&ip, domain))
-        {
-            if let Message::Helo = message {
-                *message = Message::Mail {
-                    from: from.to_string(),
-                };
-                return OK;
-            }
-        }
-        INTERNAL_ERROR
-    }
-
-    fn rcpt(&mut self, _to: &str) -> Response {
-        // eprintln!("rcpt() to {:?}", _to);
-        if let Some((_, message)) = self.mails.lock().unwrap().last_mut() {
-            if let Message::Mail { from } = message {
-                *message = Message::Rcpt {
-                    from: from.clone(),
-                    to: vec![_to.to_string()],
-                };
-                return OK;
-            } else if let Message::Rcpt { to, .. } = message {
-                to.push(_to.to_string());
-                return OK;
-            }
-        }
-        INTERNAL_ERROR
-    }
-
-    fn data_start(
-        &mut self,
-        _domain: &str,
-        _from: &str,
-        _is8bit: bool,
-        _to: &[String],
-    ) -> Response {
-        // eprintln!( "data_start() domain {:?} from {:?} is8bit {:?} to {:?}", _domain,
-        // _from, _is8bit, _to);
-        if let Some(((_, d), ref mut message)) = self.mails.lock().unwrap().last_mut() {
-            if d != _domain {
-                return INTERNAL_ERROR;
-            }
-            if let Message::Rcpt { from, to } = message {
-                *message = Message::DataStart {
-                    from: from.to_string(),
-                    to: to.to_vec(),
-                };
-                return OK;
-            }
-        }
-        INTERNAL_ERROR
-    }
-
-    fn data(&mut self, _buf: &[u8]) -> Result<(), std::io::Error> {
-        if let Some(((_, _), ref mut message)) = self.mails.lock().unwrap().last_mut() {
-            if let Message::DataStart { from, to } = message {
-                *message = Message::Data {
-                    from: from.to_string(),
-                    to: to.clone(),
-                    buf: _buf.to_vec(),
-                };
-                return Ok(());
-            } else if let Message::Data { buf, .. } = message {
-                buf.extend(_buf.iter());
-                return Ok(());
-            }
-        }
-        Ok(())
-    }
-
-    fn data_end(&mut self) -> Response {
-        let last = self.mails.lock().unwrap().pop();
-        if let Some(((ip, domain), Message::Data { from: _, to, buf })) = last {
-            for to in to {
-                match melib::Envelope::from_bytes(&buf, None) {
-                    Ok(env) => {
-                        self.stored.lock().unwrap().push((to.clone(), env));
-                    }
-                    Err(err) => {
-                        panic!("envelope parse error {}", err);
-                    }
-                }
-            }
-            self.mails
-                .lock()
-                .unwrap()
-                .push(((ip, domain), Message::Helo));
-            return OK;
-        }
-        panic!("last self.mails item was not Message::Data: {last:?}"); //INTERNAL_ERROR
-    }
-}
-
-fn get_smtp_conf() -> melib::smtp::SmtpServerConf {
-    use melib::smtp::*;
-    SmtpServerConf {
-        hostname: "127.0.0.1".into(),
-        port: 8825,
-        envelope_from: "foo-chat@example.com".into(),
-        auth: SmtpAuth::None,
-        security: SmtpSecurity::None,
-        extensions: Default::default(),
-    }
-}
-
 #[test]
 fn test_smtp() {
-    utils::init_stderr_logging();
+    init_stderr_logging();
 
     let tmp_dir = TempDir::new().unwrap();
 
-    let handler = MyHandler {
-        mails: Arc::new(Mutex::new(vec![])),
-        stored: Arc::new(Mutex::new(vec![])),
-    };
-    let handler2 = handler.clone();
-    let _smtp_handle = thread::spawn(move || {
-        let mut server = Server::new(handler2);
-
-        server
-            .with_name("example.com")
-            .with_ssl(SslConfig::None)
-            .unwrap()
-            .with_addr(ADDRESS)
-            .unwrap();
-        eprintln!("Running smtp server at {}", ADDRESS);
-        server.serve().expect("Could not run server");
-    });
+    let smtp_handler = TestSmtpHandler::builder().address("127.0.0.1:8825").build();
 
     let db_path = tmp_dir.path().join("mpot.db");
     let config = Configuration {
-        send_mail: SendMail::Smtp(get_smtp_conf()),
+        send_mail: SendMail::Smtp(smtp_handler.smtp_conf()),
         db_path,
         data_path: tmp_dir.path().to_path_buf(),
         administrators: vec![],
@@ -313,7 +136,7 @@ fn test_smtp() {
                 .unwrap();
         }
     }));
-    let stored = handler.stored.lock().unwrap();
+    let stored = smtp_handler.stored.lock().unwrap();
     assert_eq!(stored.len(), 3);
     assert_eq!(&stored[0].0, "japoeunp@example.com");
     assert_eq!(
@@ -335,7 +158,7 @@ fn test_smtp() {
 #[test]
 fn test_smtp_mailcrab() {
     use std::env;
-    utils::init_stderr_logging();
+    init_stderr_logging();
 
     fn get_smtp_conf() -> melib::smtp::SmtpServerConf {
         use melib::smtp::*;

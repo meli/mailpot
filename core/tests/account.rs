@@ -17,14 +17,13 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-mod utils;
-
 use mailpot::{models::*, Configuration, Connection, SendMail};
+use mailpot_tests::init_stderr_logging;
 use tempfile::TempDir;
 
 #[test]
 fn test_accounts() {
-    utils::init_stderr_logging();
+    init_stderr_logging();
 
     const SSH_KEY: &[u8] = include_bytes!("./ssh_key.pub");
 

@@ -3,6 +3,7 @@ members = [
   "archive-http",
   "cli",
   "core",
+  "mailpot-tests",
   "rest-http",
   "web",
 ]

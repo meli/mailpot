@@ -286,7 +286,6 @@ impl Connection {
         let post_policy = self.list_post_policy(list.pk)?;
         match request {
             ListRequest::Help => {
-                // [ref:TODO] add test for this
                 trace!(
                     "help action for addresses {:?} in list {}",
                     env.from(),
