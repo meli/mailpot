@@ -258,3 +258,73 @@ impl Connection {
         Ok(ret)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_queue_delete_array() {
+        use tempfile::TempDir;
+
+        let tmp_dir = TempDir::new().unwrap();
+        let db_path = tmp_dir.path().join("mpot.db");
+        let config = Configuration {
+            send_mail: SendMail::ShellCommand("/usr/bin/false".to_string()),
+            db_path,
+            data_path: tmp_dir.path().to_path_buf(),
+            administrators: vec![],
+        };
+
+        let mut db = Connection::open_or_create_db(config).unwrap().trusted();
+        for i in 0..5 {
+            db.insert_to_queue(
+                QueueEntry::new(
+                    Queue::Hold,
+                    None,
+                    None,
+                    format!("Subject: testing\r\nMessage-Id: {i}@localhost\r\n\r\nHello\r\n")
+                        .as_bytes(),
+                    None,
+                )
+                .unwrap(),
+            )
+            .unwrap();
+        }
+        let entries = db.queue(Queue::Hold).unwrap();
+        assert_eq!(entries.len(), 5);
+        let out_entries = db.delete_from_queue(Queue::Out, vec![]).unwrap();
+        assert_eq!(db.queue(Queue::Hold).unwrap().len(), 5);
+        assert!(out_entries.is_empty());
+        let deleted_entries = db.delete_from_queue(Queue::Hold, vec![]).unwrap();
+        assert_eq!(deleted_entries.len(), 5);
+        assert_eq!(
+            &entries
+                .iter()
+                .cloned()
+                .map(DbVal::into_inner)
+                .map(|mut e| {
+                    e.pk = -1;
+                    e
+                })
+                .collect::<Vec<_>>(),
+            &deleted_entries
+        );
+
+        for e in deleted_entries {
+            db.insert_to_queue(e).unwrap();
+        }
+
+        let index = db
+            .queue(Queue::Hold)
+            .unwrap()
+            .into_iter()
+            .skip(2)
+            .map(|e| e.pk())
+            .take(2)
+            .collect::<Vec<i64>>();
+        let deleted_entries = db.delete_from_queue(Queue::Hold, index).unwrap();
+        assert_eq!(deleted_entries.len(), 2);
+        assert_eq!(db.queue(Queue::Hold).unwrap().len(), 3);
+    }
+}

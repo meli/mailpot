@@ -239,7 +239,7 @@ mod subscription_policy {
             Ok(ret)
         }
 
-        /// Remove an existing list policy.
+        /// Remove an existing subscription policy.
         ///
         /// ```
         /// # use mailpot::{models::*, Configuration, Connection, SendMail};
@@ -256,7 +256,7 @@ mod subscription_policy {
         ///
         /// # fn do_test(config: Configuration) {
         /// let db = Connection::open_or_create_db(config).unwrap().trusted();
-        /// let list_pk = db
+        /// let list = db
         ///     .create_list(MailingList {
         ///         pk: 0,
         ///         name: "foobar chat".into(),
@@ -265,19 +265,23 @@ mod subscription_policy {
         ///         description: None,
         ///         archive_url: None,
         ///     })
-        ///     .unwrap()
-        ///     .pk;
-        /// db.set_list_post_policy(PostPolicy {
-        ///     pk: 0,
-        ///     list: list_pk,
-        ///     announce_only: false,
-        ///     subscription_only: true,
-        ///     approval_needed: false,
-        ///     open: false,
-        ///     custom: false,
-        /// })
-        /// .unwrap();
-        /// db.remove_list_post_policy(1, 1).unwrap();
+        ///     .unwrap();
+        /// # assert!(db.list_subscription_policy(list.pk()).unwrap().is_none());
+        /// let pol = db
+        ///     .set_list_subscription_policy(SubscriptionPolicy {
+        ///         pk: -1,
+        ///         list: list.pk(),
+        ///         send_confirmation: false,
+        ///         open: true,
+        ///         manual: false,
+        ///         request: false,
+        ///         custom: false,
+        ///     })
+        ///     .unwrap();
+        /// # assert_eq!(db.list_subscription_policy(list.pk()).unwrap().as_ref(), Some(&pol));
+        /// db.remove_list_subscription_policy(list.pk(), pol.pk())
+        ///     .unwrap();
+        /// # assert!(db.list_subscription_policy(list.pk()).unwrap().is_none());
         /// # }
         /// # do_test(config);
         /// ```
