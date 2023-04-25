@@ -131,6 +131,13 @@ fn user_authorizer_callback(
 }
 
 impl Connection {
+    /// The database schema.
+    ///
+    /// ```sql
+    #[doc = include_str!("./schema.sql")]
+    /// ```
+    pub const SCHEMA: &str = include_str!("./schema.sql");
+
     /// Creates a new database connection.
     ///
     /// `Connection` supports a limited subset of operations by default (see

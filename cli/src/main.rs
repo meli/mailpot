@@ -24,15 +24,12 @@ use std::{
     process::Stdio,
 };
 
-pub use mailpot::{
-    mail::*,
+use mailpot::{
     melib::{backends::maildir::MaildirPathTrait, smol, Envelope, EnvelopeHash},
     models::{changesets::*, *},
     *,
 };
-
-mod args;
-use args::*;
+use mailpot_cli::*;
 
 macro_rules! list {
     ($db:ident, $list_id:expr) => {{

@@ -17,7 +17,14 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-use super::*;
+use std::borrow::Cow;
+
+use chrono::{Datelike, Month};
+use mailpot::{models::DbVal, *};
+use minijinja::{
+    value::{Object, Value},
+    Environment, Error, Source, State,
+};
 
 lazy_static::lazy_static! {
     pub static ref TEMPLATES: Environment<'static> = {
@@ -131,8 +138,6 @@ impl minijinja::value::StructObject for MailingList {
 }
 
 pub fn calendarize(_state: &State, args: Value, hists: Value) -> std::result::Result<Value, Error> {
-    use chrono::Month;
-
     macro_rules! month {
         ($int:expr) => {{
             let int = $int;
@@ -175,7 +180,7 @@ pub fn calendarize(_state: &State, args: Value, hists: Value) -> std::result::Re
         month => month,
         month_int => date.month() as usize,
         year => date.year(),
-        weeks => cal::calendarize_with_offset(date, 1),
+        weeks => crate::cal::calendarize_with_offset(date, 1),
         hist => hist,
         sum => sum,
     })

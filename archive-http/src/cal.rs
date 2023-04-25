@@ -31,7 +31,7 @@ use chrono::*;
 ///
 /// # Examples
 /// ```
-/// use calendarize::calendarize;
+/// use mailpot_archives::cal::calendarize;
 /// use chrono::*;
 ///
 /// let date = NaiveDate::parse_from_str("2021-01-02", "%Y-%m-%d").unwrap();
@@ -59,7 +59,7 @@ pub fn calendarize(date: NaiveDate) -> Vec<[u32; 7]> {
 ///
 /// # Examples
 /// ```
-/// use calendarize::calendarize_with_offset;
+/// use mailpot_archives::cal::calendarize_with_offset;
 /// use chrono::*;
 ///
 /// let date = NaiveDate::parse_from_str("2021-01-02", "%Y-%m-%d").unwrap();

@@ -74,7 +74,7 @@ use std::{borrow::Cow, collections::HashMap, sync::Arc};
 
 use chrono::Datelike;
 pub use http::{Request, Response, StatusCode};
-pub use mailpot::{models::DbVal, rusqlite::OptionalExtension, *};
+use mailpot::{models::DbVal, rusqlite::OptionalExtension, *};
 use minijinja::{
     value::{Object, Value},
     Environment, Error,

@@ -33,11 +33,6 @@ use mailin_embedded::{
     response::{INTERNAL_ERROR, OK},
     Handler, Response, Server,
 };
-pub use mailpot::{
-    melib::{self, smol, smtp::SmtpServerConf},
-    models::{changesets::ListSubscriptionChangeset, *},
-    Configuration, Connection, Queue, SendMail,
-};
 pub use predicates;
 pub use tempfile::{self, TempDir};
 
@@ -84,9 +79,9 @@ pub struct TestSmtpHandler {
     address: Cow<'static, str>,
     ssl: SslConfig,
     envelope_from: Cow<'static, str>,
-    auth: melib::smtp::SmtpAuth,
+    auth: mailpot::melib::smtp::SmtpAuth,
     pub messages: Arc<Mutex<Vec<((IpAddr, String), Message)>>>,
-    pub stored: Arc<Mutex<Vec<(String, melib::Envelope)>>>,
+    pub stored: Arc<Mutex<Vec<(String, mailpot::melib::Envelope)>>>,
 }
 
 impl Handler for TestSmtpHandler {
@@ -181,7 +176,7 @@ impl Handler for TestSmtpHandler {
         let last = self.messages.lock().unwrap().pop();
         if let Some(((ip, domain), Message::Data { from: _, to, buf })) = last {
             for to in to {
-                match melib::Envelope::from_bytes(&buf, None) {
+                match mailpot::melib::Envelope::from_bytes(&buf, None) {
                     Ok(env) => {
                         self.stored.lock().unwrap().push((to.clone(), env));
                     }
@@ -202,8 +197,8 @@ impl Handler for TestSmtpHandler {
 
 impl TestSmtpHandler {
     #[inline]
-    pub fn smtp_conf(&self) -> melib::smtp::SmtpServerConf {
-        use melib::smtp::*;
+    pub fn smtp_conf(&self) -> mailpot::melib::smtp::SmtpServerConf {
+        use mailpot::melib::smtp::*;
         let sockaddr = self
             .address
             .as_ref()
@@ -234,7 +229,7 @@ impl TestSmtpHandler {
 pub struct TestSmtpHandlerBuilder {
     address: Cow<'static, str>,
     ssl: SslConfig,
-    auth: melib::smtp::SmtpAuth,
+    auth: mailpot::melib::smtp::SmtpAuth,
     envelope_from: Cow<'static, str>,
 }
 
@@ -243,7 +238,7 @@ impl TestSmtpHandlerBuilder {
         Self {
             address: ADDRESS.into(),
             ssl: SslConfig::None,
-            auth: melib::smtp::SmtpAuth::None,
+            auth: mailpot::melib::smtp::SmtpAuth::None,
             envelope_from: "foo-chat@example.com".into(),
         }
     }

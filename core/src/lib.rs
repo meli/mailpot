@@ -48,6 +48,18 @@
 
 //! Mailing list manager library.
 //!
+//! Data is stored in a `sqlite3` database.
+//! You can inspect the schema in [`SCHEMA`](crate::Connection::SCHEMA).
+//!
+//! # Usage
+//!
+//! `mailpot` can be used with the CLI tool in [`mailpot-cli`](mailpot-cli),
+//! and/or in the web interface of the [`mailpot-web`](mailpot-web) crate.
+//!
+//! You can also directly use this crate as a library.
+//!
+//! # Example
+//!
 //! ```
 //! use mailpot::{models::*, Configuration, Connection, SendMail};
 //! # use tempfile::TempDir;

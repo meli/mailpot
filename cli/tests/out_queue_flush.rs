@@ -21,6 +21,7 @@
 
 use assert_cmd::assert::OutputAssertExt;
 use mailpot::{
+    melib,
     models::{changesets::ListSubscriptionChangeset, *},
     Configuration, Connection, Queue, SendMail,
 };

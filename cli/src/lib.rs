@@ -17,7 +17,7 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-use std::path::PathBuf;
+pub use std::path::PathBuf;
 
 pub use clap::{Args, CommandFactory, Parser, Subcommand};
 

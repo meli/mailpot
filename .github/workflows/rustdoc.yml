@@ -1,4 +1,4 @@
-name: Code coverage
+name: Build rustdoc for Github Pages
 
 env:
   RUST_BACKTRACE: 1
@@ -6,14 +6,10 @@ env:
 
 on:
   workflow_dispatch:
-  workflow_run:
-    workflows: [Tests]
-    types: [completed]
-    branches: [main]
 
 jobs:
-  on-success:
-    runs-on: ubuntu-latest #if: ${{ github.event.workflow_run.conclusion == 'success' }}
+  build-docs:
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v1
       - id: cache-rustup
@@ -32,38 +28,28 @@ jobs:
         with:
           toolchain: nightly
           override: true
-      - uses: actions-rs/cargo@v1
-        with:
-          command: test
-          args: --all --all-features --no-fail-fast
-        env:
-          CARGO_INCREMENTAL: '0'
-          RUSTFLAGS: '-Zprofile -Ccodegen-units=1 -Cinline-threshold=0 -Clink-dead-code -Coverflow-checks=off -Cpanic=abort -Zpanic_abort_tests'
-          RUSTDOCFLAGS: '-Zprofile -Ccodegen-units=1 -Cinline-threshold=0 -Clink-dead-code -Coverflow-checks=off -Cpanic=abort -Zpanic_abort_tests'
-      - uses: actions-rs/grcov@v0.1
-        with:
-          config: .github/grcov.yml
+      - name: Make rustdocs
+        run: |
+          make rustdoc
+          rm -rf docs
+          ls -R
+          mv target/doc docs
       - name: Upload report artifacts
         uses: actions/upload-artifact@v3
         with:
-          name: report
-          path: coverage
+          name: docs
+          path: docs
 
-  deploy:
-    # Add a dependency to the build job
-    needs: on-success
-
-    # Grant GITHUB_TOKEN the permissions required to make a Pages deployment
+  deploy-docs:
+    needs: build-docs
     permissions:
-      pages: write      # to deploy to Pages
-      id-token: write   # to verify the deployment originates from an appropriate source
+      pages: write
+      id-token: write
 
-    # Deploy to the github-pages environment
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
 
-    # Specify runner + deployment step
     runs-on: ubuntu-latest
     steps:
       - name: Deploy to GitHub Pages
@@ -72,12 +58,12 @@ jobs:
         with:
           ref: 'gh-pages'
           token: ${{ secrets.GRCOVGHPAGES }}
-      - name: Download coverage data
+      - name: Download docs
         id: download
         uses: actions/download-artifact@v3
         with:
-          name: report
-          path: coverage
+          name: docs
+          path: docs
       - name: 'Echo download path'
         run: echo ${{steps.download.outputs.download-path}}
       - name: Display structure of downloaded files
@@ -87,8 +73,8 @@ jobs:
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
           git show-ref
-          git add coverage
-          git commit -m "Update grcov report"
+          git add docs
+          git commit -m "Update rustdoc"
           git show-ref
           git branch --verbose
           git remote set-url origin "https://${{github.actor}}:${{ secrets.GRCOVGHPAGES }}@github.com/${{github.repository}}.git"

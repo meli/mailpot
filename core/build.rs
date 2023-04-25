@@ -29,6 +29,12 @@ fn main() {
         .arg("./src/schema.sql.m4")
         .output()
         .unwrap();
+    if String::from_utf8_lossy(&output.stdout).trim().is_empty() {
+        panic!(
+            "m4 output is empty. stderr was {}",
+            String::from_utf8_lossy(&output.stderr)
+        );
+    }
     let mut verify = Command::new("sqlite3")
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())

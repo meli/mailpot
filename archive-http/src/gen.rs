@@ -17,19 +17,11 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-use chrono::Datelike;
+use std::{fs::OpenOptions, io::Write};
 
-mod cal;
-mod utils;
-
-use std::{borrow::Cow, fs::OpenOptions, io::Write};
-
-pub use mailpot::{models::DbVal, *};
-use minijinja::{
-    value::{Object, Value},
-    Environment, Error, Source, State,
-};
-use utils::*;
+use mailpot::*;
+use mailpot_archives::utils::*;
+use minijinja::value::Value;
 
 fn run_app() -> std::result::Result<(), Box<dyn std::error::Error>> {
     let args = std::env::args().collect::<Vec<_>>();

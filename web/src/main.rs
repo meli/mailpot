@@ -19,6 +19,7 @@
 
 use std::{collections::HashMap, sync::Arc};
 
+use mailpot::{Configuration, Connection};
 use mailpot_web::*;
 use minijinja::value::Value;
 use rand::Rng;

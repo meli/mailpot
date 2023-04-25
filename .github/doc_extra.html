@@ -1,0 +1,97 @@
+<style>
+.rustdoc { flex-wrap: wrap; }
+@media (prefers-color-scheme: light) {
+    :root {
+        --border-primary: #cdcdcd;
+        --border-secondary: #cdcdcd;
+        --a-normal-text: #034575;
+        --a-normal-underline: #bbb;
+        --a-visited-underline: #707070;
+        --a-hover-bg: #bfbfbf40;
+        --a-active-text: #c00;
+        --a-active-underline: #c00;
+        --accent-primary: #0085f2;
+        --accent-primary-engage: #0085f21a;
+        --accent-secondary: #0085f2;
+        --accent-tertiary: #0085f21a;
+        color-scheme: light;
+    }
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --border-primary: #858585;
+        --border-secondary: #696969;
+        --a-normal-text: #4db4ff;
+        --a-normal-underline: #8b8b8b;
+        --a-visited-underline: #707070;
+        --a-hover-bg: #bfbfbf40;
+        --a-active-text: #c00;
+        --a-active-underline: #c00;
+        --accent-primary: #5e9eff;
+        --accent-primary-engage: #5e9eff1a;
+        --accent-secondary: #5e9eff;
+        --accent-tertiary: #0085f21a;
+        color-scheme: dark;
+    }
+}
+
+nav.main-nav {
+  padding: 0rem 1rem;
+  border: 0.1rem solid var(--border-secondary);
+  border-left: none;
+  border-right: none;
+  border-radius: 2px;
+  padding: 10px 14px 10px 10px;
+  margin-bottom: 10px;
+  /*! width: 100%; */
+  height: max-content;
+  width: 100vw;
+}
+
+nav.main-nav * {
+  padding: 0;
+  margin: 0;
+}
+
+nav.main-nav > ul {
+  display: flex;
+  flex-wrap: wrap;
+  row-gap: 1rem;
+  list-style: none;
+}
+
+nav.main-nav > ul > li > a {
+  padding: 1rem;
+}
+nav.main-nav a[href] {
+  text-decoration: underline;
+    text-decoration-color: currentcolor;
+  color: #034575;
+  color: var(--a-normal-text);
+  text-decoration-color: #707070;
+  text-decoration-color: var(--accent-secondary);
+  text-decoration-skip-ink: none;
+  font-synthesis: none;
+font-feature-settings: "onum" 1;
+text-rendering: optimizeLegibility;
+font-family: -apple-system,BlinkMacSystemFont,Roboto,Roboto Slab,Droid Serif,Segoe UI,system-ui,Arial,sans-serif;
+font-size: 1.125em;
+}
+nav.main-nav > ul > li > a:hover {
+  outline: 0.1rem solid;
+  outline-offset: -0.5rem;
+}
+a[href]:focus, a[href]:hover {
+  text-decoration-thickness: 2px;
+  text-decoration-skip-ink: none;
+}
+</style>
+<nav class="main-nav">
+  <ul>
+    <li><a href="https://git.meli.delivery/meli/mailpot">Gitea Repository</a></li>
+    <li><a href="https://github.com/meli/mailpot">Github Repository</a></li>
+    <li><a href="https://lists.meli.delivery/">Official Instance</a></li>
+    <li><a href="https://meli.github.io/mailpot/lists/2/">Static Demo</a></li>
+  </ul>
+</nav>

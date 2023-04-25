@@ -27,10 +27,10 @@ use clap::ArgAction;
 use clap_mangen::{roff, Man};
 use roff::{bold, italic, roman, Inline, Roff};
 
-include!("src/args.rs");
+include!("src/lib.rs");
 
 fn main() -> std::io::Result<()> {
-    println!("cargo:rerun-if-changed=./src/args.rs");
+    println!("cargo:rerun-if-changed=./src/lib.rs");
     println!("cargo:rerun-if-changed=./build.rs");
     std::env::set_current_dir("..").expect("could not chdir('..')");
 

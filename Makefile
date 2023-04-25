@@ -21,3 +21,7 @@ lint:
 .PHONY: test
 test: check lint
 	@cargo test --all --no-fail-fast --all-features
+
+.PHONY: rustdoc
+rustdoc:
+	@RUSTDOCFLAGS="--html-before-content ./.github/doc_extra.html" cargo doc --workspace --all-features --no-deps --document-private-items

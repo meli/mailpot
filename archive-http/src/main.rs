@@ -17,20 +17,10 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-use chrono::Datelike;
-
-mod cal;
-mod utils;
-
-use std::borrow::Cow;
-
-pub use mailpot::{models::DbVal, *};
-use minijinja::{
-    value::{Object, Value},
-    Environment, Error, Source, State,
-};
+use mailpot::*;
+use mailpot_archives::utils::*;
+use minijinja::value::Value;
 use percent_encoding::percent_decode_str;
-use utils::*;
 use warp::Filter;
 
 #[tokio::main]
