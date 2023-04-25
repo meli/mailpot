@@ -2,8 +2,12 @@ define(xor, `(($1) OR ($2)) AND NOT (($1) AND ($2))')dnl
 define(BOOLEAN_TYPE, `$1 BOOLEAN CHECK ($1 in (0, 1)) NOT NULL')dnl
 define(BOOLEAN_FALSE, `0')dnl
 define(BOOLEAN_TRUE, `1')dnl
-define(update_last_modified, `CREATE TRIGGER IF NOT EXISTS last_modified_$1 AFTER UPDATE ON $1
+define(__TAG, `tag')dnl # Write the string '['+'tag'+':'+... with a macro so that tagref check doesn't pick up on it as a duplicate.
+define(TAG, `['__TAG()`:$1]')dnl
+define(update_last_modified, `-- 'TAG(last_modified_$1)` update last_modified on every change.
+CREATE TRIGGER IF NOT EXISTS last_modified_$1 AFTER UPDATE ON $1
 FOR EACH ROW
+WHEN NEW.last_modified != OLD.last_modified
 BEGIN
   UPDATE $1 SET last_modified = unixepoch()
   WHERE pk = NEW.pk;
@@ -189,6 +193,7 @@ CREATE INDEX IF NOT EXISTS post_msgid_idx ON post(message_id);
 CREATE INDEX IF NOT EXISTS list_idx ON list(id);
 CREATE INDEX IF NOT EXISTS subscription_idx ON subscription(address);
 
+-- TAG(accept_candidate): Update candidacy with 'subscription' foreign key on 'subscription' insert.
 CREATE TRIGGER IF NOT EXISTS accept_candidate AFTER INSERT ON subscription
 FOR EACH ROW
 BEGIN
@@ -196,13 +201,17 @@ BEGIN
   WHERE candidate_subscription.list = NEW.list AND candidate_subscription.address = NEW.address;
 END;
 
-CREATE TRIGGER IF NOT EXISTS verify_candidate AFTER INSERT ON subscription
+-- TAG(verify_subscription_email): If list settings require e-mail to be verified,
+-- update new subscription's 'verify' column value.
+CREATE TRIGGER IF NOT EXISTS verify_subscription_email AFTER INSERT ON subscription
 FOR EACH ROW
 BEGIN
   UPDATE subscription SET verified = BOOLEAN_FALSE(), last_modified = unixepoch()
   WHERE subscription.pk = NEW.pk AND EXISTS (SELECT 1 FROM list WHERE pk = NEW.list AND verify = BOOLEAN_TRUE());
 END;
 
+-- TAG(add_account): Update list subscription entries with 'account' foreign
+-- key, if addresses match.
 CREATE TRIGGER IF NOT EXISTS add_account AFTER INSERT ON account
 FOR EACH ROW
 BEGIN
@@ -210,14 +219,17 @@ BEGIN
   WHERE subscription.address = NEW.address;
 END;
 
+-- TAG(add_account_to_subscription): When adding a new 'subscription', auto
+-- set 'account' value if there already exists an 'account' entry with the same
+-- address.
 CREATE TRIGGER IF NOT EXISTS add_account_to_subscription AFTER INSERT ON subscription
 FOR EACH ROW
+WHEN NEW.account IS NULL AND EXISTS (SELECT 1 FROM account WHERE address = NEW.address)
 BEGIN
   UPDATE subscription
-     SET account = acc.pk,
+     SET account = (SELECT pk FROM account WHERE address = NEW.address),
          last_modified = unixepoch()
-    FROM (SELECT * FROM account) AS acc
-    WHERE subscription.account = acc.address;
+    WHERE subscription.pk = NEW.pk;
 END;
 
 update_last_modified(`list')

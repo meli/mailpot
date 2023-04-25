@@ -179,6 +179,7 @@ CREATE INDEX IF NOT EXISTS post_msgid_idx ON post(message_id);
 CREATE INDEX IF NOT EXISTS list_idx ON list(id);
 CREATE INDEX IF NOT EXISTS subscription_idx ON subscription(address);
 
+-- [tag:accept_candidate]: Update candidacy with 'subscription' foreign key on 'subscription' insert.
 CREATE TRIGGER IF NOT EXISTS accept_candidate AFTER INSERT ON subscription
 FOR EACH ROW
 BEGIN
@@ -186,13 +187,17 @@ BEGIN
   WHERE candidate_subscription.list = NEW.list AND candidate_subscription.address = NEW.address;
 END;
 
-CREATE TRIGGER IF NOT EXISTS verify_candidate AFTER INSERT ON subscription
+-- [tag:verify_subscription_email]: If list settings require e-mail to be verified,
+-- update new subscription's 'verify' column value.
+CREATE TRIGGER IF NOT EXISTS verify_subscription_email AFTER INSERT ON subscription
 FOR EACH ROW
 BEGIN
   UPDATE subscription SET verified = 0, last_modified = unixepoch()
   WHERE subscription.pk = NEW.pk AND EXISTS (SELECT 1 FROM list WHERE pk = NEW.list AND verify = 1);
 END;
 
+-- [tag:add_account]: Update list subscription entries with 'account' foreign
+-- key, if addresses match.
 CREATE TRIGGER IF NOT EXISTS add_account AFTER INSERT ON account
 FOR EACH ROW
 BEGIN
@@ -200,67 +205,86 @@ BEGIN
   WHERE subscription.address = NEW.address;
 END;
 
+-- [tag:add_account_to_subscription]: When adding a new 'subscription', auto
+-- set 'account' value if there already exists an 'account' entry with the same
+-- address.
 CREATE TRIGGER IF NOT EXISTS add_account_to_subscription AFTER INSERT ON subscription
 FOR EACH ROW
+WHEN NEW.account IS NULL AND EXISTS (SELECT 1 FROM account WHERE address = NEW.address)
 BEGIN
   UPDATE subscription
-     SET account = acc.pk,
+     SET account = (SELECT pk FROM account WHERE address = NEW.address),
          last_modified = unixepoch()
-    FROM (SELECT * FROM account) AS acc
-    WHERE subscription.account = acc.address;
+    WHERE subscription.pk = NEW.pk;
 END;
 
+-- [tag:last_modified_list] update last_modified on every change.
 CREATE TRIGGER IF NOT EXISTS last_modified_list AFTER UPDATE ON list
 FOR EACH ROW
+WHEN NEW.last_modified != OLD.last_modified
 BEGIN
   UPDATE list SET last_modified = unixepoch()
   WHERE pk = NEW.pk;
 END;
 
+-- [tag:last_modified_owner] update last_modified on every change.
 CREATE TRIGGER IF NOT EXISTS last_modified_owner AFTER UPDATE ON owner
 FOR EACH ROW
+WHEN NEW.last_modified != OLD.last_modified
 BEGIN
   UPDATE owner SET last_modified = unixepoch()
   WHERE pk = NEW.pk;
 END;
 
+-- [tag:last_modified_post_policy] update last_modified on every change.
 CREATE TRIGGER IF NOT EXISTS last_modified_post_policy AFTER UPDATE ON post_policy
 FOR EACH ROW
+WHEN NEW.last_modified != OLD.last_modified
 BEGIN
   UPDATE post_policy SET last_modified = unixepoch()
   WHERE pk = NEW.pk;
 END;
 
+-- [tag:last_modified_subscription_policy] update last_modified on every change.
 CREATE TRIGGER IF NOT EXISTS last_modified_subscription_policy AFTER UPDATE ON subscription_policy
 FOR EACH ROW
+WHEN NEW.last_modified != OLD.last_modified
 BEGIN
   UPDATE subscription_policy SET last_modified = unixepoch()
   WHERE pk = NEW.pk;
 END;
 
+-- [tag:last_modified_subscription] update last_modified on every change.
 CREATE TRIGGER IF NOT EXISTS last_modified_subscription AFTER UPDATE ON subscription
 FOR EACH ROW
+WHEN NEW.last_modified != OLD.last_modified
 BEGIN
   UPDATE subscription SET last_modified = unixepoch()
   WHERE pk = NEW.pk;
 END;
 
+-- [tag:last_modified_account] update last_modified on every change.
 CREATE TRIGGER IF NOT EXISTS last_modified_account AFTER UPDATE ON account
 FOR EACH ROW
+WHEN NEW.last_modified != OLD.last_modified
 BEGIN
   UPDATE account SET last_modified = unixepoch()
   WHERE pk = NEW.pk;
 END;
 
+-- [tag:last_modified_candidate_subscription] update last_modified on every change.
 CREATE TRIGGER IF NOT EXISTS last_modified_candidate_subscription AFTER UPDATE ON candidate_subscription
 FOR EACH ROW
+WHEN NEW.last_modified != OLD.last_modified
 BEGIN
   UPDATE candidate_subscription SET last_modified = unixepoch()
   WHERE pk = NEW.pk;
 END;
 
+-- [tag:last_modified_templates] update last_modified on every change.
 CREATE TRIGGER IF NOT EXISTS last_modified_templates AFTER UPDATE ON templates
 FOR EACH ROW
+WHEN NEW.last_modified != OLD.last_modified
 BEGIN
   UPDATE templates SET last_modified = unixepoch()
   WHERE pk = NEW.pk;

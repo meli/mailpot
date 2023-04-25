@@ -134,7 +134,7 @@ impl Connection {
                  receive_confirmation) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING *;",
             )
             .unwrap();
-        let ret = stmt.query_row(
+        let val = stmt.query_row(
             rusqlite::params![
                 &new_val.list,
                 &new_val.address,
@@ -169,14 +169,14 @@ impl Connection {
                 ))
             },
         )?;
-
-        trace!("add_subscription {:?}.", &ret);
-        Ok(ret)
+        trace!("add_subscription {:?}.", &val);
+        // table entry might be modified by triggers, so don't rely on RETURNING value.
+        self.list_subscription(list_pk, val.pk())
     }
 
     /// Create subscription candidate.
     pub fn add_candidate_subscription(
-        &mut self,
+        &self,
         list_pk: i64,
         mut new_val: ListSubscription,
     ) -> Result<DbVal<ListCandidateSubscription>> {
@@ -185,7 +185,7 @@ impl Connection {
             "INSERT INTO candidate_subscription(list, address, name, accepted) VALUES(?, ?, ?, ?) \
              RETURNING *;",
         )?;
-        let ret = stmt.query_row(
+        let val = stmt.query_row(
             rusqlite::params![&new_val.list, &new_val.address, &new_val.name, None::<i64>,],
             |row| {
                 let pk = row.get("pk")?;
@@ -203,47 +203,79 @@ impl Connection {
         )?;
         drop(stmt);
 
-        trace!("add_candidate_subscription {:?}.", &ret);
-        Ok(ret)
+        trace!("add_candidate_subscription {:?}.", &val);
+        // table entry might be modified by triggers, so don't rely on RETURNING value.
+        self.candidate_subscription(val.pk())
+    }
+
+    /// Fetch subscription candidate by primary key.
+    pub fn candidate_subscription(&self, pk: i64) -> Result<DbVal<ListCandidateSubscription>> {
+        let mut stmt = self
+            .connection
+            .prepare("SELECT * FROM candidate_subscription WHERE pk = ?;")?;
+        let val = stmt
+            .query_row(rusqlite::params![&pk], |row| {
+                let _pk: i64 = row.get("pk")?;
+                debug_assert_eq!(pk, _pk);
+                Ok(DbVal(
+                    ListCandidateSubscription {
+                        pk,
+                        list: row.get("list")?,
+                        address: row.get("address")?,
+                        name: row.get("name")?,
+                        accepted: row.get("accepted")?,
+                    },
+                    pk,
+                ))
+            })
+            .map_err(|err| {
+                if matches!(err, rusqlite::Error::QueryReturnedNoRows) {
+                    Error::from(err)
+                        .chain_err(|| NotFound("Candidate subscription with this pk not found!"))
+                } else {
+                    err.into()
+                }
+            })?;
+
+        Ok(val)
     }
 
     /// Accept subscription candidate.
     pub fn accept_candidate_subscription(&mut self, pk: i64) -> Result<DbVal<ListSubscription>> {
-        let tx = self.connection.transaction()?;
-        let mut stmt = tx.prepare(
+        let val = self.connection.query_row(
             "INSERT INTO subscription(list, address, name, enabled, digest, verified, \
              hide_address, receive_duplicates, receive_own_posts, receive_confirmation) SELECT \
              list, address, name, 1, 0, 0, 0, 1, 1, 0 FROM candidate_subscription WHERE pk = ? \
              RETURNING *;",
-        )?;
-        let ret = stmt.query_row(rusqlite::params![&pk], |row| {
-            let pk = row.get("pk")?;
-            Ok(DbVal(
-                ListSubscription {
+            rusqlite::params![&pk],
+            |row| {
+                let pk = row.get("pk")?;
+                Ok(DbVal(
+                    ListSubscription {
+                        pk,
+                        list: row.get("list")?,
+                        address: row.get("address")?,
+                        account: row.get("account")?,
+                        name: row.get("name")?,
+                        digest: row.get("digest")?,
+                        enabled: row.get("enabled")?,
+                        verified: row.get("verified")?,
+                        hide_address: row.get("hide_address")?,
+                        receive_duplicates: row.get("receive_duplicates")?,
+                        receive_own_posts: row.get("receive_own_posts")?,
+                        receive_confirmation: row.get("receive_confirmation")?,
+                    },
                     pk,
-                    list: row.get("list")?,
-                    address: row.get("address")?,
-                    account: row.get("account")?,
-                    name: row.get("name")?,
-                    digest: row.get("digest")?,
-                    enabled: row.get("enabled")?,
-                    verified: row.get("verified")?,
-                    hide_address: row.get("hide_address")?,
-                    receive_duplicates: row.get("receive_duplicates")?,
-                    receive_own_posts: row.get("receive_own_posts")?,
-                    receive_confirmation: row.get("receive_confirmation")?,
-                },
-                pk,
-            ))
-        })?;
-        drop(stmt);
-        tx.execute(
-            "UPDATE candidate_subscription SET accepted = ? WHERE pk = ?;",
-            [&ret.pk, &pk],
+                ))
+            },
         )?;
-        tx.commit()?;
 
-        trace!("accept_candidate_subscription {:?}.", &ret);
+        trace!("accept_candidate_subscription {:?}.", &val);
+        // table entry might be modified by triggers, so don't rely on RETURNING value.
+        let ret = self.list_subscription(val.list, val.pk())?;
+
+        // assert that [ref:accept_candidate] trigger works.
+        debug_assert_eq!(Some(ret.pk), self.candidate_subscription(pk)?.accepted);
         Ok(ret)
     }
 
@@ -551,5 +583,188 @@ impl Connection {
 
         tx.commit()?;
         Ok(())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_subscription_ops() {
+        use tempfile::TempDir;
+
+        let tmp_dir = TempDir::new().unwrap();
+        let db_path = tmp_dir.path().join("mpot.db");
+        let config = Configuration {
+            send_mail: SendMail::ShellCommand("/usr/bin/false".to_string()),
+            db_path,
+            data_path: tmp_dir.path().to_path_buf(),
+            administrators: vec![],
+        };
+
+        let mut db = Connection::open_or_create_db(config).unwrap().trusted();
+        let list = db
+            .create_list(MailingList {
+                pk: -1,
+                name: "foobar chat".into(),
+                id: "foo-chat".into(),
+                address: "foo-chat@example.com".into(),
+                description: None,
+                archive_url: None,
+            })
+            .unwrap();
+        let secondary_list = db
+            .create_list(MailingList {
+                pk: -1,
+                name: "foobar chat2".into(),
+                id: "foo-chat2".into(),
+                address: "foo-chat2@example.com".into(),
+                description: None,
+                archive_url: None,
+            })
+            .unwrap();
+        for i in 0..4 {
+            let sub = db
+                .add_subscription(
+                    list.pk(),
+                    ListSubscription {
+                        pk: -1,
+                        list: list.pk(),
+                        address: format!("{i}@example.com"),
+                        account: None,
+                        name: Some(format!("User{i}")),
+                        digest: false,
+                        hide_address: false,
+                        receive_duplicates: false,
+                        receive_own_posts: false,
+                        receive_confirmation: false,
+                        enabled: true,
+                        verified: false,
+                    },
+                )
+                .unwrap();
+            assert_eq!(db.list_subscription(list.pk(), sub.pk()).unwrap(), sub);
+            assert_eq!(
+                db.list_subscription_by_address(list.pk(), &sub.address)
+                    .unwrap(),
+                sub
+            );
+        }
+
+        assert_eq!(db.accounts().unwrap(), vec![]);
+        assert_eq!(
+            db.remove_subscription(list.pk(), "nonexistent@example.com")
+                .map_err(|err| err.to_string())
+                .unwrap_err(),
+            NotFound("list or list owner not found!").to_string()
+        );
+
+        let cand = db
+            .add_candidate_subscription(
+                list.pk(),
+                ListSubscription {
+                    pk: -1,
+                    list: list.pk(),
+                    address: "4@example.com".into(),
+                    account: None,
+                    name: Some("User4".into()),
+                    digest: false,
+                    hide_address: false,
+                    receive_duplicates: false,
+                    receive_own_posts: false,
+                    receive_confirmation: false,
+                    enabled: true,
+                    verified: false,
+                },
+            )
+            .unwrap();
+        let accepted = db.accept_candidate_subscription(cand.pk()).unwrap();
+
+        assert_eq!(db.account(5).unwrap(), None);
+        assert_eq!(
+            db.remove_account("4@example.com")
+                .map_err(|err| err.to_string())
+                .unwrap_err(),
+            NotFound("account not found!").to_string()
+        );
+
+        let acc = db
+            .add_account(Account {
+                pk: -1,
+                name: accepted.name.clone(),
+                address: accepted.address.clone(),
+                public_key: None,
+                password: String::new(),
+                enabled: true,
+            })
+            .unwrap();
+
+        // Test [ref:add_account] SQL trigger (see schema.sql)
+        assert_eq!(
+            db.list_subscription(list.pk(), accepted.pk())
+                .unwrap()
+                .account,
+            Some(acc.pk())
+        );
+        // Test [ref:add_account_to_subscription] SQL trigger (see schema.sql)
+        let sub = db
+            .add_subscription(
+                secondary_list.pk(),
+                ListSubscription {
+                    pk: -1,
+                    list: secondary_list.pk(),
+                    address: "4@example.com".into(),
+                    account: None,
+                    name: Some("User4".into()),
+                    digest: false,
+                    hide_address: false,
+                    receive_duplicates: false,
+                    receive_own_posts: false,
+                    receive_confirmation: false,
+                    enabled: true,
+                    verified: true,
+                },
+            )
+            .unwrap();
+        assert_eq!(sub.account, Some(acc.pk()));
+        // Test [ref:verify_subscription_email] SQL trigger (see schema.sql)
+        assert!(!sub.verified);
+
+        assert_eq!(db.accounts().unwrap(), vec![acc.clone()]);
+
+        assert_eq!(
+            db.update_account(AccountChangeset {
+                address: "nonexistent@example.com".into(),
+                ..AccountChangeset::default()
+            })
+            .map_err(|err| err.to_string())
+            .unwrap_err(),
+            NotFound("account with this address not found!").to_string()
+        );
+        assert_eq!(
+            db.update_account(AccountChangeset {
+                address: acc.address.clone(),
+                ..AccountChangeset::default()
+            })
+            .map_err(|err| err.to_string()),
+            Ok(())
+        );
+        assert_eq!(
+            db.update_account(AccountChangeset {
+                address: acc.address.clone(),
+                enabled: Some(Some(false)),
+                ..AccountChangeset::default()
+            })
+            .map_err(|err| err.to_string()),
+            Ok(())
+        );
+        assert!(!db.account(acc.pk()).unwrap().unwrap().enabled);
+        assert_eq!(
+            db.remove_account("4@example.com")
+                .map_err(|err| err.to_string()),
+            Ok(())
+        );
+        assert_eq!(db.accounts().unwrap(), vec![]);
     }
 }
