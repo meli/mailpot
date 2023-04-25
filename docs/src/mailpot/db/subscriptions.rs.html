@@ -1,4 +1,102 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/src/db/subscriptions.rs`."><title>subscriptions.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-c4dbdcde0fbd8430.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-db279b6232be9c13.css"><link rel="stylesheet" disabled href="../../../static.files/dark-cf923f49f397b216.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-be46fdc453a55015.css"><script src="../../../static.files/storage-3891ce972e3a2bf8.js"></script><script defer src="../../../static.files/source-script-1b95b7cca98b26e5.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-98a684e84ae5b08b.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../mailpot/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/src/db/subscriptions.rs`."><title>subscriptions.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-ba5701c5741a7b69.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="mailpot" data-themes="" data-resource-suffix="" data-rustdoc-version="1.71.0-nightly (f5559e338 2023-04-24)" data-search-js="search-618e954b235f6acc.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-6f6ffb5395b17c6e.css" data-theme-light-css="light-0f8c037637f9eb3e.css" data-theme-dark-css="dark-1097f8e92a01e3cf.css" data-theme-ayu-css="ayu-614652228113ac93.css" ></div><script src="../../../static.files/storage-62ce34ea385b278a.js"></script><script defer src="../../../static.files/source-script-11255107d0a65077.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-f0540c1d82cde29b.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../../static.files/light-0f8c037637f9eb3e.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../../static.files/dark-1097f8e92a01e3cf.css"><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><style>
+.rustdoc { flex-wrap: wrap; }
+@media (prefers-color-scheme: light) {
+    :root {
+        --border-primary: #cdcdcd;
+        --border-secondary: #cdcdcd;
+        --a-normal-text: #034575;
+        --a-normal-underline: #bbb;
+        --a-visited-underline: #707070;
+        --a-hover-bg: #bfbfbf40;
+        --a-active-text: #c00;
+        --a-active-underline: #c00;
+        --accent-primary: #0085f2;
+        --accent-primary-engage: #0085f21a;
+        --accent-secondary: #0085f2;
+        --accent-tertiary: #0085f21a;
+        color-scheme: light;
+    }
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --border-primary: #858585;
+        --border-secondary: #696969;
+        --a-normal-text: #4db4ff;
+        --a-normal-underline: #8b8b8b;
+        --a-visited-underline: #707070;
+        --a-hover-bg: #bfbfbf40;
+        --a-active-text: #c00;
+        --a-active-underline: #c00;
+        --accent-primary: #5e9eff;
+        --accent-primary-engage: #5e9eff1a;
+        --accent-secondary: #5e9eff;
+        --accent-tertiary: #0085f21a;
+        color-scheme: dark;
+    }
+}
+
+nav.main-nav {
+  padding: 0rem 1rem;
+  border: 0.1rem solid var(--border-secondary);
+  border-left: none;
+  border-right: none;
+  border-radius: 2px;
+  padding: 10px 14px 10px 10px;
+  margin-bottom: 10px;
+  /*! width: 100%; */
+  height: max-content;
+  width: 100vw;
+}
+
+nav.main-nav * {
+  padding: 0;
+  margin: 0;
+}
+
+nav.main-nav > ul {
+  display: flex;
+  flex-wrap: wrap;
+  row-gap: 1rem;
+  list-style: none;
+}
+
+nav.main-nav > ul > li > a {
+  padding: 1rem;
+}
+nav.main-nav a[href] {
+  text-decoration: underline;
+    text-decoration-color: currentcolor;
+  color: #034575;
+  color: var(--a-normal-text);
+  text-decoration-color: #707070;
+  text-decoration-color: var(--accent-secondary);
+  text-decoration-skip-ink: none;
+  font-synthesis: none;
+font-feature-settings: "onum" 1;
+text-rendering: optimizeLegibility;
+font-family: -apple-system,BlinkMacSystemFont,Roboto,Roboto Slab,Droid Serif,Segoe UI,system-ui,Arial,sans-serif;
+font-size: 1.125em;
+}
+nav.main-nav > ul > li > a:hover {
+  outline: 0.1rem solid;
+  outline-offset: -0.5rem;
+}
+a[href]:focus, a[href]:hover {
+  text-decoration-thickness: 2px;
+  text-decoration-skip-ink: none;
+}
+</style>
+<nav class="main-nav">
+  <ul>
+    <li><a href="https://git.meli.delivery/meli/mailpot">Gitea Repository</a></li>
+    <li><a href="https://github.com/meli/mailpot">Github Repository</a></li>
+    <li><a href="https://lists.meli.delivery/">Official Instance</a></li>
+    <li><a href="https://meli.github.io/mailpot/lists/2/">Static Demo</a></li>
+  </ul>
+</nav>
+
+<nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../mailpot/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -553,7 +651,222 @@
 <a href="#553" id="553">553</a>
 <a href="#554" id="554">554</a>
 <a href="#555" id="555">555</a>
-</pre><pre class="rust"><code><span class="comment">/*
+<a href="#556" id="556">556</a>
+<a href="#557" id="557">557</a>
+<a href="#558" id="558">558</a>
+<a href="#559" id="559">559</a>
+<a href="#560" id="560">560</a>
+<a href="#561" id="561">561</a>
+<a href="#562" id="562">562</a>
+<a href="#563" id="563">563</a>
+<a href="#564" id="564">564</a>
+<a href="#565" id="565">565</a>
+<a href="#566" id="566">566</a>
+<a href="#567" id="567">567</a>
+<a href="#568" id="568">568</a>
+<a href="#569" id="569">569</a>
+<a href="#570" id="570">570</a>
+<a href="#571" id="571">571</a>
+<a href="#572" id="572">572</a>
+<a href="#573" id="573">573</a>
+<a href="#574" id="574">574</a>
+<a href="#575" id="575">575</a>
+<a href="#576" id="576">576</a>
+<a href="#577" id="577">577</a>
+<a href="#578" id="578">578</a>
+<a href="#579" id="579">579</a>
+<a href="#580" id="580">580</a>
+<a href="#581" id="581">581</a>
+<a href="#582" id="582">582</a>
+<a href="#583" id="583">583</a>
+<a href="#584" id="584">584</a>
+<a href="#585" id="585">585</a>
+<a href="#586" id="586">586</a>
+<a href="#587" id="587">587</a>
+<a href="#588" id="588">588</a>
+<a href="#589" id="589">589</a>
+<a href="#590" id="590">590</a>
+<a href="#591" id="591">591</a>
+<a href="#592" id="592">592</a>
+<a href="#593" id="593">593</a>
+<a href="#594" id="594">594</a>
+<a href="#595" id="595">595</a>
+<a href="#596" id="596">596</a>
+<a href="#597" id="597">597</a>
+<a href="#598" id="598">598</a>
+<a href="#599" id="599">599</a>
+<a href="#600" id="600">600</a>
+<a href="#601" id="601">601</a>
+<a href="#602" id="602">602</a>
+<a href="#603" id="603">603</a>
+<a href="#604" id="604">604</a>
+<a href="#605" id="605">605</a>
+<a href="#606" id="606">606</a>
+<a href="#607" id="607">607</a>
+<a href="#608" id="608">608</a>
+<a href="#609" id="609">609</a>
+<a href="#610" id="610">610</a>
+<a href="#611" id="611">611</a>
+<a href="#612" id="612">612</a>
+<a href="#613" id="613">613</a>
+<a href="#614" id="614">614</a>
+<a href="#615" id="615">615</a>
+<a href="#616" id="616">616</a>
+<a href="#617" id="617">617</a>
+<a href="#618" id="618">618</a>
+<a href="#619" id="619">619</a>
+<a href="#620" id="620">620</a>
+<a href="#621" id="621">621</a>
+<a href="#622" id="622">622</a>
+<a href="#623" id="623">623</a>
+<a href="#624" id="624">624</a>
+<a href="#625" id="625">625</a>
+<a href="#626" id="626">626</a>
+<a href="#627" id="627">627</a>
+<a href="#628" id="628">628</a>
+<a href="#629" id="629">629</a>
+<a href="#630" id="630">630</a>
+<a href="#631" id="631">631</a>
+<a href="#632" id="632">632</a>
+<a href="#633" id="633">633</a>
+<a href="#634" id="634">634</a>
+<a href="#635" id="635">635</a>
+<a href="#636" id="636">636</a>
+<a href="#637" id="637">637</a>
+<a href="#638" id="638">638</a>
+<a href="#639" id="639">639</a>
+<a href="#640" id="640">640</a>
+<a href="#641" id="641">641</a>
+<a href="#642" id="642">642</a>
+<a href="#643" id="643">643</a>
+<a href="#644" id="644">644</a>
+<a href="#645" id="645">645</a>
+<a href="#646" id="646">646</a>
+<a href="#647" id="647">647</a>
+<a href="#648" id="648">648</a>
+<a href="#649" id="649">649</a>
+<a href="#650" id="650">650</a>
+<a href="#651" id="651">651</a>
+<a href="#652" id="652">652</a>
+<a href="#653" id="653">653</a>
+<a href="#654" id="654">654</a>
+<a href="#655" id="655">655</a>
+<a href="#656" id="656">656</a>
+<a href="#657" id="657">657</a>
+<a href="#658" id="658">658</a>
+<a href="#659" id="659">659</a>
+<a href="#660" id="660">660</a>
+<a href="#661" id="661">661</a>
+<a href="#662" id="662">662</a>
+<a href="#663" id="663">663</a>
+<a href="#664" id="664">664</a>
+<a href="#665" id="665">665</a>
+<a href="#666" id="666">666</a>
+<a href="#667" id="667">667</a>
+<a href="#668" id="668">668</a>
+<a href="#669" id="669">669</a>
+<a href="#670" id="670">670</a>
+<a href="#671" id="671">671</a>
+<a href="#672" id="672">672</a>
+<a href="#673" id="673">673</a>
+<a href="#674" id="674">674</a>
+<a href="#675" id="675">675</a>
+<a href="#676" id="676">676</a>
+<a href="#677" id="677">677</a>
+<a href="#678" id="678">678</a>
+<a href="#679" id="679">679</a>
+<a href="#680" id="680">680</a>
+<a href="#681" id="681">681</a>
+<a href="#682" id="682">682</a>
+<a href="#683" id="683">683</a>
+<a href="#684" id="684">684</a>
+<a href="#685" id="685">685</a>
+<a href="#686" id="686">686</a>
+<a href="#687" id="687">687</a>
+<a href="#688" id="688">688</a>
+<a href="#689" id="689">689</a>
+<a href="#690" id="690">690</a>
+<a href="#691" id="691">691</a>
+<a href="#692" id="692">692</a>
+<a href="#693" id="693">693</a>
+<a href="#694" id="694">694</a>
+<a href="#695" id="695">695</a>
+<a href="#696" id="696">696</a>
+<a href="#697" id="697">697</a>
+<a href="#698" id="698">698</a>
+<a href="#699" id="699">699</a>
+<a href="#700" id="700">700</a>
+<a href="#701" id="701">701</a>
+<a href="#702" id="702">702</a>
+<a href="#703" id="703">703</a>
+<a href="#704" id="704">704</a>
+<a href="#705" id="705">705</a>
+<a href="#706" id="706">706</a>
+<a href="#707" id="707">707</a>
+<a href="#708" id="708">708</a>
+<a href="#709" id="709">709</a>
+<a href="#710" id="710">710</a>
+<a href="#711" id="711">711</a>
+<a href="#712" id="712">712</a>
+<a href="#713" id="713">713</a>
+<a href="#714" id="714">714</a>
+<a href="#715" id="715">715</a>
+<a href="#716" id="716">716</a>
+<a href="#717" id="717">717</a>
+<a href="#718" id="718">718</a>
+<a href="#719" id="719">719</a>
+<a href="#720" id="720">720</a>
+<a href="#721" id="721">721</a>
+<a href="#722" id="722">722</a>
+<a href="#723" id="723">723</a>
+<a href="#724" id="724">724</a>
+<a href="#725" id="725">725</a>
+<a href="#726" id="726">726</a>
+<a href="#727" id="727">727</a>
+<a href="#728" id="728">728</a>
+<a href="#729" id="729">729</a>
+<a href="#730" id="730">730</a>
+<a href="#731" id="731">731</a>
+<a href="#732" id="732">732</a>
+<a href="#733" id="733">733</a>
+<a href="#734" id="734">734</a>
+<a href="#735" id="735">735</a>
+<a href="#736" id="736">736</a>
+<a href="#737" id="737">737</a>
+<a href="#738" id="738">738</a>
+<a href="#739" id="739">739</a>
+<a href="#740" id="740">740</a>
+<a href="#741" id="741">741</a>
+<a href="#742" id="742">742</a>
+<a href="#743" id="743">743</a>
+<a href="#744" id="744">744</a>
+<a href="#745" id="745">745</a>
+<a href="#746" id="746">746</a>
+<a href="#747" id="747">747</a>
+<a href="#748" id="748">748</a>
+<a href="#749" id="749">749</a>
+<a href="#750" id="750">750</a>
+<a href="#751" id="751">751</a>
+<a href="#752" id="752">752</a>
+<a href="#753" id="753">753</a>
+<a href="#754" id="754">754</a>
+<a href="#755" id="755">755</a>
+<a href="#756" id="756">756</a>
+<a href="#757" id="757">757</a>
+<a href="#758" id="758">758</a>
+<a href="#759" id="759">759</a>
+<a href="#760" id="760">760</a>
+<a href="#761" id="761">761</a>
+<a href="#762" id="762">762</a>
+<a href="#763" id="763">763</a>
+<a href="#764" id="764">764</a>
+<a href="#765" id="765">765</a>
+<a href="#766" id="766">766</a>
+<a href="#767" id="767">767</a>
+<a href="#768" id="768">768</a>
+<a href="#769" id="769">769</a>
+<a href="#770" id="770">770</a>
+</pre></div><pre class="rust"><code><span class="comment">/*
  * This file is part of mailpot
  *
  * Copyright 2020 - Manos Pitsidianakis
@@ -689,7 +1002,7 @@
                  receive_confirmation) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING *;&quot;</span>,
             )
             .unwrap();
-        <span class="kw">let </span>ret = stmt.query_row(
+        <span class="kw">let </span>val = stmt.query_row(
             <span class="macro">rusqlite::params!</span>[
                 <span class="kw-2">&amp;</span>new_val.list,
                 <span class="kw-2">&amp;</span>new_val.address,
@@ -724,14 +1037,14 @@
                 ))
             },
         )<span class="question-mark">?</span>;
-
-        <span class="macro">trace!</span>(<span class="string">&quot;add_subscription {:?}.&quot;</span>, <span class="kw-2">&amp;</span>ret);
-        <span class="prelude-val">Ok</span>(ret)
+        <span class="macro">trace!</span>(<span class="string">&quot;add_subscription {:?}.&quot;</span>, <span class="kw-2">&amp;</span>val);
+        <span class="comment">// table entry might be modified by triggers, so don&#39;t rely on RETURNING value.
+        </span><span class="self">self</span>.list_subscription(list_pk, val.pk())
     }
 
     <span class="doccomment">/// Create subscription candidate.
     </span><span class="kw">pub fn </span>add_candidate_subscription(
-        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
         list_pk: i64,
         <span class="kw-2">mut </span>new_val: ListSubscription,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;DbVal&lt;ListCandidateSubscription&gt;&gt; {
@@ -740,7 +1053,7 @@
             <span class="string">&quot;INSERT INTO candidate_subscription(list, address, name, accepted) VALUES(?, ?, ?, ?) \
              RETURNING *;&quot;</span>,
         )<span class="question-mark">?</span>;
-        <span class="kw">let </span>ret = stmt.query_row(
+        <span class="kw">let </span>val = stmt.query_row(
             <span class="macro">rusqlite::params!</span>[<span class="kw-2">&amp;</span>new_val.list, <span class="kw-2">&amp;</span>new_val.address, <span class="kw-2">&amp;</span>new_val.name, <span class="prelude-val">None</span>::&lt;i64&gt;,],
             |row| {
                 <span class="kw">let </span>pk = row.get(<span class="string">&quot;pk&quot;</span>)<span class="question-mark">?</span>;
@@ -758,47 +1071,79 @@
         )<span class="question-mark">?</span>;
         drop(stmt);
 
-        <span class="macro">trace!</span>(<span class="string">&quot;add_candidate_subscription {:?}.&quot;</span>, <span class="kw-2">&amp;</span>ret);
-        <span class="prelude-val">Ok</span>(ret)
+        <span class="macro">trace!</span>(<span class="string">&quot;add_candidate_subscription {:?}.&quot;</span>, <span class="kw-2">&amp;</span>val);
+        <span class="comment">// table entry might be modified by triggers, so don&#39;t rely on RETURNING value.
+        </span><span class="self">self</span>.candidate_subscription(val.pk())
+    }
+
+    <span class="doccomment">/// Fetch subscription candidate by primary key.
+    </span><span class="kw">pub fn </span>candidate_subscription(<span class="kw-2">&amp;</span><span class="self">self</span>, pk: i64) -&gt; <span class="prelude-ty">Result</span>&lt;DbVal&lt;ListCandidateSubscription&gt;&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>stmt = <span class="self">self
+            </span>.connection
+            .prepare(<span class="string">&quot;SELECT * FROM candidate_subscription WHERE pk = ?;&quot;</span>)<span class="question-mark">?</span>;
+        <span class="kw">let </span>val = stmt
+            .query_row(<span class="macro">rusqlite::params!</span>[<span class="kw-2">&amp;</span>pk], |row| {
+                <span class="kw">let </span>_pk: i64 = row.get(<span class="string">&quot;pk&quot;</span>)<span class="question-mark">?</span>;
+                <span class="macro">debug_assert_eq!</span>(pk, _pk);
+                <span class="prelude-val">Ok</span>(DbVal(
+                    ListCandidateSubscription {
+                        pk,
+                        list: row.get(<span class="string">&quot;list&quot;</span>)<span class="question-mark">?</span>,
+                        address: row.get(<span class="string">&quot;address&quot;</span>)<span class="question-mark">?</span>,
+                        name: row.get(<span class="string">&quot;name&quot;</span>)<span class="question-mark">?</span>,
+                        accepted: row.get(<span class="string">&quot;accepted&quot;</span>)<span class="question-mark">?</span>,
+                    },
+                    pk,
+                ))
+            })
+            .map_err(|err| {
+                <span class="kw">if </span><span class="macro">matches!</span>(err, rusqlite::Error::QueryReturnedNoRows) {
+                    Error::from(err)
+                        .chain_err(|| NotFound(<span class="string">&quot;Candidate subscription with this pk not found!&quot;</span>))
+                } <span class="kw">else </span>{
+                    err.into()
+                }
+            })<span class="question-mark">?</span>;
+
+        <span class="prelude-val">Ok</span>(val)
     }
 
     <span class="doccomment">/// Accept subscription candidate.
     </span><span class="kw">pub fn </span>accept_candidate_subscription(<span class="kw-2">&amp;mut </span><span class="self">self</span>, pk: i64) -&gt; <span class="prelude-ty">Result</span>&lt;DbVal&lt;ListSubscription&gt;&gt; {
-        <span class="kw">let </span>tx = <span class="self">self</span>.connection.transaction()<span class="question-mark">?</span>;
-        <span class="kw">let </span><span class="kw-2">mut </span>stmt = tx.prepare(
+        <span class="kw">let </span>val = <span class="self">self</span>.connection.query_row(
             <span class="string">&quot;INSERT INTO subscription(list, address, name, enabled, digest, verified, \
              hide_address, receive_duplicates, receive_own_posts, receive_confirmation) SELECT \
              list, address, name, 1, 0, 0, 0, 1, 1, 0 FROM candidate_subscription WHERE pk = ? \
              RETURNING *;&quot;</span>,
-        )<span class="question-mark">?</span>;
-        <span class="kw">let </span>ret = stmt.query_row(<span class="macro">rusqlite::params!</span>[<span class="kw-2">&amp;</span>pk], |row| {
-            <span class="kw">let </span>pk = row.get(<span class="string">&quot;pk&quot;</span>)<span class="question-mark">?</span>;
-            <span class="prelude-val">Ok</span>(DbVal(
-                ListSubscription {
+            <span class="macro">rusqlite::params!</span>[<span class="kw-2">&amp;</span>pk],
+            |row| {
+                <span class="kw">let </span>pk = row.get(<span class="string">&quot;pk&quot;</span>)<span class="question-mark">?</span>;
+                <span class="prelude-val">Ok</span>(DbVal(
+                    ListSubscription {
+                        pk,
+                        list: row.get(<span class="string">&quot;list&quot;</span>)<span class="question-mark">?</span>,
+                        address: row.get(<span class="string">&quot;address&quot;</span>)<span class="question-mark">?</span>,
+                        account: row.get(<span class="string">&quot;account&quot;</span>)<span class="question-mark">?</span>,
+                        name: row.get(<span class="string">&quot;name&quot;</span>)<span class="question-mark">?</span>,
+                        digest: row.get(<span class="string">&quot;digest&quot;</span>)<span class="question-mark">?</span>,
+                        enabled: row.get(<span class="string">&quot;enabled&quot;</span>)<span class="question-mark">?</span>,
+                        verified: row.get(<span class="string">&quot;verified&quot;</span>)<span class="question-mark">?</span>,
+                        hide_address: row.get(<span class="string">&quot;hide_address&quot;</span>)<span class="question-mark">?</span>,
+                        receive_duplicates: row.get(<span class="string">&quot;receive_duplicates&quot;</span>)<span class="question-mark">?</span>,
+                        receive_own_posts: row.get(<span class="string">&quot;receive_own_posts&quot;</span>)<span class="question-mark">?</span>,
+                        receive_confirmation: row.get(<span class="string">&quot;receive_confirmation&quot;</span>)<span class="question-mark">?</span>,
+                    },
                     pk,
-                    list: row.get(<span class="string">&quot;list&quot;</span>)<span class="question-mark">?</span>,
-                    address: row.get(<span class="string">&quot;address&quot;</span>)<span class="question-mark">?</span>,
-                    account: row.get(<span class="string">&quot;account&quot;</span>)<span class="question-mark">?</span>,
-                    name: row.get(<span class="string">&quot;name&quot;</span>)<span class="question-mark">?</span>,
-                    digest: row.get(<span class="string">&quot;digest&quot;</span>)<span class="question-mark">?</span>,
-                    enabled: row.get(<span class="string">&quot;enabled&quot;</span>)<span class="question-mark">?</span>,
-                    verified: row.get(<span class="string">&quot;verified&quot;</span>)<span class="question-mark">?</span>,
-                    hide_address: row.get(<span class="string">&quot;hide_address&quot;</span>)<span class="question-mark">?</span>,
-                    receive_duplicates: row.get(<span class="string">&quot;receive_duplicates&quot;</span>)<span class="question-mark">?</span>,
-                    receive_own_posts: row.get(<span class="string">&quot;receive_own_posts&quot;</span>)<span class="question-mark">?</span>,
-                    receive_confirmation: row.get(<span class="string">&quot;receive_confirmation&quot;</span>)<span class="question-mark">?</span>,
-                },
-                pk,
-            ))
-        })<span class="question-mark">?</span>;
-        drop(stmt);
-        tx.execute(
-            <span class="string">&quot;UPDATE candidate_subscription SET accepted = ? WHERE pk = ?;&quot;</span>,
-            [<span class="kw-2">&amp;</span>ret.pk, <span class="kw-2">&amp;</span>pk],
+                ))
+            },
         )<span class="question-mark">?</span>;
-        tx.commit()<span class="question-mark">?</span>;
 
-        <span class="macro">trace!</span>(<span class="string">&quot;accept_candidate_subscription {:?}.&quot;</span>, <span class="kw-2">&amp;</span>ret);
+        <span class="macro">trace!</span>(<span class="string">&quot;accept_candidate_subscription {:?}.&quot;</span>, <span class="kw-2">&amp;</span>val);
+        <span class="comment">// table entry might be modified by triggers, so don&#39;t rely on RETURNING value.
+        </span><span class="kw">let </span>ret = <span class="self">self</span>.list_subscription(val.list, val.pk())<span class="question-mark">?</span>;
+
+        <span class="comment">// assert that [ref:accept_candidate] trigger works.
+        </span><span class="macro">debug_assert_eq!</span>(<span class="prelude-val">Some</span>(ret.pk), <span class="self">self</span>.candidate_subscription(pk)<span class="question-mark">?</span>.accepted);
         <span class="prelude-val">Ok</span>(ret)
     }
 
@@ -1108,5 +1453,187 @@
         <span class="prelude-val">Ok</span>(())
     }
 }
-</code></pre></div>
-</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="mailpot" data-themes="" data-resource-suffix="" data-rustdoc-version="1.69.0 (84c898d65 2023-04-16)" data-search-js="search-8a59a8356673ec1f.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-0bcba95ff279c1db.css" ></div></body></html>
+
+<span class="attr">#[cfg(test)]
+</span><span class="kw">mod </span>tests {
+    <span class="kw">use super</span>::<span class="kw-2">*</span>;
+
+    <span class="attr">#[test]
+    </span><span class="kw">fn </span>test_subscription_ops() {
+        <span class="kw">use </span>tempfile::TempDir;
+
+        <span class="kw">let </span>tmp_dir = TempDir::new().unwrap();
+        <span class="kw">let </span>db_path = tmp_dir.path().join(<span class="string">&quot;mpot.db&quot;</span>);
+        <span class="kw">let </span>config = Configuration {
+            send_mail: SendMail::ShellCommand(<span class="string">&quot;/usr/bin/false&quot;</span>.to_string()),
+            db_path,
+            data_path: tmp_dir.path().to_path_buf(),
+            administrators: <span class="macro">vec!</span>[],
+        };
+
+        <span class="kw">let </span><span class="kw-2">mut </span>db = Connection::open_or_create_db(config).unwrap().trusted();
+        <span class="kw">let </span>list = db
+            .create_list(MailingList {
+                pk: -<span class="number">1</span>,
+                name: <span class="string">&quot;foobar chat&quot;</span>.into(),
+                id: <span class="string">&quot;foo-chat&quot;</span>.into(),
+                address: <span class="string">&quot;foo-chat@example.com&quot;</span>.into(),
+                description: <span class="prelude-val">None</span>,
+                archive_url: <span class="prelude-val">None</span>,
+            })
+            .unwrap();
+        <span class="kw">let </span>secondary_list = db
+            .create_list(MailingList {
+                pk: -<span class="number">1</span>,
+                name: <span class="string">&quot;foobar chat2&quot;</span>.into(),
+                id: <span class="string">&quot;foo-chat2&quot;</span>.into(),
+                address: <span class="string">&quot;foo-chat2@example.com&quot;</span>.into(),
+                description: <span class="prelude-val">None</span>,
+                archive_url: <span class="prelude-val">None</span>,
+            })
+            .unwrap();
+        <span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..<span class="number">4 </span>{
+            <span class="kw">let </span>sub = db
+                .add_subscription(
+                    list.pk(),
+                    ListSubscription {
+                        pk: -<span class="number">1</span>,
+                        list: list.pk(),
+                        address: <span class="macro">format!</span>(<span class="string">&quot;{i}@example.com&quot;</span>),
+                        account: <span class="prelude-val">None</span>,
+                        name: <span class="prelude-val">Some</span>(<span class="macro">format!</span>(<span class="string">&quot;User{i}&quot;</span>)),
+                        digest: <span class="bool-val">false</span>,
+                        hide_address: <span class="bool-val">false</span>,
+                        receive_duplicates: <span class="bool-val">false</span>,
+                        receive_own_posts: <span class="bool-val">false</span>,
+                        receive_confirmation: <span class="bool-val">false</span>,
+                        enabled: <span class="bool-val">true</span>,
+                        verified: <span class="bool-val">false</span>,
+                    },
+                )
+                .unwrap();
+            <span class="macro">assert_eq!</span>(db.list_subscription(list.pk(), sub.pk()).unwrap(), sub);
+            <span class="macro">assert_eq!</span>(
+                db.list_subscription_by_address(list.pk(), <span class="kw-2">&amp;</span>sub.address)
+                    .unwrap(),
+                sub
+            );
+        }
+
+        <span class="macro">assert_eq!</span>(db.accounts().unwrap(), <span class="macro">vec!</span>[]);
+        <span class="macro">assert_eq!</span>(
+            db.remove_subscription(list.pk(), <span class="string">&quot;nonexistent@example.com&quot;</span>)
+                .map_err(|err| err.to_string())
+                .unwrap_err(),
+            NotFound(<span class="string">&quot;list or list owner not found!&quot;</span>).to_string()
+        );
+
+        <span class="kw">let </span>cand = db
+            .add_candidate_subscription(
+                list.pk(),
+                ListSubscription {
+                    pk: -<span class="number">1</span>,
+                    list: list.pk(),
+                    address: <span class="string">&quot;4@example.com&quot;</span>.into(),
+                    account: <span class="prelude-val">None</span>,
+                    name: <span class="prelude-val">Some</span>(<span class="string">&quot;User4&quot;</span>.into()),
+                    digest: <span class="bool-val">false</span>,
+                    hide_address: <span class="bool-val">false</span>,
+                    receive_duplicates: <span class="bool-val">false</span>,
+                    receive_own_posts: <span class="bool-val">false</span>,
+                    receive_confirmation: <span class="bool-val">false</span>,
+                    enabled: <span class="bool-val">true</span>,
+                    verified: <span class="bool-val">false</span>,
+                },
+            )
+            .unwrap();
+        <span class="kw">let </span>accepted = db.accept_candidate_subscription(cand.pk()).unwrap();
+
+        <span class="macro">assert_eq!</span>(db.account(<span class="number">5</span>).unwrap(), <span class="prelude-val">None</span>);
+        <span class="macro">assert_eq!</span>(
+            db.remove_account(<span class="string">&quot;4@example.com&quot;</span>)
+                .map_err(|err| err.to_string())
+                .unwrap_err(),
+            NotFound(<span class="string">&quot;account not found!&quot;</span>).to_string()
+        );
+
+        <span class="kw">let </span>acc = db
+            .add_account(Account {
+                pk: -<span class="number">1</span>,
+                name: accepted.name.clone(),
+                address: accepted.address.clone(),
+                public_key: <span class="prelude-val">None</span>,
+                password: String::new(),
+                enabled: <span class="bool-val">true</span>,
+            })
+            .unwrap();
+
+        <span class="comment">// Test [ref:add_account] SQL trigger (see schema.sql)
+        </span><span class="macro">assert_eq!</span>(
+            db.list_subscription(list.pk(), accepted.pk())
+                .unwrap()
+                .account,
+            <span class="prelude-val">Some</span>(acc.pk())
+        );
+        <span class="comment">// Test [ref:add_account_to_subscription] SQL trigger (see schema.sql)
+        </span><span class="kw">let </span>sub = db
+            .add_subscription(
+                secondary_list.pk(),
+                ListSubscription {
+                    pk: -<span class="number">1</span>,
+                    list: secondary_list.pk(),
+                    address: <span class="string">&quot;4@example.com&quot;</span>.into(),
+                    account: <span class="prelude-val">None</span>,
+                    name: <span class="prelude-val">Some</span>(<span class="string">&quot;User4&quot;</span>.into()),
+                    digest: <span class="bool-val">false</span>,
+                    hide_address: <span class="bool-val">false</span>,
+                    receive_duplicates: <span class="bool-val">false</span>,
+                    receive_own_posts: <span class="bool-val">false</span>,
+                    receive_confirmation: <span class="bool-val">false</span>,
+                    enabled: <span class="bool-val">true</span>,
+                    verified: <span class="bool-val">true</span>,
+                },
+            )
+            .unwrap();
+        <span class="macro">assert_eq!</span>(sub.account, <span class="prelude-val">Some</span>(acc.pk()));
+        <span class="comment">// Test [ref:verify_subscription_email] SQL trigger (see schema.sql)
+        </span><span class="macro">assert!</span>(!sub.verified);
+
+        <span class="macro">assert_eq!</span>(db.accounts().unwrap(), <span class="macro">vec!</span>[acc.clone()]);
+
+        <span class="macro">assert_eq!</span>(
+            db.update_account(AccountChangeset {
+                address: <span class="string">&quot;nonexistent@example.com&quot;</span>.into(),
+                ..AccountChangeset::default()
+            })
+            .map_err(|err| err.to_string())
+            .unwrap_err(),
+            NotFound(<span class="string">&quot;account with this address not found!&quot;</span>).to_string()
+        );
+        <span class="macro">assert_eq!</span>(
+            db.update_account(AccountChangeset {
+                address: acc.address.clone(),
+                ..AccountChangeset::default()
+            })
+            .map_err(|err| err.to_string()),
+            <span class="prelude-val">Ok</span>(())
+        );
+        <span class="macro">assert_eq!</span>(
+            db.update_account(AccountChangeset {
+                address: acc.address.clone(),
+                enabled: <span class="prelude-val">Some</span>(<span class="prelude-val">Some</span>(<span class="bool-val">false</span>)),
+                ..AccountChangeset::default()
+            })
+            .map_err(|err| err.to_string()),
+            <span class="prelude-val">Ok</span>(())
+        );
+        <span class="macro">assert!</span>(!db.account(acc.pk()).unwrap().unwrap().enabled);
+        <span class="macro">assert_eq!</span>(
+            db.remove_account(<span class="string">&quot;4@example.com&quot;</span>)
+                .map_err(|err| err.to_string()),
+            <span class="prelude-val">Ok</span>(())
+        );
+        <span class="macro">assert_eq!</span>(db.accounts().unwrap(), <span class="macro">vec!</span>[]);
+    }
+}
+</code></pre></div></section></main></body></html>

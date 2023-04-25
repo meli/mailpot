@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"constant":["ADDRESS"],"enum":["Message","SslConfig"],"fn":["init_stderr_logging"],"macro":["trace","warn"],"static":["INIT_STDERR_LOGGING"],"struct":["TempDir","TestSmtpHandler","TestSmtpHandlerBuilder"]};

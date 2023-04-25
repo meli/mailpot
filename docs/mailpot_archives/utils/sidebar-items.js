@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["__stability","__static_ref_initialize","calendarize"],"struct":["Crumb","MailingList","TEMPLATES"],"trait":["StripCarets"]};

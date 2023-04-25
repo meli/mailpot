@@ -1,1 +1,1 @@
-window.ALL_CRATES = ["mailpot","mailpot_web","mpot","mpot_gen","mpot_http","mpot_web"];
+window.ALL_CRATES = ["mailpot","mailpot_archives","mailpot_cli","mailpot_http","mailpot_tests","mailpot_web","mpot","mpot_archives","mpot_gen","mpot_http","mpot_web"];

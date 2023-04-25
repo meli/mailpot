@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":["log_callback","user_authorizer_callback"],"macro":["update"],"mod":["error_queue","policies","posts","queue","subscriptions","templates"],"static":["INIT_SQLITE_LOGGING"],"struct":["Connection"]};
+window.SIDEBAR_ITEMS = {"fn":["log_callback","user_authorizer_callback"],"macro":["update"],"mod":["policies","posts","queue","subscriptions","templates"],"static":["INIT_SQLITE_LOGGING"],"struct":["Connection"]};
