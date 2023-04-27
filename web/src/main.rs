@@ -62,6 +62,8 @@ async fn main() {
         .route("/", get(root))
         .typed_get(list)
         .typed_get(list_post)
+        .typed_get(post_raw)
+        .typed_get(post_eml)
         .typed_get(list_edit.layer(RequireAuth::login_with_role_or_redirect(
             Role::User..,
             Arc::clone(&login_url),

@@ -79,6 +79,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
     }
 
+    compressed.write_all(b"&[")?;
     for (name, template_path) in templates {
         let mut templ = OpenOptions::new()
             .write(false)
@@ -98,6 +99,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         compressed.write_all(format!("{:?}", compressed_bytes).as_bytes())?;
         compressed.write_all(b"),")?;
     }
+    compressed.write_all(b"]")?;
 
     commit_sha();
     Ok(())

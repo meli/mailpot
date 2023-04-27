@@ -37,6 +37,7 @@ lazy_static::lazy_static! {
             }
         }
         add!(function calendarize,
+            strip_carets,
             login_path,
             logout_path,
             settings_path,
@@ -44,7 +45,9 @@ lazy_static::lazy_static! {
             list_path,
             list_settings_path,
             list_edit_path,
-            list_post_path
+            list_post_path,
+            post_raw_path,
+            post_eml_path
         );
         add!(filter pluralize);
         #[cfg(not(feature = "zstd"))]
@@ -380,4 +383,17 @@ pub fn pluralize(
         (true, _, None) => "s".into(),
         (true, _, Some(suffix)) => suffix.into(),
     })
+}
+
+pub fn strip_carets(_state: &minijinja::State, arg: Value) -> std::result::Result<Value, Error> {
+    Ok(Value::from(
+        arg.as_str()
+            .ok_or_else(|| {
+                minijinja::Error::new(
+                    minijinja::ErrorKind::InvalidOperation,
+                    format!("argument to strip_carets() is of type {}", arg.kind()),
+                )
+            })?
+            .strip_carets(),
+    ))
 }

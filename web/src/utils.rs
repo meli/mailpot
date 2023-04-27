@@ -212,3 +212,202 @@ where
         .map(|s| Value::from_safe_string(s.to_string()))
         .serialize(ser)
 }
+
+pub struct ThreadEntry {
+    pub hash: melib::EnvelopeHash,
+    pub depth: usize,
+    pub thread_node: melib::ThreadNodeHash,
+    pub thread: melib::ThreadHash,
+    pub from: String,
+    pub message_id: String,
+    pub timestamp: u64,
+    pub datetime: String,
+}
+
+pub fn thread_db(
+    db: &mailpot::Connection,
+    list: i64,
+    root: &str,
+) -> Vec<(i64, DbVal<mailpot::models::Post>, String, String)> {
+    let mut stmt = db
+        .connection
+        .prepare(
+            "WITH RECURSIVE cte_replies AS MATERIALIZED
+            (
+                SELECT
+                pk,
+                message_id,
+                REPLACE(
+                    TRIM(
+                        SUBSTR(
+                            CAST(message AS TEXT),
+                            INSTR(
+                                CAST(message AS TEXT),
+                                'In-Reply-To: '
+                            )
+                            +
+                            LENGTH('in-reply-to: '),
+                            INSTR(
+                                SUBSTR(
+                                    CAST(message AS TEXT),
+                                    INSTR(
+                                        CAST(message AS TEXT),
+                                        'In-Reply-To: ')
+                                        +
+                                        LENGTH('in-reply-to: ')
+                                ),
+                                '>'
+                            )
+                        )
+                    ),
+                    ' ',
+                    ''
+                ) AS in_reply_to,
+                INSTR(
+                    CAST(message AS TEXT),
+                    'In-Reply-To: '
+                ) AS offset
+                FROM post
+                WHERE
+                    offset > 0
+                UNION
+                SELECT
+                pk,
+                message_id,
+                NULL AS in_reply_to,
+                INSTR(
+                    CAST(message AS TEXT),
+                    'In-Reply-To: '
+                ) AS offset
+                FROM post
+                WHERE
+                offset = 0
+            ),
+            cte_thread(parent, root, depth) AS (
+              SELECT DISTINCT
+                message_id AS parent,
+                message_id AS root,
+                0 AS depth
+              FROM cte_replies
+              WHERE
+                in_reply_to IS NULL
+              UNION ALL
+              SELECT
+                t.message_id AS parent,
+                cte_thread.root AS root,
+                (cte_thread.depth + 1) AS depth
+              FROM cte_replies
+              AS t
+              JOIN
+              cte_thread
+              ON cte_thread.parent = t.in_reply_to
+              WHERE t.in_reply_to IS NOT NULL
+)
+SELECT * FROM cte_thread WHERE root = ? ORDER BY root, depth;",
+        )
+        .unwrap();
+    let iter = stmt
+        .query_map(rusqlite::params![root], |row| {
+            let parent: String = row.get("parent")?;
+            let root: String = row.get("root")?;
+            let depth: i64 = row.get("depth")?;
+            Ok((parent, root, depth))
+        })
+        .unwrap();
+    let mut ret = vec![];
+    for post in iter {
+        let post = post.unwrap();
+        ret.push(post);
+    }
+    let posts = db.list_posts(list, None).unwrap();
+    ret.into_iter()
+        .filter_map(|(m, _, depth)| {
+            posts
+                .iter()
+                .find(|p| m.as_str().strip_carets() == p.message_id.as_str().strip_carets())
+                .map(|p| {
+                    let envelope = melib::Envelope::from_bytes(p.message.as_slice(), None).unwrap();
+                    let body = envelope.body_bytes(p.message.as_slice());
+                    let body_text = body.text();
+                    let date = envelope.date_as_str().to_string();
+                    (depth, p.clone(), body_text, date)
+                })
+        })
+        .skip(1)
+        .collect()
+}
+
+pub fn thread(
+    envelopes: &Arc<std::sync::RwLock<HashMap<melib::EnvelopeHash, melib::Envelope>>>,
+    threads: &melib::Threads,
+    root_env_hash: melib::EnvelopeHash,
+) -> Vec<ThreadEntry> {
+    let env_lock = envelopes.read().unwrap();
+    let thread = threads.envelope_to_thread[&root_env_hash];
+    let mut ret = vec![];
+    for (depth, t) in threads.thread_group_iter(thread) {
+        let hash = threads.thread_nodes[&t].message.unwrap();
+        ret.push(ThreadEntry {
+            hash,
+            depth,
+            thread_node: t,
+            thread,
+            message_id: env_lock[&hash].message_id().to_string(),
+            from: env_lock[&hash].field_from_to_string(),
+            datetime: env_lock[&hash].date_as_str().to_string(),
+            timestamp: env_lock[&hash].timestamp,
+        });
+    }
+    ret
+}
+
+pub fn thread_roots(
+    envelopes: &Arc<std::sync::RwLock<HashMap<melib::EnvelopeHash, melib::Envelope>>>,
+    threads: &mut melib::Threads,
+) -> Vec<(ThreadEntry, usize, u64)> {
+    let items = threads.roots();
+    let env_lock = envelopes.read().unwrap();
+    let mut ret = vec![];
+    'items_for_loop: for thread in items {
+        let mut iter_ptr = threads.thread_ref(thread).root();
+        let thread_node = &threads.thread_nodes()[&iter_ptr];
+        let root_env_hash = if let Some(h) = thread_node.message().or_else(|| {
+            if thread_node.children().is_empty() {
+                return None;
+            }
+            iter_ptr = thread_node.children()[0];
+            while threads.thread_nodes()[&iter_ptr].message().is_none() {
+                if threads.thread_nodes()[&iter_ptr].children().is_empty() {
+                    return None;
+                }
+                iter_ptr = threads.thread_nodes()[&iter_ptr].children()[0];
+            }
+            threads.thread_nodes()[&iter_ptr].message()
+        }) {
+            h
+        } else {
+            continue 'items_for_loop;
+        };
+        if !env_lock.contains_key(&root_env_hash) {
+            panic!("key = {}", root_env_hash);
+        }
+        let envelope: &melib::Envelope = &env_lock[&root_env_hash];
+        let tref = threads.thread_ref(thread);
+        ret.push((
+            ThreadEntry {
+                hash: root_env_hash,
+                depth: 0,
+                thread_node: iter_ptr,
+                thread,
+                message_id: envelope.message_id().to_string(),
+                from: envelope.field_from_to_string(),
+                datetime: envelope.date_as_str().to_string(),
+                timestamp: envelope.timestamp,
+            },
+            tref.len,
+            tref.date,
+        ));
+    }
+    ret.sort_by_key(|(_, _, key)| std::cmp::Reverse(*key));
+    ret
+}

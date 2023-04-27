@@ -38,5 +38,29 @@
     <div class="post-body">
         <pre title="E-mail text content">{{ body }}</pre>
     </div>
+    {% for (depth, post, body, date) in thread %}
+        <table class="headers" title="E-mail headers">
+            <caption class="screen-reader-only">E-mail headers</caption>
+            <tr>
+                <th scope="row">From:</th>
+                <td>{{ post.address }}</td>
+            </tr>
+            <tr>
+                <th scope="row">Date:</th>
+                <td class="faded">{{ date }}</td>
+            </tr>
+            <tr>
+                <th scope="row">Message-ID:</th>
+                <td class="faded message-id"><a href="{{ root_url_prefix }}{{ list_post_path(list.id, post.message_id) }}">{{ strip_carets(post.message_id) }}</a></td>
+            </tr>
+            <tr>
+                <td colspan="2"><details class="reply-details"><summary>more …</summary><a href="{{ root_url_prefix }}{{ post_raw_path(list.id, post.message_id) }}">View raw</a>  <a href="{{ root_url_prefix }}{{ post_eml_path(list.id, post.message_id) }}">Download as <code>eml</code> (RFC 5322 format)</a></details></td>
+            </tr>
+        </table>
+        <div class="post-body">
+            <pre title="E-mail text content">{{ body }}</pre>
+        </div>
+
+    {% endfor %}
 </div>
 {% include "footer.html" %}

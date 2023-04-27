@@ -91,6 +91,14 @@ impl From<&DbVal<mailpot::models::MailingList>> for ListPath {
 pub struct ListPostPath(pub ListPathIdentifier, pub String);
 
 #[derive(Debug, PartialEq, Eq, Clone, serde::Deserialize, serde::Serialize, TypedPath)]
+#[typed_path("/list/:id/posts/:msgid/raw/")]
+pub struct ListPostRawPath(pub ListPathIdentifier, pub String);
+
+#[derive(Debug, PartialEq, Eq, Clone, serde::Deserialize, serde::Serialize, TypedPath)]
+#[typed_path("/list/:id/posts/:msgid/eml/")]
+pub struct ListPostEmlPath(pub ListPathIdentifier, pub String);
+
+#[derive(Debug, PartialEq, Eq, Clone, serde::Deserialize, serde::Serialize, TypedPath)]
 #[typed_path("/list/:id/edit/")]
 pub struct ListEditPath(pub ListPathIdentifier);
 
@@ -159,30 +167,38 @@ list_id_impl!(list_edit_path, ListEditPath);
 list_id_impl!(list_subscribers_path, ListEditSubscribersPath);
 list_id_impl!(list_candidates_path, ListEditCandidatesPath);
 
-pub fn list_post_path(id: Value, msg_id: Value) -> std::result::Result<Value, Error> {
-    let Some(msg_id) = msg_id.as_str().map(|s| if s.starts_with('<') && s.ends_with('>') { s.to_string() } else {
-        format!("<{s}>")
-    }) else {
-        return Err(Error::new(
-                minijinja::ErrorKind::UnknownMethod,
-                "Second argument of list_post_path must be a string."
-        ));
-    };
+macro_rules! list_post_impl {
+    ($ident:ident, $ty:tt) => {
+        pub fn $ident(id: Value, msg_id: Value) -> std::result::Result<Value, Error> {
+            let Some(msg_id) = msg_id.as_str().map(|s| if s.starts_with('<') && s.ends_with('>') { s.to_string() } else {
+                format!("<{s}>")
+            }) else {
+                return Err(Error::new(
+                        minijinja::ErrorKind::UnknownMethod,
+                        "Second argument of list_post_path must be a string."
+                ));
+            };
 
-    if let Some(id) = id.as_str() {
-        return Ok(Value::from_safe_string(
-            ListPostPath(ListPathIdentifier::Id(id.to_string()), msg_id)
-                .to_crumb()
-                .to_string(),
-        ));
-    }
-    let pk = id.try_into()?;
-    Ok(Value::from_safe_string(
-        ListPostPath(ListPathIdentifier::Pk(pk), msg_id)
-            .to_crumb()
-            .to_string(),
-    ))
+            if let Some(id) = id.as_str() {
+                return Ok(Value::from_safe_string(
+                        $ty(ListPathIdentifier::Id(id.to_string()), msg_id)
+                        .to_crumb()
+                        .to_string(),
+                ));
+            }
+            let pk = id.try_into()?;
+            Ok(Value::from_safe_string(
+                    $ty(ListPathIdentifier::Pk(pk), msg_id)
+                    .to_crumb()
+                    .to_string(),
+            ))
+        }
+    };
 }
+
+list_post_impl!(list_post_path, ListPostPath);
+list_post_impl!(post_raw_path, ListPostRawPath);
+list_post_impl!(post_eml_path, ListPostEmlPath);
 
 pub mod tsr {
     use std::{borrow::Cow, convert::Infallible};

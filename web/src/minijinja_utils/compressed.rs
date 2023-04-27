@@ -17,4 +17,4 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-pub const COMPRESSED: &[(&str, &[u8])] = &[include!("compressed.data")];
+pub const COMPRESSED: &[(&str, &[u8])] = include!("compressed.data");

@@ -47,13 +47,31 @@ pub async fn list(
         .map(|user| db.list_subscription_by_address(list.pk, &user.address).ok());
 
     let posts = db.list_posts(list.pk, None)?;
+    let post_map = posts
+        .iter()
+        .map(|p| (p.message_id.as_str(), p))
+        .collect::<IndexMap<&str, &mailpot::models::DbVal<mailpot::models::Post>>>();
     let mut hist = months
         .iter()
         .map(|m| (m.to_string(), [0usize; 31]))
         .collect::<HashMap<String, [usize; 31]>>();
-    let posts_ctx = posts
-        .iter()
-        .map(|post| {
+    let envelopes: Arc<std::sync::RwLock<HashMap<melib::EnvelopeHash, melib::Envelope>>> =
+        Default::default();
+    let mut env_lock = envelopes.write().unwrap();
+
+    for post in &posts {
+        let envelope = melib::Envelope::from_bytes(post.message.as_slice(), None)
+            .expect("Could not parse mail");
+        env_lock.insert(envelope.hash(), envelope);
+    }
+    let mut threads: melib::Threads = melib::Threads::new(posts.len());
+    drop(env_lock);
+    threads.amend(&envelopes);
+    let roots = thread_roots(&envelopes, &mut threads);
+    let posts_ctx = roots
+        .into_iter()
+        .map(|(thread, length, _timestamp)| {
+            let post = &post_map[&thread.message_id.as_str()];
             //2019-07-14T14:21:02
             if let Some(day) = post.datetime.get(8..10).and_then(|d| d.parse::<u64>().ok()) {
                 hist.get_mut(&post.month_year).unwrap()[day.saturating_sub(1) as usize] += 1;
@@ -70,7 +88,7 @@ pub async fn list(
             {
                 subject_ref = subject_ref[2 + list.id.len()..].trim();
             }
-            minijinja::context! {
+            let ret = minijinja::context! {
                 pk => post.pk,
                 list => post.list,
                 subject => subject_ref,
@@ -79,8 +97,10 @@ pub async fn list(
                 message => post.message,
                 timestamp => post.timestamp,
                 datetime => post.datetime,
-                root_url_prefix => &state.root_url_prefix,
-            }
+                replies => length.saturating_sub(1),
+                last_active => thread.datetime,
+            };
+            ret
         })
         .collect::<Vec<_>>();
     let crumbs = vec![
@@ -123,7 +143,7 @@ pub async fn list_post(
     auth: AuthContext,
     State(state): State<Arc<AppState>>,
 ) -> Result<Html<String>, ResponseError> {
-    let db = Connection::open_db(state.conf.clone())?;
+    let db = Connection::open_db(state.conf.clone())?.trusted();
     let Some(list) = (match id {
         ListPathIdentifier::Pk(id) => db.list(id)?,
         ListPathIdentifier::Id(id) => db.list_by_id(id)?,
@@ -146,6 +166,7 @@ pub async fn list_post(
             StatusCode::NOT_FOUND,
         ));
     };
+    let thread = super::utils::thread_db(&db, list.pk, &post.message_id);
     let envelope = melib::Envelope::from_bytes(post.message.as_slice(), None)
         .with_status(StatusCode::BAD_REQUEST)?;
     let body = envelope.body_bytes(post.message.as_slice());
@@ -190,6 +211,7 @@ pub async fn list_post(
         message => post.message,
         timestamp => post.timestamp,
         datetime => post.datetime,
+        thread => thread,
         root_url_prefix => &state.root_url_prefix,
         current_user => auth.current_user,
         user_context => user_context,
@@ -484,4 +506,68 @@ pub enum SubscriptionPolicySettings {
     Manual,
     Request,
     Custom,
+}
+
+/// Raw post page.
+pub async fn post_raw(
+    ListPostRawPath(id, msg_id): ListPostRawPath,
+    State(state): State<Arc<AppState>>,
+) -> Result<String, ResponseError> {
+    let db = Connection::open_db(state.conf.clone())?.trusted();
+    let Some(list) = (match id {
+        ListPathIdentifier::Pk(id) => db.list(id)?,
+        ListPathIdentifier::Id(id) => db.list_by_id(id)?,
+    }) else {
+        return Err(ResponseError::new(
+            "List not found".to_string(),
+            StatusCode::NOT_FOUND,
+        ));
+    };
+
+    let post = if let Some(post) = db.list_post_by_message_id(list.pk, &msg_id)? {
+        post
+    } else {
+        return Err(ResponseError::new(
+            format!("Post with Message-ID {} not found", msg_id),
+            StatusCode::NOT_FOUND,
+        ));
+    };
+    Ok(String::from_utf8_lossy(&post.message).to_string())
+}
+
+/// .eml post page.
+pub async fn post_eml(
+    ListPostEmlPath(id, msg_id): ListPostEmlPath,
+    State(state): State<Arc<AppState>>,
+) -> Result<impl IntoResponse, ResponseError> {
+    let db = Connection::open_db(state.conf.clone())?.trusted();
+    let Some(list) = (match id {
+        ListPathIdentifier::Pk(id) => db.list(id)?,
+        ListPathIdentifier::Id(id) => db.list_by_id(id)?,
+    }) else {
+        return Err(ResponseError::new(
+            "List not found".to_string(),
+            StatusCode::NOT_FOUND,
+        ));
+    };
+
+    let post = if let Some(post) = db.list_post_by_message_id(list.pk, &msg_id)? {
+        post
+    } else {
+        return Err(ResponseError::new(
+            format!("Post with Message-ID {} not found", msg_id),
+            StatusCode::NOT_FOUND,
+        ));
+    };
+    let mut response = post.into_inner().message.into_response();
+    response.headers_mut().insert(
+        http::header::CONTENT_TYPE,
+        http::HeaderValue::from_static("application/octet-stream"),
+    );
+    response.headers_mut().insert(
+        http::header::CONTENT_DISPOSITION,
+        http::HeaderValue::try_from(format!("attachment; filename=\"{}.eml\"", msg_id)).unwrap(),
+    );
+
+    Ok(response)
 }

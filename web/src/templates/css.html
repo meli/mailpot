@@ -49,7 +49,7 @@
         text-rendering:optimizeLegibility;
         -webkit-font-smoothing:antialiased;
         -moz-osx-font-smoothing:grayscale;
-        font-family:-apple-system,BlinkMacSystemFont,Roboto,Roboto Slab,Droid Serif,Segoe UI,system-ui,Arial,sans-serif;
+        font-family:var(--sans-serif-system-stack);
         font-size:100%;
     }
 
@@ -149,9 +149,12 @@
     }
 
     :root {
+        --emoji-system-stack: 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
         --monospace-system-stack: /* apple */ ui-monospace, SFMono-Regular, Menlo, Monaco,
         /* windows */ "Cascadia Mono", "Segoe UI Mono", Consolas,
-        /* free unixes */ "Liberation Mono", "Roboto Mono", "Oxygen Mono", "Ubuntu Monospace", "Source Code Pro", "Fira Mono", "Droid Sans Mono", "Courier New", monospace;
+        /* free unixes */ "DejaVu Sans Mono", "Liberation Mono", "Roboto Mono", "Oxygen Mono", "Ubuntu Monospace", "Source Code Pro", "Fira Mono", "Droid Sans Mono", "Courier New", monospace, var(--emoji-system-stack);
+        --sans-serif-system-stack:-apple-system,BlinkMacSystemFont,Roboto,Roboto Slab,Droid Serif,Segoe UI,system-ui,Arial,sans-serif, var(--emoji-system-stack);
+        --grotesque-system-stack: Inter, Roboto, 'Helvetica Neue', 'Arial Nova', 'Nimbus Sans', Arial, sans-serif, var(--emoji-system-stack);
         --text-primary: CanvasText;
         --text-faded: GrayText;
         --horizontal-rule: #88929d;
@@ -167,7 +170,7 @@
             --text-link: #0069c2;
             --text-invert: #fff;
             --background-primary: #fff;
-            --background-secondary: #f9f9fb;
+            --background-secondary: #ebebeb;
             --background-tertiary: #fff;
             --background-toc-active: #ebeaea;
             --background-mark-yellow: #c7b70066;
@@ -344,6 +347,7 @@
     }
     main.layout>.rightside { grid-area: rightside; }
     main.layout>footer {
+        font-family: var(--grotesque-system-stack);
         grid-area: footer;
         border-top: 2px inset;
         margin-block-start: 1rem;
@@ -370,6 +374,8 @@
 
     main.layout>div.header>h1 {
         margin: 1rem;
+        font-family: var(--grotesque-system-stack);
+        font-size: xx-large;
     }
 
     main.layout>div.header>div.page-header {
@@ -416,6 +422,7 @@
 
     main.layout>div.header h2.page-title {
         margin: 1rem 0px;
+        font-family: var(--grotesque-system-stack);
     }
 
     nav.breadcrumbs {
@@ -649,6 +656,10 @@
         margin-inline-end: 1rem;
     }
 
+    table.headers {
+        margin-left: -3vw;
+    }
+
     table.headers tr>th {
         text-align: right;
         color: var(--text-faded);
@@ -657,28 +668,43 @@
     table.headers th[scope="row"] {
         padding-right: .5rem;
         vertical-align: top;
+        font-family: var(--grotesque-system-stack);
     }
 
     table.headers tr>td {
         overflow-wrap: break-word;
         hyphens: auto;
+        word-wrap: anywhere;
+        word-break: break-all;
+        width: 50ch;
     }
 
     div.post-body {
-        margin: 1rem;
+        margin: 1rem 0px;
     }
 
     div.post-body>pre {
-        max-width: 69vw;
         overflow-wrap: break-word;
         white-space: pre-line;
-        margin-left: min(5rem, 14vw);
         hyphens: auto;
+        background-color: var(--background-secondary);
+        outline: 1rem solid var(--background-secondary);
+        margin: 2rem 0;
+        line-height: 1.333;
+    }
+
+    div.post-body:not(:last-child) {
+        padding-bottom: .5rem;
+        border-bottom: 1px solid var(--horizontal-rule);
     }
 
     td.message-id,
     span.message-id{
         color: var(--text-faded);
+    }
+    .message-id>a {
+        overflow-wrap: break-word;
+        hyphens: auto;
     }
     td.message-id:before,
     span.message-id:before{
@@ -704,6 +730,13 @@
     td.faded:is(:focus, :hover, :focus-visible, :focus-within),
     span.faded:is(:focus, :hover, :focus-visible, :focus-within) {
         color: revert;
+    }
+    details.reply-details button {
+        padding: 0.3rem;
+        font-size: medium;
+        min-width: 0;
+        margin-block-start: 0.2rem;
+        display: inline-block;
     }
 
     ul.lists {
