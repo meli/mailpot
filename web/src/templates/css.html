@@ -85,7 +85,7 @@
     }
 
     a.self-link {
-        --width: 28px;
+        --width: 22px;
         position: absolute;
         top: 0px;
         left: calc(var(--width) - 3.5rem);
@@ -340,11 +340,12 @@
         margin: 1rem;
     }
 
-    main.layout>div.header>h2 {
-        margin-inline-start: 1rem;
+    main.layout>div.header>div.page-header {
+        width: 90vw;
+        margin: 0px auto;
     }
 
-    main.layout>div.header>nav + nav {
+    main.layout>div.header>div.page-header>nav:first-child {
         margin-top: 1rem;
     }
 
@@ -364,7 +365,9 @@
         gap: 1rem;
     }
     nav.main-nav>ul>li>a {
+        /* fallback if clamp() isn't supported */
         padding: 1rem;
+        padding: 1rem clamp(0.6svw,1rem,0.5vmin);
     }
     nav.main-nav > ul > li > a:hover {
         outline: 0.1rem solid;
@@ -380,12 +383,23 @@
 
     nav.breadcrumbs {
         padding: 10px 14px 10px 0px;
-        margin-inline-start: 1rem;
     }
 
     nav.breadcrumbs ol {
         list-style-type: none;
         padding-left: 0;
+    }
+
+    /* If only the root crumb is visible, hide it to avoid unnecessary visual clutter */
+    li.crumb:only-child>span[aria-current="page"] {
+        --secs: 500ms;
+        transition: all var(--secs) linear;
+        color: transparent;
+    }
+
+    li.crumb:only-child>span[aria-current="page"]:hover {
+        transition: all var(--secs) linear;
+        color: revert;
     }
 
     .crumb, .crumb>a {
@@ -508,20 +522,35 @@
     div.entries {
         display: flex;
         flex-direction: column;
-        gap: 1rem;
+    }
+
+    div.entries>p:first-child {
+        margin: 1rem 0rem;
     }
 
     div.entries>div.entry {
         display: flex;
         flex-direction: column;
         gap: 0.5rem;
+        border: 1px solid var(--border-secondary);
+        padding: 1rem 1rem;
     }
 
-    div.posts>div.entry>span.subject {
-        font-size: larger;
+    div.entries>div.entry+div.entry {
+        border-top:none;
+    }
+
+    div.entries>div.entry span.metadata.replies {
+        background: CanvasText;
+        border-radius: .6rem;
+        color: Canvas;
+        padding: 0.1rem 0.4rem;
+        font-size: small;
+        font-variant-numeric: tabular-nums;
     }
 
     div.entries>div.entry>span.metadata {
+        font-size: small;
         color: GrayText;
         word-break: break-all;
     }
@@ -578,15 +607,18 @@
     span.message-id:before{
         content: '<';
         display: inline-block;
+        opacity: 0.6;
     }
     td.message-id:after,
     span.message-id:after{
         content: '>';
         display: inline-block;
+        opacity: 0.6;
     }
     span.message-id + span.message-id:before{
         content: ', <';
         display: inline-block;
+        opacity: 0.6;
     }
     td.faded,
     span.faded {

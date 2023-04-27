@@ -28,6 +28,7 @@ chrono = { version = "^0.4" }
 dyn-clone = { version = "^1" }
 eyre = { version = "0.6" }
 http = "0.2"
+indexmap = { version = "1.9" }
 lazy_static = "^1.4"
 mailpot = { version = "^0.0", path = "../core" }
 minijinja = { version = "0.31.0", features = ["source", ] }

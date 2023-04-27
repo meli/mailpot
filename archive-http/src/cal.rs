@@ -31,8 +31,8 @@ use chrono::*;
 ///
 /// # Examples
 /// ```
-/// use mailpot_archives::cal::calendarize;
 /// use chrono::*;
+/// use mailpot_archives::cal::calendarize;
 ///
 /// let date = NaiveDate::parse_from_str("2021-01-02", "%Y-%m-%d").unwrap();
 /// // Week = [Sun, Mon, Tue, Wed, Thu, Fri, Sat]
@@ -59,8 +59,8 @@ pub fn calendarize(date: NaiveDate) -> Vec<[u32; 7]> {
 ///
 /// # Examples
 /// ```
-/// use mailpot_archives::cal::calendarize_with_offset;
 /// use chrono::*;
+/// use mailpot_archives::cal::calendarize_with_offset;
 ///
 /// let date = NaiveDate::parse_from_str("2021-01-02", "%Y-%m-%d").unwrap();
 /// // Week = [Mon, Tue, Wed, Thu, Fri, Sat, Sun]

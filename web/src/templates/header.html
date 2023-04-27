@@ -14,13 +14,21 @@
                     <p class="description">{{ description }}</p>
                 {% endif %}
                 {% include "menu.html" %}
-                {% if messages %}
-                    <ul class="messagelist">
-                        {% for message in messages %}
-                            <li class="{{ message.level|lower }}">
-                                <span class="label">{{ message.level }}: </span>{{ message.message }}
-                            </li>
-                        {% endfor %}
-                    </ul>
-                {% endif %}
+                <div class="page-header">
+                    {% if page_title %}
+                        <h2>{{ page_title }}</h2>
+                    {% endif %}
+                    <nav aria-label="Breadcrumb" class="breadcrumbs">
+                        <ol>{% for crumb in crumbs %}{% if loop.last %}<li class="crumb"><span aria-current="page" title="current page">{{ crumb.label }}</span></li>{% else %}<li class="crumb"><a href="{{ root_url_prefix }}{{ crumb.url }}">{{ crumb.label }}</a></li>{% endif %}{% endfor %}</ol>
+                    </nav>
+                    {% if messages %}
+                        <ul class="messagelist">
+                            {% for message in messages %}
+                                <li class="{{ message.level|lower }}">
+                                    <span class="label">{{ message.level }}: </span>{{ message.message }}
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% endif %}
+                </div>
             </div>
