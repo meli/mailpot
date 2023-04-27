@@ -1,11 +1,11 @@
-<nav class="main-nav">
+<nav class="main-nav" aria-label="main menu" role="menu">
     <ul>
-        <li><a href="{{ root_url_prefix }}/">Index</a></li>
-        <li><a href="{{ root_url_prefix }}{{ help_path() }}">Help&nbsp;&amp; Documentation</a></li>
+        <li><a role="menuitem" href="{{ root_url_prefix }}/">Index</a></li>
+        <li><a role="menuitem" href="{{ root_url_prefix }}{{ help_path() }}">Help&nbsp;&amp; Documentation</a></li>
         {% if current_user %}
-            <li class="push">Settings: <a href="{{ root_url_prefix }}{{ settings_path() }}">{{ current_user.address }}</a></li>
+            <li class="push">Settings: <a role="menuitem" href="{{ root_url_prefix }}{{ settings_path() }}" title="User settings">{{ current_user.address }}</a></li>
         {% else %}
-            <li class="push"><a href="{{ root_url_prefix }}{{ login_path() }}">Login with SSH OTP</a></li>
+            <li class="push"><a role="menuitem" href="{{ root_url_prefix }}{{ login_path() }}" title="login with one time password using your SSH key">Login with SSH OTP</a></li>
         {% endif %}
     </ul>
 </nav>

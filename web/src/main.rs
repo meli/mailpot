@@ -162,7 +162,7 @@ async fn root(
                 name => &list.name,
                 posts => &posts,
                 months => &months,
-                body => &list.description.as_deref().unwrap_or_default(),
+                description => &list.description.as_deref().unwrap_or_default(),
                 root_url_prefix => &state.root_url_prefix,
                 list => Value::from_object(MailingList::from(list.clone())),
             })

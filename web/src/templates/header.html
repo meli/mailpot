@@ -15,12 +15,12 @@
                 {% endif %}
                 {% include "menu.html" %}
                 <div class="page-header">
+                    {% if crumbs|length > 1 %}<nav aria-labelledby="breadcrumb-menu" class="breadcrumbs">
+                        <ol id="breadcrumb-menu" role="menu" aria-label="Breadcrumb menu">{% for crumb in crumbs %}<li class="crumb" aria-describedby="bread_{{ loop.index }}">{% if loop.last %}<span role="menuitem" id="bread_{{ loop.index }}" aria-current="page" title="current page">{{ crumb.label }}</span>{% else %}<a role="menuitem" id="bread_{{ loop.index }}" href="{{ root_url_prefix }}{{ crumb.url }}" tabindex="0">{{ crumb.label }}</a>{% endif %}</li>{% endfor %}</ol>
+                    </nav>{% endif %}
                     {% if page_title %}
-                        <h2>{{ page_title }}</h2>
+                        <h2 class="page-title">{{ page_title }}</h2>
                     {% endif %}
-                    <nav aria-label="Breadcrumb" class="breadcrumbs">
-                        <ol>{% for crumb in crumbs %}{% if loop.last %}<li class="crumb"><span aria-current="page" title="current page">{{ crumb.label }}</span></li>{% else %}<li class="crumb"><a href="{{ root_url_prefix }}{{ crumb.url }}">{{ crumb.label }}</a></li>{% endif %}{% endfor %}</ol>
-                    </nav>
                     {% if messages %}
                         <ul class="messagelist">
                             {% for message in messages %}

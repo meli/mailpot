@@ -50,7 +50,7 @@
         -webkit-font-smoothing:antialiased;
         -moz-osx-font-smoothing:grayscale;
         font-family:-apple-system,BlinkMacSystemFont,Roboto,Roboto Slab,Droid Serif,Segoe UI,system-ui,Arial,sans-serif;
-        font-size:1.125em
+        font-size:100%;
     }
 
     /* Remove unintuitive behaviour such as gaps around media elements.  */
@@ -61,6 +61,10 @@
     /* Avoid text overflow */
     h1, h2, h3, h4, h5, h6, p, strong {
         overflow-wrap: break-word;
+    }
+
+    p {
+        line-height: 1.4;
     }
 
     h1,
@@ -82,6 +86,9 @@
 
     a.self-link::before {
         content: "§";
+        /* increase surface area for clicks */
+        padding: 1rem;
+        margin: -1rem;
     }
 
     a.self-link {
@@ -120,7 +127,12 @@
     }
 
     code {
+        font-family: var(--monospace-system-stack);
         overflow-wrap: anywhere;
+    }
+
+    pre {
+        font-family: var(--monospace-system-stack);
     }
 
     input {
@@ -137,7 +149,14 @@
     }
 
     :root {
+        --monospace-system-stack: /* apple */ ui-monospace, SFMono-Regular, Menlo, Monaco,
+        /* windows */ "Cascadia Mono", "Segoe UI Mono", Consolas,
+        /* free unixes */ "Liberation Mono", "Roboto Mono", "Oxygen Mono", "Ubuntu Monospace", "Source Code Pro", "Fira Mono", "Droid Sans Mono", "Courier New", monospace;
         --text-primary: CanvasText;
+        --text-faded: GrayText;
+        --horizontal-rule: #88929d;
+        --code-foreground: #124;
+        --code-background: #8fbcbb;
         --a-visited-text: var(--a-normal-text);
     }
 
@@ -303,7 +322,7 @@
 
     body>main.layout {
         width: 100%;
-        height: 99%;
+        height: 100%;
         overflow-wrap: anywhere;
 
         display: grid;
@@ -328,6 +347,19 @@
         grid-area: footer;
         border-top: 2px inset;
         margin-block-start: 1rem;
+        border-color: var(--text-link);
+        background-color: var(--text-primary-blue);
+        color: var(--text-invert);
+    }
+
+    main.layout>footer a[href] {
+        box-shadow: 2px 2px 2px black;
+        background: Canvas;
+        border: .3rem solid Canvas;
+        border-radius: 3px;
+        font-weight: bold;
+        font-family: var(--monospace-system-stack);
+        font-size: small;
     }
 
     main.layout>footer>* {
@@ -347,6 +379,11 @@
 
     main.layout>div.header>div.page-header>nav:first-child {
         margin-top: 1rem;
+    }
+
+    main.layout>div.body *:is(h2,h3,h4,h5,h6) {
+        padding-bottom: .3em;
+        border-bottom: 1px solid var(--horizontal-rule);
     }
 
     nav.main-nav {
@@ -377,8 +414,8 @@
         margin-left: auto;
     }
 
-    main.layout>div.body h2 {
-        margin: 1rem;
+    main.layout>div.header h2.page-title {
+        margin: 1rem 0px;
     }
 
     nav.breadcrumbs {
@@ -388,11 +425,12 @@
     nav.breadcrumbs ol {
         list-style-type: none;
         padding-left: 0;
+        font-size: small;
     }
 
     /* If only the root crumb is visible, hide it to avoid unnecessary visual clutter */
     li.crumb:only-child>span[aria-current="page"] {
-        --secs: 500ms;
+        --secs: 150ms;
         transition: all var(--secs) linear;
         color: transparent;
     }
@@ -403,23 +441,24 @@
     }
 
     .crumb, .crumb>a {
-        display: contents;
+        display: inline;
     }
 
     .crumb a::after {
         display: inline-block;
         color: var(--text-primary);
         content: '>';
+        content: '>' / '';
         font-size: 80%;
         font-weight: bold;
         padding: 0 3px;
     }
 
     .crumb span[aria-current="page"] {
-        color: GrayText;
+        color: var(--text-faded);
         padding: 0.4rem;
         margin-left: -0.4rem;
-        display: contents;
+        display: inline;
     }
 
     ul.messagelist {
@@ -434,12 +473,14 @@
     }
 
     ul.messagelist>li {
-        padding: 0.5rem 1rem;
+        padding: 1rem 0.7rem;
+        --message-background: var(--icon-secondary);
         background: var(--message-background);
-        border: .1rem solid var(--border-secondary);
-        border-radius: 0.2rem;
+        border: 1px outset var(--message-background);
+        border-radius: 2px;
         font-weight: 400;
         margin-block-end: 1.0rem;
+        color: #0d0b0b;
     }
 
     ul.messagelist>li>span.label {
@@ -448,37 +489,63 @@
     }
 
     ul.messagelist>li.error {
-        --message-background: var(--background-critical);
+        --message-background: var(--icon-critical);
     }
 
     ul.messagelist>li.success {
-        --message-background: var(--background-success);
+        --message-background: var(--icon-success);
     }
 
     ul.messagelist>li.warning {
-        --message-background: var(--background-warning);
+        --message-background: var(--icon-warning);
     }
 
     ul.messagelist>li.info {
-        --message-background: var(--background-information);
+        --message-background: var(--icon-information);
     }
 
-    div.preamble {
+    div.body>section {
         display: flex;
         flex-direction: column;
         gap: 1rem;
     }
 
+    div.body>section+section{
+        margin-top: 1rem;
+    }
+
+    div.calendar rt {
+        white-space: nowrap;
+        font-size: 50%;
+        -moz-min-font-size-ratio: 50%;
+        line-height: 1;
+    }
+    @supports not (display: ruby-text) {
+        /* Chrome seems to display it at regular size, so scale it down */
+        div.calendar rt {
+            scale: 50%;
+            font-size: 100%;
+        }
+    }
+
+    div.calendar rt {
+        display: ruby-text;
+    }
+
     div.calendar th {
         padding: 0.5rem;
         opacity: 0.7;
+        text-align: center;
+    }
+
+    div.calendar tr {
+        text-align: right;
     }
 
     div.calendar tr,
     div.calendar th {
-        text-align: right;
         font-variant-numeric: tabular-nums;
-        font-family: monospace;
+        font-family: var(--monospace-system-stack);
     }
 
     div.calendar table {
@@ -488,10 +555,14 @@
 
     div.calendar td {
         padding: 0.1rem 0.4rem;
+        font-size: 80%;
+        width: 2.3rem;
+        height: 2.3rem;
+        text-align: center;
     }
 
     div.calendar td.empty {
-        color: GrayText;
+        color: var(--text-faded);
     }
 
     div.calendar td:not(.empty) {
@@ -499,11 +570,11 @@
     }
 
     div.calendar td:not(:empty) {
-        border: 1px solid var(--text-primary);
+        border: 1px solid var(--text-faded);
     }
 
     div.calendar td:empty {
-        background: GrayText;
+        background: var(--text-faded);
         opacity: 0.2;
     }
 
@@ -540,6 +611,12 @@
         border-top:none;
     }
 
+    div.entries>div.entry>span.subject>a {
+        /* increase surface area for clicks */
+        padding: 1rem;
+        margin: -1rem;
+    }
+
     div.entries>div.entry span.metadata.replies {
         background: CanvasText;
         border-radius: .6rem;
@@ -551,7 +628,7 @@
 
     div.entries>div.entry>span.metadata {
         font-size: small;
-        color: GrayText;
+        color: var(--text-faded);
         word-break: break-all;
     }
 
@@ -565,7 +642,7 @@
     }
 
     div.entries>div.entry span.value.empty {
-        color: GrayText;
+        color: var(--text-faded);
     }
 
     div.posts>div.entry>span.metadata>span.from {
@@ -574,7 +651,7 @@
 
     table.headers tr>th {
         text-align: right;
-        color: GrayText;
+        color: var(--text-faded);
     }
 
     table.headers th[scope="row"] {
@@ -601,7 +678,7 @@
 
     td.message-id,
     span.message-id{
-        color: GrayText;
+        color: var(--text-faded);
     }
     td.message-id:before,
     span.message-id:before{
@@ -622,7 +699,7 @@
     }
     td.faded,
     span.faded {
-        color: GrayText;
+        color: var(--text-faded);
     }
     td.faded:is(:focus, :hover, :focus-visible, :focus-within),
     span.faded:is(:focus, :hover, :focus-visible, :focus-within) {
@@ -638,11 +715,32 @@
     }
 
     ul.lists li + li {
-        margin-top: 1rem;
+        margin-top: 0.2rem;
+    }
+
+    dl.lists dt {
+        font-weight: bold;
+    }
+
+    dl.lists dl,
+    dl.lists dd {
+        font-size: small;
+    }
+
+    dl.lists dd {
+        /* fallback in case margin-block-* is not supported */
+        margin-bottom: 1rem;
+        margin-block-start: 0.3rem;
+        margin-block-end: 1rem;
+    }
+
+    dl.lists dd.no-description {
+        color: var(--text-faded);
     }
 
     hr {
         margin: 1rem 0rem;
+        border-bottom: 1px solid #88929d;
     }
 
     .command-line-example {
@@ -650,25 +748,27 @@
         display: inline-block;
         ruby-align: center;
         ruby-position: under;
-        padding: 0;
 
-        background: var(--background-information);
-        outline: 5px solid var(--background-information);
-        width: min-content;
+        background: var(--code-background);
+        outline: 1px inset var(--code-background);
+        border-radius: 1px;
+        color: var(--code-foreground);
+        font-weight: 500;
+        width: auto;
         max-width: 90vw;
-        padding: 2px 7px;
+        padding: 1.2rem 0.8rem 1rem 0.8rem;
         overflow-wrap: break-word;
         overflow: auto;
         white-space: pre;
     }
 
     textarea.key-or-sig-input {
-        font-family: monospace;
+        font-family: var(--monospace-system-stack);
         font-size: 0.5rem;
         font-weight: 400;
         width: auto;
-        height: 29rem;
-        max-width: min(71ch, 75vw);
+        height: 26rem;
+        max-width: min(71ch, 100%);
         overflow-wrap: break-word;
         overflow: auto;
         white-space: pre;
@@ -686,9 +786,16 @@
         line-height: 1rem;
     }
 
+    mark.ssh-challenge-token {
+        font-family: var(--monospace-system-stack);
+        overflow-wrap: anywhere;
+    }
+
     .body-grid {
         display: grid;
+        /* fallback */
         grid-template-columns: 1fr;
+        grid-template-columns: fit-content(100%);
         grid-auto-rows: min-content;
         row-gap: min(6vw, 1rem);
         width: 100%;
@@ -726,7 +833,7 @@
 
     form.settings-form>fieldset>legend {
         padding: .5rem 1rem;
-        border: 1px ridge GrayText;
+        border: 1px ridge var(--text-faded);
         font-weight: bold;
         font-size: small;
         margin-left: 0.8rem;
@@ -808,6 +915,11 @@
         cursor: text;
     }
 
+    input[type="text"], textarea {
+        outline: 3px inset #6969694a;
+        outline-offset: -5px;
+    }
+
     button, ::file-selector-button, input:is([type="color"], [type="reset"], [type="button"], [type="submit"]) {
         appearance: auto;
         -moz-default-appearance: button;
@@ -825,7 +937,7 @@
     }
 
     button:disabled, input:is([type="color"], [type="reset"], [type="button"], [type="submit"]):disabled {
-        color: GrayText;
+        color: var(--text-faded);
         background: Field;
         cursor: not-allowed;
     }
@@ -833,5 +945,14 @@
     ol.list {
         list-style: decimal outside;
         padding-inline-start: 4rem;
+    }
+
+    .screen-reader-only {
+        position:absolute;
+        left:-500vw;
+        top:auto;
+        width:1px;
+        height:1px;
+        overflow:hidden;
     }
 </style>

@@ -1,6 +1,7 @@
 {% include "header.html" %}
 <div class="body">
-    <table class="headers">
+    <table class="headers" title="E-mail headers">
+        <caption class="screen-reader-only">E-mail headers</caption>
         <tr>
             <th scope="row">List:</th>
             <td class="faded">{{ list.id }}</td>
@@ -35,7 +36,7 @@
         {% endif %}
     </table>
     <div class="post-body">
-        <pre>{{ body }}</pre>
+        <pre title="E-mail text content">{{ body }}</pre>
     </div>
 </div>
 {% include "footer.html" %}

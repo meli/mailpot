@@ -1,12 +1,13 @@
 {% include "header.html" %}
 <div class="body">
-    <p>{{ lists|length }} lists</p>
+    <!-- {{ lists|length }} lists -->
     <div class="entry">
-        <ul class="lists">
+        <dl class="lists" aria-label="list of mailing lists">
             {% for l in lists %}
-                <li><a href="{{ root_url_prefix }}{{ list_path(l.list.id) }}">{{ l.list.name }}</a></li>
+                <dt aria-label="mailing list name"><a href="{{ root_url_prefix }}{{ list_path(l.list.id) }}">{{ l.list.name }}</a></dt>
+                <dd aria-label="mailing list description"{% if not l.list.description %} class="no-description"{% endif %}>{{ l.list.description if l.list.description else "no description" }}</dd>
             {% endfor %}
-        </ul>
+        </dl>
     </div>
 </div>
 {% include "footer.html" %}

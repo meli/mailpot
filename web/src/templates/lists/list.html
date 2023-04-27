@@ -1,11 +1,11 @@
 {% include "header.html" %}
 <div class="body">
     {% if list.description %}
-        <p>List description: {{ list.description }}</p>
+        <p title="mailing list description">List description: {{ list.description }}</p>
     {% else %}
-        <p>No list description.</p>
+        <p title="mailing list description">No list description.</p>
     {% endif %}
-    <br>
+    <br aria-hidden="true">
     {% if current_user and not post_policy.no_subscriptions and subscription_policy.open %}
         {% if user_context %}
             <form method="post" action="{{ root_url_prefix }}{{ settings_path() }}" class="settings-form">
@@ -22,8 +22,7 @@
         {% endif %}
     {% endif %}
     {% if preamble %}
-        <hr>
-        <div id="preamble" class="preamble">
+        <section id="preamble" class="preamble" aria-label="mailing list instructions">
             {% if preamble.custom %}
                 {{ preamble.custom|safe }}
             {% else %}
@@ -76,12 +75,9 @@
                     <p>List is not open for submissions.</p>
                 {% endif %}
             {% endif %}
-        </div>
-        <hr>
-    {% else %}
-        <hr>
+        </section>
     {% endif %}
-    <div class="list">
+    <section class="list" aria-hidden="true">
         <h3 id="calendar">Calendar<a class="self-link" href="#calendar"></a></h3>
         <div class="calendar">
             {%- from "calendar.html" import cal %}
@@ -89,18 +85,19 @@
                 {{ cal(date, hists, root_url_prefix, list.pk) }}
             {% endfor %}
         </div>
-        <hr>
+    </section>
+    <section aria-label="mailing list posts">
         <h3 id="posts">Posts<a class="self-link" href="#posts"></a></h3>
-        <div class="posts entries">
-            <p>{{ posts | length }} post(s)</p>
+        <div class="posts entries" role="list" aria-label="list of mailing list posts">
+            <p>{{ posts | length }} post{{ posts|length|pluralize }}</p>
             {% for post in posts %}
-                <div class="entry">
-                    <span class="subject"><a href="{{ root_url_prefix }}{{ list_post_path(list.id, post.message_id) }}">{{ post.subject }}</a></span>
-                    <span class="metadata">👤&nbsp;<span class="from">{{ post.address }}</span> 📆&nbsp;<span class="date">{{ post.datetime }}</span></span>
-                    <span class="metadata">🪪 &nbsp;<span class="message-id">{{ post.message_id }}</span> &olarr;&nbsp;<span class="replies">{{ post.replies }}</span>
-                    </div>
+                <div class="entry" role="listitem" aria-labelledby="post_link_{{ loop.index }}">
+                    <span class="subject"><a id="post_link_{{ loop.index }}" href="{{ root_url_prefix }}{{ list_post_path(list.id, post.message_id) }}">{{ post.subject }}</a>&nbsp;<span class="metadata replies" title="reply count">{{ post.replies }} repl{{ post.replies|pluralize("y","ies") }}</span></span>
+                    <span class="metadata"><span aria-hidden="true">👤&nbsp;</span><span class="from" title="post author">{{ post.address }}</span><span aria-hidden="true"> 📆&nbsp;</span><span class="date" title="post date">{{ post.datetime }}</span></span>
+                    <span class="metadata"><span aria-hidden="true">🪪 </span><span class="message-id" title="e-mail Message-ID">{{ post.message_id }}</span></span>
+                </div>
             {% endfor %}
         </div>
-    </div>
+    </section>
 </div>
 {% include "footer.html" %}
