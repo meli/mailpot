@@ -1,6 +1,6 @@
 [package]
 name = "mailpot-tests"
-version = "0.0.0+2023-04-21"
+version = "0.1.0"
 authors = ["Manos Pitsidianakis <el13635@mail.ntua.gr>"]
 edition = "2021"
 license = "LICENSE"
@@ -13,7 +13,7 @@ publish = false
 assert_cmd = "2"
 log = "0.4"
 mailin-embedded = { version = "0.7", features = ["rtls"] }
-mailpot = { version = "^0.0", path = "../core" }
+mailpot = { version = "^0.1", path = "../core" }
 predicates = "3"
 stderrlog = "^0.5"
 tempfile = "3.3"

@@ -1,6 +1,6 @@
 [package]
 name = "mailpot-archives"
-version = "0.0.0+2023-04-21"
+version = "0.1.0"
 authors = ["Manos Pitsidianakis <el13635@mail.ntua.gr>"]
 edition = "2021"
 license = "LICENSE"
@@ -23,7 +23,7 @@ path = "src/gen.rs"
 [dependencies]
 chrono = { version = "^0.4" }
 lazy_static = "^1.4"
-mailpot = { version = "^0.0", path = "../core" }
+mailpot = { version = "^0.1", path = "../core" }
 minijinja = { version = "0.31.0", features = ["source", ] }
 percent-encoding = { version = "^2.1", optional = true }
 serde = { version = "^1", features = ["derive", ] }

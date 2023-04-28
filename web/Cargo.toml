@@ -1,6 +1,6 @@
 [package]
 name = "mailpot-web"
-version = "0.0.0+2023-04-21"
+version = "0.1.0"
 authors = ["Manos Pitsidianakis <el13635@mail.ntua.gr>"]
 edition = "2021"
 license = "LICENSE"
@@ -30,7 +30,7 @@ eyre = { version = "0.6" }
 http = "0.2"
 indexmap = { version = "1.9" }
 lazy_static = "^1.4"
-mailpot = { version = "^0.0", path = "../core" }
+mailpot = { version = "^0.1", path = "../core" }
 minijinja = { version = "0.31.0", features = ["source", ] }
 percent-encoding = { version = "^2.1" }
 rand = { version = "^0.8", features = ["min_const_gen"] }

@@ -1,6 +1,6 @@
 [package]
 name = "mailpot"
-version = "0.0.0+2023-04-21"
+version = "0.1.0"
 authors = ["Manos Pitsidianakis <el13635@mail.ntua.gr>"]
 edition = "2021"
 license = "LICENSE"
@@ -24,7 +24,7 @@ toml = "^0.5"
 xdg = "2.4.1"
 
 [dev-dependencies]
-mailpot-tests = { version = "^0.0", path = "../mailpot-tests" }
+mailpot-tests = { version = "^0.1", path = "../mailpot-tests" }
 reqwest = { version = "0.11", default-features = false, features = ["json", "blocking"] }
 stderrlog = "^0.5"
 tempfile = "3.3"

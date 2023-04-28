@@ -1,6 +1,6 @@
 [package]
 name = "mailpot-cli"
-version = "0.0.0+2023-04-21"
+version = "0.1.0"
 authors = ["Manos Pitsidianakis <el13635@mail.ntua.gr>"]
 edition = "2021"
 license = "LICENSE"
@@ -18,12 +18,12 @@ path = "src/main.rs"
 [dependencies]
 clap = { version = "^4.2", default-features = false, features = ["derive", "cargo", "unicode", "help", "usage", "error-context", "suggestions"] }
 log = "0.4"
-mailpot = { version = "^0.0", path = "../core" }
+mailpot = { version = "^0.1", path = "../core" }
 stderrlog = "^0.5"
 
 [dev-dependencies]
 assert_cmd = "2"
-mailpot-tests = { version = "^0.0", path = "../mailpot-tests" }
+mailpot-tests = { version = "^0.1", path = "../mailpot-tests" }
 predicates = "3"
 tempfile = "3.3"
 

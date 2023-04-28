@@ -1,6 +1,6 @@
 [package]
 name = "mailpot-http"
-version = "0.0.0+2023-04-21"
+version = "0.1.0"
 authors = ["Manos Pitsidianakis <el13635@mail.ntua.gr>"]
 edition = "2021"
 license = "LICENSE"
@@ -16,6 +16,6 @@ name = "mpot-http"
 path = "src/main.rs"
 
 [dependencies]
-mailpot = { version = "^0.0", path = "../core" }
+mailpot = { version = "^0.1", path = "../core" }
 tokio = { version = "^1", features = ["full"] }
 warp = "^0.3"
