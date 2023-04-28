@@ -51,6 +51,7 @@ async fn main() {
         site_title: std::env::var("SITE_TITLE")
             .unwrap_or_else(|_| "mailing list archive".to_string())
             .into(),
+        site_subtitle: std::env::var("SITE_SUBTITLE").ok().map(Into::into),
         user_store: Arc::new(RwLock::new(HashMap::default())),
     });
 
@@ -176,9 +177,9 @@ async fn root(
     }];
 
     let context = minijinja::context! {
-        title => state.site_title.as_ref(),
+        site_title => state.site_title.as_ref(),
+        site_subtitle => state.site_subtitle.as_ref(),
         page_title => Option::<&'static str>::None,
-        description => "",
         lists => &lists,
         root_url_prefix => &state.root_url_prefix,
         current_user => auth.current_user,

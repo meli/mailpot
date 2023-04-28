@@ -66,9 +66,9 @@ pub async fn settings(
         >>()?;
 
     let context = minijinja::context! {
-        title => state.site_title.as_ref(),
+        site_title => state.site_title.as_ref(),
+        site_subtitle => state.site_subtitle.as_ref(),
         page_title => "Account settings",
-        description => "",
         root_url_prefix => &root_url_prefix,
         user => user,
         subscriptions => subscriptions,
@@ -307,9 +307,9 @@ pub async fn user_list_subscription(
     ];
 
     let context = minijinja::context! {
-        title => state.site_title.as_ref(),
+        site_title => state.site_title.as_ref(),
+        site_subtitle => state.site_subtitle.as_ref(),
         page_title => "Subscription settings",
-        description => "",
         root_url_prefix => &root_url_prefix,
         user => user,
         list => list,

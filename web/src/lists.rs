@@ -114,7 +114,8 @@ pub async fn list(
         },
     ];
     let context = minijinja::context! {
-        title => state.site_title.as_ref(),
+        site_title => state.site_title.as_ref(),
+        site_subtitle => state.site_subtitle.as_ref(),
         page_title => &list.name,
         description => &list.description,
         post_policy => &post_policy,
@@ -123,7 +124,6 @@ pub async fn list(
         months => &months,
         hists => &hist,
         posts => posts_ctx,
-        body => &list.description.clone().unwrap_or_default(),
         root_url_prefix => &state.root_url_prefix,
         list => Value::from_object(MailingList::from(list)),
         current_user => auth.current_user,
@@ -194,7 +194,8 @@ pub async fn list_post(
         },
     ];
     let context = minijinja::context! {
-        title => state.site_title.as_ref(),
+        site_title => state.site_title.as_ref(),
+        site_subtitle => state.site_subtitle.as_ref(),
         page_title => subject_ref,
         description => &list.description,
         list => Value::from_object(MailingList::from(list)),
@@ -295,7 +296,8 @@ pub async fn list_edit(
         },
     ];
     let context = minijinja::context! {
-        title => state.site_title.as_ref(),
+        site_title => state.site_title.as_ref(),
+        site_subtitle => state.site_subtitle.as_ref(),
         page_title => format!("Edit {} settings", list.name),
         description => &list.description,
         post_policy => &post_policy,

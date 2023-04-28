@@ -9,9 +9,9 @@
     <body>
         <main class="layout">
             <div class="header">
-                <h1>{{ title }}</h1>
-                {% if description %}
-                    <p class="description">{{ description }}</p>
+                <h1>{{ site_title }}</h1>
+                {% if site_subtitle %}
+                    <p class="site-subtitle">{{ site_subtitle|safe }}</p>
                 {% endif %}
                 {% include "menu.html" %}
                 <div class="page-header">

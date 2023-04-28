@@ -37,9 +37,9 @@ pub async fn help(
         },
     ];
     let context = minijinja::context! {
-        title => state.site_title.as_ref(),
+        site_title => state.site_title.as_ref(),
+        site_subtitle => state.site_subtitle.as_ref(),
         page_title => "Help & Documentation",
-        description => "",
         root_url_prefix => &state.root_url_prefix,
         current_user => auth.current_user,
         messages => session.drain_messages(),

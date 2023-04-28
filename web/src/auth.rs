@@ -142,9 +142,9 @@ pub async fn ssh_signin(
 
     let context = minijinja::context! {
         namespace => &state.public_url,
-        title => state.site_title.as_ref(),
+        site_title => state.site_title.as_ref(),
+        site_subtitle => state.site_subtitle.as_ref(),
         page_title => "Log in",
-        description => "",
         root_url_prefix => &root_url_prefix,
         ssh_challenge => token,
         timeout_left => timeout_left,
