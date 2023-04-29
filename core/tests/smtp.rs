@@ -71,15 +71,19 @@ fn test_smtp() {
     match melib::Envelope::from_bytes(input_bytes, None) {
         Ok(envelope) => {
             // eprintln!("envelope {:?}", &envelope);
-            match db
-                .post(&envelope, input_bytes, /* dry_run */ false)
-                .unwrap_err()
-                .kind()
+            db.post(&envelope, input_bytes, /* dry_run */ false)
+                .expect("Got unexpected error");
             {
-                mailpot::ErrorKind::PostRejected(reason) => {
-                    trace!("Non-subscription post succesfully rejected: '{reason}'");
-                }
-                other => panic!("Got unexpected error: {}", other),
+                let out = db.queue(Queue::Out).unwrap();
+                assert_eq!(out.len(), 1);
+                const COMMENT_PREFIX: &str = "PostAction::Reject { reason: Only subscriptions";
+                assert_eq!(
+                    out[0]
+                        .comment
+                        .as_ref()
+                        .and_then(|c| c.get(..COMMENT_PREFIX.len())),
+                    Some(COMMENT_PREFIX)
+                );
             }
 
             db.add_subscription(
@@ -87,8 +91,8 @@ fn test_smtp() {
                 ListSubscription {
                     pk: 0,
                     list: foo_chat.pk(),
-                    address: "japoeunp@example.com".into(),
-                    name: Some("Jamaica Poe".into()),
+                    address: "paaoejunp@example.com".into(),
+                    name: Some("Cardholder Name".into()),
                     account: None,
                     digest: false,
                     verified: true,
@@ -138,7 +142,7 @@ fn test_smtp() {
     }));
     let stored = smtp_handler.stored.lock().unwrap();
     assert_eq!(stored.len(), 3);
-    assert_eq!(&stored[0].0, "japoeunp@example.com");
+    assert_eq!(&stored[0].0, "paaoejunp@example.com");
     assert_eq!(
         &stored[0].1.subject(),
         "Your post to foo-chat was rejected."
@@ -235,8 +239,8 @@ fn test_smtp_mailcrab() {
                 ListSubscription {
                     pk: 0,
                     list: foo_chat.pk(),
-                    address: "japoeunp@example.com".into(),
-                    name: Some("Jamaica Poe".into()),
+                    address: "paaoejunp@example.com".into(),
+                    name: Some("Cardholder Name".into()),
                     account: None,
                     digest: false,
                     verified: true,

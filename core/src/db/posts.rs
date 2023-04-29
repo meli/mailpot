@@ -232,7 +232,8 @@ impl Connection {
                             std::iter::once(Cow::Borrowed(f)),
                         )?;
                     }
-                    return Err(PostRejected(reason).into());
+                    /* error handled by notifying submitter */
+                    return Ok(());
                 }
                 PostAction::Defer { reason } => {
                     trace!("PostAction::Defer {{ reason: {} }}", reason);
@@ -262,7 +263,7 @@ impl Connection {
                         &bytes,
                         Some(format!("PostAction::Defer {{ reason: {} }}", reason)),
                     )?)?;
-                    return Err(PostRejected(reason).into());
+                    return Ok(());
                 }
                 PostAction::Hold => {
                     trace!("PostAction::Hold");
@@ -273,7 +274,7 @@ impl Connection {
                         &bytes,
                         Some("PostAction::Hold".to_string()),
                     )?)?;
-                    return Err(PostRejected("Hold".into()).into());
+                    return Ok(());
                 }
             }
         }

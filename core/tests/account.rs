@@ -76,8 +76,7 @@ fn test_accounts() {
 To: <foo-chat+subscribe@example.com>
 Subject: subscribe
 Date: Thu, 29 Oct 2020 13:58:16 +0000
-Message-ID:
- <PS1PR0601MB36750BD00EA89E1482FA98A2D5140_2@PS1PR0601MB3675.apcprd06.example.com>
+Message-ID: <abcdefgh@sator.example.com>
 Content-Language: en-US
 Content-Type: text/html
 Content-Transfer-Encoding: base64
@@ -100,8 +99,7 @@ MIME-Version: 1.0
 To: <foo-chat+request@example.com>
 Subject: password
 Date: Thu, 29 Oct 2020 13:58:16 +0000
-Message-ID:
- <PS1PR0601MB36750BD00EA89E1482FA98A2D5140@PS1PR0601MB3675.apcprd06.example.com>
+Message-ID: <abcdefgh@sator.example.com>
 Content-Language: en-US
 Content-Type: text/plain; charset=ascii
 Content-Transfer-Encoding: 8bit

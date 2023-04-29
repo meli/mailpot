@@ -80,13 +80,16 @@ fn test_error_queue() {
 
     let input_bytes = include_bytes!("./test_sample_longmessage.eml");
     let envelope = melib::Envelope::from_bytes(input_bytes, None).expect("Could not parse message");
-    match db
-        .post(&envelope, input_bytes, /* dry_run */ false)
-        .unwrap_err()
-        .kind()
-    {
-        mailpot::ErrorKind::PostRejected(_reason) => {}
-        other => panic!("Got unexpected error: {}", other),
-    }
-    assert_eq!(db.queue(Queue::Error).unwrap().len(), 1);
+    db.post(&envelope, input_bytes, /* dry_run */ false)
+        .expect("Got unexpected error");
+    let out = db.queue(Queue::Out).unwrap();
+    assert_eq!(out.len(), 1);
+    const COMMENT_PREFIX: &str = "PostAction::Reject { reason: Only subscriptions";
+    assert_eq!(
+        out[0]
+            .comment
+            .as_ref()
+            .and_then(|c| c.get(..COMMENT_PREFIX.len())),
+        Some(COMMENT_PREFIX)
+    );
 }
