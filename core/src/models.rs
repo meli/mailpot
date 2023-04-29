@@ -473,7 +473,7 @@ pub struct Post {
     pub message: Vec<u8>,
     /// Unix timestamp of date.
     pub timestamp: u64,
-    /// Datetime as string.
+    /// Date header as string.
     pub datetime: String,
     /// Month-year as a `YYYY-mm` formatted string, for use in archives.
     pub month_year: String,

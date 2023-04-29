@@ -31,15 +31,15 @@ impl Connection {
         } else {
             from_[0].get_email()
         };
-        let datetime: std::borrow::Cow<'_, str> = if env.timestamp != 0 {
+        let datetime: std::borrow::Cow<'_, str> = if !env.date.as_str().is_empty() {
+            env.date.as_str().into()
+        } else {
             melib::datetime::timestamp_to_string(
                 env.timestamp,
-                Some(melib::datetime::RFC3339_FMT_WITH_TIME),
+                Some(melib::datetime::RFC822_DATE),
                 true,
             )
             .into()
-        } else {
-            env.date.as_str().into()
         };
         let message_id = env.message_id_display();
         let mut stmt = self.connection.prepare(

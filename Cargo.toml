@@ -7,3 +7,9 @@ members = [
   "rest-http",
   "web",
 ]
+
+[profile.release]
+lto = "fat"
+opt-level = "z"
+codegen-units = 1
+split-debuginfo = "unpacked"

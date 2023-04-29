@@ -73,7 +73,11 @@ pub async fn list(
         .map(|(thread, length, _timestamp)| {
             let post = &post_map[&thread.message_id.as_str()];
             //2019-07-14T14:21:02
-            if let Some(day) = post.datetime.get(8..10).and_then(|d| d.parse::<u64>().ok()) {
+            if let Some(day) =
+                chrono::DateTime::<chrono::FixedOffset>::parse_from_rfc2822(post.datetime.trim())
+                    .ok()
+                    .map(|d| d.day())
+            {
                 hist.get_mut(&post.month_year).unwrap()[day.saturating_sub(1) as usize] += 1;
             }
             let envelope = melib::Envelope::from_bytes(post.message.as_slice(), None)

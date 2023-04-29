@@ -153,7 +153,11 @@
 #[macro_use]
 extern crate error_chain;
 pub extern crate anyhow;
+pub extern crate chrono;
 pub extern crate rusqlite;
+
+/// Alias for [`chrono::DateTime<chrono::Utc>`].
+pub type DateTime = chrono::DateTime<chrono::Utc>;
 
 #[macro_use]
 pub extern crate serde;

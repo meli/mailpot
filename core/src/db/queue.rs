@@ -87,7 +87,7 @@ pub struct QueueEntry {
     /// Unix timestamp of date.
     pub timestamp: u64,
     /// Datetime as string.
-    pub datetime: String,
+    pub datetime: DateTime,
 }
 
 impl std::fmt::Display for QueueEntry {
@@ -142,7 +142,7 @@ impl QueueEntry {
             message_id: env.message_id().to_string(),
             message: raw.to_vec(),
             timestamp: now.timestamp() as u64,
-            datetime: now.to_string(),
+            datetime: now,
         })
     }
 }
@@ -197,7 +197,7 @@ impl Connection {
                     message_id: row.get::<_, String>("message_id")?,
                     message: row.get::<_, Vec<u8>>("message")?,
                     timestamp: row.get::<_, u64>("timestamp")?,
-                    datetime: row.get::<_, String>("datetime")?,
+                    datetime: row.get::<_, DateTime>("datetime")?,
                 },
                 pk,
             ))
@@ -227,7 +227,7 @@ impl Connection {
                 message_id: row.get::<_, String>("message_id")?,
                 message: row.get::<_, Vec<u8>>("message")?,
                 timestamp: row.get::<_, u64>("timestamp")?,
-                datetime: row.get::<_, String>("datetime")?,
+                datetime: row.get::<_, DateTime>("datetime")?,
             })
         };
         let mut stmt = if index.is_empty() {

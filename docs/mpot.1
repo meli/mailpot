@@ -891,5 +891,36 @@ Is account enabled.
 [\fIpossible values: \fRtrue, false]
 .ie \n(.g .ds Aq \(aq
 .el .ds Aq '
+.\fB
+.SS mpot repair
+.\fR
+.br
+
+.br
+
+mpot repair [\-\-fix \fIFIX\fR] [\-\-all \fIALL\fR] [\-\-datetime\-header\-value \fIDATETIME_HEADER_VALUE\fR] [\-\-remove\-empty\-accounts \fIREMOVE_EMPTY_ACCOUNTS\fR] [\-\-remove\-accepted\-subscription\-requests \fIREMOVE_ACCEPTED_SUBSCRIPTION_REQUESTS\fR] [\-\-warn\-list\-no\-owner \fIWARN_LIST_NO_OWNER\fR] 
+.br
+
+Show and fix possible data mistakes or inconsistencies.
+.TP
+\-\-fix
+Fix errors (default: false).
+.TP
+\-\-all
+Select all tests (default: false).
+.TP
+\-\-datetime\-header\-value
+Post `datetime` column must have the Date: header value, in RFC2822 format.
+.TP
+\-\-remove\-empty\-accounts
+Remove accounts that have no matching subscriptions.
+.TP
+\-\-remove\-accepted\-subscription\-requests
+Remove subscription requests that have been accepted.
+.TP
+\-\-warn\-list\-no\-owner
+Warn if a list has no owners.
+.ie \n(.g .ds Aq \(aq
+.el .ds Aq '
 .SH AUTHORS
 Manos Pitsidianakis <el13635@mail.ntua.gr>

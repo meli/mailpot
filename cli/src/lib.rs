@@ -185,6 +185,28 @@ pub enum Command {
         /// Is account enabled.
         enabled: Option<Option<bool>>,
     },
+    /// Show and fix possible data mistakes or inconsistencies.
+    Repair {
+        /// Fix errors (default: false)
+        #[arg(long, default_value = "false")]
+        fix: bool,
+        /// Select all tests (default: false)
+        #[arg(long, default_value = "false")]
+        all: bool,
+        /// Post `datetime` column must have the Date: header value, in RFC2822
+        /// format.
+        #[arg(long, default_value = "false")]
+        datetime_header_value: bool,
+        /// Remove accounts that have no matching subscriptions.
+        #[arg(long, default_value = "false")]
+        remove_empty_accounts: bool,
+        /// Remove subscription requests that have been accepted.
+        #[arg(long, default_value = "false")]
+        remove_accepted_subscription_requests: bool,
+        /// Warn if a list has no owners.
+        #[arg(long, default_value = "false")]
+        warn_list_no_owner: bool,
+    },
 }
 
 /// Postfix config values.

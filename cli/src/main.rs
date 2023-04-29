@@ -24,6 +24,8 @@ use std::{
     process::Stdio,
 };
 
+mod lints;
+use lints::*;
 use mailpot::{
     melib::{backends::maildir::MaildirPathTrait, smol, Envelope, EnvelopeHash},
     models::{changesets::*, *},
@@ -757,6 +759,52 @@ fn run_app(opt: Opt) -> Result<()> {
             };
             db.update_account(changeset)?;
         }
+        Repair {
+            fix,
+            all,
+            mut datetime_header_value,
+            mut remove_empty_accounts,
+            mut remove_accepted_subscription_requests,
+            mut warn_list_no_owner,
+        } => {
+            type LintFn =
+                fn(&'_ mut mailpot::Connection, bool) -> std::result::Result<(), mailpot::Error>;
+            let dry_run = !fix;
+            if all {
+                datetime_header_value = true;
+                remove_empty_accounts = true;
+                remove_accepted_subscription_requests = true;
+                warn_list_no_owner = true;
+            }
+
+            if !(datetime_header_value
+                | remove_empty_accounts
+                | remove_accepted_subscription_requests
+                | warn_list_no_owner)
+            {
+                return Err(
+                    "No lints selected: specify them with flag arguments. See --help".into(),
+                );
+            }
+
+            if dry_run {
+                println!("running without making modifications (dry run)");
+            }
+
+            for (flag, lint_fn) in [
+                (datetime_header_value, datetime_header_value_lint as LintFn),
+                (remove_empty_accounts, remove_empty_accounts_lint as _),
+                (
+                    remove_accepted_subscription_requests,
+                    remove_accepted_subscription_requests_lint as _,
+                ),
+                (warn_list_no_owner, warn_list_no_owner_lint as _),
+            ] {
+                if flag {
+                    lint_fn(&mut db, dry_run)?;
+                }
+            }
+        }
     }
 
     Ok(())
@@ -773,7 +821,7 @@ fn main() -> std::result::Result<(), i32> {
         .init()
         .unwrap();
     if let Err(err) = run_app(opt) {
-        println!("{}", err.display_chain());
+        print!("{}", err.display_chain());
         std::process::exit(-1);
     }
     Ok(())
