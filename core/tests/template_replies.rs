@@ -25,6 +25,29 @@ use tempfile::TempDir;
 fn test_template_replies() {
     init_stderr_logging();
 
+    const SUB_BYTES: &[u8] = b"From: Name <user@example.com>
+To: <foo-chat+subscribe@example.com>
+Subject: subscribe
+Date: Thu, 29 Oct 2020 13:58:16 +0000
+Message-ID: <abcdefgh@sator.example.com>
+Content-Language: en-US
+Content-Type: text/html
+Content-Transfer-Encoding: base64
+MIME-Version: 1.0
+
+";
+    const UNSUB_BYTES: &[u8] = b"From: Name <user@example.com>
+To: <foo-chat+request@example.com>
+Subject: unsubscribe
+Date: Thu, 29 Oct 2020 13:58:17 +0000
+Message-ID: <abcdefgh@sator.example.com>
+Content-Language: en-US
+Content-Type: text/html
+Content-Transfer-Encoding: base64
+MIME-Version: 1.0
+
+";
+
     let tmp_dir = TempDir::new().unwrap();
 
     let db_path = tmp_dir.path().join("mpot.db");
@@ -68,42 +91,59 @@ fn test_template_replies() {
     assert_eq!(db.queue(Queue::Error).unwrap().len(), 0);
     assert_eq!(db.list_subscriptions(foo_chat.pk()).unwrap().len(), 0);
 
+    let _templ_gen = db
+        .add_template(Template {
+            pk: -1,
+            name: Template::SUBSCRIPTION_CONFIRMATION.into(),
+            list: None,
+            subject: Some("You have subscribed to a list".into()),
+            headers_json: None,
+            body: "You have subscribed to a list".into(),
+        })
+        .unwrap();
     /* create custom subscribe confirm template, and check that it is used in
      * action */
     let _templ = db
         .add_template(Template {
-            pk: 0,
+            pk: -1,
             name: Template::SUBSCRIPTION_CONFIRMATION.into(),
-            list: None,
+            list: Some(foo_chat.pk()),
             subject: Some("You have subscribed to {{ list.name }}".into()),
             headers_json: None,
             body: "You have subscribed to {{ list.name }}".into(),
         })
         .unwrap();
+    let _all = db.fetch_templates().unwrap();
+    assert_eq!(&_all[0], &_templ_gen);
+    assert_eq!(&_all[1], &_templ);
+    assert_eq!(_all.len(), 2);
+
+    let sub_fn = |db: &mut Connection| {
+        let subenvelope =
+            melib::Envelope::from_bytes(SUB_BYTES, None).expect("Could not parse message");
+        db.post(&subenvelope, SUB_BYTES, /* dry_run */ false)
+            .unwrap();
+        assert_eq!(db.list_subscriptions(foo_chat.pk()).unwrap().len(), 1);
+        assert_eq!(db.queue(Queue::Error).unwrap().len(), 0);
+    };
+    let unsub_fn = |db: &mut Connection| {
+        let envelope =
+            melib::Envelope::from_bytes(UNSUB_BYTES, None).expect("Could not parse message");
+        db.post(&envelope, UNSUB_BYTES, /* dry_run */ false)
+            .unwrap();
+        assert_eq!(db.list_subscriptions(foo_chat.pk()).unwrap().len(), 0);
+        assert_eq!(db.queue(Queue::Error).unwrap().len(), 0);
+    };
 
     /* subscribe first */
 
-    let bytes = b"From: Name <user@example.com>
-To: <foo-chat+subscribe@example.com>
-Subject: subscribe
-Date: Thu, 29 Oct 2020 13:58:16 +0000
-Message-ID: <abcdefgh@sator.example.com>
-Content-Language: en-US
-Content-Type: text/html
-Content-Transfer-Encoding: base64
-MIME-Version: 1.0
-
-";
-    let subenvelope = melib::Envelope::from_bytes(bytes, None).expect("Could not parse message");
-    db.post(&subenvelope, bytes, /* dry_run */ false).unwrap();
-    assert_eq!(db.list_subscriptions(foo_chat.pk()).unwrap().len(), 1);
-    assert_eq!(db.queue(Queue::Error).unwrap().len(), 0);
+    sub_fn(&mut db);
 
     let out_queue = db.queue(Queue::Out).unwrap();
     assert_eq!(out_queue.len(), 1);
     let out = &out_queue[0];
     let out_env = melib::Envelope::from_bytes(&out.message, None).unwrap();
-    // eprintln!("{}", String::from_utf8_lossy(&out_bytes));
+
     assert_eq!(
         &out_env.from()[0].get_email(),
         "foo-chat+request@example.com",
@@ -122,45 +162,58 @@ MIME-Version: 1.0
 
     /* then unsubscribe, remove custom template and subscribe again */
 
-    let unbytes = b"From: Name <user@example.com>
-To: <foo-chat+request@example.com>
-Subject: unsubscribe
-Date: Thu, 29 Oct 2020 13:58:17 +0000
-Message-ID: <abcdefgh@sator.example.com>
-Content-Language: en-US
-Content-Type: text/html
-Content-Transfer-Encoding: base64
-MIME-Version: 1.0
-
-";
-    let envelope = melib::Envelope::from_bytes(unbytes, None).expect("Could not parse message");
-    db.post(&envelope, unbytes, /* dry_run */ false).unwrap();
-    assert_eq!(db.list_subscriptions(foo_chat.pk()).unwrap().len(), 0);
-    assert_eq!(db.queue(Queue::Error).unwrap().len(), 0);
+    unsub_fn(&mut db);
 
     let out_queue = db.queue(Queue::Out).unwrap();
     assert_eq!(out_queue.len(), 2);
 
     let mut _templ = _templ.into_inner();
     let _templ2 = db
-        .remove_template(Template::SUBSCRIPTION_CONFIRMATION, None)
+        .remove_template(Template::SUBSCRIPTION_CONFIRMATION, Some(foo_chat.pk()))
         .unwrap();
     _templ.pk = _templ2.pk;
     assert_eq!(_templ, _templ2);
 
-    /* now this template should be used: */
-    // let default_templ = Template::default_subscription_confirmation();
+    /* now the first inserted template should be used: */
 
-    db.post(&subenvelope, bytes, /* dry_run */ false).unwrap();
-    assert_eq!(db.list_subscriptions(foo_chat.pk()).unwrap().len(), 1);
-    assert_eq!(db.queue(Queue::Error).unwrap().len(), 0);
+    sub_fn(&mut db);
 
     let out_queue = db.queue(Queue::Out).unwrap();
 
     assert_eq!(out_queue.len(), 3);
     let out = &out_queue[2];
     let out_env = melib::Envelope::from_bytes(&out.message, None).unwrap();
-    // eprintln!("{}", String::from_utf8_lossy(&out_bytes));
+
+    assert_eq!(
+        &out_env.from()[0].get_email(),
+        "foo-chat+request@example.com",
+    );
+    assert_eq!(
+        (
+            out_env.to()[0].get_display_name().as_deref(),
+            out_env.to()[0].get_email().as_str()
+        ),
+        (Some("Name"), "user@example.com"),
+    );
+    assert_eq!(&out.subject, "You have subscribed to a list");
+
+    unsub_fn(&mut db);
+    let mut _templ_gen_2 = db
+        .remove_template(Template::SUBSCRIPTION_CONFIRMATION, None)
+        .unwrap();
+    _templ_gen_2.pk = _templ_gen.pk;
+    assert_eq!(_templ_gen_2, _templ_gen.into_inner());
+
+    /* now this template should be used: */
+
+    sub_fn(&mut db);
+
+    let out_queue = db.queue(Queue::Out).unwrap();
+
+    assert_eq!(out_queue.len(), 5);
+    let out = &out_queue[4];
+    let out_env = melib::Envelope::from_bytes(&out.message, None).unwrap();
+
     assert_eq!(
         &out_env.from()[0].get_email(),
         "foo-chat+request@example.com",

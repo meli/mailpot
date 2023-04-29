@@ -24,7 +24,9 @@ use super::*;
 impl Connection {
     /// Fetch all.
     pub fn fetch_templates(&self) -> Result<Vec<DbVal<Template>>> {
-        let mut stmt = self.connection.prepare("SELECT * FROM templates;")?;
+        let mut stmt = self
+            .connection
+            .prepare("SELECT * FROM templates ORDER BY pk;")?;
         let iter = stmt.query_map(rusqlite::params![], |row| {
             let pk = row.get("pk")?;
             Ok(DbVal(
