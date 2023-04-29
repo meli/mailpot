@@ -63,13 +63,15 @@ jobs:
           EOF
       - name: Build binary
         run: |
-          cargo build --release --bin mpot --bin mpot-gen -p mailpot-cli -p mpot-archives
-          mv target/*/release/mailpot target/mailpot || true
-          mv target/release/mailpot target/mailpot || true
+          cargo build --release --bin mpot --bin mpot-gen --bin mpot-web -p mailpot-cli -p mailpot-archives -p mailpot-web
+          mkdir artifacts
+          mv target/*/release/* target/ || true
+          mv target/release/* target/ || true
+          mv target/mpot target/mpot-web target/mpot-gen artifacts/
       - name: Upload Artifacts
         uses: actions/upload-artifact@v2
         with:
           name: ${{ matrix.artifact_name }}
-          path: target/mailpot
+          path: artifacts
           if-no-files-found: error
           retention-days: 7
