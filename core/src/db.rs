@@ -253,20 +253,24 @@ impl Connection {
     }
 
     /// Loads archive databases from [`Configuration::data_path`], if any.
-    pub fn load_archives(&self) -> Result<()> {
-        let mut stmt = self.connection.prepare("ATTACH ? AS ?;")?;
-        for archive in std::fs::read_dir(&self.conf.data_path)? {
-            let archive = archive?;
-            let path = archive.path();
-            let name = path.file_name().unwrap_or_default();
-            if path == self.conf.db_path {
-                continue;
+    pub fn load_archives(&mut self) -> Result<()> {
+        let tx = self.connection.transaction()?;
+        {
+            let mut stmt = tx.prepare("ATTACH ? AS ?;")?;
+            for archive in std::fs::read_dir(&self.conf.data_path)? {
+                let archive = archive?;
+                let path = archive.path();
+                let name = path.file_name().unwrap_or_default();
+                if path == self.conf.db_path {
+                    continue;
+                }
+                stmt.execute(rusqlite::params![
+                    path.to_str().unwrap(),
+                    name.to_str().unwrap()
+                ])?;
             }
-            stmt.execute(rusqlite::params![
-                path.to_str().unwrap(),
-                name.to_str().unwrap()
-            ])?;
         }
+        tx.commit()?;
 
         Ok(())
     }
