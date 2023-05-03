@@ -17,12 +17,20 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
+//! How each list handles new posts and new subscriptions.
+
 pub use post_policy::*;
 pub use subscription_policy::*;
 
-use super::*;
 mod post_policy {
-    use super::*;
+    use log::trace;
+    use rusqlite::OptionalExtension;
+
+    use crate::{
+        errors::{ErrorKind::*, *},
+        models::{DbVal, PostPolicy},
+        Connection,
+    };
 
     impl Connection {
         /// Fetch the post policy of a mailing list.
@@ -207,7 +215,14 @@ mod post_policy {
 }
 
 mod subscription_policy {
-    use super::*;
+    use log::trace;
+    use rusqlite::OptionalExtension;
+
+    use crate::{
+        errors::{ErrorKind::*, *},
+        models::{DbVal, SubscriptionPolicy},
+        Connection,
+    };
 
     impl Connection {
         /// Fetch the subscription policy of a mailing list.

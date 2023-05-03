@@ -24,18 +24,20 @@ use std::{
     process::{Command, Stdio},
 };
 
-use melib::Envelope;
-use models::changesets::*;
+use log::{info, trace};
 use rusqlite::{Connection as DbConnection, OptionalExtension};
 
-use super::{Configuration, *};
-use crate::ErrorKind::*;
+use crate::{
+    config::Configuration,
+    errors::{ErrorKind::*, *},
+    models::{changesets::MailingListChangeset, DbVal, ListOwner, MailingList, Post},
+};
 
 /// A connection to a `mailpot` database.
 pub struct Connection {
     /// The `rusqlite` connection handle.
     pub connection: DbConnection,
-    conf: Configuration,
+    pub(crate) conf: Configuration,
 }
 
 impl std::fmt::Debug for Connection {
@@ -60,17 +62,6 @@ impl Drop for Connection {
             .pragma(None, "optimize", 0xfffe_i64, |_| Ok(()));
     }
 }
-
-mod templates;
-pub use templates::*;
-mod queue;
-pub use queue::*;
-mod posts;
-pub use posts::*;
-mod subscriptions;
-pub use subscriptions::*;
-mod policies;
-pub use policies::*;
 
 fn log_callback(error_code: std::ffi::c_int, message: &str) {
     match error_code {
@@ -568,19 +559,5 @@ impl Connection {
 
         tx.commit()?;
         Ok(())
-    }
-
-    /// Return the post filters of a mailing list.
-    pub fn list_filters(
-        &self,
-        _list: &DbVal<MailingList>,
-    ) -> Vec<Box<dyn crate::mail::message_filters::PostFilter>> {
-        use crate::mail::message_filters::*;
-        vec![
-            Box::new(FixCRLF),
-            Box::new(PostRightsCheck),
-            Box::new(AddListHeaders),
-            Box::new(FinalizeRecipients),
-        ]
     }
 }

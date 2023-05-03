@@ -17,7 +17,19 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-use super::*;
+//! User subscriptions.
+
+use log::trace;
+use rusqlite::OptionalExtension;
+
+use crate::{
+    errors::{ErrorKind::*, *},
+    models::{
+        changesets::{AccountChangeset, ListSubscriptionChangeset},
+        Account, ListCandidateSubscription, ListSubscription,
+    },
+    Connection, DbVal,
+};
 
 impl Connection {
     /// Fetch all subscriptions of a mailing list.
@@ -589,6 +601,7 @@ impl Connection {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::*;
 
     #[test]
     fn test_subscription_ops() {

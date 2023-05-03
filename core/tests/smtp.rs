@@ -18,7 +18,7 @@
  */
 
 use log::{trace, warn};
-use mailpot::{melib, models::*, Configuration, Connection, Queue, SendMail};
+use mailpot::{melib, models::*, queue::Queue, Configuration, Connection, SendMail};
 use mailpot_tests::*;
 use melib::smol;
 use tempfile::TempDir;

@@ -23,7 +23,7 @@ use std::{future::Future, pin::Pin};
 
 use melib::smtp::*;
 
-use crate::{errors::*, Connection, QueueEntry};
+use crate::{errors::*, queue::QueueEntry, Connection};
 
 type ResultFuture<T> = Result<Pin<Box<dyn Future<Output = Result<T>> + Send + 'static>>>;
 

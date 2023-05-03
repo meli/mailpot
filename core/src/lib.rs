@@ -165,20 +165,23 @@ pub extern crate log;
 pub extern crate melib;
 pub extern crate serde_json;
 
-use log::{info, trace};
-
 mod config;
-mod db;
+mod connection;
 mod errors;
 pub mod mail;
+pub mod message_filters;
 pub mod models;
+pub mod policies;
 #[cfg(not(target_os = "windows"))]
 pub mod postfix;
+pub mod posts;
+pub mod queue;
 pub mod submission;
+pub mod subscriptions;
 mod templates;
 
 pub use config::{Configuration, SendMail};
-pub use db::*;
+pub use connection::*;
 pub use errors::*;
 use models::*;
 pub use templates::*;

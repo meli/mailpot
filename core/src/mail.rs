@@ -20,11 +20,13 @@
 //! Types for processing new posts: [`PostFilter`](message_filters::PostFilter),
 //! [`ListContext`], [`MailJob`] and [`PostAction`].
 
+use log::trace;
 use melib::Address;
 
-use super::*;
-pub mod message_filters;
-
+use crate::{
+    models::{ListOwner, ListSubscription, MailingList, PostPolicy, SubscriptionPolicy},
+    DbVal,
+};
 /// Post action returned from a list's
 /// [`PostFilter`](message_filters::PostFilter) stack.
 #[derive(Debug)]
@@ -66,7 +68,7 @@ pub struct ListContext<'list> {
 
 /// Post to be considered by the list's
 /// [`PostFilter`](message_filters::PostFilter) stack.
-pub struct Post {
+pub struct PostEntry {
     /// `From` address of post.
     pub from: Address,
     /// Raw bytes of post.
@@ -78,9 +80,9 @@ pub struct Post {
     pub action: PostAction,
 }
 
-impl core::fmt::Debug for Post {
+impl core::fmt::Debug for PostEntry {
     fn fmt(&self, fmt: &mut core::fmt::Formatter) -> core::fmt::Result {
-        fmt.debug_struct("Post")
+        fmt.debug_struct(stringify!(PostEntry))
             .field("from", &self.from)
             .field("bytes", &format_args!("{} bytes", self.bytes.len()))
             .field("to", &self.to.as_slice())

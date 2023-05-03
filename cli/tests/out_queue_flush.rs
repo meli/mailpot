@@ -23,7 +23,8 @@ use assert_cmd::assert::OutputAssertExt;
 use mailpot::{
     melib,
     models::{changesets::ListSubscriptionChangeset, *},
-    Configuration, Connection, Queue, SendMail,
+    queue::Queue,
+    Configuration, Connection, SendMail,
 };
 use mailpot_tests::*;
 use predicates::prelude::*;

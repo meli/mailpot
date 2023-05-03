@@ -17,7 +17,7 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-use mailpot::{melib, models::*, Configuration, Connection, Queue, SendMail};
+use mailpot::{melib, models::*, queue::Queue, Configuration, Connection, SendMail};
 use mailpot_tests::init_stderr_logging;
 use tempfile::TempDir;
 

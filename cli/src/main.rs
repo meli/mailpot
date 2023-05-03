@@ -27,9 +27,10 @@ use std::{
 mod lints;
 use lints::*;
 use mailpot::{
-    melib::{backends::maildir::MaildirPathTrait, smol, Envelope, EnvelopeHash},
+    melib::{backends::maildir::MaildirPathTrait, smol, smtp::*, Envelope, EnvelopeHash},
     models::{changesets::*, *},
-    *,
+    queue::{Queue, QueueEntry},
+    Configuration, Connection, Error, ErrorKind, Result, *,
 };
 use mailpot_cli::*;
 
@@ -60,8 +61,27 @@ fn run_app(opt: Opt) -> Result<()> {
     if opt.debug {
         println!("DEBUG: {:?}", &opt);
     }
-    if let Command::SampleConfig = opt.cmd {
-        println!("{}", Configuration::new("/path/to/sqlite.db").to_toml());
+    if let Command::SampleConfig { with_smtp } = opt.cmd {
+        let mut new = Configuration::new("/path/to/sqlite.db");
+        new.administrators.push("admin@example.com".to_string());
+        if with_smtp {
+            new.send_mail = mailpot::SendMail::Smtp(SmtpServerConf {
+                hostname: "mail.example.com".to_string(),
+                port: 587,
+                envelope_from: "".to_string(),
+                auth: SmtpAuth::Auto {
+                    username: "user".to_string(),
+                    password: Password::Raw("hunter2".to_string()),
+                    auth_type: SmtpAuthType::default(),
+                    require_auth: true,
+                },
+                security: SmtpSecurity::StartTLS {
+                    danger_accept_invalid_certs: false,
+                },
+                extensions: Default::default(),
+            });
+        }
+        println!("{}", new.to_toml());
         return Ok(());
     };
     let config_path = if let Some(path) = opt.config.as_ref() {
@@ -80,7 +100,7 @@ fn run_app(opt: Opt) -> Result<()> {
     use Command::*;
     let mut db = Connection::open_or_create_db(config)?.trusted();
     match opt.cmd {
-        SampleConfig => {}
+        SampleConfig { .. } => {}
         DumpDatabase => {
             let lists = db.lists()?;
             let mut stdout = std::io::stdout();

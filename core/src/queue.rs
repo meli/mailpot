@@ -21,7 +21,9 @@
 
 use std::borrow::Cow;
 
-use super::*;
+use melib::Envelope;
+
+use crate::{errors::*, models::DbVal, Connection, DateTime};
 
 /// In-database queues of mail.
 #[derive(Copy, Clone, Eq, PartialEq, Debug, serde::Serialize, serde::Deserialize)]
@@ -262,6 +264,7 @@ impl Connection {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::*;
 
     #[test]
     fn test_queue_delete_array() {

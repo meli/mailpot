@@ -55,8 +55,12 @@ pub enum Command {
     /// Prints a sample config file to STDOUT.
     ///
     /// You can generate a new configuration file by writing the output to a
-    /// file, e.g: mpot sample-config > config.toml
-    SampleConfig,
+    /// file, e.g: mpot sample-config --with-smtp > config.toml
+    SampleConfig {
+        /// Use an SMTP connection instead of a shell process.
+        #[arg(long)]
+        with_smtp: bool,
+    },
     /// Dumps database data to STDOUT.
     DumpDatabase,
     /// Lists all registered mailing lists.

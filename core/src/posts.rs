@@ -17,10 +17,22 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
+//! Processing new posts.
+
 use std::borrow::Cow;
 
-use super::*;
-use crate::mail::ListRequest;
+use log::{info, trace};
+use melib::Envelope;
+use rusqlite::OptionalExtension;
+
+use crate::{
+    errors::*,
+    mail::{ListContext, ListRequest, PostAction, PostEntry},
+    models::{changesets::AccountChangeset, Account, DbVal, ListSubscription, MailingList, Post},
+    queue::{Queue, QueueEntry},
+    templates::Template,
+    Connection,
+};
 
 impl Connection {
     /// Insert a mailing list post into the database.
@@ -155,7 +167,6 @@ impl Connection {
         }
 
         trace!("Configuration is {:#?}", &self.conf);
-        use crate::mail::{ListContext, Post, PostAction};
         for mut list in lists {
             trace!("Examining list {}", list.display_name());
             let filters = self.list_filters(&list);
@@ -170,7 +181,7 @@ impl Connection {
                 subscriptions: &subscriptions,
                 scheduled_jobs: vec![],
             };
-            let mut post = Post {
+            let mut post = PostEntry {
                 from: env.from()[0].clone(),
                 bytes: raw.to_vec(),
                 to: env.to().to_vec(),
@@ -183,7 +194,7 @@ impl Connection {
                 });
             trace!("result {:#?}", result);
 
-            let Post { bytes, action, .. } = post;
+            let PostEntry { bytes, action, .. } = post;
             trace!("Action is {:#?}", action);
             let post_env = melib::Envelope::from_bytes(&bytes, None)?;
             match action {

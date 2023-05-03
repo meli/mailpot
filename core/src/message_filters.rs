@@ -38,7 +38,26 @@
 //!
 //! so the processing stops at the first returned error.
 
-use super::*;
+use log::trace;
+use melib::Address;
+
+use crate::{
+    mail::{ListContext, MailJob, PostAction, PostEntry},
+    models::{DbVal, MailingList},
+    Connection,
+};
+
+impl Connection {
+    /// Return the post filters of a mailing list.
+    pub fn list_filters(&self, _list: &DbVal<MailingList>) -> Vec<Box<dyn PostFilter>> {
+        vec![
+            Box::new(FixCRLF),
+            Box::new(PostRightsCheck),
+            Box::new(AddListHeaders),
+            Box::new(FinalizeRecipients),
+        ]
+    }
+}
 
 /// Filter that modifies and/or verifies a post candidate. On rejection, return
 /// a string describing the error and optionally set `post.action` to `Reject`
@@ -49,9 +68,9 @@ pub trait PostFilter {
     /// processing to stop and return an `Result::Err`.
     fn feed<'p, 'list>(
         self: Box<Self>,
-        post: &'p mut Post,
+        post: &'p mut PostEntry,
         ctx: &'p mut ListContext<'list>,
-    ) -> std::result::Result<(&'p mut Post, &'p mut ListContext<'list>), ()>;
+    ) -> std::result::Result<(&'p mut PostEntry, &'p mut ListContext<'list>), ()>;
 }
 
 /// Check that submitter can post to list, for now it accepts everything.
@@ -59,9 +78,9 @@ pub struct PostRightsCheck;
 impl PostFilter for PostRightsCheck {
     fn feed<'p, 'list>(
         self: Box<Self>,
-        post: &'p mut Post,
+        post: &'p mut PostEntry,
         ctx: &'p mut ListContext<'list>,
-    ) -> std::result::Result<(&'p mut Post, &'p mut ListContext<'list>), ()> {
+    ) -> std::result::Result<(&'p mut PostEntry, &'p mut ListContext<'list>), ()> {
         trace!("Running PostRightsCheck filter");
         if let Some(ref policy) = ctx.post_policy {
             if policy.announce_only {
@@ -117,9 +136,9 @@ pub struct FixCRLF;
 impl PostFilter for FixCRLF {
     fn feed<'p, 'list>(
         self: Box<Self>,
-        post: &'p mut Post,
+        post: &'p mut PostEntry,
         ctx: &'p mut ListContext<'list>,
-    ) -> std::result::Result<(&'p mut Post, &'p mut ListContext<'list>), ()> {
+    ) -> std::result::Result<(&'p mut PostEntry, &'p mut ListContext<'list>), ()> {
         trace!("Running FixCRLF filter");
         use std::io::prelude::*;
         let mut new_vec = Vec::with_capacity(post.bytes.len());
@@ -137,9 +156,9 @@ pub struct AddListHeaders;
 impl PostFilter for AddListHeaders {
     fn feed<'p, 'list>(
         self: Box<Self>,
-        post: &'p mut Post,
+        post: &'p mut PostEntry,
         ctx: &'p mut ListContext<'list>,
-    ) -> std::result::Result<(&'p mut Post, &'p mut ListContext<'list>), ()> {
+    ) -> std::result::Result<(&'p mut PostEntry, &'p mut ListContext<'list>), ()> {
         trace!("Running AddListHeaders filter");
         let (mut headers, body) = melib::email::parser::mail(&post.bytes).unwrap();
         let sender = format!("<{}>", ctx.list.address);
@@ -206,9 +225,9 @@ pub struct ArchivedAtLink;
 impl PostFilter for ArchivedAtLink {
     fn feed<'p, 'list>(
         self: Box<Self>,
-        post: &'p mut Post,
+        post: &'p mut PostEntry,
         ctx: &'p mut ListContext<'list>,
-    ) -> std::result::Result<(&'p mut Post, &'p mut ListContext<'list>), ()> {
+    ) -> std::result::Result<(&'p mut PostEntry, &'p mut ListContext<'list>), ()> {
         trace!("Running ArchivedAtLink filter");
         Ok((post, ctx))
     }
@@ -220,9 +239,9 @@ pub struct FinalizeRecipients;
 impl PostFilter for FinalizeRecipients {
     fn feed<'p, 'list>(
         self: Box<Self>,
-        post: &'p mut Post,
+        post: &'p mut PostEntry,
         ctx: &'p mut ListContext<'list>,
-    ) -> std::result::Result<(&'p mut Post, &'p mut ListContext<'list>), ()> {
+    ) -> std::result::Result<(&'p mut PostEntry, &'p mut ListContext<'list>), ()> {
         trace!("Running FinalizeRecipients filter");
         let mut recipients = vec![];
         let mut digests = vec![];
