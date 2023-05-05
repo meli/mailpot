@@ -28,6 +28,18 @@ use std::borrow::Cow;
 use melib::email::Address;
 
 /// A database entry and its primary key. Derefs to its inner type.
+///
+/// # Example
+///
+/// ```rust,no_run
+/// # use mailpot::{*, models::*};
+/// # fn foo(db: &Connection) {
+/// let val: Option<DbVal<MailingList>> = db.list(5).unwrap();
+/// if let Some(list) = val {
+///     assert_eq!(list.pk(), 5);
+/// }
+/// # }
+/// ```
 #[derive(Debug, PartialEq, Eq, Clone, Deserialize, Serialize)]
 #[serde(transparent)]
 pub struct DbVal<T>(pub T, #[serde(skip)] pub i64);
@@ -105,13 +117,34 @@ impl std::fmt::Display for MailingList {
 }
 
 impl MailingList {
-    /// Mailing list display name (e.g. `list name <list_address@example.com>`).
+    /// Mailing list display name.
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    /// # fn main() -> mailpot::Result<()> {
+    #[doc = include_str!("./doctests/db_setup.rs.inc")]
+    /// assert_eq!(
+    ///     &list.display_name(),
+    ///     "\"foobar chat\" <foo-chat@example.com>"
+    /// );
+    /// # Ok(())
+    /// # }
     pub fn display_name(&self) -> String {
         format!("\"{}\" <{}>", self.name, self.address)
     }
 
     #[inline]
     /// Request subaddress.
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    /// # fn main() -> mailpot::Result<()> {
+    #[doc = include_str!("./doctests/db_setup.rs.inc")]
+    /// assert_eq!(&list.request_subaddr(), "foo-chat+request@example.com");
+    /// # Ok(())
+    /// # }
     pub fn request_subaddr(&self) -> String {
         let p = self.address.split('@').collect::<Vec<&str>>();
         format!("{}+request@{}", p[0], p[1])
@@ -120,6 +153,17 @@ impl MailingList {
     /// Value of `List-Id` header.
     ///
     /// See RFC2919 Section 3: <https://www.rfc-editor.org/rfc/rfc2919>
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    /// # fn main() -> mailpot::Result<()> {
+    #[doc = include_str!("./doctests/db_setup.rs.inc")]
+    /// assert_eq!(
+    ///     &list.id_header(),
+    ///     "Hello world, from foo-chat list <foo-chat.example.com>");
+    /// # Ok(())
+    /// # }
     pub fn id_header(&self) -> String {
         let p = self.address.split('@').collect::<Vec<&str>>();
         format!(
@@ -134,6 +178,18 @@ impl MailingList {
     /// Value of `List-Help` header.
     ///
     /// See RFC2369 Section 3.1: <https://www.rfc-editor.org/rfc/rfc2369#section-3.1>
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    /// # fn main() -> mailpot::Result<()> {
+    #[doc = include_str!("./doctests/db_setup.rs.inc")]
+    /// assert_eq!(
+    ///     &list.help_header().unwrap(),
+    ///     "<mailto:foo-chat+request@example.com?subject=help>"
+    /// );
+    /// # Ok(())
+    /// # }
     pub fn help_header(&self) -> Option<String> {
         Some(format!("<mailto:{}?subject=help>", self.request_subaddr()))
     }
@@ -141,6 +197,19 @@ impl MailingList {
     /// Value of `List-Post` header.
     ///
     /// See RFC2369 Section 3.4: <https://www.rfc-editor.org/rfc/rfc2369#section-3.4>
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    /// # fn main() -> mailpot::Result<()> {
+    #[doc = include_str!("./doctests/db_setup.rs.inc")]
+    /// assert_eq!(&list.post_header(None).unwrap(), "NO");
+    /// assert_eq!(
+    ///     &list.post_header(Some(&post_policy)).unwrap(),
+    ///     "<mailto:foo-chat@example.com>"
+    /// );
+    /// # Ok(())
+    /// # }
     pub fn post_header(&self, policy: Option<&PostPolicy>) -> Option<String> {
         Some(policy.map_or_else(
             || "NO".to_string(),
@@ -157,18 +226,26 @@ impl MailingList {
     /// Value of `List-Unsubscribe` header.
     ///
     /// See RFC2369 Section 3.2: <https://www.rfc-editor.org/rfc/rfc2369#section-3.2>
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    /// # fn main() -> mailpot::Result<()> {
+    #[doc = include_str!("./doctests/db_setup.rs.inc")]
+    /// assert_eq!(
+    ///     &list.unsubscribe_header(Some(&sub_policy)).unwrap(),
+    ///     "<mailto:foo-chat+request@example.com?subject=unsubscribe>"
+    /// );
+    /// # Ok(())
+    /// # }
     pub fn unsubscribe_header(&self, policy: Option<&SubscriptionPolicy>) -> Option<String> {
         policy.map_or_else(
             || None,
-            |p| {
-                if p.open {
-                    None
-                } else {
-                    Some(format!(
-                        "<mailto:{}?subject=unsubscribe>",
-                        self.request_subaddr()
-                    ))
-                }
+            |_| {
+                Some(format!(
+                    "<mailto:{}?subject=unsubscribe>",
+                    self.request_subaddr()
+                ))
             },
         )
     }
@@ -176,18 +253,27 @@ impl MailingList {
     /// Value of `List-Subscribe` header.
     ///
     /// See RFC2369 Section 3.3: <https://www.rfc-editor.org/rfc/rfc2369#section-3.3>
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    /// # fn main() -> mailpot::Result<()> {
+    #[doc = include_str!("./doctests/db_setup.rs.inc")]
+    /// assert_eq!(
+    ///     &list.subscribe_header(Some(&sub_policy)).unwrap(),
+    ///     "<mailto:foo-chat+request@example.com?subject=subscribe>",
+    /// );
+    /// # Ok(())
+    /// # }
+    /// ```
     pub fn subscribe_header(&self, policy: Option<&SubscriptionPolicy>) -> Option<String> {
         policy.map_or_else(
             || None,
-            |p| {
-                if p.open {
-                    None
-                } else {
-                    Some(format!(
-                        "<mailto:{}?subject=subscribe>",
-                        self.request_subaddr()
-                    ))
-                }
+            |_| {
+                Some(format!(
+                    "<mailto:{}?subject=subscribe>",
+                    self.request_subaddr()
+                ))
             },
         )
     }
@@ -195,6 +281,19 @@ impl MailingList {
     /// Value of `List-Archive` header.
     ///
     /// See RFC2369 Section 3.6: <https://www.rfc-editor.org/rfc/rfc2369#section-3.6>
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    /// # fn main() -> mailpot::Result<()> {
+    #[doc = include_str!("./doctests/db_setup.rs.inc")]
+    /// assert_eq!(
+    ///     &list.archive_header().unwrap(),
+    ///     "<https://lists.example.com>"
+    /// );
+    /// # Ok(())
+    /// # }
+    /// ```
     pub fn archive_header(&self) -> Option<String> {
         self.archive_url.as_ref().map(|url| format!("<{}>", url))
     }

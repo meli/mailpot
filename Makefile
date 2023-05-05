@@ -25,3 +25,7 @@ test: check lint
 .PHONY: rustdoc
 rustdoc:
 	@RUSTDOCFLAGS="--html-before-content ./.github/doc_extra.html" cargo doc --workspace --all-features --no-deps --document-private-items
+
+.PHONY: rustdoc-open
+rustdoc-open:
+	@RUSTDOCFLAGS="--html-before-content ./.github/doc_extra.html" cargo doc --workspace --all-features --no-deps --document-private-items --open

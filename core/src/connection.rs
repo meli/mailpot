@@ -138,6 +138,41 @@ impl Connection {
     /// `Connection` supports a limited subset of operations by default (see
     /// [`Connection::untrusted`]).
     /// Use [`Connection::trusted`] to remove these limits.
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    /// use mailpot::{Connection, Configuration};
+    /// use melib::smtp::{SmtpServerConf, SmtpAuth, SmtpSecurity};
+    /// #
+    /// # fn main() -> mailpot::Result<()> {
+    /// # use tempfile::TempDir;
+    /// #
+    /// # let tmp_dir = TempDir::new()?;
+    /// # let db_path = tmp_dir.path().join("mpot.db");
+    /// # let data_path = tmp_dir.path().to_path_buf();
+    /// let config = Configuration {
+    ///     send_mail: mailpot::SendMail::Smtp(
+    ///         SmtpServerConf {
+    ///             hostname: "127.0.0.1".into(),
+    ///             port: 25,
+    ///             envelope_from: "foo-chat@example.com".into(),
+    ///             auth: SmtpAuth::None,
+    ///             security: SmtpSecurity::None,
+    ///             extensions: Default::default(),
+    ///         }
+    ///     ),
+    ///     db_path,
+    ///     data_path,
+    ///     administrators: vec![],
+    /// };
+    /// # assert_eq!(&Connection::open_db(config.clone()).unwrap_err().to_string(), "Database doesn't exist");
+    ///
+    /// let db = Connection::open_or_create_db(config)?;
+    /// # _ = db;
+    /// # Ok(())
+    /// # }
+    /// ```
     pub fn open_db(conf: Configuration) -> Result<Self> {
         use std::sync::Once;
 
