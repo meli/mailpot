@@ -91,7 +91,7 @@ fn user_authorizer_callback(
             table_name: "post" | "queue" | "candidate_subscription" | "subscription" | "account",
         }
         | AuthAction::Update {
-            table_name: "candidate_subscription" | "templates",
+            table_name: "candidate_subscription" | "template",
             column_name: "accepted" | "last_modified" | "verified" | "address",
         }
         | AuthAction::Update {
@@ -129,6 +129,10 @@ impl Connection {
     /// ```
     pub const SCHEMA: &str = include_str!("./schema.sql");
 
+    /// Database migrations.
+    pub const MIGRATIONS: &'static [(u32, &'static str, &'static str)] =
+        include!("./migrations.rs.inc");
+
     /// Creates a new database connection.
     ///
     /// `Connection` supports a limited subset of operations by default (see
@@ -159,11 +163,68 @@ impl Connection {
         conn.set_db_config(DbConfig::SQLITE_DBCONFIG_TRUSTED_SCHEMA, false)?;
         conn.busy_timeout(core::time::Duration::from_millis(500))?;
         conn.busy_handler(Some(|times: i32| -> bool { times < 5 }))?;
-        conn.authorizer(Some(user_authorizer_callback));
-        Ok(Self {
+
+        let mut ret = Self {
             conf,
             connection: conn,
-        })
+        };
+        if let Some(&(latest, _, _)) = Self::MIGRATIONS.last() {
+            let version = ret.schema_version()?;
+            trace!(
+                "SQLITE user_version PRAGMA returned {version}. Most recent migration is {latest}."
+            );
+            if version < latest {
+                info!("Updating database schema from version {version} to {latest}...");
+            }
+            ret.migrate(version, latest)?;
+        }
+
+        ret.connection.authorizer(Some(user_authorizer_callback));
+        Ok(ret)
+    }
+
+    /// The version of the current schema.
+    pub fn schema_version(&self) -> Result<u32> {
+        Ok(self
+            .connection
+            .prepare("SELECT user_version FROM pragma_user_version;")?
+            .query_row([], |row| {
+                let v: u32 = row.get(0)?;
+                Ok(v)
+            })?)
+    }
+
+    /// Migrate from version `from` to `to`.
+    ///
+    /// See [Self::MIGRATIONS].
+    pub fn migrate(&mut self, mut from: u32, to: u32) -> Result<()> {
+        if from == to {
+            return Ok(());
+        }
+
+        let undo = from > to;
+        let tx = self.connection.transaction()?;
+
+        while from != to {
+            log::trace!(
+                "exec migration from {from} to {to}, type: {}do",
+                if undo { "un " } else { "re" }
+            );
+            if undo {
+                trace!("{}", Self::MIGRATIONS[from as usize].2);
+                tx.execute(Self::MIGRATIONS[from as usize].2, [])?;
+                from -= 1;
+            } else {
+                trace!("{}", Self::MIGRATIONS[from as usize].1);
+                tx.execute(Self::MIGRATIONS[from as usize].1, [])?;
+                from += 1;
+            }
+        }
+        tx.pragma_update(None, "user_version", Self::MIGRATIONS[to as usize - 1].0)?;
+
+        tx.commit()?;
+
+        Ok(())
     }
 
     /// Removes operational limits from this connection. (see
@@ -211,8 +272,22 @@ impl Connection {
             let mut stdin = child.stdin.take().unwrap();
             std::thread::spawn(move || {
                 stdin
-                    .write_all(include_bytes!("./schema.sql"))
+                    .write_all(Self::SCHEMA.as_bytes())
                     .expect("failed to write to stdin");
+                if !Self::MIGRATIONS.is_empty() {
+                    stdin
+                        .write_all(b"\nPRAGMA user_version = ")
+                        .expect("failed to write to stdin");
+                    stdin
+                        .write_all(
+                            Self::MIGRATIONS[Self::MIGRATIONS.len() - 1]
+                                .0
+                                .to_string()
+                                .as_bytes(),
+                        )
+                        .expect("failed to write to stdin");
+                    stdin.write_all(b";").expect("failed to write to stdin");
+                }
                 stdin.flush().expect("could not flush stdin");
             });
             let output = child.wait_with_output()?;

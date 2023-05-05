@@ -158,7 +158,7 @@ CREATE TABLE IF NOT EXISTS post (
   created          INTEGER NOT NULL DEFAULT (unixepoch())
 );
 
-CREATE TABLE IF NOT EXISTS templates (
+CREATE TABLE IF NOT EXISTS template (
   pk               INTEGER PRIMARY KEY NOT NULL,
   name             TEXT NOT NULL,
   list             INTEGER,
@@ -288,4 +288,4 @@ update_last_modified(`subscription_policy')
 update_last_modified(`subscription')
 update_last_modified(`account')
 update_last_modified(`candidate_subscription')
-update_last_modified(`templates')
+update_last_modified(`template')

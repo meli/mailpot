@@ -76,16 +76,20 @@ jobs:
       - name: cargo test
         if: success() || failure() # always run even if other steps fail, except when cancelled <https://stackoverflow.com/questions/58858429/how-to-run-a-github-actions-step-even-if-the-previous-step-fails-while-still-f>
         run: |
-          cargo test --all --no-fail-fast --all-features 
+          cargo test --all --no-fail-fast --all-features
       - name: cargo-sort
-        if: success() || failure() # always run even if other steps fail, except when cancelled <https://stackoverflow.com/questions/58858429/how-to-run-a-github-actions-step-even-if-the-previous-step-fails-while-still-f>
+        if: success() || failure()
         run: |
           cargo sort --check
       - name: rustfmt
-        if: success() || failure() # always run even if other steps fail, except when cancelled <https://stackoverflow.com/questions/58858429/how-to-run-a-github-actions-step-even-if-the-previous-step-fails-while-still-f>
+        if: success() || failure()
         run: |
           cargo fmt --check --all
       - name: clippy
-        if: success() || failure() # always run even if other steps fail, except when cancelled <https://stackoverflow.com/questions/58858429/how-to-run-a-github-actions-step-even-if-the-previous-step-fails-while-still-f>
+        if: success() || failure()
         run: |
           cargo clippy --no-deps --all-features --all --tests --examples --benches --bins
+      - name: rustdoc
+        if: success() || failure()
+        run: |
+          make rustdoc

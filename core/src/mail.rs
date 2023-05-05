@@ -17,8 +17,9 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-//! Types for processing new posts: [`PostFilter`](message_filters::PostFilter),
-//! [`ListContext`], [`MailJob`] and [`PostAction`].
+//! Types for processing new posts:
+//! [`PostFilter`](crate::message_filters::PostFilter), [`ListContext`],
+//! [`MailJob`] and [`PostAction`].
 
 use log::trace;
 use melib::Address;
@@ -28,7 +29,7 @@ use crate::{
     DbVal,
 };
 /// Post action returned from a list's
-/// [`PostFilter`](message_filters::PostFilter) stack.
+/// [`PostFilter`](crate::message_filters::PostFilter) stack.
 #[derive(Debug)]
 pub enum PostAction {
     /// Add to `hold` queue.
@@ -47,8 +48,8 @@ pub enum PostAction {
     },
 }
 
-/// List context passed to a list's [`PostFilter`](message_filters::PostFilter)
-/// stack.
+/// List context passed to a list's
+/// [`PostFilter`](crate::message_filters::PostFilter) stack.
 #[derive(Debug)]
 pub struct ListContext<'list> {
     /// Which mailing list a post was addressed to.
@@ -62,12 +63,12 @@ pub struct ListContext<'list> {
     /// The mailing list subscription policy.
     pub subscription_policy: Option<DbVal<SubscriptionPolicy>>,
     /// The scheduled jobs added by each filter in a list's
-    /// [`PostFilter`](message_filters::PostFilter) stack.
+    /// [`PostFilter`](crate::message_filters::PostFilter) stack.
     pub scheduled_jobs: Vec<MailJob>,
 }
 
 /// Post to be considered by the list's
-/// [`PostFilter`](message_filters::PostFilter) stack.
+/// [`PostFilter`](crate::message_filters::PostFilter) stack.
 pub struct PostEntry {
     /// `From` address of post.
     pub from: Address,
@@ -76,7 +77,7 @@ pub struct PostEntry {
     /// `To` addresses of post.
     pub to: Vec<Address>,
     /// Final action set by each filter in a list's
-    /// [`PostFilter`](message_filters::PostFilter) stack.
+    /// [`PostFilter`](crate::message_filters::PostFilter) stack.
     pub action: PostAction,
 }
 
@@ -92,7 +93,7 @@ impl core::fmt::Debug for PostEntry {
 }
 
 /// Scheduled jobs added to a [`ListContext`] by a list's
-/// [`PostFilter`](message_filters::PostFilter) stack.
+/// [`PostFilter`](crate::message_filters::PostFilter) stack.
 #[derive(Debug)]
 pub enum MailJob {
     /// Send post to recipients.

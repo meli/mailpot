@@ -216,7 +216,7 @@ impl Connection {
     pub fn fetch_templates(&self) -> Result<Vec<DbVal<Template>>> {
         let mut stmt = self
             .connection
-            .prepare("SELECT * FROM templates ORDER BY pk;")?;
+            .prepare("SELECT * FROM template ORDER BY pk;")?;
         let iter = stmt.query_map(rusqlite::params![], |row| {
             let pk = row.get("pk")?;
             Ok(DbVal(
@@ -248,7 +248,7 @@ impl Connection {
     ) -> Result<Option<DbVal<Template>>> {
         let mut stmt = self
             .connection
-            .prepare("SELECT * FROM templates WHERE name = ? AND list IS ?;")?;
+            .prepare("SELECT * FROM template WHERE name = ? AND list IS ?;")?;
         let ret = stmt
             .query_row(rusqlite::params![&template, &list_pk], |row| {
                 let pk = row.get("pk")?;
@@ -268,7 +268,7 @@ impl Connection {
         if ret.is_none() && list_pk.is_some() {
             let mut stmt = self
                 .connection
-                .prepare("SELECT * FROM templates WHERE name = ? AND list IS NULL;")?;
+                .prepare("SELECT * FROM template WHERE name = ? AND list IS NULL;")?;
             Ok(stmt
                 .query_row(rusqlite::params![&template], |row| {
                     let pk = row.get("pk")?;
@@ -293,7 +293,7 @@ impl Connection {
     /// Insert a named template.
     pub fn add_template(&self, template: Template) -> Result<DbVal<Template>> {
         let mut stmt = self.connection.prepare(
-            "INSERT INTO templates(name, list, subject, headers_json, body) VALUES(?, ?, ?, ?, ?) \
+            "INSERT INTO template(name, list, subject, headers_json, body) VALUES(?, ?, ?, ?, ?) \
              RETURNING *;",
         )?;
         let ret = stmt
@@ -345,7 +345,7 @@ impl Connection {
     pub fn remove_template(&self, template: &str, list_pk: Option<i64>) -> Result<Template> {
         let mut stmt = self
             .connection
-            .prepare("DELETE FROM templates WHERE name = ? AND list IS ? RETURNING *;")?;
+            .prepare("DELETE FROM template WHERE name = ? AND list IS ? RETURNING *;")?;
         let ret = stmt.query_row(rusqlite::params![&template, &list_pk], |row| {
             Ok(Template {
                 pk: -1,

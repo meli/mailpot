@@ -256,7 +256,7 @@ CREATE TABLE IF NOT EXISTS post (
   created          INTEGER NOT NULL DEFAULT (unixepoch())
 );
 
-CREATE TABLE IF NOT EXISTS templates (
+CREATE TABLE IF NOT EXISTS template (
   pk               INTEGER PRIMARY KEY NOT NULL,
   name             TEXT NOT NULL,
   list             INTEGER,
@@ -457,13 +457,13 @@ BEGIN
   WHERE pk = NEW.pk;
 END;
 
--- [tag:last_modified_templates]: update last_modified on every change.
+-- [tag:last_modified_template]: update last_modified on every change.
 CREATE TRIGGER
-IF NOT EXISTS last_modified_templates
-AFTER UPDATE ON templates
+IF NOT EXISTS last_modified_template
+AFTER UPDATE ON template
 FOR EACH ROW
 WHEN NEW.last_modified != OLD.last_modified
 BEGIN
-  UPDATE templates SET last_modified = unixepoch()
+  UPDATE template SET last_modified = unixepoch()
   WHERE pk = NEW.pk;
 END;
