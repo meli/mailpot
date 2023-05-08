@@ -14,11 +14,6 @@ default-run = "mpot-archives"
 [[bin]]
 name = "mpot-archives"
 path = "src/main.rs"
-required-features = ["warp"]
-
-[[bin]]
-name = "mpot-gen"
-path = "src/gen.rs"
 
 [dependencies]
 chrono = { version = "^0.4" }
@@ -28,10 +23,3 @@ minijinja = { version = "0.31.0", features = ["source", ] }
 percent-encoding = { version = "^2.1", optional = true }
 serde = { version = "^1", features = ["derive", ] }
 serde_json = "^1"
-tokio = { version = "1", features = ["full"], optional = true }
-warp = { version = "^0.3", optional = true }
-
-[features]
-default = ["gen"]
-gen = []
-warp = ["dep:percent-encoding", "dep:tokio", "dep:warp"]

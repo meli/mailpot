@@ -17,26 +17,89 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
+use std::{fs::OpenOptions, io::Write};
+
 use mailpot::*;
 use mailpot_archives::utils::*;
 use minijinja::value::Value;
-use percent_encoding::percent_decode_str;
-use warp::Filter;
 
-#[tokio::main]
-async fn main() {
-    let config_path = std::env::args()
-        .nth(1)
-        .expect("Expected configuration file path as first argument.");
-    let conf = Configuration::from_file(config_path).unwrap();
+fn run_app() -> std::result::Result<(), Box<dyn std::error::Error>> {
+    let args = std::env::args().collect::<Vec<_>>();
+    let Some(config_path) = args.get(1) else {
+        return Err("Expected configuration file path as first argument.".into());
+    };
+    let Some(output_path) = args.get(2) else {
+        return Err("Expected output dir path as second argument.".into());
+    };
+    let root_url_prefix = args.get(3).cloned().unwrap_or_default();
 
-    let conf1 = conf.clone();
-    let list_handler = warp::path!("lists" / i64).map(move |list_pk: i64| {
-        let db = Connection::open_db(conf1.clone()).unwrap();
-        let list = db.list(list_pk).unwrap().unwrap();
-        let post_policy = db.list_post_policy(list.pk).unwrap();
-        let months = db.months(list.pk).unwrap();
-        let posts = db.list_posts(list.pk, None).unwrap();
+    let output_path = std::path::Path::new(&output_path);
+    if output_path.exists() && !output_path.is_dir() {
+        return Err("Output path is not a directory.".into());
+    }
+
+    std::fs::create_dir_all(&output_path.join("lists"))?;
+    std::fs::create_dir_all(&output_path.join("list"))?;
+    let conf = Configuration::from_file(config_path)
+        .map_err(|err| format!("Could not load config {config_path}: {err}"))?;
+
+    let db = Connection::open_db(conf).map_err(|err| format!("Couldn't open db: {err}"))?;
+    let lists_values = db.lists()?;
+    {
+        //index.html
+
+        let lists = lists_values
+            .iter()
+            .map(|list| {
+                let months = db.months(list.pk).unwrap();
+                let posts = db.list_posts(list.pk, None).unwrap();
+                minijinja::context! {
+                    title => &list.name,
+                    posts => &posts,
+                    months => &months,
+                    body => &list.description.as_deref().unwrap_or_default(),
+                    root_prefix => &root_url_prefix,
+                    list => Value::from_object(MailingList::from(list.clone())),
+                }
+            })
+            .collect::<Vec<_>>();
+        let mut file = OpenOptions::new()
+            .write(true)
+            .create(true)
+            .truncate(true)
+            .open(&output_path.join("index.html"))?;
+        let crumbs = vec![Crumb {
+            label: "Lists".into(),
+            url: format!("{root_url_prefix}/").into(),
+        }];
+
+        let context = minijinja::context! {
+            title => "mailing list archive",
+            description => "",
+            lists => &lists,
+            root_prefix => &root_url_prefix,
+            crumbs => crumbs,
+        };
+        file.write_all(
+            TEMPLATES
+                .get_template("lists.html")?
+                .render(context)?
+                .as_bytes(),
+        )?;
+    }
+
+    let mut lists_path = output_path.to_path_buf();
+
+    for list in &lists_values {
+        lists_path.push("lists");
+        lists_path.push(list.pk.to_string());
+        std::fs::create_dir_all(&lists_path)?;
+        lists_path.push("index.html");
+
+        let list = db.list(list.pk)?.unwrap();
+        let post_policy = db.list_post_policy(list.pk)?;
+        let months = db.months(list.pk)?;
+        let posts = db.list_posts(list.pk, None)?;
         let mut hist = months
             .iter()
             .map(|m| (m.to_string(), [0usize; 31]))
@@ -61,26 +124,26 @@ async fn main() {
                     subject_ref = subject_ref[2 + list.id.len()..].trim();
                 }
                 minijinja::context! {
-                    pk => post.pk,
-                    list => post.list,
-                    subject => subject_ref,
-                    address=> post.address,
-                    message_id => msg_id,
-                    message => post.message,
-                    timestamp => post.timestamp,
-                    datetime => post.datetime,
-                    root_prefix => "",
+                        pk => post.pk,
+                        list => post.list,
+                        subject => subject_ref,
+                        address=> post.address,
+                        message_id => msg_id,
+                        message => post.message,
+                        timestamp => post.timestamp,
+                        datetime => post.datetime,
+                    root_prefix => &root_url_prefix,
                 }
             })
             .collect::<Vec<_>>();
         let crumbs = vec![
             Crumb {
                 label: "Lists".into(),
-                url: "/".into(),
+                url: format!("{root_url_prefix}/").into(),
             },
             Crumb {
                 label: list.name.clone().into(),
-                url: format!("/lists/{}/", list.pk).into(),
+                url: format!("{root_url_prefix}/lists/{}/", list.pk).into(),
             },
         ];
         let context = minijinja::context! {
@@ -92,34 +155,36 @@ async fn main() {
             hists => &hist,
             posts=> posts_ctx,
             body=>&list.description.clone().unwrap_or_default(),
-            root_prefix => "",
-            list => Value::from_object(MailingList::from(list)),
+            root_prefix => &root_url_prefix,
+            list => Value::from_object(MailingList::from(list.clone())),
             crumbs => crumbs,
         };
-        Ok(warp::reply::html(
+        let mut file = OpenOptions::new()
+            .read(true)
+            .write(true)
+            .create(true)
+            .truncate(true)
+            .open(&lists_path)
+            .map_err(|err| format!("could not open {lists_path:?}: {err}"))?;
+        file.write_all(
             TEMPLATES
-                .get_template("list.html")
-                .unwrap()
-                .render(context)
-                .unwrap_or_else(|err| err.to_string()),
-        ))
-    });
-    let conf2 = conf.clone();
-    let post_handler =
-        warp::path!("list" / i64 / String).map(move |list_pk: i64, message_id: String| {
-            let message_id = percent_decode_str(&message_id).decode_utf8().unwrap();
-            dbg!(&message_id);
-            let db = Connection::open_db(conf2.clone()).unwrap();
-            let list = db.list(list_pk).unwrap().unwrap();
-            let posts = db.list_posts(list_pk, None).unwrap();
-            let post = posts
-                .iter()
-                .find(|p| message_id.contains(p.message_id.as_str().strip_carets()))
-                .unwrap();
-            //let mut msg_id = &post.message_id[1..];
-            //msg_id = &msg_id[..msg_id.len().saturating_sub(1)];
+                .get_template("list.html")?
+                .render(context)?
+                .as_bytes(),
+        )?;
+        lists_path.pop();
+        lists_path.pop();
+        lists_path.pop();
+        lists_path.push("list");
+        lists_path.push(list.pk.to_string());
+        std::fs::create_dir_all(&lists_path)?;
+
+        for post in posts {
+            let mut msg_id = &post.message_id[1..];
+            msg_id = &msg_id[..msg_id.len().saturating_sub(1)];
+            lists_path.push(format!("{msg_id}.html"));
             let envelope = melib::Envelope::from_bytes(post.message.as_slice(), None)
-                .map_err(|err| format!("Could not parse mail {}: {err}", post.message_id)).unwrap();
+                .map_err(|err| format!("Could not parse mail {}: {err}", post.message_id))?;
             let body = envelope.body_bytes(post.message.as_slice());
             let body_text = body.text();
             let subject = envelope.subject();
@@ -135,21 +200,22 @@ async fn main() {
             let crumbs = vec![
                 Crumb {
                     label: "Lists".into(),
-                    url: "/".into(),
+                    url: format!("{root_url_prefix}/").into(),
                 },
                 Crumb {
                     label: list.name.clone().into(),
-                    url: format!("/lists/{}/", list.pk).into(),
+                    url: format!("{root_url_prefix}/lists/{}/", list.pk).into(),
                 },
                 Crumb {
                     label: subject_ref.to_string().into(),
-                    url: format!("/lists/{}/{message_id}.html/", list.pk).into(),
+                    url: format!("{root_url_prefix}/lists/{}/{message_id}.html/", list.pk).into(),
                 },
             ];
             let context = minijinja::context! {
                 title => &list.name,
                 list => &list,
                 post => &post,
+                posts => &posts_ctx,
                 body => &body_text,
                 from => &envelope.field_from_to_string(),
                 date => &envelope.date_as_str(),
@@ -158,66 +224,34 @@ async fn main() {
                 trimmed_subject => subject_ref,
                 in_reply_to => &envelope.in_reply_to_display().map(|r| r.to_string().as_str().strip_carets().to_string()),
                 references => &envelope .references() .into_iter() .map(|m| m.to_string().as_str().strip_carets().to_string()) .collect::<Vec<String>>(),
-                root_prefix => "",
+                root_prefix => &root_url_prefix,
                 crumbs => crumbs,
             };
-            Ok(warp::reply::html(
-                    TEMPLATES
-                    .get_template("post.html")
-                    .unwrap()
-                    .render(context)
-                .unwrap_or_else(|err| err.to_string()),
-            ))
-        });
-    let conf3 = conf.clone();
-    let index_handler = warp::path::end().map(move || {
-        let db = Connection::open_db(conf3.clone()).unwrap();
-        let lists_values = db.lists().unwrap();
-        let lists = lists_values
-            .iter()
-            .map(|list| {
-                let months = db.months(list.pk).unwrap();
-                let posts = db.list_posts(list.pk, None).unwrap();
-                minijinja::context! {
-                    title => &list.name,
-                    posts => &posts,
-                    months => &months,
-                    body => &list.description.as_deref().unwrap_or_default(),
-                    root_prefix => "",
-                    list => Value::from_object(MailingList::from(list.clone())),
-                }
-            })
-            .collect::<Vec<_>>();
-        let crumbs = vec![Crumb {
-            label: "Lists".into(),
-            url: "/".into(),
-        }];
+            let mut file = OpenOptions::new()
+                .read(true)
+                .write(true)
+                .create(true)
+                .truncate(true)
+                .open(&lists_path)
+                .map_err(|err| format!("could not open {lists_path:?}: {err}"))?;
+            file.write_all(
+                TEMPLATES
+                    .get_template("post.html")?
+                    .render(context)?
+                    .as_bytes(),
+            )?;
+            lists_path.pop();
+        }
+        lists_path.pop();
+        lists_path.pop();
+    }
+    Ok(())
+}
 
-        let context = minijinja::context! {
-            title => "mailing list archive",
-            description => "",
-            lists => &lists,
-            root_prefix => "",
-            crumbs => crumbs,
-        };
-        Ok(warp::reply::html(
-            TEMPLATES
-                .get_template("lists.html")
-                .unwrap()
-                .render(context)
-                .unwrap_or_else(|err| err.to_string()),
-        ))
-    });
-    let routes = warp::get()
-        .and(index_handler)
-        .or(list_handler)
-        .or(post_handler);
-
-    // Note that composing filters for many routes may increase compile times
-    // (because it uses a lot of generics). If you wish to use dynamic dispatch
-    // instead and speed up compile times while making it slightly slower at
-    // runtime, you can use Filter::boxed().
-
-    eprintln!("Running at http://127.0.0.1:3030");
-    warp::serve(routes).run(([127, 0, 0, 1], 3030)).await;
+fn main() -> std::result::Result<(), i64> {
+    if let Err(err) = run_app() {
+        eprintln!("{err}");
+        return Err(-1);
+    }
+    Ok(())
 }

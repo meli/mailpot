@@ -18,4 +18,3 @@ path = "src/main.rs"
 [dependencies]
 mailpot = { version = "^0.1", path = "../core" }
 tokio = { version = "^1", features = ["full"] }
-warp = "^0.3"
