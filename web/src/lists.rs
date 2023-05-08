@@ -17,6 +17,7 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
+use chrono::TimeZone;
 use indexmap::IndexMap;
 
 use super::*;
@@ -114,7 +115,7 @@ pub async fn list(
         },
         Crumb {
             label: list.name.clone().into(),
-            url: ListPath(list.pk().into()).to_crumb(),
+            url: ListPath(list.id.to_string().into()).to_crumb(),
         },
     ];
     let context = minijinja::context! {
@@ -191,11 +192,11 @@ pub async fn list_post(
         },
         Crumb {
             label: list.name.clone().into(),
-            url: ListPath(list.pk().into()).to_crumb(),
+            url: ListPath(list.id.to_string().into()).to_crumb(),
         },
         Crumb {
             label: format!("{} {msg_id}", subject_ref).into(),
-            url: ListPostPath(list.pk().into(), msg_id.to_string()).to_crumb(),
+            url: ListPostPath(list.id.to_string().into(), msg_id.to_string()).to_crumb(),
         },
     ];
     let context = minijinja::context! {
@@ -298,7 +299,11 @@ pub async fn list_edit(
         },
         Crumb {
             label: list.name.clone().into(),
-            url: ListPath(list.pk().into()).to_crumb(),
+            url: ListPath(list.id.to_string().into()).to_crumb(),
+        },
+        Crumb {
+            label: list.name.clone().into(),
+            url: ListEditPath(ListPathIdentifier::from(list.id.clone())).to_crumb(),
         },
     ];
     let context = minijinja::context! {
@@ -579,4 +584,190 @@ pub async fn post_eml(
     );
 
     Ok(response)
+}
+
+pub async fn list_subscribers(
+    ListEditSubscribersPath(id): ListEditSubscribersPath,
+    mut session: WritableSession,
+    auth: AuthContext,
+    State(state): State<Arc<AppState>>,
+) -> Result<Html<String>, ResponseError> {
+    let db = Connection::open_db(state.conf.clone())?;
+    let Some(list) = (match id {
+        ListPathIdentifier::Pk(id) => db.list(id)?,
+        ListPathIdentifier::Id(id) => db.list_by_id(id)?,
+    }) else {
+        return Err(ResponseError::new(
+            "Not found".to_string(),
+            StatusCode::NOT_FOUND,
+        ));
+    };
+    let list_owners = db.list_owners(list.pk)?;
+    let user_address = &auth.current_user.as_ref().unwrap().address;
+    if !list_owners.iter().any(|o| &o.address == user_address) {
+        return Err(ResponseError::new(
+            "Not found".to_string(),
+            StatusCode::NOT_FOUND,
+        ));
+    };
+
+    let subs = {
+        let mut stmt = db
+            .connection
+            .prepare("SELECT * FROM subscription WHERE list = ?;")?;
+        let iter = stmt.query_map([&list.pk], |row| {
+            let address: String = row.get("address")?;
+            let name: Option<String> = row.get("name")?;
+            let enabled: bool = row.get("enabled")?;
+            let verified: bool = row.get("verified")?;
+            let digest: bool = row.get("digest")?;
+            let hide_address: bool = row.get("hide_address")?;
+            let receive_duplicates: bool = row.get("receive_duplicates")?;
+            let receive_own_posts: bool = row.get("receive_own_posts")?;
+            let receive_confirmation: bool = row.get("receive_confirmation")?;
+            //let last_digest: i64 = row.get("last_digest")?;
+            let created: i64 = row.get("created")?;
+            let last_modified: i64 = row.get("last_modified")?;
+            Ok(minijinja::context! {
+                address,
+                name,
+                enabled,
+                verified,
+                digest,
+                hide_address,
+                receive_duplicates,
+                receive_own_posts,
+                receive_confirmation,
+                //last_digest => chrono::Utc.timestamp_opt(last_digest, 0).unwrap().to_string(),
+                created => chrono::Utc.timestamp_opt(created, 0).unwrap().to_string(),
+                last_modified => chrono::Utc.timestamp_opt(last_modified, 0).unwrap().to_string(),
+            })
+        })?;
+        let mut ret = vec![];
+        for el in iter {
+            let el = el?;
+            ret.push(el);
+        }
+        ret
+    };
+
+    let crumbs = vec![
+        Crumb {
+            label: "Home".into(),
+            url: "/".into(),
+        },
+        Crumb {
+            label: list.name.clone().into(),
+            url: ListPath(list.id.to_string().into()).to_crumb(),
+        },
+        Crumb {
+            label: list.name.clone().into(),
+            url: ListEditPath(ListPathIdentifier::from(list.id.clone())).to_crumb(),
+        },
+        Crumb {
+            label: format!("Subscribers of {}", list.name).into(),
+            url: ListEditSubscribersPath(list.id.to_string().into()).to_crumb(),
+        },
+    ];
+    let context = minijinja::context! {
+        site_title => state.site_title.as_ref(),
+        site_subtitle => state.site_subtitle.as_ref(),
+        canonical_url => ListEditSubscribersPath(ListPathIdentifier::from(list.id.clone())).to_crumb(),
+        page_title => format!("Subscribers of {}", list.name),
+        subs,
+        root_url_prefix => &state.root_url_prefix,
+        list => Value::from_object(MailingList::from(list)),
+        current_user => auth.current_user,
+        messages => session.drain_messages(),
+        crumbs,
+    };
+    Ok(Html(
+        TEMPLATES.get_template("lists/subs.html")?.render(context)?,
+    ))
+}
+
+pub async fn list_candidates(
+    ListEditCandidatesPath(id): ListEditCandidatesPath,
+    mut session: WritableSession,
+    auth: AuthContext,
+    State(state): State<Arc<AppState>>,
+) -> Result<Html<String>, ResponseError> {
+    let db = Connection::open_db(state.conf.clone())?;
+    let Some(list) = (match id {
+        ListPathIdentifier::Pk(id) => db.list(id)?,
+        ListPathIdentifier::Id(id) => db.list_by_id(id)?,
+    }) else {
+        return Err(ResponseError::new(
+            "Not found".to_string(),
+            StatusCode::NOT_FOUND,
+        ));
+    };
+    let list_owners = db.list_owners(list.pk)?;
+    let user_address = &auth.current_user.as_ref().unwrap().address;
+    if !list_owners.iter().any(|o| &o.address == user_address) {
+        return Err(ResponseError::new(
+            "Not found".to_string(),
+            StatusCode::NOT_FOUND,
+        ));
+    };
+
+    let subs = {
+        let mut stmt = db
+            .connection
+            .prepare("SELECT * FROM candidate_subscription WHERE list = ?;")?;
+        let iter = stmt.query_map([&list.pk], |row| {
+            let address: String = row.get("address")?;
+            let name: Option<String> = row.get("name")?;
+            let accepted: Option<i64> = row.get("enabled")?;
+            let created: i64 = row.get("created")?;
+            let last_modified: i64 = row.get("last_modified")?;
+            Ok(minijinja::context! {
+                address,
+                name,
+                accepted => accepted.is_some(),
+                created => chrono::Utc.timestamp_opt(created, 0).unwrap().to_string(),
+                last_modified => chrono::Utc.timestamp_opt(last_modified, 0).unwrap().to_string(),
+            })
+        })?;
+        let mut ret = vec![];
+        for el in iter {
+            let el = el?;
+            ret.push(el);
+        }
+        ret
+    };
+
+    let crumbs = vec![
+        Crumb {
+            label: "Home".into(),
+            url: "/".into(),
+        },
+        Crumb {
+            label: list.name.clone().into(),
+            url: ListPath(list.id.to_string().into()).to_crumb(),
+        },
+        Crumb {
+            label: list.name.clone().into(),
+            url: ListEditPath(ListPathIdentifier::from(list.id.clone())).to_crumb(),
+        },
+        Crumb {
+            label: format!("Requests of {}", list.name).into(),
+            url: ListEditCandidatesPath(list.id.to_string().into()).to_crumb(),
+        },
+    ];
+    let context = minijinja::context! {
+        site_title => state.site_title.as_ref(),
+        site_subtitle => state.site_subtitle.as_ref(),
+        canonical_url => ListEditCandidatesPath(ListPathIdentifier::from(list.id.clone())).to_crumb(),
+        page_title => format!("Requests of {}", list.name),
+        subs,
+        root_url_prefix => &state.root_url_prefix,
+        list => Value::from_object(MailingList::from(list)),
+        current_user => auth.current_user,
+        messages => session.drain_messages(),
+        crumbs,
+    };
+    Ok(Html(
+        TEMPLATES.get_template("lists/subs.html")?.render(context)?,
+    ))
 }

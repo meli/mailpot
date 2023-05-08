@@ -10,8 +10,8 @@
     {% if list.archive_url %}
         <p><a href="{{ list.archive_url }}">{{ list.archive_url }}</a></p>
     {% endif %}
-    <p>{{ subs_count }} subscription{{ subs_count|pluralize }}.</p>
-    <p>{{ sub_requests_count }} subscription request{{ sub_requests_count|pluralize }}.</p>
+    <p><a href="{{ root_url_prefix }}{{ list_subscribers_path(list.pk) }}">{{ subs_count }} subscription{{ subs_count|pluralize }}.</a></p>
+    <p><a href="{{ root_url_prefix }}{{ list_candidates_path(list.pk) }}">{{ sub_requests_count }} subscription request{{ sub_requests_count|pluralize }}.</a></p>
     <p>{{ post_count }} post{{ post_count|pluralize }}.</p>
     <form method="post" class="settings-form">
         <fieldset>

@@ -45,6 +45,8 @@ lazy_static::lazy_static! {
             list_path,
             list_settings_path,
             list_edit_path,
+            list_subscribers_path,
+            list_candidates_path,
             list_post_path,
             post_raw_path,
             post_eml_path

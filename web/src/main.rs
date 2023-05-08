@@ -83,6 +83,20 @@ async fn main() {
                 Some(Arc::new("next".into())),
             )),
         )
+        .typed_get(
+            list_subscribers.layer(RequireAuth::login_with_role_or_redirect(
+                Role::User..,
+                Arc::clone(&login_url),
+                Some(Arc::new("next".into())),
+            )),
+        )
+        .typed_get(
+            list_candidates.layer(RequireAuth::login_with_role_or_redirect(
+                Role::User..,
+                Arc::clone(&login_url),
+                Some(Arc::new("next".into())),
+            )),
+        )
         .typed_get(help)
         .typed_get(auth::ssh_signin)
         .typed_post({
