@@ -120,6 +120,7 @@ pub async fn list(
     let context = minijinja::context! {
         site_title => state.site_title.as_ref(),
         site_subtitle => state.site_subtitle.as_ref(),
+        canonical_url => ListPath::from(&list).to_crumb(),
         page_title => &list.name,
         description => &list.description,
         post_policy => &post_policy,
@@ -200,6 +201,7 @@ pub async fn list_post(
     let context = minijinja::context! {
         site_title => state.site_title.as_ref(),
         site_subtitle => state.site_subtitle.as_ref(),
+        canonical_url => ListPostPath(ListPathIdentifier::from(list.id.clone()), msg_id.to_string()).to_crumb(),
         page_title => subject_ref,
         description => &list.description,
         list => Value::from_object(MailingList::from(list)),
@@ -302,6 +304,7 @@ pub async fn list_edit(
     let context = minijinja::context! {
         site_title => state.site_title.as_ref(),
         site_subtitle => state.site_subtitle.as_ref(),
+        canonical_url => ListEditPath(ListPathIdentifier::from(list.id.clone())).to_crumb(),
         page_title => format!("Edit {} settings", list.name),
         description => &list.description,
         post_policy => &post_policy,
