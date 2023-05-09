@@ -27,7 +27,7 @@ use clap::ArgAction;
 use clap_mangen::{roff, Man};
 use roff::{bold, italic, roman, Inline, Roff};
 
-include!("src/lib.rs");
+include!("src/args.rs");
 
 fn main() -> std::io::Result<()> {
     println!("cargo:rerun-if-changed=./src/lib.rs");

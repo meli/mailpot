@@ -421,6 +421,61 @@ fn run_app(opt: Opt) -> Result<()> {
                     };
                     db.update_list(changeset)?;
                 }
+                ImportMembers {
+                    url,
+                    username,
+                    password,
+                    list_id,
+                    dry_run,
+                    skip_owners,
+                } => {
+                    let conn = import::Mailman3Connection::new(&url, &username, &password).unwrap();
+                    if dry_run {
+                        let entries = conn.users(&list_id).unwrap();
+                        println!("{} result(s)", entries.len());
+                        for e in entries {
+                            println!(
+                                "{}{}<{}>",
+                                if let Some(n) = e.display_name() {
+                                    n
+                                } else {
+                                    ""
+                                },
+                                if e.display_name().is_none() { "" } else { " " },
+                                e.email()
+                            );
+                        }
+                        if !skip_owners {
+                            let entries = conn.owners(&list_id).unwrap();
+                            println!("\nOwners: {} result(s)", entries.len());
+                            for e in entries {
+                                println!(
+                                    "{}{}<{}>",
+                                    if let Some(n) = e.display_name() {
+                                        n
+                                    } else {
+                                        ""
+                                    },
+                                    if e.display_name().is_none() { "" } else { " " },
+                                    e.email()
+                                );
+                            }
+                        }
+                    } else {
+                        let entries = conn.users(&list_id).unwrap();
+                        let tx = db.transaction(Default::default()).unwrap();
+                        for sub in entries.into_iter().map(|e| e.into_subscription(list.pk)) {
+                            tx.add_subscription(list.pk, sub)?;
+                        }
+                        if !skip_owners {
+                            let entries = conn.owners(&list_id).unwrap();
+                            for sub in entries.into_iter().map(|e| e.into_owner(list.pk)) {
+                                tx.add_list_owner(sub)?;
+                            }
+                        }
+                        tx.commit()?;
+                    }
+                }
             }
         }
         CreateList {

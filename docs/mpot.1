@@ -569,6 +569,37 @@ Show mailing list info.
 .ie \n(.g .ds Aq \(aq
 .el .ds Aq '
 .\fB
+.SS mpot list import-members
+.\fR
+.br
+
+.br
+
+mpot list import\-members \-\-url \fIURL\fR \-\-username \fIUSERNAME\fR \-\-password \fIPASSWORD\fR \-\-list\-id \fILIST_ID\fR [\-\-dry\-run \fIDRY_RUN\fR] [\-\-skip\-owners \fISKIP_OWNERS\fR] 
+.br
+
+Import members in a local list from a remote mailman3 REST API instance.
+.TP
+\-\-url \fIURL\fR
+REST HTTP endpoint e.g. http://localhost:9001/3.0/.
+.TP
+\-\-username \fIUSERNAME\fR
+REST HTTP Basic Authentication username.
+.TP
+\-\-password \fIPASSWORD\fR
+REST HTTP Basic Authentication password.
+.TP
+\-\-list\-id \fILIST_ID\fR
+List ID of remote list to query.
+.TP
+\-\-dry\-run
+Show what would be inserted without performing any changes.
+.TP
+\-\-skip\-owners
+Don\*(Aqt import list owners.
+.ie \n(.g .ds Aq \(aq
+.el .ds Aq '
+.\fB
 .SS mpot create-list
 .\fR
 .br

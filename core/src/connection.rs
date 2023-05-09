@@ -670,4 +670,140 @@ impl Connection {
         tx.commit()?;
         Ok(())
     }
+
+    /// Execute operations inside an SQL transaction.
+    pub fn transaction(
+        &'_ self,
+        behavior: transaction::TransactionBehavior,
+    ) -> Result<transaction::Transaction<'_>> {
+        use transaction::*;
+
+        let query = match behavior {
+            TransactionBehavior::Deferred => "BEGIN DEFERRED",
+            TransactionBehavior::Immediate => "BEGIN IMMEDIATE",
+            TransactionBehavior::Exclusive => "BEGIN EXCLUSIVE",
+        };
+        self.connection.execute_batch(query)?;
+        Ok(Transaction {
+            conn: self,
+            drop_behavior: DropBehavior::Rollback,
+        })
+    }
+}
+
+/// Execute operations inside an SQL transaction.
+pub mod transaction {
+    use super::*;
+
+    /// A transaction handle.
+    #[derive(Debug)]
+    pub struct Transaction<'conn> {
+        pub(super) conn: &'conn Connection,
+        pub(super) drop_behavior: DropBehavior,
+    }
+
+    impl Drop for Transaction<'_> {
+        fn drop(&mut self) {
+            _ = self.finish_();
+        }
+    }
+
+    impl Transaction<'_> {
+        /// Commit and consume transaction.
+        pub fn commit(mut self) -> Result<()> {
+            self.commit_()
+        }
+
+        fn commit_(&mut self) -> Result<()> {
+            self.conn.connection.execute_batch("COMMIT")?;
+            Ok(())
+        }
+
+        /// Configure the transaction to perform the specified action when it is
+        /// dropped.
+        #[inline]
+        pub fn set_drop_behavior(&mut self, drop_behavior: DropBehavior) {
+            self.drop_behavior = drop_behavior;
+        }
+
+        /// A convenience method which consumes and rolls back a transaction.
+        #[inline]
+        pub fn rollback(mut self) -> Result<()> {
+            self.rollback_()
+        }
+
+        fn rollback_(&mut self) -> Result<()> {
+            self.conn.connection.execute_batch("ROLLBACK")?;
+            Ok(())
+        }
+
+        /// Consumes the transaction, committing or rolling back according to
+        /// the current setting (see `drop_behavior`).
+        ///
+        /// Functionally equivalent to the `Drop` implementation, but allows
+        /// callers to see any errors that occur.
+        #[inline]
+        pub fn finish(mut self) -> Result<()> {
+            self.finish_()
+        }
+
+        #[inline]
+        fn finish_(&mut self) -> Result<()> {
+            if self.conn.connection.is_autocommit() {
+                return Ok(());
+            }
+            match self.drop_behavior {
+                DropBehavior::Commit => self.commit_().or_else(|_| self.rollback_()),
+                DropBehavior::Rollback => self.rollback_(),
+                DropBehavior::Ignore => Ok(()),
+                DropBehavior::Panic => panic!("Transaction dropped unexpectedly."),
+            }
+        }
+    }
+
+    impl std::ops::Deref for Transaction<'_> {
+        type Target = Connection;
+
+        #[inline]
+        fn deref(&self) -> &Connection {
+            self.conn
+        }
+    }
+
+    /// Options for transaction behavior. See [BEGIN
+    /// TRANSACTION](http://www.sqlite.org/lang_transaction.html) for details.
+    #[derive(Copy, Clone, Default)]
+    #[non_exhaustive]
+    pub enum TransactionBehavior {
+        /// DEFERRED means that the transaction does not actually start until
+        /// the database is first accessed.
+        Deferred,
+        /// IMMEDIATE cause the database connection to start a new write
+        /// immediately, without waiting for a writes statement.
+        Immediate,
+        #[default]
+        /// EXCLUSIVE prevents other database connections from reading the
+        /// database while the transaction is underway.
+        Exclusive,
+    }
+
+    /// Options for how a Transaction or Savepoint should behave when it is
+    /// dropped.
+    #[derive(Default, Copy, Clone, Debug, PartialEq, Eq)]
+    #[non_exhaustive]
+    pub enum DropBehavior {
+        #[default]
+        /// Roll back the changes. This is the default.
+        Rollback,
+
+        /// Commit the changes.
+        Commit,
+
+        /// Do not commit or roll back changes - this will leave the transaction
+        /// or savepoint open, so should be used with care.
+        Ignore,
+
+        /// Panic. Used to enforce intentional behavior during development.
+        Panic,
+    }
 }
