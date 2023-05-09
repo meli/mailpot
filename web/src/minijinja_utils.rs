@@ -189,44 +189,6 @@ impl minijinja::value::StructObject for MailingList {
 
 /// Return a vector of weeks, with each week being a vector of 7 days and
 /// corresponding sum of posts per day.
-///
-///
-/// # Example
-///
-/// ```rust
-/// # use mailpot_web::minijinja_utils::calendarize;
-/// # use minijinja::Environment;
-/// # use minijinja::value::Value;
-/// # use std::collections::HashMap;
-///
-/// let mut env = Environment::new();
-/// env.add_function("calendarize", calendarize);
-///
-/// let month = "2001-09";
-/// let mut hist = [0usize; 31];
-/// hist[15] = 5;
-/// hist[1] = 1;
-/// hist[0] = 512;
-/// hist[30] = 30;
-/// assert_eq!(
-///     &env.render_str(
-///         "{% set c=calendarize(month, hists) %}Month: {{ c.month }} Month Name: {{ \
-///          c.month_name }} Month Int: {{ c.month_int }} Year: {{ c.year }} Sum: {{ c.sum }} {% \
-///          for week in c.weeks %}{% for day in week %}{% set num = c.hist[day-1] %}({{ day }}, \
-///          {{ num }}){% endfor %}{% endfor %}",
-///         minijinja::context! {
-///         month,
-///         hists => vec![(month.to_string(), hist)].into_iter().collect::<HashMap<String, [usize;
-///         31]>>(),
-///         }
-///     )
-///     .unwrap(),
-///     "Month: 2001-09 Month Name: September Month Int: 9 Year: 2001 Sum: 548 (0, 30)(0, 30)(0, \
-///      30)(0, 30)(0, 30)(1, 512)(2, 1)(3, 0)(4, 0)(5, 0)(6, 0)(7, 0)(8, 0)(9, 0)(10, 0)(11, \
-///      0)(12, 0)(13, 0)(14, 0)(15, 0)(16, 5)(17, 0)(18, 0)(19, 0)(20, 0)(21, 0)(22, 0)(23, \
-///      0)(24, 0)(25, 0)(26, 0)(27, 0)(28, 0)(29, 0)(30, 0)"
-/// );
-/// ```
 pub fn calendarize(
     _state: &minijinja::State,
     args: Value,
@@ -294,7 +256,7 @@ pub fn calendarize(
 ///
 /// # Examples
 ///
-/// ```rust
+/// ```rust,no_run
 /// # use mailpot_web::pluralize;
 /// # use minijinja::Environment;
 ///
@@ -436,26 +398,6 @@ pub fn pluralize(
 /// `strip_carets` filter for [`minijinja`].
 ///
 /// Removes `[<>]` from message ids.
-///
-/// # Examples
-///
-/// ```rust
-/// # use mailpot_web::strip_carets;
-/// # use minijinja::Environment;
-///
-/// let mut env = Environment::new();
-/// env.add_filter("strip_carets", strip_carets);
-/// assert_eq!(
-///     &env.render_str(
-///         "{{ msg_id | strip_carets }}",
-///         minijinja::context! {
-///             msg_id => "<hello1@example.com>",
-///         }
-///     )
-///     .unwrap(),
-///     "hello1@example.com",
-/// );
-/// ```
 pub fn strip_carets(_state: &minijinja::State, arg: Value) -> std::result::Result<Value, Error> {
     Ok(Value::from(
         arg.as_str()
@@ -475,7 +417,7 @@ pub fn strip_carets(_state: &minijinja::State, arg: Value) -> std::result::Resul
 ///
 /// # Examples
 ///
-/// ```rust
+/// ```rust,no_run
 /// # use mailpot_web::urlize;
 /// # use minijinja::Environment;
 /// # use minijinja::value::Value;
@@ -505,7 +447,7 @@ pub fn urlize(state: &minijinja::State, arg: Value) -> std::result::Result<Value
 /// Make an html heading: `h1, h2, h3` etc.
 ///
 /// # Example
-/// ```
+/// ```rust,no_run
 /// use mailpot_web::minijinja_utils::heading;
 /// use minijinja::value::Value;
 ///
@@ -599,5 +541,229 @@ pub fn heading(level: Value, text: Value, id: Option<Value>) -> std::result::Res
             "<h{level} id=\"{kebab}\">{text}<a class=\"self-link\" \
              href=\"#{kebab}\"></a></h{level}>"
         )))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_pluralize() {
+        let mut env = Environment::new();
+        env.add_filter("pluralize", pluralize);
+        for (num, s) in [
+            (0, "You have 0 messages."),
+            (1, "You have 1 message."),
+            (10, "You have 10 messages."),
+        ] {
+            assert_eq!(
+                &env.render_str(
+                    "You have {{ num_messages }} message{{ num_messages|pluralize }}.",
+                    minijinja::context! {
+                        num_messages => num,
+                    }
+                )
+                .unwrap(),
+                s
+            );
+        }
+
+        for (num, s) in [
+            (0, "You have 0 walruses."),
+            (1, "You have 1 walrus."),
+            (10, "You have 10 walruses."),
+        ] {
+            assert_eq!(
+        &env.render_str(
+            r#"You have {{ num_walruses }} walrus{{ num_walruses|pluralize(None, "es") }}."#,
+            minijinja::context! {
+                num_walruses => num,
+            }
+        )
+        .unwrap(),
+        s
+    );
+        }
+
+        for (num, s) in [
+            (0, "You have 0 cherries."),
+            (1, "You have 1 cherry."),
+            (10, "You have 10 cherries."),
+        ] {
+            assert_eq!(
+                &env.render_str(
+                    r#"You have {{ num_cherries }} cherr{{ num_cherries|pluralize("y", "ies") }}."#,
+                    minijinja::context! {
+                        num_cherries => num,
+                    }
+                )
+                .unwrap(),
+                s
+            );
+        }
+
+        assert_eq!(
+    &env.render_str(
+        r#"You have {{ num_cherries|length }} cherr{{ num_cherries|pluralize("y", "ies") }}."#,
+        minijinja::context! {
+            num_cherries => vec![(); 5],
+        }
+    )
+    .unwrap(),
+    "You have 5 cherries."
+);
+
+        assert_eq!(
+            &env.render_str(
+                r#"You have {{ num_cherries }} cherr{{ num_cherries|pluralize("y", "ies") }}."#,
+                minijinja::context! {
+                    num_cherries => "5",
+                }
+            )
+            .unwrap(),
+            "You have 5 cherries."
+        );
+        assert_eq!(
+            &env.render_str(
+                r#"You have 1 cherr{{ num_cherries|pluralize("y", "ies") }}."#,
+                minijinja::context! {
+                    num_cherries => true,
+                }
+            )
+            .unwrap(),
+            "You have 1 cherry.",
+        );
+        assert_eq!(
+            &env.render_str(
+                r#"You have {{ num_cherries }} cherr{{ num_cherries|pluralize("y", "ies") }}."#,
+                minijinja::context! {
+                    num_cherries => 0.5f32,
+                }
+            )
+            .unwrap_err()
+            .to_string(),
+            "invalid operation: Pluralize argument is not an integer, or a sequence / object with \
+             a length but of type number (in <string>:1)",
+        );
+    }
+
+    #[test]
+    fn test_urlize() {
+        let mut env = Environment::new();
+        env.add_function("urlize", urlize);
+        env.add_global(
+            "root_url_prefix",
+            Value::from_safe_string("/lists/prefix/".to_string()),
+        );
+        assert_eq!(
+            &env.render_str(
+                "<a href=\"{{ urlize(\"path/index.html\") }}\">link</a>",
+                minijinja::context! {}
+            )
+            .unwrap(),
+            "<a href=\"/lists/prefix/path/index.html\">link</a>",
+        );
+    }
+
+    #[test]
+    fn test_heading() {
+        assert_eq!(
+            "<h1 id=\"bl-bfa-b-ah-b-asdb-hadas-d\">bl bfa B AH bAsdb hadas d<a \
+             class=\"self-link\" href=\"#bl-bfa-b-ah-b-asdb-hadas-d\"></a></h1>",
+            &heading(1.into(), "bl bfa B AH bAsdb hadas d".into(), None)
+                .unwrap()
+                .to_string()
+        );
+        assert_eq!(
+            "<h2 id=\"short\">bl bfa B AH bAsdb hadas d<a class=\"self-link\" \
+             href=\"#short\"></a></h2>",
+            &heading(
+                2.into(),
+                "bl bfa B AH bAsdb hadas d".into(),
+                Some("short".into())
+            )
+            .unwrap()
+            .to_string()
+        );
+        assert_eq!(
+            r#"invalid operation: first heading() argument must be an unsigned integer less than 7 and positive"#,
+            &heading(
+                0.into(),
+                "bl bfa B AH bAsdb hadas d".into(),
+                Some("short".into())
+            )
+            .unwrap_err()
+            .to_string()
+        );
+        assert_eq!(
+            r#"invalid operation: first heading() argument must be an unsigned integer less than 7 and positive"#,
+            &heading(
+                8.into(),
+                "bl bfa B AH bAsdb hadas d".into(),
+                Some("short".into())
+            )
+            .unwrap_err()
+            .to_string()
+        );
+        assert_eq!(
+            r#"invalid operation: first heading() argument is not an integer < 7 but of type sequence"#,
+            &heading(
+                Value::from(vec![Value::from(1)]),
+                "bl bfa B AH bAsdb hadas d".into(),
+                Some("short".into())
+            )
+            .unwrap_err()
+            .to_string()
+        );
+    }
+
+    #[test]
+    fn test_strip_carets() {
+        let mut env = Environment::new();
+        env.add_filter("strip_carets", strip_carets);
+        assert_eq!(
+            &env.render_str(
+                "{{ msg_id | strip_carets }}",
+                minijinja::context! {
+                    msg_id => "<hello1@example.com>",
+                }
+            )
+            .unwrap(),
+            "hello1@example.com",
+        );
+    }
+
+    #[test]
+    fn test_calendarize() {
+        use std::collections::HashMap;
+
+        let mut env = Environment::new();
+        env.add_function("calendarize", calendarize);
+
+        let month = "2001-09";
+        let mut hist = [0usize; 31];
+        hist[15] = 5;
+        hist[1] = 1;
+        hist[0] = 512;
+        hist[30] = 30;
+        assert_eq!(
+    &env.render_str(
+        "{% set c=calendarize(month, hists) %}Month: {{ c.month }} Month Name: {{ \
+         c.month_name }} Month Int: {{ c.month_int }} Year: {{ c.year }} Sum: {{ c.sum }} {% \
+         for week in c.weeks %}{% for day in week %}{% set num = c.hist[day-1] %}({{ day }}, \
+         {{ num }}){% endfor %}{% endfor %}",
+        minijinja::context! {
+        month,
+        hists => vec![(month.to_string(), hist)].into_iter().collect::<HashMap<String, [usize;
+        31]>>(),
+        }
+    )
+    .unwrap(),
+    "Month: 2001-09 Month Name: September Month Int: 9 Year: 2001 Sum: 548 (0, 30)(0, 30)(0, \
+     30)(0, 30)(0, 30)(1, 512)(2, 1)(3, 0)(4, 0)(5, 0)(6, 0)(7, 0)(8, 0)(9, 0)(10, 0)(11, \
+     0)(12, 0)(13, 0)(14, 0)(15, 0)(16, 5)(17, 0)(18, 0)(19, 0)(20, 0)(21, 0)(22, 0)(23, \
+     0)(24, 0)(25, 0)(26, 0)(27, 0)(28, 0)(29, 0)(30, 0)"
+);
     }
 }

@@ -141,7 +141,7 @@ impl Connection {
     ///
     /// # Example
     ///
-    /// ```rust
+    /// ```rust,no_run
     /// use mailpot::{Connection, Configuration};
     /// use melib::smtp::{SmtpServerConf, SmtpAuth, SmtpSecurity};
     /// #
@@ -805,5 +805,41 @@ pub mod transaction {
 
         /// Panic. Used to enforce intentional behavior during development.
         Panic,
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_new_connection() {
+        use melib::smtp::{SmtpAuth, SmtpSecurity, SmtpServerConf};
+        use tempfile::TempDir;
+
+        use crate::SendMail;
+
+        let tmp_dir = TempDir::new().unwrap();
+        let db_path = tmp_dir.path().join("mpot.db");
+        let data_path = tmp_dir.path().to_path_buf();
+        let config = Configuration {
+            send_mail: SendMail::Smtp(SmtpServerConf {
+                hostname: "127.0.0.1".into(),
+                port: 25,
+                envelope_from: "foo-chat@example.com".into(),
+                auth: SmtpAuth::None,
+                security: SmtpSecurity::None,
+                extensions: Default::default(),
+            }),
+            db_path,
+            data_path,
+            administrators: vec![],
+        };
+        assert_eq!(
+            &Connection::open_db(config.clone()).unwrap_err().to_string(),
+            "Database doesn't exist"
+        );
+
+        _ = Connection::open_or_create_db(config).unwrap();
     }
 }

@@ -66,7 +66,7 @@ impl Message {
 ///
 /// # Example
 ///
-/// ```rust
+/// ```no_run
 /// # use mailpot_web::utils::{Message, Level, SessionMessages};
 /// struct Session(Vec<Message>);
 ///
@@ -135,17 +135,6 @@ impl SessionMessages for WritableSession {
 
 /// Deserialize a string integer into `i64`, because POST parameters are
 /// strings.
-///
-/// ```
-/// # use mailpot_web::utils::IntPOST;
-/// # use mailpot::serde_json::{self, json};
-/// assert_eq!(
-///     IntPOST(5),
-///     serde_json::from_str::<IntPOST>("\"5\"").unwrap()
-/// );
-/// assert_eq!(IntPOST(5), serde_json::from_str::<IntPOST>("5").unwrap());
-/// assert_eq!(&json! { IntPOST(5) }.to_string(), "5");
-/// ```
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Hash)]
 #[repr(transparent)]
 pub struct IntPOST(pub i64);
@@ -201,20 +190,6 @@ impl<'de> serde::Deserialize<'de> for IntPOST {
 
 /// Deserialize a string integer into `bool`, because POST parameters are
 /// strings.
-///
-/// ```
-/// # use mailpot_web::utils::BoolPOST;
-/// # use mailpot::serde_json::{self, json};
-/// assert_eq!(
-///     BoolPOST(true),
-///     serde_json::from_str::<BoolPOST>("true").unwrap()
-/// );
-/// assert_eq!(
-///     BoolPOST(true),
-///     serde_json::from_str::<BoolPOST>("\"true\"").unwrap()
-/// );
-/// assert_eq!(&json! { BoolPOST(false) }.to_string(), "false");
-/// ```
 #[derive(Clone, Copy, Default, Debug, PartialEq, Eq, PartialOrd, Hash)]
 #[repr(transparent)]
 pub struct BoolPOST(pub bool);
@@ -261,23 +236,6 @@ impl<'de> serde::Deserialize<'de> for BoolPOST {
     }
 }
 
-/// ```
-/// use axum::response::Redirect;
-/// use mailpot_web::Next;
-///
-/// let next = Next {
-///     next: Some("foo".to_string()),
-/// };
-/// assert_eq!(
-///     format!("{:?}", Redirect::to("foo")),
-///     format!("{:?}", next.or_else(|| "bar".to_string()))
-/// );
-/// let next = Next { next: None };
-/// assert_eq!(
-///     format!("{:?}", Redirect::to("bar")),
-///     format!("{:?}", next.or_else(|| "bar".to_string()))
-/// );
-/// ```
 #[derive(Debug, Clone, serde::Deserialize)]
 pub struct Next {
     #[serde(default, deserialize_with = "empty_string_as_none")]
@@ -529,4 +487,89 @@ pub fn thread_roots(
     }
     ret.sort_by_key(|(_, _, key)| std::cmp::Reverse(*key));
     ret
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_session() {
+        struct Session(Vec<Message>);
+
+        impl SessionMessages for Session {
+            type Error = std::convert::Infallible;
+            fn drain_messages(&mut self) -> Vec<Message> {
+                std::mem::take(&mut self.0)
+            }
+
+            fn add_message(&mut self, m: Message) -> Result<(), std::convert::Infallible> {
+                self.0.push(m);
+                Ok(())
+            }
+        }
+        let mut s = Session(vec![]);
+        s.add_message(Message {
+            message: "foo".into(),
+            level: Level::default(),
+        })
+        .unwrap();
+        s.add_message(Message {
+            message: "bar".into(),
+            level: Level::Error,
+        })
+        .unwrap();
+        assert_eq!(
+            s.drain_messages().as_slice(),
+            [
+                Message {
+                    message: "foo".into(),
+                    level: Level::default(),
+                },
+                Message {
+                    message: "bar".into(),
+                    level: Level::Error
+                }
+            ]
+            .as_slice()
+        );
+        assert!(s.0.is_empty());
+    }
+
+    #[test]
+    fn test_post_serde() {
+        use mailpot::serde_json::{self, json};
+        assert_eq!(
+            IntPOST(5),
+            serde_json::from_str::<IntPOST>("\"5\"").unwrap()
+        );
+        assert_eq!(IntPOST(5), serde_json::from_str::<IntPOST>("5").unwrap());
+        assert_eq!(&json! { IntPOST(5) }.to_string(), "5");
+
+        assert_eq!(
+            BoolPOST(true),
+            serde_json::from_str::<BoolPOST>("true").unwrap()
+        );
+        assert_eq!(
+            BoolPOST(true),
+            serde_json::from_str::<BoolPOST>("\"true\"").unwrap()
+        );
+        assert_eq!(&json! { BoolPOST(false) }.to_string(), "false");
+    }
+
+    #[test]
+    fn test_next() {
+        let next = Next {
+            next: Some("foo".to_string()),
+        };
+        assert_eq!(
+            format!("{:?}", Redirect::to("foo")),
+            format!("{:?}", next.or_else(|| "bar".to_string()))
+        );
+        let next = Next { next: None };
+        assert_eq!(
+            format!("{:?}", Redirect::to("bar")),
+            format!("{:?}", next.or_else(|| "bar".to_string()))
+        );
+    }
 }
