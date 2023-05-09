@@ -19,6 +19,7 @@
 
 use std::{collections::HashMap, sync::Arc};
 
+use chrono::TimeZone;
 use mailpot::{Configuration, Connection};
 use mailpot_web::*;
 use minijinja::value::Value;
@@ -175,12 +176,18 @@ async fn root(
         .map(|list| {
             let months = db.months(list.pk)?;
             let posts = db.list_posts(list.pk, None)?;
+            let newest = posts.last().and_then(|p| {
+                chrono::Utc
+                    .timestamp_opt(p.timestamp as i64, 0)
+                    .earliest()
+                    .map(|d| d.to_string())
+            });
             Ok(minijinja::context! {
                 name => &list.name,
+                newest,
                 posts => &posts,
                 months => &months,
                 description => &list.description.as_deref().unwrap_or_default(),
-                root_url_prefix => &state.root_url_prefix,
                 list => Value::from_object(MailingList::from(list.clone())),
             })
         })
@@ -191,11 +198,8 @@ async fn root(
     }];
 
     let context = minijinja::context! {
-        site_title => state.site_title.as_ref(),
-        site_subtitle => state.site_subtitle.as_ref(),
         page_title => Option::<&'static str>::None,
         lists => &lists,
-        root_url_prefix => &state.root_url_prefix,
         current_user => auth.current_user,
         messages => session.drain_messages(),
         crumbs => crumbs,

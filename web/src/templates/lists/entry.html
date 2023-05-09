@@ -29,22 +29,22 @@
             {% if in_reply_to %}
                 <tr>
                     <th scope="row">In-Reply-To:</th>
-                    <td class="faded message-id"><a href="{{ root_url_prefix }}{{ list_post_path(list.id, in_reply_to) }}">{{ in_reply_to }}</a></td>
+                    <td class="faded message-id"><a href="{{ list_post_path(list.id, in_reply_to) }}">{{ in_reply_to }}</a></td>
                 </tr>
             {% endif %}
             {% if references %}
                 <tr>
                     <th scope="row">References:</th>
-                    <td>{% for r in references %}<span class="faded message-id"><a href="{{ root_url_prefix }}{{ list_post_path(list.id, r) }}">{{ r }}</a></span>{% endfor %}</td>
+                    <td>{% for r in references %}<span class="faded message-id"><a href="{{ list_post_path(list.id, r) }}">{{ r }}</a></span>{% endfor %}</td>
                 </tr>
             {% endif %}
         {% else %}
             <th scope="row">Message-ID:</th>
-            <td class="faded message-id"><a href="{{ root_url_prefix }}{{ list_post_path(list.id, post.message_id) }}">{{ strip_carets(post.message_id) }}</a></td>
+            <td class="faded message-id"><a href="{{ list_post_path(list.id, post.message_id) }}">{{ strip_carets(post.message_id) }}</a></td>
             </tr>
         {% endif %}
         <tr>
-            <td colspan="2"><details class="reply-details"><summary>more …</summary><a href="{{ root_url_prefix }}{{ post_raw_path(list.id, post.message_id) }}">View raw</a>  <a href="{{ root_url_prefix }}{{ post_eml_path(list.id, post.message_id) }}">Download as <code>eml</code> (RFC 5322 format)</a></details></td>
+            <td colspan="2"><details class="reply-details"><summary>more …</summary><a href="{{ post_raw_path(list.id, post.message_id) }}">View raw</a>  <a href="{{ post_eml_path(list.id, post.message_id) }}">Download as <code>eml</code> (RFC 5322 format)</a></details></td>
         </tr>
     </table>
     <div class="post-body">

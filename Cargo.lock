@@ -1844,6 +1844,7 @@ dependencies = [
  "build-info",
  "build-info-build",
  "chrono",
+ "convert_case",
  "dyn-clone",
  "eyre",
  "http",

@@ -30,7 +30,6 @@ pub async fn settings(
     Extension(user): Extension<User>,
     state: Arc<AppState>,
 ) -> Result<Html<String>, ResponseError> {
-    let root_url_prefix = &state.root_url_prefix;
     let crumbs = vec![
         Crumb {
             label: "Home".into(),
@@ -66,10 +65,7 @@ pub async fn settings(
         >>()?;
 
     let context = minijinja::context! {
-        site_title => state.site_title.as_ref(),
-        site_subtitle => state.site_subtitle.as_ref(),
         page_title => "Account settings",
-        root_url_prefix => &root_url_prefix,
         user => user,
         subscriptions => subscriptions,
         current_user => user,
@@ -252,7 +248,6 @@ pub async fn user_list_subscription(
     Extension(user): Extension<User>,
     State(state): State<Arc<AppState>>,
 ) -> Result<Html<String>, ResponseError> {
-    let root_url_prefix = &state.root_url_prefix;
     let db = Connection::open_db(state.conf.clone())?;
     let Some(list) = (match id {
         ListPathIdentifier::Pk(id) => db.list(id)?,
@@ -307,10 +302,7 @@ pub async fn user_list_subscription(
     ];
 
     let context = minijinja::context! {
-        site_title => state.site_title.as_ref(),
-        site_subtitle => state.site_subtitle.as_ref(),
         page_title => "Subscription settings",
-        root_url_prefix => &root_url_prefix,
         user => user,
         list => list,
         subscription => subscription,

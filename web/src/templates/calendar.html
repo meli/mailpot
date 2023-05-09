@@ -1,4 +1,4 @@
-{% macro cal(date, hists, root_url_prefix, pk) %}
+{% macro cal(date, hists) %}
     {% set c=calendarize(date, hists) %}
     {% if c.sum > 0 %}
         <table>

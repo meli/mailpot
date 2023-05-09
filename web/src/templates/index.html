@@ -3,7 +3,7 @@
     <div class="body">
         <ul>
             {% for l in lists %}
-                <li><a href="{{ root_url_prefix }}{{ list_path(l.list.pk) }}">{{ l.list.name }}</a></li>
+                <li><a href="{{ list_path(l.list.id) }}">{{ l.list.name }}</a></li>
             {% endfor %}
         </ul>
     </div>

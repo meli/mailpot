@@ -1,6 +1,6 @@
 {% include "header.html" %}
 <div class="body body-grid">
-    <h3 id="account">Your account<a class="self-link" href="#account"></a></h3>
+    {{ heading(3,"Your account","account") }}
     <div class="entries">
         <div class="entry">
             <span>Display name: <span class="value{% if not user.name %} empty{% endif %}">{{ user.name if user.name else "None" }}</span></span>
@@ -16,19 +16,19 @@
         </div>
     </div>
 
-    <h4 id="list-subscriptions">List Subscriptions<a class="self-link" href="#list-subscriptions"></a></h4>
+    {{ heading(4,"List Subscriptions") }}
     <div class="entries">
         <p>{{ subscriptions | length }} subscription(s)</p>
         {% for (s, list) in subscriptions %}
             <div class="entry">
-                <span class="subject"><a href="{{ root_url_prefix }}{{ list_settings_path(list.id) }}">{{ list.name }}</a></span>
+                <span class="subject"><a href="{{ list_settings_path(list.id) }}">{{ list.name }}</a></span>
                 <!-- span class="metadata">📆&nbsp;<span>{{ s.created }}</span></span -->
             </div>
         {% endfor %}
     </div>
 
-    <h4 id="account-settings">Account Settings<a class="self-link" href="#account-settings"></a></h4>
-    <form method="post" action="{{ root_url_prefix }}{{ settings_path() }}" class="settings-form">
+    {{ heading(4,"Account Settings") }}
+    <form method="post" action="{{ settings_path() }}" class="settings-form">
         <input type="hidden" name="type" value="change-name">
         <fieldset>
             <legend>Change display name</legend>
@@ -41,7 +41,7 @@
         <input type="submit" name="change" value="Change">
     </form>
 
-    <form method="post" action="{{ root_url_prefix }}{{ settings_path() }}" class="settings-form">
+    <form method="post" action="{{ settings_path() }}" class="settings-form">
         <input type="hidden" name="type" value="change-password">
         <fieldset>
             <legend>Change SSH public key</legend>
@@ -54,7 +54,7 @@
         <input type="submit" name="change" value="Change">
     </form>
 
-    <form method="post" action="{{ root_url_prefix }}{{ settings_path() }}" class="settings-form">
+    <form method="post" action="{{ settings_path() }}" class="settings-form">
         <input type="hidden" name="type" value="change-public-key">
         <fieldset>
             <legend>Change PGP public key</legend>
@@ -67,7 +67,7 @@
         <input type="submit" name="change-public-key" value="Change">
     </form>
 
-    <form method="post" action="{{ root_url_prefix }}{{ settings_path() }}" class="settings-form">
+    <form method="post" action="{{ settings_path() }}" class="settings-form">
         <input type="hidden" name="type" value="remove-public-key">
         <fieldset>
             <legend>Remove PGP public key</legend>

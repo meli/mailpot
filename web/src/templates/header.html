@@ -4,7 +4,7 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <title>{{ title if title else page_title if page_title else site_title }}</title>{% if canonical_url %}
-            <link href="{{ root_url_prefix }}{{ canonical_url | safe }}" rel="canonical" />{% endif %}
+            <link href="{{ urlize(canonical_url) }}" rel="canonical" />{% endif %}
         {% include "css.html" %}
     </head>
     <body>
@@ -17,7 +17,7 @@
                 {% include "menu.html" %}
                 <div class="page-header">
                     {% if crumbs|length > 1 %}<nav aria-labelledby="breadcrumb-menu" class="breadcrumbs">
-                        <ol id="breadcrumb-menu" role="menu" aria-label="Breadcrumb menu">{% for crumb in crumbs %}<li class="crumb" aria-describedby="bread_{{ loop.index }}">{% if loop.last %}<span role="menuitem" id="bread_{{ loop.index }}" aria-current="page" title="current page">{{ crumb.label }}</span>{% else %}<a role="menuitem" id="bread_{{ loop.index }}" href="{{ root_url_prefix }}{{ crumb.url }}" tabindex="0">{{ crumb.label }}</a>{% endif %}</li>{% endfor %}</ol>
+                        <ol id="breadcrumb-menu" role="menu" aria-label="Breadcrumb menu">{% for crumb in crumbs %}<li class="crumb" aria-describedby="bread_{{ loop.index }}">{% if loop.last %}<span role="menuitem" id="bread_{{ loop.index }}" aria-current="page" title="current page">{{ crumb.label }}</span>{% else %}<a role="menuitem" id="bread_{{ loop.index }}" href="{{ urlize(crumb.url) }}" tabindex="0">{{ crumb.label }}</a>{% endif %}</li>{% endfor %}</ol>
                     </nav>{% endif %}
                     {% if page_title %}
                         <h2 class="page-title">{{ page_title }}</h2>

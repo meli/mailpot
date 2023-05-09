@@ -119,23 +119,20 @@ pub async fn list(
         },
     ];
     let context = minijinja::context! {
-        site_title => state.site_title.as_ref(),
-        site_subtitle => state.site_subtitle.as_ref(),
         canonical_url => ListPath::from(&list).to_crumb(),
         page_title => &list.name,
         description => &list.description,
-        post_policy => &post_policy,
-        subscription_policy => &subscription_policy,
+        post_policy,
+        subscription_policy,
         preamble => true,
-        months => &months,
+        months,
         hists => &hist,
         posts => posts_ctx,
-        root_url_prefix => &state.root_url_prefix,
         list => Value::from_object(MailingList::from(list)),
         current_user => auth.current_user,
-        user_context => user_context,
+        user_context,
         messages => session.drain_messages(),
-        crumbs => crumbs,
+        crumbs,
     };
     Ok(Html(
         TEMPLATES.get_template("lists/list.html")?.render(context)?,
@@ -200,8 +197,6 @@ pub async fn list_post(
         },
     ];
     let context = minijinja::context! {
-        site_title => state.site_title.as_ref(),
-        site_subtitle => state.site_subtitle.as_ref(),
         canonical_url => ListPostPath(ListPathIdentifier::from(list.id.clone()), msg_id.to_string()).to_crumb(),
         page_title => subject_ref,
         description => &list.description,
@@ -220,7 +215,6 @@ pub async fn list_post(
         timestamp => post.timestamp,
         datetime => post.datetime,
         thread => thread,
-        root_url_prefix => &state.root_url_prefix,
         current_user => auth.current_user,
         user_context => user_context,
         messages => session.drain_messages(),
@@ -302,27 +296,24 @@ pub async fn list_edit(
             url: ListPath(list.id.to_string().into()).to_crumb(),
         },
         Crumb {
-            label: list.name.clone().into(),
+            label: format!("Edit {}", list.name).into(),
             url: ListEditPath(ListPathIdentifier::from(list.id.clone())).to_crumb(),
         },
     ];
     let context = minijinja::context! {
-        site_title => state.site_title.as_ref(),
-        site_subtitle => state.site_subtitle.as_ref(),
         canonical_url => ListEditPath(ListPathIdentifier::from(list.id.clone())).to_crumb(),
         page_title => format!("Edit {} settings", list.name),
         description => &list.description,
-        post_policy => &post_policy,
-        subscription_policy => &subscription_policy,
-        list_owners => list_owners,
-        post_count => post_count,
-        subs_count => subs_count,
-        sub_requests_count => sub_requests_count,
-        root_url_prefix => &state.root_url_prefix,
+        post_policy,
+        subscription_policy,
+        list_owners,
+        post_count,
+        subs_count,
+        sub_requests_count,
         list => Value::from_object(MailingList::from(list)),
         current_user => auth.current_user,
         messages => session.drain_messages(),
-        crumbs => crumbs,
+        crumbs,
     };
     Ok(Html(
         TEMPLATES.get_template("lists/edit.html")?.render(context)?,
@@ -661,7 +652,7 @@ pub async fn list_subscribers(
             url: ListPath(list.id.to_string().into()).to_crumb(),
         },
         Crumb {
-            label: list.name.clone().into(),
+            label: format!("Edit {}", list.name).into(),
             url: ListEditPath(ListPathIdentifier::from(list.id.clone())).to_crumb(),
         },
         Crumb {
@@ -670,12 +661,9 @@ pub async fn list_subscribers(
         },
     ];
     let context = minijinja::context! {
-        site_title => state.site_title.as_ref(),
-        site_subtitle => state.site_subtitle.as_ref(),
         canonical_url => ListEditSubscribersPath(ListPathIdentifier::from(list.id.clone())).to_crumb(),
         page_title => format!("Subscribers of {}", list.name),
         subs,
-        root_url_prefix => &state.root_url_prefix,
         list => Value::from_object(MailingList::from(list)),
         current_user => auth.current_user,
         messages => session.drain_messages(),
@@ -747,7 +735,7 @@ pub async fn list_candidates(
             url: ListPath(list.id.to_string().into()).to_crumb(),
         },
         Crumb {
-            label: list.name.clone().into(),
+            label: format!("Edit {}", list.name).into(),
             url: ListEditPath(ListPathIdentifier::from(list.id.clone())).to_crumb(),
         },
         Crumb {
@@ -756,12 +744,9 @@ pub async fn list_candidates(
         },
     ];
     let context = minijinja::context! {
-        site_title => state.site_title.as_ref(),
-        site_subtitle => state.site_subtitle.as_ref(),
         canonical_url => ListEditCandidatesPath(ListPathIdentifier::from(list.id.clone())).to_crumb(),
         page_title => format!("Requests of {}", list.name),
         subs,
-        root_url_prefix => &state.root_url_prefix,
         list => Value::from_object(MailingList::from(list)),
         current_user => auth.current_user,
         messages => session.drain_messages(),

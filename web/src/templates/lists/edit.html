@@ -1,6 +1,6 @@
 {% include "header.html" %}
 <div class="body body-grid">
-    <h3>Edit <a href="{{ root_url_prefix }}{{ list_path(list.pk) }}">{{ list.id }}</a>.</h3>
+    {{ heading(3, "Edit <a href=\"" ~list_path(list.id) ~ "\">"~ list.id ~"</a>","edit") }}
     <address>
         {{ list.name }} <a href="mailto:{{ list.address | safe }}"><code>{{ list.address }}</code></a>
     </address>
@@ -10,8 +10,8 @@
     {% if list.archive_url %}
         <p><a href="{{ list.archive_url }}">{{ list.archive_url }}</a></p>
     {% endif %}
-    <p><a href="{{ root_url_prefix }}{{ list_subscribers_path(list.pk) }}">{{ subs_count }} subscription{{ subs_count|pluralize }}.</a></p>
-    <p><a href="{{ root_url_prefix }}{{ list_candidates_path(list.pk) }}">{{ sub_requests_count }} subscription request{{ sub_requests_count|pluralize }}.</a></p>
+    <p><a href="{{ list_subscribers_path(list.id) }}">{{ subs_count }} subscription{{ subs_count|pluralize }}.</a></p>
+    <p><a href="{{ list_candidates_path(list.id) }}">{{ sub_requests_count }} subscription request{{ sub_requests_count|pluralize }}.</a></p>
     <p>{{ post_count }} post{{ post_count|pluralize }}.</p>
     <form method="post" class="settings-form">
         <fieldset>
@@ -80,7 +80,7 @@
 
         <input type="submit" name="metadata" value="Update list">
     </form>
-    <form method="post" action="{{ root_url_prefix }}{{ list_edit_path(list.id) }}" class="settings-form">
+    <form method="post" action="{{ list_edit_path(list.id) }}" class="settings-form">
         <fieldset>
             <input type="hidden" name="type" value="post-policy">
             <legend>Post Policy <input type="submit" name="delete-post-policy" value="Delete" disabled></legend>
@@ -114,7 +114,7 @@
         </fieldset>
         <input type="submit" value="{{ "Update" if post_policy else "Create" }} Post Policy">
     </form>
-    <form method="post" action="{{ root_url_prefix }}{{ list_edit_path(list.id) }}" class="settings-form">
+    <form method="post" action="{{ list_edit_path(list.id) }}" class="settings-form">
         <fieldset>
             <input type="hidden" name="type" value="subscription-policy">
             <legend>Subscription Policy <input type="submit" name="delete-post-policy" value="Delete" disabled></legend>

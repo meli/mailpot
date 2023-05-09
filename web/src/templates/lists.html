@@ -4,8 +4,8 @@
     <div class="entry">
         <dl class="lists" aria-label="list of mailing lists">
             {% for l in lists %}
-                <dt aria-label="mailing list name"><a href="{{ root_url_prefix }}{{ list_path(l.list.id) }}">{{ l.list.name }}</a></dt>
-                <dd aria-label="mailing list description"{% if not l.list.description %} class="no-description"{% endif %}>{{ l.list.description if l.list.description else "no description" }}</dd>
+                <dt aria-label="mailing list name"><a href="{{ list_path(l.list.id) }}">{{ l.list.name }}</a></dt>
+                <dd><span aria-label="mailing list description"{% if not l.list.description %} class="no-description"{% endif %}>{{ l.list.description if l.list.description else "no description" }}</span> | {{ l.posts|length }} post{{ l.posts|length|pluralize("","s") }}{% if l.newest %} | <time datetime="{{ l.newest }}">{{ l.newest }}</time>{% endif %}</dd>
             {% endfor %}
         </dl>
     </div>

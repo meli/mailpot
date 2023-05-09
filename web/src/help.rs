@@ -24,7 +24,6 @@ pub async fn help(
     _: HelpPath,
     mut session: WritableSession,
     auth: AuthContext,
-    State(state): State<Arc<AppState>>,
 ) -> Result<Html<String>, ResponseError> {
     let crumbs = vec![
         Crumb {
@@ -37,10 +36,7 @@ pub async fn help(
         },
     ];
     let context = minijinja::context! {
-        site_title => state.site_title.as_ref(),
-        site_subtitle => state.site_subtitle.as_ref(),
         page_title => "Help & Documentation",
-        root_url_prefix => &state.root_url_prefix,
         current_user => auth.current_user,
         messages => session.drain_messages(),
         crumbs => crumbs,

@@ -38,6 +38,8 @@ lazy_static::lazy_static! {
         }
         add!(function calendarize,
             strip_carets,
+            urlize,
+            heading,
             login_path,
             logout_path,
             settings_path,
@@ -74,6 +76,10 @@ lazy_static::lazy_static! {
             }
             env.set_source(source);
         }
+        env.add_global("root_url_prefix", Value::from_safe_string( std::env::var("ROOT_URL_PREFIX").unwrap_or_default()));
+        env.add_global("public_url",Value::from_safe_string(std::env::var("PUBLIC_URL").unwrap_or_default()));
+        env.add_global("site_title", Value::from_safe_string(std::env::var("SITE_TITLE").unwrap_or_else(|_| "mailing list archive".to_string())));
+        env.add_global("site_subtitle", std::env::var("SITE_SUBTITLE").ok().map(Value::from_safe_string).unwrap_or_default());
 
         env
     };
@@ -232,7 +238,7 @@ pub fn calendarize(
         year => date.year(),
         weeks => cal::calendarize_with_offset(date, 1),
         hist => hist,
-        sum => sum,
+        sum,
     })
 }
 
@@ -387,6 +393,29 @@ pub fn pluralize(
     })
 }
 
+/// `strip_carets` filter for [`minijinja`].
+///
+/// Removes `[<>]` from message ids.
+///
+/// # Examples
+///
+/// ```rust
+/// # use mailpot_web::strip_carets;
+/// # use minijinja::Environment;
+///
+/// let mut env = Environment::new();
+/// env.add_filter("strip_carets", strip_carets);
+/// assert_eq!(
+///     &env.render_str(
+///         "{{ msg_id | strip_carets }}",
+///         minijinja::context! {
+///             msg_id => "<hello1@example.com>",
+///         }
+///     )
+///     .unwrap(),
+///     "hello1@example.com",
+/// );
+/// ```
 pub fn strip_carets(_state: &minijinja::State, arg: Value) -> std::result::Result<Value, Error> {
     Ok(Value::from(
         arg.as_str()
@@ -398,4 +427,137 @@ pub fn strip_carets(_state: &minijinja::State, arg: Value) -> std::result::Resul
             })?
             .strip_carets(),
     ))
+}
+
+/// `urlize` filter for [`minijinja`].
+///
+/// Returns a safe string for use in <a> href= attributes.
+///
+/// # Examples
+///
+/// ```rust
+/// # use mailpot_web::urlize;
+/// # use minijinja::Environment;
+/// # use minijinja::value::Value;
+///
+/// let mut env = Environment::new();
+/// env.add_function("urlize", urlize);
+/// env.add_global(
+///     "root_url_prefix",
+///     Value::from_safe_string("/lists/prefix/".to_string()),
+/// );
+/// assert_eq!(
+///     &env.render_str(
+///         "<a href=\"{{ urlize(\"path/index.html\") }}\">link</a>",
+///         minijinja::context! {}
+///     )
+///     .unwrap(),
+///     "<a href=\"/lists/prefix/path/index.html\">link</a>",
+/// );
+/// ```
+pub fn urlize(state: &minijinja::State, arg: Value) -> std::result::Result<Value, Error> {
+    let Some(prefix) = state.lookup("root_url_prefix") else {
+        return Ok(arg);
+    };
+    Ok(Value::from_safe_string(format!("{prefix}{arg}")))
+}
+
+/// Make an html heading: `h1, h2, h3` etc.
+///
+/// # Example
+/// ```
+/// use mailpot_web::minijinja_utils::heading;
+/// use minijinja::value::Value;
+///
+/// assert_eq!(
+///   "<h1 id=\"bl-bfa-b-ah-b-asdb-hadas-d\">bl bfa B AH bAsdb hadas d<a class=\"self-link\" href=\"#bl-bfa-b-ah-b-asdb-hadas-d\"></a></h1>",
+///   &heading(1.into(), "bl bfa B AH bAsdb hadas d".into(), None).unwrap().to_string()
+/// );
+/// assert_eq!(
+///     "<h2 id=\"short\">bl bfa B AH bAsdb hadas d<a class=\"self-link\" href=\"#short\"></a></h2>",
+///     &heading(2.into(), "bl bfa B AH bAsdb hadas d".into(), Some("short".into())).unwrap().to_string()
+/// );
+/// assert_eq!(
+///     r#"invalid operation: first heading() argument must be an unsigned integer less than 7 and positive"#,
+///     &heading(0.into(), "bl bfa B AH bAsdb hadas d".into(), Some("short".into())).unwrap_err().to_string()
+/// );
+/// assert_eq!(
+///     r#"invalid operation: first heading() argument must be an unsigned integer less than 7 and positive"#,
+///     &heading(8.into(), "bl bfa B AH bAsdb hadas d".into(), Some("short".into())).unwrap_err().to_string()
+/// );
+/// assert_eq!(
+///     r#"invalid operation: first heading() argument is not an integer < 7 but of type sequence"#,
+///     &heading(Value::from(vec![Value::from(1)]), "bl bfa B AH bAsdb hadas d".into(), Some("short".into())).unwrap_err().to_string()
+/// );
+/// ```
+pub fn heading(level: Value, text: Value, id: Option<Value>) -> std::result::Result<Value, Error> {
+    use convert_case::{Case, Casing};
+    macro_rules! test {
+        () => {
+            |n| *n > 0 && *n < 7
+        };
+    }
+
+    macro_rules! int_try_from {
+         ($ty:ty) => {
+             <$ty>::try_from(level.clone()).ok().filter(test!{}).map(|n| n as u8)
+         };
+         ($fty:ty, $($ty:ty),*) => {
+             int_try_from!($fty).or_else(|| int_try_from!($($ty),*))
+         }
+     }
+    let level: u8 = level
+        .as_str()
+        .and_then(|s| s.parse::<i128>().ok())
+        .filter(test! {})
+        .map(|n| n as u8)
+        .or_else(|| int_try_from!(u8, u16, u32, u64, u128, i8, i16, i32, i64, i128, usize))
+        .ok_or_else(|| {
+            if matches!(level.kind(), minijinja::value::ValueKind::Number) {
+                minijinja::Error::new(
+                    minijinja::ErrorKind::InvalidOperation,
+                    "first heading() argument must be an unsigned integer less than 7 and positive",
+                )
+            } else {
+                minijinja::Error::new(
+                    minijinja::ErrorKind::InvalidOperation,
+                    format!(
+                        "first heading() argument is not an integer < 7 but of type {}",
+                        level.kind()
+                    ),
+                )
+            }
+        })?;
+    let text = text.as_str().ok_or_else(|| {
+        minijinja::Error::new(
+            minijinja::ErrorKind::InvalidOperation,
+            format!(
+                "second heading() argument is not a string but of type {}",
+                text.kind()
+            ),
+        )
+    })?;
+    if let Some(v) = id {
+        let kebab = v.as_str().ok_or_else(|| {
+            minijinja::Error::new(
+                minijinja::ErrorKind::InvalidOperation,
+                format!(
+                    "third heading() argument is not a string but of type {}",
+                    v.kind()
+                ),
+            )
+        })?;
+        Ok(Value::from_safe_string(format!(
+            "<h{level} id=\"{kebab}\">{text}<a class=\"self-link\" \
+             href=\"#{kebab}\"></a></h{level}>"
+        )))
+    } else {
+        let kebab_v = text.to_case(Case::Kebab);
+        let kebab =
+            percent_encoding::utf8_percent_encode(&kebab_v, crate::typed_paths::PATH_SEGMENT);
+        Ok(Value::from_safe_string(format!(
+            "<h{level} id=\"{kebab}\">{text}<a class=\"self-link\" \
+             href=\"#{kebab}\"></a></h{level}>"
+        )))
+    }
 }

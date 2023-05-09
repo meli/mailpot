@@ -494,7 +494,7 @@ impl Connection {
     ) -> Result<Vec<DbVal<Post>>> {
         let mut stmt = self.connection.prepare(
             "SELECT *, strftime('%Y-%m', CAST(timestamp AS INTEGER), 'unixepoch') AS month_year \
-             FROM post WHERE list = ?;",
+             FROM post WHERE list = ? ORDER BY timestamp ASC;",
         )?;
         let iter = stmt.query_map(rusqlite::params![&list_pk], |row| {
             let pk = row.get("pk")?;

@@ -25,6 +25,7 @@ axum-login = { version = "^0.5" }
 axum-sessions = { version = "^0.5" }
 build-info = { version = "0.0.31" }
 chrono = { version = "^0.4" }
+convert_case = { version = "^0.4" }
 dyn-clone = { version = "^1" }
 eyre = { version = "0.6" }
 http = "0.2"

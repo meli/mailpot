@@ -132,8 +132,8 @@ pub struct HelpPath;
 
 macro_rules! unit_impl {
     ($ident:ident, $ty:expr) => {
-        pub fn $ident() -> Value {
-            Value::from_safe_string($ty.to_crumb().to_string())
+        pub fn $ident(state: &minijinja::State) -> std::result::Result<Value, Error> {
+            urlize(state, Value::from($ty.to_crumb().to_string()))
         }
     };
 }
@@ -145,18 +145,20 @@ unit_impl!(help_path, HelpPath);
 
 macro_rules! list_id_impl {
     ($ident:ident, $ty:tt) => {
-        pub fn $ident(id: Value) -> std::result::Result<Value, Error> {
-            if let Some(id) = id.as_str() {
-                return Ok(Value::from_safe_string(
-                    $ty(ListPathIdentifier::Id(id.to_string()))
-                        .to_crumb()
-                        .to_string(),
-                ));
-            }
-            let pk = id.try_into()?;
-            Ok(Value::from_safe_string(
-                $ty(ListPathIdentifier::Pk(pk)).to_crumb().to_string(),
-            ))
+        pub fn $ident(state: &minijinja::State, id: Value) -> std::result::Result<Value, Error> {
+            urlize(
+                state,
+                if let Some(id) = id.as_str() {
+                    Value::from(
+                        $ty(ListPathIdentifier::Id(id.to_string()))
+                            .to_crumb()
+                            .to_string(),
+                    )
+                } else {
+                    let pk = id.try_into()?;
+                    Value::from($ty(ListPathIdentifier::Pk(pk)).to_crumb().to_string())
+                },
+            )
         }
     };
 }
@@ -169,29 +171,32 @@ list_id_impl!(list_candidates_path, ListEditCandidatesPath);
 
 macro_rules! list_post_impl {
     ($ident:ident, $ty:tt) => {
-        pub fn $ident(id: Value, msg_id: Value) -> std::result::Result<Value, Error> {
-            let Some(msg_id) = msg_id.as_str().map(|s| if s.starts_with('<') && s.ends_with('>') { s.to_string() } else {
-                format!("<{s}>")
-            }) else {
-                return Err(Error::new(
-                        minijinja::ErrorKind::UnknownMethod,
-                        "Second argument of list_post_path must be a string."
-                ));
-            };
+        pub fn $ident(state: &minijinja::State, id: Value, msg_id: Value) -> std::result::Result<Value, Error> {
+            urlize(state, {
+                let Some(msg_id) = msg_id.as_str().map(|s| if s.starts_with('<') && s.ends_with('>') { s.to_string() } else {
+                    format!("<{s}>")
+                }) else {
+                    return Err(Error::new(
+                            minijinja::ErrorKind::UnknownMethod,
+                            "Second argument of list_post_path must be a string."
+                    ));
+                };
 
-            if let Some(id) = id.as_str() {
-                return Ok(Value::from_safe_string(
+                if let Some(id) = id.as_str() {
+                    Value::from(
                         $ty(ListPathIdentifier::Id(id.to_string()), msg_id)
                         .to_crumb()
                         .to_string(),
-                ));
-            }
-            let pk = id.try_into()?;
-            Ok(Value::from_safe_string(
-                    $ty(ListPathIdentifier::Pk(pk), msg_id)
-                    .to_crumb()
-                    .to_string(),
-            ))
+                    )
+                } else {
+                    let pk = id.try_into()?;
+                    Value::from(
+                        $ty(ListPathIdentifier::Pk(pk), msg_id)
+                        .to_crumb()
+                        .to_string(),
+                    )
+                }
+            })
         }
     };
 }

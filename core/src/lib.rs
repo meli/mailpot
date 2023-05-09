@@ -152,17 +152,25 @@
 
 #[macro_use]
 extern crate error_chain;
+
+/// Error library
 pub extern crate anyhow;
+/// Date library
 pub extern crate chrono;
+/// Sql library
 pub extern crate rusqlite;
 
 /// Alias for [`chrono::DateTime<chrono::Utc>`].
 pub type DateTime = chrono::DateTime<chrono::Utc>;
 
+/// Serde
 #[macro_use]
 pub extern crate serde;
+/// Log
 pub extern crate log;
+/// melib
 pub extern crate melib;
+/// serde_json
 pub extern crate serde_json;
 
 mod config;

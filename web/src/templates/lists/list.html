@@ -8,13 +8,13 @@
     <br aria-hidden="true">
     {% if current_user and not post_policy.no_subscriptions and subscription_policy.open %}
         {% if user_context %}
-            <form method="post" action="{{ root_url_prefix }}{{ settings_path() }}" class="settings-form">
+            <form method="post" action="{{ settings_path() }}" class="settings-form">
                 <input type="hidden" name="type", value="unsubscribe">
                 <input type="hidden" name="list_pk", value="{{ list.pk }}">
                 <input type="submit" name="unsubscribe" value="Unsubscribe as {{ current_user.address }}">
             </form>
         {% else %}
-            <form method="post" action="{{ root_url_prefix }}{{ settings_path() }}" class="settings-form">
+            <form method="post" action="{{ settings_path() }}" class="settings-form">
                 <input type="hidden" name="type", value="subscribe">
                 <input type="hidden" name="list_pk", value="{{ list.pk }}">
                 <input type="submit" name="subscribe" value="Subscribe as {{ current_user.address }}">
@@ -27,7 +27,7 @@
                 {{ preamble.custom|safe }}
             {% else %}
                 {% if not post_policy.no_subscriptions %}
-                    <h3 id="subscribe">Subscribe<a class="self-link" href="#subscribe"></a></h3>
+                    {{ heading(3, "Subscribe") }}
                     {% set subscription_mailto=list.subscription_mailto() %}
                     {% if subscription_mailto %}
                         {% if subscription_mailto.subject %}
@@ -45,7 +45,7 @@
 
                     {% set unsubscription_mailto=list.unsubscription_mailto() %}
                     {% if unsubscription_mailto %}
-                        <h3 id="unsubscribe">Unsubscribe<a class="self-link" href="#unsubscribe"></a></h3>
+                        {{ heading(3, "Unsubscribe") }}
                         {% if unsubscription_mailto.subject %}
                             <p>
                                 <a href="mailto:{{ unsubscription_mailto.address|safe }}?subject={{ unsubscription_mailto.subject|safe }}"><code>{{ unsubscription_mailto.address }}</code></a> with the following subject: <code>{{unsubscription_mailto.subject}}</code>
@@ -58,7 +58,7 @@
                     {% endif %}
                 {% endif %}
 
-                <h3 id="post">Post<a class="self-link" href="#post"></a></h3>
+                {{ heading(3, "Post") }}
                 {% if post_policy.announce_only %}
                     <p>List is <em>announce-only</em>, i.e. you can only subscribe to receive announcements.</p>
                 {% elif post_policy.subscription_only %}
@@ -78,21 +78,21 @@
         </section>
     {% endif %}
     <section class="list" aria-hidden="true">
-        <h3 id="calendar">Calendar<a class="self-link" href="#calendar"></a></h3>
+        {{ heading(3, "Calendar") }}
         <div class="calendar">
             {%- from "calendar.html" import cal %}
             {% for date in months %}
-                {{ cal(date, hists, root_url_prefix, list.pk) }}
+                {{ cal(date, hists) }}
             {% endfor %}
         </div>
     </section>
     <section aria-label="mailing list posts">
-        <h3 id="posts">Posts<a class="self-link" href="#posts"></a></h3>
+        {{ heading(3, "Posts") }}
         <div class="posts entries" role="list" aria-label="list of mailing list posts">
             <p>{{ posts | length }} post{{ posts|length|pluralize }}</p>
             {% for post in posts %}
                 <div class="entry" role="listitem" aria-labelledby="post_link_{{ loop.index }}">
-                    <span class="subject"><a id="post_link_{{ loop.index }}" href="{{ root_url_prefix }}{{ list_post_path(list.id, post.message_id) }}">{{ post.subject }}</a>&nbsp;<span class="metadata replies" title="reply count">{{ post.replies }} repl{{ post.replies|pluralize("y","ies") }}</span></span>
+                    <span class="subject"><a id="post_link_{{ loop.index }}" href="{{ list_post_path(list.id, post.message_id) }}">{{ post.subject }}</a>&nbsp;<span class="metadata replies" title="reply count">{{ post.replies }} repl{{ post.replies|pluralize("y","ies") }}</span></span>
                     <span class="metadata"><span aria-hidden="true">👤&nbsp;</span><span class="from" title="post author">{{ post.address }}</span><span aria-hidden="true"> 📆&nbsp;</span><span class="date" title="post date">{{ post.datetime }}</span></span>
                     {% if post.replies > 0 %}<span class="metadata"><span aria-hidden="true">&#x1F493;&nbsp;</span><span class="last-active" title="latest thread activity">{{ post.last_active }}</span></span>{% endif %}
                     <span class="metadata"><span aria-hidden="true">🪪 </span><span class="message-id" title="e-mail Message-ID">{{ post.message_id }}</span></span>

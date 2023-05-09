@@ -128,7 +128,6 @@ pub async fn ssh_signin(
     );
     let timeout_left = ((timestamp + EXPIRY_IN_SECS) - now) as f64 / 60.0;
 
-    let root_url_prefix = &state.root_url_prefix;
     let crumbs = vec![
         Crumb {
             label: "Home".into(),
@@ -142,10 +141,7 @@ pub async fn ssh_signin(
 
     let context = minijinja::context! {
         namespace => &state.public_url,
-        site_title => state.site_title.as_ref(),
-        site_subtitle => state.site_subtitle.as_ref(),
         page_title => "Log in",
-        root_url_prefix => &root_url_prefix,
         ssh_challenge => token,
         timeout_left => timeout_left,
         current_user => auth.current_user,
