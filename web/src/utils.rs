@@ -19,6 +19,18 @@
 
 use super::*;
 
+/// Navigation crumbs, e.g.: Home > Page > Subpage
+///
+/// # Example
+///
+/// ```rust
+/// # use mailpot_web::utils::Crumb;
+/// let crumbs = vec![Crumb {
+///     label: "Home".into(),
+///     url: "/".into(),
+/// }];
+/// println!("{} {}", crumbs[0].label, crumbs[0].url);
+/// ```
 #[derive(Debug, PartialEq, Eq, Clone, serde::Deserialize, serde::Serialize)]
 pub struct Crumb {
     pub label: Cow<'static, str>,
@@ -26,7 +38,10 @@ pub struct Crumb {
     pub url: Cow<'static, str>,
 }
 
-#[derive(Debug, Default, Hash, Copy, Clone, serde::Deserialize, serde::Serialize)]
+/// Message urgency level or info.
+#[derive(
+    Debug, Default, Hash, Copy, Clone, serde::Deserialize, serde::Serialize, PartialEq, Eq,
+)]
 pub enum Level {
     Success,
     #[default]
@@ -35,7 +50,8 @@ pub enum Level {
     Error,
 }
 
-#[derive(Debug, Hash, Clone, serde::Deserialize, serde::Serialize)]
+/// UI message notifications.
+#[derive(Debug, Hash, Clone, serde::Deserialize, serde::Serialize, PartialEq, Eq)]
 pub struct Message {
     pub message: Cow<'static, str>,
     #[serde(default)]
@@ -46,12 +62,62 @@ impl Message {
     const MESSAGE_KEY: &str = "session-message";
 }
 
+/// Drain messages from session.
+///
+/// # Example
+///
+/// ```rust
+/// # use mailpot_web::utils::{Message, Level, SessionMessages};
+/// struct Session(Vec<Message>);
+///
+/// impl SessionMessages for Session {
+///     type Error = std::convert::Infallible;
+///     fn drain_messages(&mut self) -> Vec<Message> {
+///         std::mem::take(&mut self.0)
+///     }
+///
+///     fn add_message(&mut self, m: Message) -> Result<(), std::convert::Infallible> {
+///         self.0.push(m);
+///         Ok(())
+///     }
+/// }
+/// let mut s = Session(vec![]);
+/// s.add_message(Message {
+///     message: "foo".into(),
+///     level: Level::default(),
+/// })
+/// .unwrap();
+/// s.add_message(Message {
+///     message: "bar".into(),
+///     level: Level::Error,
+/// })
+/// .unwrap();
+/// assert_eq!(
+///     s.drain_messages().as_slice(),
+///     [
+///         Message {
+///             message: "foo".into(),
+///             level: Level::default(),
+///         },
+///         Message {
+///             message: "bar".into(),
+///             level: Level::Error
+///         }
+///     ]
+///     .as_slice()
+/// );
+/// assert!(s.0.is_empty());
+/// ```
 pub trait SessionMessages {
+    type Error;
+
     fn drain_messages(&mut self) -> Vec<Message>;
-    fn add_message(&mut self, _: Message) -> Result<(), ResponseError>;
+    fn add_message(&mut self, _: Message) -> Result<(), Self::Error>;
 }
 
 impl SessionMessages for WritableSession {
+    type Error = ResponseError;
+
     fn drain_messages(&mut self) -> Vec<Message> {
         let ret = self.get(Message::MESSAGE_KEY).unwrap_or_default();
         self.remove(Message::MESSAGE_KEY);
@@ -67,6 +133,19 @@ impl SessionMessages for WritableSession {
     }
 }
 
+/// Deserialize a string integer into `i64`, because POST parameters are
+/// strings.
+///
+/// ```
+/// # use mailpot_web::utils::IntPOST;
+/// # use mailpot::serde_json::{self, json};
+/// assert_eq!(
+///     IntPOST(5),
+///     serde_json::from_str::<IntPOST>("\"5\"").unwrap()
+/// );
+/// assert_eq!(IntPOST(5), serde_json::from_str::<IntPOST>("5").unwrap());
+/// assert_eq!(&json! { IntPOST(5) }.to_string(), "5");
+/// ```
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Hash)]
 #[repr(transparent)]
 pub struct IntPOST(pub i64);
@@ -101,6 +180,13 @@ impl<'de> serde::Deserialize<'de> for IntPOST {
                 Ok(IntPOST(int))
             }
 
+            fn visit_u64<E>(self, int: u64) -> Result<Self::Value, E>
+            where
+                E: serde::de::Error,
+            {
+                Ok(IntPOST(int.try_into().unwrap()))
+            }
+
             fn visit_str<E>(self, int: &str) -> Result<Self::Value, E>
             where
                 E: serde::de::Error,
@@ -113,6 +199,22 @@ impl<'de> serde::Deserialize<'de> for IntPOST {
     }
 }
 
+/// Deserialize a string integer into `bool`, because POST parameters are
+/// strings.
+///
+/// ```
+/// # use mailpot_web::utils::BoolPOST;
+/// # use mailpot::serde_json::{self, json};
+/// assert_eq!(
+///     BoolPOST(true),
+///     serde_json::from_str::<BoolPOST>("true").unwrap()
+/// );
+/// assert_eq!(
+///     BoolPOST(true),
+///     serde_json::from_str::<BoolPOST>("\"true\"").unwrap()
+/// );
+/// assert_eq!(&json! { BoolPOST(false) }.to_string(), "false");
+/// ```
 #[derive(Clone, Copy, Default, Debug, PartialEq, Eq, PartialOrd, Hash)]
 #[repr(transparent)]
 pub struct BoolPOST(pub bool);
@@ -159,6 +261,23 @@ impl<'de> serde::Deserialize<'de> for BoolPOST {
     }
 }
 
+/// ```
+/// use axum::response::Redirect;
+/// use mailpot_web::Next;
+///
+/// let next = Next {
+///     next: Some("foo".to_string()),
+/// };
+/// assert_eq!(
+///     format!("{:?}", Redirect::to("foo")),
+///     format!("{:?}", next.or_else(|| "bar".to_string()))
+/// );
+/// let next = Next { next: None };
+/// assert_eq!(
+///     format!("{:?}", Redirect::to("bar")),
+///     format!("{:?}", next.or_else(|| "bar".to_string()))
+/// );
+/// ```
 #[derive(Debug, Clone, serde::Deserialize)]
 pub struct Next {
     #[serde(default, deserialize_with = "empty_string_as_none")]

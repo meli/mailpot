@@ -187,6 +187,46 @@ impl minijinja::value::StructObject for MailingList {
     }
 }
 
+/// Return a vector of weeks, with each week being a vector of 7 days and
+/// corresponding sum of posts per day.
+///
+///
+/// # Example
+///
+/// ```rust
+/// # use mailpot_web::minijinja_utils::calendarize;
+/// # use minijinja::Environment;
+/// # use minijinja::value::Value;
+/// # use std::collections::HashMap;
+///
+/// let mut env = Environment::new();
+/// env.add_function("calendarize", calendarize);
+///
+/// let month = "2001-09";
+/// let mut hist = [0usize; 31];
+/// hist[15] = 5;
+/// hist[1] = 1;
+/// hist[0] = 512;
+/// hist[30] = 30;
+/// assert_eq!(
+///     &env.render_str(
+///         "{% set c=calendarize(month, hists) %}Month: {{ c.month }} Month Name: {{ \
+///          c.month_name }} Month Int: {{ c.month_int }} Year: {{ c.year }} Sum: {{ c.sum }} {% \
+///          for week in c.weeks %}{% for day in week %}{% set num = c.hist[day-1] %}({{ day }}, \
+///          {{ num }}){% endfor %}{% endfor %}",
+///         minijinja::context! {
+///         month,
+///         hists => vec![(month.to_string(), hist)].into_iter().collect::<HashMap<String, [usize;
+///         31]>>(),
+///         }
+///     )
+///     .unwrap(),
+///     "Month: 2001-09 Month Name: September Month Int: 9 Year: 2001 Sum: 548 (0, 30)(0, 30)(0, \
+///      30)(0, 30)(0, 30)(1, 512)(2, 1)(3, 0)(4, 0)(5, 0)(6, 0)(7, 0)(8, 0)(9, 0)(10, 0)(11, \
+///      0)(12, 0)(13, 0)(14, 0)(15, 0)(16, 5)(17, 0)(18, 0)(19, 0)(20, 0)(21, 0)(22, 0)(23, \
+///      0)(24, 0)(25, 0)(26, 0)(27, 0)(28, 0)(29, 0)(30, 0)"
+/// );
+/// ```
 pub fn calendarize(
     _state: &minijinja::State,
     args: Value,
@@ -431,7 +471,7 @@ pub fn strip_carets(_state: &minijinja::State, arg: Value) -> std::result::Resul
 
 /// `urlize` filter for [`minijinja`].
 ///
-/// Returns a safe string for use in <a> href= attributes.
+/// Returns a safe string for use in `<a href=..` attributes.
 ///
 /// # Examples
 ///
