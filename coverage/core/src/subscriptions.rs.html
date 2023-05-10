@@ -4133,7 +4133,7 @@
             </div>
             <div class="column has-background-success-light p-0"
                  role="cell">
-                <pre class="has-background-success-light py-0 px-2">    pub fn accept_candidate_subscription(&amp;mut self, pk: i64) -&gt; Result&lt;DbVal&lt;ListSubscription&gt;&gt; {</pre>
+                <pre class="has-background-success-light py-0 px-2">    pub fn accept_candidate_subscription(&amp;self, pk: i64) -&gt; Result&lt;DbVal&lt;ListSubscription&gt;&gt; {</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -5061,7 +5061,7 @@
             </div>
             <div class="column has-background-success-light p-0"
                  role="cell">
-                <pre class="has-background-success-light py-0 px-2">    pub fn update_subscription(&amp;mut self, change_set: ListSubscriptionChangeset) -&gt; Result&lt;()&gt; {</pre>
+                <pre class="has-background-success-light py-0 px-2">    pub fn update_subscription(&amp;self, change_set: ListSubscriptionChangeset) -&gt; Result&lt;()&gt; {</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -5637,7 +5637,7 @@
             </div>
             <div class="column has-background-success-light p-0"
                  role="cell">
-                <pre class="has-background-success-light py-0 px-2">        let tx = self.connection.transaction()?;</pre>
+                <pre class="has-background-success-light py-0 px-2">        let tx = self.savepoint(Some(stringify!(update_subscription)))?;</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -5717,7 +5717,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">                    tx.execute(</pre>
+                <pre class="has-background-white py-0 px-2">                    tx.connection.execute(</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -8837,7 +8837,7 @@
             </div>
             <div class="column has-background-success-light p-0"
                  role="cell">
-                <pre class="has-background-success-light py-0 px-2">    pub fn update_account(&amp;mut self, change_set: AccountChangeset) -&gt; Result&lt;()&gt; {</pre>
+                <pre class="has-background-success-light py-0 px-2">    pub fn update_account(&amp;self, change_set: AccountChangeset) -&gt; Result&lt;()&gt; {</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -9237,7 +9237,7 @@
             </div>
             <div class="column has-background-success-light p-0"
                  role="cell">
-                <pre class="has-background-success-light py-0 px-2">        let tx = self.connection.transaction()?;</pre>
+                <pre class="has-background-success-light py-0 px-2">        let tx = self.savepoint(Some(stringify!(update_account)))?;</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -9317,7 +9317,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">                    tx.execute(</pre>
+                <pre class="has-background-white py-0 px-2">                    tx.connection.execute(</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -9941,7 +9941,7 @@
             </div>
             <div class="column has-background-success-light p-0"
                  role="cell">
-                <pre class="has-background-success-light py-0 px-2">        let mut db = Connection::open_or_create_db(config).unwrap().trusted();</pre>
+                <pre class="has-background-success-light py-0 px-2">        let db = Connection::open_or_create_db(config).unwrap().trusted();</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -12571,7 +12571,7 @@
 </div>
         <footer class="footer">
             <div class="content has-text-centered">
-                <p class="heading">Date: 2023-05-09 14:27</p>
+                <p class="heading">Date: 2023-05-10 17:39</p>
             </div>
         </footer>
     </body>
