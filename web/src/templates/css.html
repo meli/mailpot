@@ -664,11 +664,11 @@
     }
 
     table.headers {
-        margin-left: -3vw;
+        padding: .5rem 0 .5rem 1rem;
     }
 
     table.headers tr>th {
-        text-align: right;
+        text-align: left;
         color: var(--text-faded);
     }
 
@@ -686,23 +686,24 @@
         width: 50ch;
     }
 
-    div.post-body {
-        margin: 1rem 0px;
-    }
-
     div.post-body>pre {
+        border-top: 1px solid;
         overflow-wrap: break-word;
         white-space: pre-line;
         hyphens: auto;
         background-color: var(--background-secondary);
-        outline: 1rem solid var(--background-secondary);
-        margin: 2rem 0;
-        line-height: 1.333;
+        line-height: 1.1;
+        padding: 1rem;
     }
 
-    div.post-body:not(:last-child) {
-        padding-bottom: .5rem;
+    div.post {
+        border-top: 1px solid var(--horizontal-rule);
+        border-right: 1px solid var(--horizontal-rule);
+        border-left: 1px solid var(--horizontal-rule);
         border-bottom: 1px solid var(--horizontal-rule);
+    }
+    div.post:not(:first-child) {
+        border-top: none;
     }
 
     td.message-id,
@@ -738,12 +739,11 @@
     span.faded:is(:focus, :hover, :focus-visible, :focus-within) {
         color: revert;
     }
-    details.reply-details button {
-        padding: 0.3rem;
-        font-size: medium;
-        min-width: 0;
-        margin-block-start: 0.2rem;
-        display: inline-block;
+    tr>td>details.reply-details ~ tr {
+        display: none;
+    }
+    tr>td>details.reply-details[open] ~ tr {
+        display: revert;
     }
 
     ul.lists {

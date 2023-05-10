@@ -1,46 +1,28 @@
-<table class="headers" title="E-mail headers">
-    <caption class="screen-reader-only">E-mail headers</caption>
-    {% if is_root %}
+<div class="post">
+    <table class="headers" title="E-mail headers">
+        <caption class="screen-reader-only">E-mail headers</caption>
         <tr>
-            <th scope="row">List:</th>
-            <td class="faded">{{ list.id }}</td>
+            <th scope="row">From:</th>
+            <td>{{ post.address }}</td>
         </tr>
-    {% endif %}
-    <tr>
-        <th scope="row">From:</th>
-        <td>{{ post.address }}</td>
-    </tr>
-    <tr>
-        {% if is_root %}
-            <tr>
-                <th scope="row">To:</th>
-                <td class="faded">{{ post.to }}</td>
-            </tr>
-            <tr>
-                <th scope="row">Subject:</th>
-                <td>{{ trimmed_subject }}</td>
-            </tr>
-        {% endif %}
-        <th scope="row">Date:</th>
-        <td class="faded">{{ post.datetime }}</td>
-    </tr>
-    <tr>
-        {% if is_root %}
-            {% if in_reply_to %}
-                <tr>
-                    <th scope="row">In-Reply-To:</th>
-                    <td class="faded message-id"><a href="{{ list_post_path(list.id, in_reply_to) }}">{{ in_reply_to }}</a></td>
-                </tr>
-            {% endif %}
-            {% if references %}
-                <tr>
-                    <th scope="row">References:</th>
-                    <td>{% for r in references %}<span class="faded message-id"><a href="{{ list_post_path(list.id, r) }}">{{ r }}</a></span>{% endfor %}</td>
-                </tr>
-            {% endif %}
-        {% else %}
+        <tr>
+            <th scope="row">Date:</th>
+            <td class="faded">{{ post.datetime }}</td>
+        </tr>
+        <tr>
             <th scope="row">Message-ID:</th>
             <td class="faded message-id"><a href="{{ list_post_path(list.id, post.message_id) }}">{{ strip_carets(post.message_id) }}</a></td>
+        </tr>
+        {% if in_reply_to %}
+            <tr>
+                <th scope="row">In-Reply-To:</th>
+                <td class="faded message-id"><a href="{{ list_post_path(list.id, in_reply_to) }}">{{ in_reply_to }}</a></td>
+            </tr>
+        {% endif %}
+        {% if references %}
+            <tr>
+                <th scope="row">References:</th>
+                <td>{% for r in references %}<span class="faded message-id"><a href="{{ list_post_path(list.id, r) }}">{{ r }}</a></span>{% endfor %}</td>
             </tr>
         {% endif %}
         <tr>
@@ -48,6 +30,6 @@
         </tr>
     </table>
     <div class="post-body">
-        <pre {% if odd %}style="--background-secondary: var(--background-critical);" {% endif %}title="E-mail text content">{{ body }}</pre>
+        <pre {% if odd %}style="--background-secondary: var(--background-critical);" {% endif %}title="E-mail text content">{{ body|trim }}</pre>
     </div>
-
+</div>
