@@ -214,8 +214,8 @@ impl Connection {
     }
 
     /// Delete queue entries returning the deleted values.
-    pub fn delete_from_queue(&mut self, queue: Queue, index: Vec<i64>) -> Result<Vec<QueueEntry>> {
-        let tx = self.connection.transaction()?;
+    pub fn delete_from_queue(&self, queue: Queue, index: Vec<i64>) -> Result<Vec<QueueEntry>> {
+        let tx = self.savepoint(Some(stringify!(delete_from_queue)))?;
 
         let cl = |row: &rusqlite::Row<'_>| {
             Ok(QueueEntry {
@@ -233,9 +233,11 @@ impl Connection {
             })
         };
         let mut stmt = if index.is_empty() {
-            tx.prepare("DELETE FROM queue WHERE which = ? RETURNING *;")?
+            tx.connection
+                .prepare("DELETE FROM queue WHERE which = ? RETURNING *;")?
         } else {
-            tx.prepare("DELETE FROM queue WHERE which = ? AND pk IN rarray(?) RETURNING *;")?
+            tx.connection
+                .prepare("DELETE FROM queue WHERE which = ? AND pk IN rarray(?) RETURNING *;")?
         };
         let iter = if index.is_empty() {
             stmt.query_map([&queue.as_str()], cl)?
@@ -279,7 +281,7 @@ mod tests {
             administrators: vec![],
         };
 
-        let mut db = Connection::open_or_create_db(config).unwrap().trusted();
+        let db = Connection::open_or_create_db(config).unwrap().trusted();
         for i in 0..5 {
             db.insert_to_queue(
                 QueueEntry::new(

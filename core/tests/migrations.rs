@@ -34,7 +34,7 @@ fn test_init_empty() {
         administrators: vec![],
     };
 
-    let mut db = Connection::open_or_create_db(config).unwrap().trusted();
+    let db = Connection::open_or_create_db(config).unwrap().trusted();
 
     let migrations = Connection::MIGRATIONS;
     if migrations.is_empty() {

@@ -199,7 +199,7 @@ impl Connection {
         conn.busy_timeout(core::time::Duration::from_millis(500))?;
         conn.busy_handler(Some(|times: i32| -> bool { times < 5 }))?;
 
-        let mut ret = Self {
+        let ret = Self {
             conf,
             connection: conn,
         };
@@ -232,13 +232,13 @@ impl Connection {
     /// Migrate from version `from` to `to`.
     ///
     /// See [Self::MIGRATIONS].
-    pub fn migrate(&mut self, mut from: u32, to: u32) -> Result<()> {
+    pub fn migrate(&self, mut from: u32, to: u32) -> Result<()> {
         if from == to {
             return Ok(());
         }
 
         let undo = from > to;
-        let tx = self.connection.transaction()?;
+        let tx = self.savepoint(Some(stringify!(migrate)))?;
 
         while from != to {
             log::trace!(
@@ -247,15 +247,18 @@ impl Connection {
             );
             if undo {
                 trace!("{}", Self::MIGRATIONS[from as usize].2);
-                tx.execute(Self::MIGRATIONS[from as usize].2, [])?;
+                tx.connection
+                    .execute(Self::MIGRATIONS[from as usize].2, [])?;
                 from -= 1;
             } else {
                 trace!("{}", Self::MIGRATIONS[from as usize].1);
-                tx.execute(Self::MIGRATIONS[from as usize].1, [])?;
+                tx.connection
+                    .execute(Self::MIGRATIONS[from as usize].1, [])?;
                 from += 1;
             }
         }
-        tx.pragma_update(None, "user_version", Self::MIGRATIONS[to as usize - 1].0)?;
+        tx.connection
+            .pragma_update(None, "user_version", Self::MIGRATIONS[to as usize - 1].0)?;
 
         tx.commit()?;
 
@@ -354,10 +357,10 @@ impl Connection {
     }
 
     /// Loads archive databases from [`Configuration::data_path`], if any.
-    pub fn load_archives(&mut self) -> Result<()> {
-        let tx = self.connection.transaction()?;
+    pub fn load_archives(&self) -> Result<()> {
+        let tx = self.savepoint(Some(stringify!(load_archives)))?;
         {
-            let mut stmt = tx.prepare("ATTACH ? AS ?;")?;
+            let mut stmt = tx.connection.prepare("ATTACH ? AS ?;")?;
             for archive in std::fs::read_dir(&self.conf.data_path)? {
                 let archive = archive?;
                 let path = archive.path();
@@ -611,7 +614,7 @@ impl Connection {
     }
 
     /// Update a mailing list.
-    pub fn update_list(&mut self, change_set: MailingListChangeset) -> Result<()> {
+    pub fn update_list(&self, change_set: MailingListChangeset) -> Result<()> {
         if matches!(
             change_set,
             MailingListChangeset {
@@ -644,12 +647,12 @@ impl Connection {
             hidden,
             enabled,
         } = change_set;
-        let tx = self.connection.transaction()?;
+        let tx = self.savepoint(Some(stringify!(update_list)))?;
 
         macro_rules! update {
             ($field:tt) => {{
                 if let Some($field) = $field {
-                    tx.execute(
+                    tx.connection.execute(
                         concat!("UPDATE list SET ", stringify!($field), " = ? WHERE pk = ?;"),
                         rusqlite::params![&$field, &pk],
                     )?;
@@ -673,7 +676,7 @@ impl Connection {
 
     /// Execute operations inside an SQL transaction.
     pub fn transaction(
-        &'_ self,
+        &'_ mut self,
         behavior: transaction::TransactionBehavior,
     ) -> Result<transaction::Transaction<'_>> {
         use transaction::*;
@@ -689,6 +692,30 @@ impl Connection {
             drop_behavior: DropBehavior::Rollback,
         })
     }
+
+    /// Execute operations inside an SQL savepoint.
+    pub fn savepoint(&'_ self, name: Option<&'static str>) -> Result<transaction::Savepoint<'_>> {
+        use std::sync::atomic::{AtomicUsize, Ordering};
+
+        use transaction::*;
+        static COUNTER: AtomicUsize = AtomicUsize::new(0);
+
+        let name = name
+            .map(Ok)
+            .unwrap_or_else(|| Err(COUNTER.fetch_add(1, Ordering::Relaxed)));
+
+        match name {
+            Ok(ref n) => self.connection.execute_batch(&format!("SAVEPOINT {n}"))?,
+            Err(ref i) => self.connection.execute_batch(&format!("SAVEPOINT _{i}"))?,
+        };
+
+        Ok(Savepoint {
+            conn: self,
+            drop_behavior: DropBehavior::Rollback,
+            name,
+            committed: false,
+        })
+    }
 }
 
 /// Execute operations inside an SQL transaction.
@@ -698,7 +725,7 @@ pub mod transaction {
     /// A transaction handle.
     #[derive(Debug)]
     pub struct Transaction<'conn> {
-        pub(super) conn: &'conn Connection,
+        pub(super) conn: &'conn mut Connection,
         pub(super) drop_behavior: DropBehavior,
     }
 
@@ -778,10 +805,10 @@ pub mod transaction {
         /// DEFERRED means that the transaction does not actually start until
         /// the database is first accessed.
         Deferred,
+        #[default]
         /// IMMEDIATE cause the database connection to start a new write
         /// immediately, without waiting for a writes statement.
         Immediate,
-        #[default]
         /// EXCLUSIVE prevents other database connections from reading the
         /// database while the transaction is underway.
         Exclusive,
@@ -805,6 +832,106 @@ pub mod transaction {
 
         /// Panic. Used to enforce intentional behavior during development.
         Panic,
+    }
+
+    /// A savepoint handle.
+    #[derive(Debug)]
+    pub struct Savepoint<'conn> {
+        pub(super) conn: &'conn Connection,
+        pub(super) drop_behavior: DropBehavior,
+        pub(super) name: std::result::Result<&'static str, usize>,
+        pub(super) committed: bool,
+    }
+
+    impl Drop for Savepoint<'_> {
+        fn drop(&mut self) {
+            _ = self.finish_();
+        }
+    }
+
+    impl Savepoint<'_> {
+        /// Commit and consume savepoint.
+        pub fn commit(mut self) -> Result<()> {
+            self.commit_()
+        }
+
+        fn commit_(&mut self) -> Result<()> {
+            if !self.committed {
+                match self.name {
+                    Ok(ref n) => self
+                        .conn
+                        .connection
+                        .execute_batch(&format!("RELEASE SAVEPOINT {n}"))?,
+                    Err(ref i) => self
+                        .conn
+                        .connection
+                        .execute_batch(&format!("RELEASE SAVEPOINT _{i}"))?,
+                };
+                self.committed = true;
+            }
+            Ok(())
+        }
+
+        /// Configure the savepoint to perform the specified action when it is
+        /// dropped.
+        #[inline]
+        pub fn set_drop_behavior(&mut self, drop_behavior: DropBehavior) {
+            self.drop_behavior = drop_behavior;
+        }
+
+        /// A convenience method which consumes and rolls back a savepoint.
+        #[inline]
+        pub fn rollback(mut self) -> Result<()> {
+            self.rollback_()
+        }
+
+        fn rollback_(&mut self) -> Result<()> {
+            if !self.committed {
+                match self.name {
+                    Ok(ref n) => self
+                        .conn
+                        .connection
+                        .execute_batch(&format!("ROLLBACK TO SAVEPOINT {n}"))?,
+                    Err(ref i) => self
+                        .conn
+                        .connection
+                        .execute_batch(&format!("ROLLBACK TO SAVEPOINT _{i}"))?,
+                };
+            }
+            Ok(())
+        }
+
+        /// Consumes the savepoint, committing or rolling back according to
+        /// the current setting (see `drop_behavior`).
+        ///
+        /// Functionally equivalent to the `Drop` implementation, but allows
+        /// callers to see any errors that occur.
+        #[inline]
+        pub fn finish(mut self) -> Result<()> {
+            self.finish_()
+        }
+
+        #[inline]
+        fn finish_(&mut self) -> Result<()> {
+            if self.conn.connection.is_autocommit() {
+                return Ok(());
+            }
+            match self.drop_behavior {
+                DropBehavior::Commit => self.commit_().or_else(|_| self.rollback_()),
+                DropBehavior::Rollback => self.rollback_(),
+                DropBehavior::Ignore => Ok(()),
+                DropBehavior::Panic => panic!("Savepoint dropped unexpectedly."),
+            }
+        }
+    }
+
+    impl std::ops::Deref for Savepoint<'_> {
+        type Target = Connection;
+
+        #[inline]
+        fn deref(&self) -> &Connection {
+            self.conn
+        }
     }
 }
 
@@ -841,5 +968,125 @@ mod tests {
         );
 
         _ = Connection::open_or_create_db(config).unwrap();
+    }
+
+    #[test]
+    fn test_transactions() {
+        use melib::smtp::{SmtpAuth, SmtpSecurity, SmtpServerConf};
+        use tempfile::TempDir;
+
+        use super::transaction::*;
+        use crate::SendMail;
+
+        let tmp_dir = TempDir::new().unwrap();
+        let db_path = tmp_dir.path().join("mpot.db");
+        let data_path = tmp_dir.path().to_path_buf();
+        let config = Configuration {
+            send_mail: SendMail::Smtp(SmtpServerConf {
+                hostname: "127.0.0.1".into(),
+                port: 25,
+                envelope_from: "foo-chat@example.com".into(),
+                auth: SmtpAuth::None,
+                security: SmtpSecurity::None,
+                extensions: Default::default(),
+            }),
+            db_path,
+            data_path,
+            administrators: vec![],
+        };
+        let list = MailingList {
+            pk: 0,
+            name: "".into(),
+            id: "".into(),
+            description: None,
+            address: "".into(),
+            archive_url: None,
+        };
+        let mut db = Connection::open_or_create_db(config).unwrap().trusted();
+
+        /* drop rollback */
+        let mut tx = db.transaction(Default::default()).unwrap();
+        tx.set_drop_behavior(DropBehavior::Rollback);
+        let _new = tx.create_list(list.clone()).unwrap();
+        drop(tx);
+        assert_eq!(&db.lists().unwrap(), &[]);
+
+        /* drop commit */
+        let mut tx = db.transaction(Default::default()).unwrap();
+        tx.set_drop_behavior(DropBehavior::Commit);
+        let new = tx.create_list(list.clone()).unwrap();
+        drop(tx);
+        assert_eq!(&db.lists().unwrap(), &[new.clone()]);
+
+        /* rollback with drop commit */
+        let mut tx = db.transaction(Default::default()).unwrap();
+        tx.set_drop_behavior(DropBehavior::Commit);
+        let _new2 = tx
+            .create_list(MailingList {
+                id: "1".into(),
+                address: "1".into(),
+                ..list.clone()
+            })
+            .unwrap();
+        tx.rollback().unwrap();
+        assert_eq!(&db.lists().unwrap(), &[new.clone()]);
+
+        /* tx and then savepoint */
+        let tx = db.transaction(Default::default()).unwrap();
+        let sv = tx.savepoint(None).unwrap();
+        let new2 = sv
+            .create_list(MailingList {
+                id: "2".into(),
+                address: "2".into(),
+                ..list.clone()
+            })
+            .unwrap();
+        sv.commit().unwrap();
+        tx.commit().unwrap();
+        assert_eq!(&db.lists().unwrap(), &[new.clone(), new2.clone()]);
+
+        /* tx and then rollback savepoint */
+        let tx = db.transaction(Default::default()).unwrap();
+        let sv = tx.savepoint(None).unwrap();
+        let _new3 = sv
+            .create_list(MailingList {
+                id: "3".into(),
+                address: "3".into(),
+                ..list.clone()
+            })
+            .unwrap();
+        sv.rollback().unwrap();
+        tx.commit().unwrap();
+        assert_eq!(&db.lists().unwrap(), &[new.clone(), new2.clone()]);
+
+        /* tx, commit savepoint and then rollback commit */
+        let tx = db.transaction(Default::default()).unwrap();
+        let sv = tx.savepoint(None).unwrap();
+        let _new3 = sv
+            .create_list(MailingList {
+                id: "3".into(),
+                address: "3".into(),
+                ..list.clone()
+            })
+            .unwrap();
+        sv.commit().unwrap();
+        tx.rollback().unwrap();
+        assert_eq!(&db.lists().unwrap(), &[new.clone(), new2.clone()]);
+
+        /* nested savepoints */
+        let tx = db.transaction(Default::default()).unwrap();
+        let sv = tx.savepoint(None).unwrap();
+        let sv1 = sv.savepoint(None).unwrap();
+        let new3 = sv1
+            .create_list(MailingList {
+                id: "3".into(),
+                address: "3".into(),
+                ..list
+            })
+            .unwrap();
+        sv1.commit().unwrap();
+        sv.commit().unwrap();
+        tx.commit().unwrap();
+        assert_eq!(&db.lists().unwrap(), &[new, new2, new3]);
     }
 }

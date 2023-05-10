@@ -30,6 +30,7 @@ use mailpot::{
     melib::{backends::maildir::MaildirPathTrait, smol, smtp::*, Envelope, EnvelopeHash},
     models::{changesets::*, *},
     queue::{Queue, QueueEntry},
+    transaction::TransactionBehavior,
     Configuration, Connection, Error, ErrorKind, Result, *,
 };
 use mailpot_cli::*;
@@ -507,6 +508,7 @@ fn run_app(opt: Opt) -> Result<()> {
                 println!("post dry_run{:?}", dry_run);
             }
 
+            let tx = db.transaction(TransactionBehavior::Exclusive).unwrap();
             let mut input = String::new();
             std::io::stdin().read_to_string(&mut input)?;
             match Envelope::from_bytes(input.as_bytes(), None) {
@@ -514,7 +516,7 @@ fn run_app(opt: Opt) -> Result<()> {
                     if opt.debug {
                         eprintln!("{:?}", &env);
                     }
-                    db.post(&env, input.as_bytes(), dry_run)?;
+                    tx.post(&env, input.as_bytes(), dry_run)?;
                 }
                 Err(err) if input.trim().is_empty() => {
                     eprintln!("Empty input, abort.");
@@ -522,21 +524,28 @@ fn run_app(opt: Opt) -> Result<()> {
                 }
                 Err(err) => {
                     eprintln!("Could not parse message: {}", err);
-                    let p = db.conf().save_message(input)?;
+                    let p = tx.conf().save_message(input)?;
                     eprintln!("Message saved at {}", p.display());
                     return Err(err.into());
                 }
             }
+            tx.commit()?;
         }
         FlushQueue { dry_run } => {
+            let tx = db.transaction(TransactionBehavior::Exclusive).unwrap();
             let messages = if opt.debug {
                 println!("flush-queue dry_run {:?}", dry_run);
-                db.queue(Queue::Out)?
+                tx.queue(Queue::Out)?
                     .into_iter()
                     .map(DbVal::into_inner)
+                    .chain(
+                        tx.queue(Queue::Deferred)?
+                            .into_iter()
+                            .map(DbVal::into_inner),
+                    )
                     .collect()
             } else {
-                db.delete_from_queue(Queue::Out, vec![])?
+                tx.delete_from_queue(Queue::Out, vec![])?
             };
             if opt.verbose > 0 || opt.debug {
                 println!("Queue out has {} messages.", messages.len());
@@ -544,7 +553,7 @@ fn run_app(opt: Opt) -> Result<()> {
 
             let mut failures = Vec::with_capacity(messages.len());
 
-            let send_mail = db.conf().send_mail.clone();
+            let send_mail = tx.conf().send_mail.clone();
             match send_mail {
                 mailpot::SendMail::ShellCommand(cmd) => {
                     fn submit(cmd: &str, msg: &QueueEntry) -> Result<()> {
@@ -589,18 +598,27 @@ fn run_app(opt: Opt) -> Result<()> {
                     }
                 }
                 mailpot::SendMail::Smtp(_) => {
-                    let conn_future = db.new_smtp_connection()?;
-                    smol::future::block_on(smol::spawn(async move {
+                    let conn_future = tx.new_smtp_connection()?;
+                    failures = smol::future::block_on(smol::spawn(async move {
                         let mut conn = conn_future.await?;
                         for msg in messages {
                             if let Err(err) = Connection::submit(&mut conn, &msg, dry_run).await {
                                 failures.push((err, msg));
                             }
                         }
-                        Ok::<(), Error>(())
+                        Ok::<_, Error>(failures)
                     }))?;
                 }
             }
+
+            for (err, mut msg) in failures {
+                log::error!("Message {msg:?} failed with: {err}. Inserting to Deferred queue.");
+
+                msg.queue = Queue::Deferred;
+                tx.insert_to_queue(msg)?;
+            }
+
+            tx.commit()?;
         }
         ErrorQueue { cmd } => match cmd {
             ErrorQueueCommand::List => {

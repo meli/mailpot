@@ -84,7 +84,11 @@ impl Connection {
     }
 
     /// Process a new mailing list post.
-    pub fn post(&mut self, env: &Envelope, raw: &[u8], _dry_run: bool) -> Result<()> {
+    ///
+    /// In case multiple processes can access the database at any time, use an
+    /// `EXCLUSIVE` transaction before calling this function.
+    /// See [`Connection::transaction`].
+    pub fn post(&self, env: &Envelope, raw: &[u8], _dry_run: bool) -> Result<()> {
         let result = self.inner_post(env, raw, _dry_run);
         if let Err(err) = result {
             return match self.insert_to_queue(QueueEntry::new(
@@ -115,7 +119,7 @@ impl Connection {
         result
     }
 
-    fn inner_post(&mut self, env: &Envelope, raw: &[u8], _dry_run: bool) -> Result<()> {
+    fn inner_post(&self, env: &Envelope, raw: &[u8], _dry_run: bool) -> Result<()> {
         trace!("Received envelope to post: {:#?}", &env);
         let tos = env.to().to_vec();
         if tos.is_empty() {
@@ -295,7 +299,7 @@ impl Connection {
 
     /// Process a new mailing list request.
     pub fn request(
-        &mut self,
+        &self,
         list: &DbVal<MailingList>,
         request: ListRequest,
         env: &Envelope,

@@ -189,7 +189,7 @@ pub mod subscriptions;
 mod templates;
 
 pub use config::{Configuration, SendMail};
-pub use connection::*;
+pub use connection::{transaction, *};
 pub use errors::*;
 use models::*;
 pub use templates::*;

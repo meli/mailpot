@@ -68,7 +68,7 @@ fn test_list_subscription() {
     assert_eq!(db.queue(Queue::Error).unwrap().len(), 0);
     assert_eq!(db.list_subscriptions(foo_chat.pk()).unwrap().len(), 0);
 
-    let mut db = db.untrusted();
+    let db = db.untrusted();
 
     let post_bytes = b"From: Name <user@example.com>
 To: <foo-chat@example.com>
@@ -193,7 +193,7 @@ fn test_post_rejection() {
         assert_eq!(db.queue(Queue::Error).unwrap().len(), 0);
         assert_eq!(db.list_subscriptions(foo_chat.pk()).unwrap().len(), 0);
 
-        let mut db = db.untrusted();
+        let db = db.untrusted();
 
         let post_bytes = b"From: Name <user@example.com>
 To: <foo-chat@example.com>

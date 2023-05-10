@@ -136,7 +136,7 @@ fn test_out_queue_flush() {
     log::info!("Subscribe two users, Αλίκη and Χαραλάμπης to foo-chat.");
 
     {
-        let mut db = Connection::open_or_create_db(config.clone())
+        let db = Connection::open_or_create_db(config.clone())
             .unwrap()
             .trusted();
 
@@ -204,7 +204,7 @@ fn test_out_queue_flush() {
     );
 
     {
-        let mut db = Connection::open_or_create_db(config.clone())
+        let db = Connection::open_or_create_db(config.clone())
             .unwrap()
             .trusted();
         let mail = generate_mail("Χαραλάμπης", "", "hello world", "Hello there.", &mut seq);
@@ -332,7 +332,7 @@ fn test_list_requests_submission() {
     log::info!("User Αλίκη sends to foo-chat+request with subject 'help'.");
 
     {
-        let mut db = Connection::open_or_create_db(config).unwrap().trusted();
+        let db = Connection::open_or_create_db(config).unwrap().trusted();
 
         let mail = generate_mail("Αλίκη", "+request", "help", "", &mut seq);
         let subenvelope = mailpot::melib::Envelope::from_bytes(mail.as_bytes(), None)

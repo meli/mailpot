@@ -346,7 +346,7 @@ pub async fn list_edit_post(
         ));
     };
 
-    let mut db = db.trusted();
+    let db = db.trusted();
     match payload {
         ChangeSetting::PostPolicy {
             delete_post_policy: _,

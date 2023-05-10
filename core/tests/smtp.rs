@@ -39,7 +39,7 @@ fn test_smtp() {
         administrators: vec![],
     };
 
-    let mut db = Connection::open_or_create_db(config).unwrap().trusted();
+    let db = Connection::open_or_create_db(config).unwrap().trusted();
     assert!(db.lists().unwrap().is_empty());
     let foo_chat = db
         .create_list(MailingList {
@@ -193,7 +193,7 @@ fn test_smtp_mailcrab() {
         administrators: vec![],
     };
 
-    let mut db = Connection::open_or_create_db(config).unwrap().trusted();
+    let db = Connection::open_or_create_db(config).unwrap().trusted();
     assert!(db.lists().unwrap().is_empty());
     let foo_chat = db
         .create_list(MailingList {

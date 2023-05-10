@@ -76,7 +76,7 @@ fn test_error_queue() {
     assert_eq!(db.queue(Queue::Error).unwrap().len(), 0);
 
     // drop privileges
-    let mut db = db.untrusted();
+    let db = db.untrusted();
 
     let input_bytes = include_bytes!("./test_sample_longmessage.eml");
     let envelope = melib::Envelope::from_bytes(input_bytes, None).expect("Could not parse message");

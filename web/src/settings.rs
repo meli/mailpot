@@ -96,7 +96,7 @@ pub async fn settings_post(
     Form(payload): Form<ChangeSetting>,
     state: Arc<AppState>,
 ) -> Result<Redirect, ResponseError> {
-    let mut db = Connection::open_db(state.conf.clone())?;
+    let db = Connection::open_db(state.conf.clone())?;
     let acc = db
         .account_by_address(&user.address)
         .with_status(StatusCode::BAD_REQUEST)?
@@ -338,7 +338,7 @@ pub async fn user_list_subscription_post(
     Form(payload): Form<SubscriptionFormPayload>,
     state: Arc<AppState>,
 ) -> Result<Redirect, ResponseError> {
-    let mut db = Connection::open_db(state.conf.clone())?;
+    let db = Connection::open_db(state.conf.clone())?;
 
     let Some(list) = (match id {
         ListPathIdentifier::Pk(id) => db.list(id)?,

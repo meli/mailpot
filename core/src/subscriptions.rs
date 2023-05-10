@@ -253,7 +253,7 @@ impl Connection {
     }
 
     /// Accept subscription candidate.
-    pub fn accept_candidate_subscription(&mut self, pk: i64) -> Result<DbVal<ListSubscription>> {
+    pub fn accept_candidate_subscription(&self, pk: i64) -> Result<DbVal<ListSubscription>> {
         let val = self.connection.query_row(
             "INSERT INTO subscription(list, address, name, enabled, digest, verified, \
              hide_address, receive_duplicates, receive_own_posts, receive_confirmation) SELECT \
@@ -311,7 +311,7 @@ impl Connection {
     }
 
     /// Update a mailing list subscription.
-    pub fn update_subscription(&mut self, change_set: ListSubscriptionChangeset) -> Result<()> {
+    pub fn update_subscription(&self, change_set: ListSubscriptionChangeset) -> Result<()> {
         let pk = self
             .list_subscription_by_address(change_set.list, &change_set.address)?
             .pk;
@@ -347,12 +347,12 @@ impl Connection {
             receive_own_posts,
             receive_confirmation,
         } = change_set;
-        let tx = self.connection.transaction()?;
+        let tx = self.savepoint(Some(stringify!(update_subscription)))?;
 
         macro_rules! update {
             ($field:tt) => {{
                 if let Some($field) = $field {
-                    tx.execute(
+                    tx.connection.execute(
                         concat!(
                             "UPDATE subscription SET ",
                             stringify!($field),
@@ -547,7 +547,7 @@ impl Connection {
     }
 
     /// Update an account.
-    pub fn update_account(&mut self, change_set: AccountChangeset) -> Result<()> {
+    pub fn update_account(&self, change_set: AccountChangeset) -> Result<()> {
         let Some(acc) = self.account_by_address(&change_set.address)? else {
             return Err(NotFound("account with this address not found!").into());
         };
@@ -572,12 +572,12 @@ impl Connection {
             password,
             enabled,
         } = change_set;
-        let tx = self.connection.transaction()?;
+        let tx = self.savepoint(Some(stringify!(update_account)))?;
 
         macro_rules! update {
             ($field:tt) => {{
                 if let Some($field) = $field {
-                    tx.execute(
+                    tx.connection.execute(
                         concat!(
                             "UPDATE account SET ",
                             stringify!($field),
@@ -616,7 +616,7 @@ mod tests {
             administrators: vec![],
         };
 
-        let mut db = Connection::open_or_create_db(config).unwrap().trusted();
+        let db = Connection::open_or_create_db(config).unwrap().trusted();
         let list = db
             .create_list(MailingList {
                 pk: -1,
