@@ -16,5 +16,29 @@ name = "mpot-http"
 path = "src/main.rs"
 
 [dependencies]
+async-trait = "0.1"
+axum = { version = "0.6", features = ["headers"] }
+#jsonwebtoken = "8.3"
+bcrypt = "0.14"
+config = "0.13"
+http = "0.2"
+lazy_static = "1.4"
+log = "0.4"
 mailpot = { version = "^0.1", path = "../core" }
-tokio = { version = "^1", features = ["full"] }
+mailpot-web = { version = "^0.1", path = "../web" }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+stderrlog = "^0.5"
+thiserror = "1"
+tokio = { version = "1", features = ["full"] }
+tower-http = { version = "0.4", features = [
+    "trace",
+    "compression-br",
+    "propagate-header",
+    "sensitive-headers",
+    "cors",
+] }
+
+[dev-dependencies]
+assert-json-diff = "2"
+reqwest = { version = "0.11", features = ["json"] }
