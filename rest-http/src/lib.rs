@@ -26,3 +26,26 @@ pub use mailpot::{models::*, Configuration, Connection};
 pub mod errors;
 pub mod routes;
 pub mod settings;
+
+use tower_http::{
+    compression::CompressionLayer, cors::CorsLayer, propagate_header::PropagateHeaderLayer,
+    sensitive_headers::SetSensitiveHeadersLayer,
+};
+
+pub fn create_app(conf: Arc<Configuration>) -> Router {
+    Router::new()
+        .with_state(conf.clone())
+        .merge(Router::new().nest("/v1", Router::new().merge(routes::list::create_route(conf))))
+        .layer(SetSensitiveHeadersLayer::new(std::iter::once(
+            header::AUTHORIZATION,
+        )))
+        // Compress responses
+        .layer(CompressionLayer::new())
+        // Propagate `X-Request-Id`s from requests to responses
+        .layer(PropagateHeaderLayer::new(header::HeaderName::from_static(
+            "x-request-id",
+        )))
+        // CORS configuration. This should probably be more restrictive in
+        // production.
+        .layer(CorsLayer::permissive())
+}
