@@ -26,12 +26,8 @@ use minijinja::value::Value;
 use rand::Rng;
 use tokio::sync::RwLock;
 
-fn create_app(conf: Configuration) -> Router {
-    let store = MemoryStore::new();
-    let secret = rand::thread_rng().gen::<[u8; 128]>();
-    let session_layer = SessionLayer::new(store, &secret).with_secure(false);
-
-    let shared_state = Arc::new(AppState {
+fn new_state(conf: Configuration) -> Arc<AppState> {
+    Arc::new(AppState {
         conf,
         root_url_prefix: Value::from_safe_string(
             std::env::var("ROOT_URL_PREFIX").unwrap_or_default(),
@@ -42,7 +38,13 @@ fn create_app(conf: Configuration) -> Router {
             .into(),
         site_subtitle: std::env::var("SITE_SUBTITLE").ok().map(Into::into),
         user_store: Arc::new(RwLock::new(HashMap::default())),
-    });
+    })
+}
+
+fn create_app(shared_state: Arc<AppState>) -> Router {
+    let store = MemoryStore::new();
+    let secret = rand::thread_rng().gen::<[u8; 128]>();
+    let session_layer = SessionLayer::new(store, &secret).with_secure(false);
 
     let auth_layer = AuthLayer::new(shared_state.clone(), &secret);
 
@@ -155,7 +157,7 @@ async fn main() {
         return;
     }
     let conf = Configuration::from_file(config_path).unwrap();
-    let app = create_app(conf);
+    let app = create_app(new_state(conf));
 
     let hostname = std::env::var("HOSTNAME").unwrap_or_else(|_| "0.0.0.0".to_string());
     let port = std::env::var("PORT").unwrap_or_else(|_| "3000".to_string());
@@ -215,7 +217,11 @@ mod tests {
 
     use axum::{
         body::Body,
-        http::{method::Method, Request, StatusCode},
+        http::{
+            header::{COOKIE, SET_COOKIE},
+            method::Method,
+            Request, StatusCode,
+        },
     };
     use mailpot::{Configuration, Connection, SendMail};
     use mailpot_tests::init_stderr_logging;
@@ -227,6 +233,26 @@ mod tests {
     #[tokio::test]
     async fn test_routes() {
         init_stderr_logging();
+
+        macro_rules! req {
+            (get $url:expr) => {{
+                Request::builder()
+                    .uri($url)
+                    .method(Method::GET)
+                    .body(Body::empty())
+                    .unwrap()
+            }};
+            (post $url:expr, $body:expr) => {{
+                Request::builder()
+                    .uri($url)
+                    .method(Method::POST)
+                    .header("Content-Type", "application/x-www-form-urlencoded")
+                    .body(Body::from(
+                        serde_urlencoded::to_string($body).unwrap().into_bytes(),
+                    ))
+                    .unwrap()
+            }};
+        }
 
         let tmp_dir = TempDir::new().unwrap();
 
@@ -241,46 +267,129 @@ mod tests {
         let db = Connection::open_db(config.clone()).unwrap();
         let list = db.lists().unwrap().remove(0);
 
+        let state = new_state(config.clone());
+
         // ------------------------------------------------------------
         // list()
 
-        let cl = |url, config| async move {
-            let response = create_app(config)
-                .oneshot(
-                    Request::builder()
-                        .uri(&url)
-                        .method(Method::GET)
-                        .body(Body::empty())
-                        .unwrap(),
-                )
-                .await
-                .unwrap();
+        let cl = |url, state| async move {
+            let response = create_app(state).oneshot(req!(get & url)).await.unwrap();
 
             assert_eq!(response.status(), StatusCode::OK);
 
             hyper::body::to_bytes(response.into_body()).await.unwrap()
         };
         assert_eq!(
-            cl(format!("/list/{}/", list.id), config.clone()).await,
-            cl(format!("/list/{}/", list.pk), config.clone()).await
+            cl(format!("/list/{}/", list.id), state.clone()).await,
+            cl(format!("/list/{}/", list.pk), state.clone()).await
         );
 
         // ------------------------------------------------------------
         // help(), ssh_signin(), root()
 
-        for path in ["/help/", "/login/", "/"] {
-            let response = create_app(config.clone())
-                .oneshot(
-                    Request::builder()
-                        .uri(path)
-                        .method(Method::GET)
-                        .body(Body::empty())
-                        .unwrap(),
-                )
+        for path in ["/help/", "/"] {
+            let response = create_app(state.clone())
+                .oneshot(req!(get path))
                 .await
                 .unwrap();
 
             assert_eq!(response.status(), StatusCode::OK);
         }
+
+        // ------------------------------------------------------------
+        // auth.rs...
+
+        let login_app = create_app(state.clone());
+        let session_cookie = {
+            let response = login_app
+                .clone()
+                .oneshot(req!(get "/login/"))
+                .await
+                .unwrap();
+            assert_eq!(response.status(), StatusCode::OK);
+
+            response.headers().get(SET_COOKIE).unwrap().clone()
+        };
+        let user = User {
+            pk: 1,
+            ssh_signature: String::new(),
+            role: Role::User,
+            public_key: None,
+            password: String::new(),
+            name: None,
+            address: String::new(),
+            enabled: true,
+        };
+        state.insert_user(1, user.clone()).await;
+
+        {
+            let mut request = req!(post "/login/",
+                AuthFormPayload {
+                    address: "user@example.com".into(),
+                    password: "hunter2".into()
+                }
+            );
+            request
+                .headers_mut()
+                .insert(COOKIE, session_cookie.to_owned());
+            let res = login_app.clone().oneshot(request).await.unwrap();
+
+            assert_eq!(
+                res.headers().get(http::header::LOCATION),
+                Some(
+                    &SettingsPath
+                        .to_uri()
+                        .to_string()
+                        .as_str()
+                        .try_into()
+                        .unwrap()
+                )
+            );
+        }
+
+        // ------------------------------------------------------------
+        // settings()
+
+        {
+            let mut request = req!(get "/settings/");
+            request
+                .headers_mut()
+                .insert(COOKIE, session_cookie.to_owned());
+            let response = login_app.clone().oneshot(request).await.unwrap();
+
+            assert_eq!(response.status(), StatusCode::OK);
+        }
+
+        // ------------------------------------------------------------
+        // settings_post()
+
+        {
+            let mut request = req!(
+            post "/settings/",
+            crate::settings::ChangeSetting::Subscribe {
+                list_pk: IntPOST(1),
+            });
+            request
+                .headers_mut()
+                .insert(COOKIE, session_cookie.to_owned());
+            let res = login_app.clone().oneshot(request).await.unwrap();
+
+            assert_eq!(
+                res.headers().get(http::header::LOCATION),
+                Some(
+                    &SettingsPath
+                        .to_uri()
+                        .to_string()
+                        .as_str()
+                        .try_into()
+                        .unwrap()
+                )
+            );
+        }
+        // ------------------------------------------------------------
+        // user_list_subscription() TODO
+
+        // ------------------------------------------------------------
+        // user_list_subscription_post() TODO
     }
 }

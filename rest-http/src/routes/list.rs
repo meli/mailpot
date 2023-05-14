@@ -340,7 +340,7 @@ mod tests {
                 list: 1,
                 address: "user@example.com".to_string(),
                 name: Some("Name".to_string()),
-                account: None,
+                account: Some(1),
                 enabled: true,
                 verified: false,
                 digest: false,

@@ -179,7 +179,7 @@ pub async fn ssh_signin_post(
     let (_prev_token, _) = if let Some(tok @ (_, timestamp)) =
         session.get::<(String, i64)>(TOKEN_KEY)
     {
-        if !(timestamp < now && now - timestamp < EXPIRY_IN_SECS) {
+        if !(timestamp <= now && now - timestamp < EXPIRY_IN_SECS) {
             session.add_message(Message {
                 message: "The token has expired. Please retry.".into(),
                 level: Level::Error,
