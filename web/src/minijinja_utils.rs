@@ -21,8 +21,6 @@
 
 use super::*;
 
-#[cfg(feature = "zstd")]
-#[cfg(not(debug_assertions))]
 mod compressed;
 
 lazy_static::lazy_static! {
@@ -54,28 +52,16 @@ lazy_static::lazy_static! {
             post_eml_path
         );
         add!(filter pluralize);
-        #[cfg(not(feature = "zstd"))]
-        #[cfg(debug_assertions)]
-        env.set_source(minijinja::Source::from_path("web/src/templates/"));
-        #[cfg(feature = "zstd")]
-        #[cfg(debug_assertions)]
-        env.set_source(minijinja::Source::from_path("web/src/templates/"));
-        #[cfg(not(feature = "zstd"))]
-        #[cfg(not(debug_assertions))]
-        env.set_source(minijinja::Source::from_path("web/src/templates/"));
-        #[cfg(feature = "zstd")]
-        #[cfg(not(debug_assertions))]
-        {
-            // Load compressed templates. They are constructed in build.rs. See
-            // [ref:embed_templates]
-            let mut source = minijinja::Source::new();
-            for (name, bytes) in compressed::COMPRESSED {
-                let mut de_bytes = vec![];
-                zstd::stream::copy_decode(*bytes,&mut de_bytes).unwrap();
-                source.add_template(*name, String::from_utf8(de_bytes).unwrap()).unwrap();
-            }
-            env.set_source(source);
+        // Load compressed templates. They are constructed in build.rs. See
+        // [ref:embed_templates]
+        let mut source = minijinja::Source::new();
+        for (name, bytes) in compressed::COMPRESSED {
+            let mut de_bytes = vec![];
+            zstd::stream::copy_decode(*bytes,&mut de_bytes).unwrap();
+            source.add_template(*name, String::from_utf8(de_bytes).unwrap()).unwrap();
         }
+        env.set_source(source);
+
         env.add_global("root_url_prefix", Value::from_safe_string( std::env::var("ROOT_URL_PREFIX").unwrap_or_default()));
         env.add_global("public_url",Value::from_safe_string(std::env::var("PUBLIC_URL").unwrap_or_default()));
         env.add_global("site_title", Value::from_safe_string(std::env::var("SITE_TITLE").unwrap_or_else(|_| "mailing list archive".to_string())));

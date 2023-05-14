@@ -44,7 +44,6 @@ fn commit_sha() {
     }
 }
 
-#[cfg(feature = "zstd")]
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Embed HTML templates as zstd compressed byte slices into binary.
     // [tag:embed_templates]
@@ -103,9 +102,4 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     commit_sha();
     Ok(())
-}
-
-#[cfg(not(feature = "zstd"))]
-fn main() {
-    commit_sha();
 }

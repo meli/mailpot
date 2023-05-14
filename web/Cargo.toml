@@ -14,16 +14,13 @@ categories = ["email"]
 name = "mpot-web"
 path = "src/main.rs"
 
-[features]
-default = ["zstd"]
-zstd = ["dep:zstd"]
-
 [dependencies]
 axum = { version = "^0.6" }
 axum-extra = { version = "^0.7", features = ["typed-routing"] }
 axum-login = { version = "^0.5" }
 axum-sessions = { version = "^0.5" }
 build-info = { version = "0.0.31" }
+cfg-if = { version = "1" }
 chrono = { version = "^0.4" }
 convert_case = { version = "^0.4" }
 dyn-clone = { version = "^1" }
@@ -41,8 +38,14 @@ tempfile =  { version = "^3.5" }
 tokio = { version = "1", features = ["full"] }
 tower-http = { version = "^0.3" }
 tower-service = { version = "^0.3" }
-zstd = { version = "0.12.3", optional = true, default-features = false }
+zstd = { version = "0.12", default-features = false }
+
+[dev-dependencies]
+hyper = { version = "0.14" }
+mailpot-tests = { version = "^0.1", path = "../mailpot-tests" }
+tempfile = "3.3"
+tower = { version = "^0.4" }
 
 [build-dependencies]
 build-info-build = { version = "0.0.31" }
-zstd = { version = "0.12.3", optional = true, default-features = false }
+zstd = { version = "0.12", default-features = false }

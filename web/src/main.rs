@@ -26,19 +26,7 @@ use minijinja::value::Value;
 use rand::Rng;
 use tokio::sync::RwLock;
 
-#[tokio::main]
-async fn main() {
-    let config_path = std::env::args()
-        .nth(1)
-        .expect("Expected configuration file path as first argument.");
-    if ["-v", "--version", "info"].contains(&config_path.as_str()) {
-        println!("{}", crate::get_git_sha());
-        println!("{CLI_INFO}");
-
-        return;
-    }
-    let conf = Configuration::from_file(config_path).unwrap();
-
+fn create_app(conf: Configuration) -> Router {
     let store = MemoryStore::new();
     let secret = rand::thread_rng().gen::<[u8; 128]>();
     let session_layer = SessionLayer::new(store, &secret).with_secure(false);
@@ -60,7 +48,7 @@ async fn main() {
 
     let login_url =
         Arc::new(format!("{}{}", shared_state.root_url_prefix, LoginPath.to_crumb()).into());
-    let app = Router::new()
+    Router::new()
         .route("/", get(root))
         .typed_get(list)
         .typed_get(list_post)
@@ -152,7 +140,22 @@ async fn main() {
         )
         .layer(auth_layer)
         .layer(session_layer)
-        .with_state(shared_state);
+        .with_state(shared_state)
+}
+
+#[tokio::main]
+async fn main() {
+    let config_path = std::env::args()
+        .nth(1)
+        .expect("Expected configuration file path as first argument.");
+    if ["-v", "--version", "info"].contains(&config_path.as_str()) {
+        println!("{}", crate::get_git_sha());
+        println!("{CLI_INFO}");
+
+        return;
+    }
+    let conf = Configuration::from_file(config_path).unwrap();
+    let app = create_app(conf);
 
     let hostname = std::env::var("HOSTNAME").unwrap_or_else(|_| "0.0.0.0".to_string());
     let port = std::env::var("PORT").unwrap_or_else(|_| "3000".to_string());
@@ -205,4 +208,79 @@ async fn root(
         crumbs => crumbs,
     };
     Ok(Html(TEMPLATES.get_template("lists.html")?.render(context)?))
+}
+
+#[cfg(test)]
+mod tests {
+
+    use axum::{
+        body::Body,
+        http::{method::Method, Request, StatusCode},
+    };
+    use mailpot::{Configuration, Connection, SendMail};
+    use mailpot_tests::init_stderr_logging;
+    use tempfile::TempDir;
+    use tower::ServiceExt;
+
+    use super::*;
+
+    #[tokio::test]
+    async fn test_routes() {
+        init_stderr_logging();
+
+        let tmp_dir = TempDir::new().unwrap();
+
+        let db_path = tmp_dir.path().join("mpot.db");
+        std::fs::copy("../mailpot-tests/for_testing.db", &db_path).unwrap();
+        let config = Configuration {
+            send_mail: SendMail::ShellCommand("/usr/bin/false".to_string()),
+            db_path,
+            data_path: tmp_dir.path().to_path_buf(),
+            administrators: vec![],
+        };
+        let db = Connection::open_db(config.clone()).unwrap();
+        let list = db.lists().unwrap().remove(0);
+
+        // ------------------------------------------------------------
+        // list()
+
+        let cl = |url, config| async move {
+            let response = create_app(config)
+                .oneshot(
+                    Request::builder()
+                        .uri(&url)
+                        .method(Method::GET)
+                        .body(Body::empty())
+                        .unwrap(),
+                )
+                .await
+                .unwrap();
+
+            assert_eq!(response.status(), StatusCode::OK);
+
+            hyper::body::to_bytes(response.into_body()).await.unwrap()
+        };
+        assert_eq!(
+            cl(format!("/list/{}/", list.id), config.clone()).await,
+            cl(format!("/list/{}/", list.pk), config.clone()).await
+        );
+
+        // ------------------------------------------------------------
+        // help(), ssh_signin(), root()
+
+        for path in ["/help/", "/login/", "/"] {
+            let response = create_app(config.clone())
+                .oneshot(
+                    Request::builder()
+                        .uri(path)
+                        .method(Method::GET)
+                        .body(Body::empty())
+                        .unwrap(),
+                )
+                .await
+                .unwrap();
+
+            assert_eq!(response.status(), StatusCode::OK);
+        }
+    }
 }
