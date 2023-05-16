@@ -384,7 +384,15 @@ mod tests {
         assert_eq!(response.status(), StatusCode::OK);
         let body = hyper::body::to_bytes(response.into_body()).await.unwrap();
         let r: Vec<ListOwner> = serde_json::from_slice(&body).unwrap();
-        assert_eq!(&r, &[]);
+        assert_eq!(
+            &r,
+            &[ListOwner {
+                pk: 1,
+                list: 1,
+                address: "user@example.com".into(),
+                name: None
+            }]
+        );
 
         // ------------------------------------------------------------
         // new_list_owner()

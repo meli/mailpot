@@ -89,7 +89,8 @@ pub enum ChangeSetting {
     ChangeName { new: String },
 }
 
-pub async fn settings_post(
+#[allow(non_snake_case)]
+pub async fn settings_POST(
     _: SettingsPath,
     mut session: WritableSession,
     Extension(user): Extension<User>,
@@ -331,7 +332,8 @@ pub struct SubscriptionFormPayload {
     pub receive_confirmation: bool,
 }
 
-pub async fn user_list_subscription_post(
+#[allow(non_snake_case)]
+pub async fn user_list_subscription_POST(
     ListSettingsPath(id): ListSettingsPath,
     mut session: WritableSession,
     Extension(user): Extension<User>,

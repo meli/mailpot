@@ -320,7 +320,8 @@ pub async fn list_edit(
     ))
 }
 
-pub async fn list_edit_post(
+#[allow(non_snake_case)]
+pub async fn list_edit_POST(
     ListEditPath(id): ListEditPath,
     mut session: WritableSession,
     Extension(user): Extension<User>,
@@ -514,7 +515,7 @@ pub enum SubscriptionPolicySettings {
 }
 
 /// Raw post page.
-pub async fn post_raw(
+pub async fn list_post_raw(
     ListPostRawPath(id, msg_id): ListPostRawPath,
     State(state): State<Arc<AppState>>,
 ) -> Result<String, ResponseError> {
@@ -541,7 +542,7 @@ pub async fn post_raw(
 }
 
 /// .eml post page.
-pub async fn post_eml(
+pub async fn list_post_eml(
     ListPostEmlPath(id, msg_id): ListPostEmlPath,
     State(state): State<Arc<AppState>>,
 ) -> Result<impl IntoResponse, ResponseError> {

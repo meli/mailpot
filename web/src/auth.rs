@@ -158,7 +158,8 @@ pub async fn ssh_signin(
     .into_response()
 }
 
-pub async fn ssh_signin_post(
+#[allow(non_snake_case)]
+pub async fn ssh_signin_POST(
     _: LoginPath,
     mut session: WritableSession,
     Query(next): Query<Next>,

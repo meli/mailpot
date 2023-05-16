@@ -54,8 +54,8 @@ fn create_app(shared_state: Arc<AppState>) -> Router {
         .route("/", get(root))
         .typed_get(list)
         .typed_get(list_post)
-        .typed_get(post_raw)
-        .typed_get(post_eml)
+        .typed_get(list_post_raw)
+        .typed_get(list_post_eml)
         .typed_get(list_edit.layer(RequireAuth::login_with_role_or_redirect(
             Role::User..,
             Arc::clone(&login_url),
@@ -65,7 +65,7 @@ fn create_app(shared_state: Arc<AppState>) -> Router {
             {
                 let shared_state = Arc::clone(&shared_state);
                 move |path, session, user, payload| {
-                    list_edit_post(path, session, user, payload, State(shared_state))
+                    list_edit_POST(path, session, user, payload, State(shared_state))
                 }
             }
             .layer(RequireAuth::login_with_role_or_redirect(
@@ -93,7 +93,7 @@ fn create_app(shared_state: Arc<AppState>) -> Router {
         .typed_post({
             let shared_state = Arc::clone(&shared_state);
             move |path, session, query, auth, body| {
-                auth::ssh_signin_post(path, session, query, auth, body, shared_state)
+                auth::ssh_signin_POST(path, session, query, auth, body, shared_state)
             }
         })
         .typed_get(logout_handler)
@@ -112,7 +112,7 @@ fn create_app(shared_state: Arc<AppState>) -> Router {
             {
                 let shared_state = Arc::clone(&shared_state);
                 move |path, session, auth, body| {
-                    settings_post(path, session, auth, body, shared_state)
+                    settings_POST(path, session, auth, body, shared_state)
                 }
             }
             .layer(RequireAuth::login_or_redirect(
@@ -131,7 +131,7 @@ fn create_app(shared_state: Arc<AppState>) -> Router {
             {
                 let shared_state = Arc::clone(&shared_state);
                 move |session, path, user, body| {
-                    user_list_subscription_post(session, path, user, body, shared_state)
+                    user_list_subscription_POST(session, path, user, body, shared_state)
                 }
             }
             .layer(RequireAuth::login_with_role_or_redirect(
@@ -225,6 +225,7 @@ mod tests {
     };
     use mailpot::{Configuration, Connection, SendMail};
     use mailpot_tests::init_stderr_logging;
+    use percent_encoding::utf8_percent_encode;
     use tempfile::TempDir;
     use tower::ServiceExt;
 
@@ -258,6 +259,11 @@ mod tests {
 
         let db_path = tmp_dir.path().join("mpot.db");
         std::fs::copy("../mailpot-tests/for_testing.db", &db_path).unwrap();
+        let mut perms = std::fs::metadata(&db_path).unwrap().permissions();
+        #[allow(clippy::permissions_set_readonly_false)]
+        perms.set_readonly(false);
+        std::fs::set_permissions(&db_path, perms).unwrap();
+
         let config = Configuration {
             send_mail: SendMail::ShellCommand("/usr/bin/false".to_string()),
             db_path,
@@ -284,6 +290,66 @@ mod tests {
             cl(format!("/list/{}/", list.pk), state.clone()).await
         );
 
+        // ------------------------------------------------------------
+        // list_post(), list_post_eml(), list_post_raw()
+
+        {
+            let msg_id = "<abcdefgh@sator.example.com>";
+            let res = create_app(state.clone())
+                .oneshot(req!(
+                    get & format!(
+                        "/list/{id}/posts/{msgid}/",
+                        id = list.id,
+                        msgid = utf8_percent_encode(msg_id, PATH_SEGMENT)
+                    )
+                ))
+                .await
+                .unwrap();
+
+            assert_eq!(res.status(), StatusCode::OK);
+            assert_eq!(
+                res.headers().get(http::header::CONTENT_TYPE),
+                Some(&http::HeaderValue::from_static("text/html; charset=utf-8"))
+            );
+            let res = create_app(state.clone())
+                .oneshot(req!(
+                    get & format!(
+                        "/list/{id}/posts/{msgid}/raw/",
+                        id = list.id,
+                        msgid = utf8_percent_encode(msg_id, PATH_SEGMENT)
+                    )
+                ))
+                .await
+                .unwrap();
+
+            assert_eq!(res.status(), StatusCode::OK);
+            assert_eq!(
+                res.headers().get(http::header::CONTENT_TYPE),
+                Some(&http::HeaderValue::from_static("text/plain; charset=utf-8"))
+            );
+            let res = create_app(state.clone())
+                .oneshot(req!(
+                    get & format!(
+                        "/list/{id}/posts/{msgid}/eml/",
+                        id = list.id,
+                        msgid = utf8_percent_encode(msg_id, PATH_SEGMENT)
+                    )
+                ))
+                .await
+                .unwrap();
+
+            assert_eq!(res.status(), StatusCode::OK);
+            assert_eq!(
+                res.headers().get(http::header::CONTENT_TYPE),
+                Some(&http::HeaderValue::from_static("application/octet-stream"))
+            );
+            assert_eq!(
+                res.headers().get(http::header::CONTENT_DISPOSITION),
+                Some(&http::HeaderValue::from_static(
+                    "attachment; filename=\"<abcdefgh@sator.example.com>.eml\""
+                )),
+            );
+        }
         // ------------------------------------------------------------
         // help(), ssh_signin(), root()
 
@@ -391,5 +457,81 @@ mod tests {
 
         // ------------------------------------------------------------
         // user_list_subscription_post() TODO
+
+        // ------------------------------------------------------------
+        // list_edit()
+
+        {
+            let mut request = req!(get & format!("/list/{id}/edit/", id = list.id,));
+            request
+                .headers_mut()
+                .insert(COOKIE, session_cookie.to_owned());
+            let response = login_app.clone().oneshot(request).await.unwrap();
+
+            assert_eq!(response.status(), StatusCode::OK);
+        }
+
+        // ------------------------------------------------------------
+        // list_edit_POST()
+
+        {
+            let mut request = req!(
+                post & format!("/list/{id}/edit/", id = list.id,),
+                crate::lists::ChangeSetting::Metadata {
+                    name: "new name".to_string(),
+                    id: "new-name".to_string(),
+                    address: list.address.clone(),
+                    description: list.description.clone(),
+                    owner_local_part: None,
+                    request_local_part: None,
+                    archive_url: None,
+                }
+            );
+            request
+                .headers_mut()
+                .insert(COOKIE, session_cookie.to_owned());
+            let response = login_app.clone().oneshot(request).await.unwrap();
+
+            assert_eq!(response.status(), StatusCode::SEE_OTHER);
+            let list_mod = db.lists().unwrap().remove(0);
+            assert_eq!(&list_mod.name, "new name");
+            assert_eq!(&list_mod.id, "new-name");
+            assert_eq!(&list_mod.address, &list.address);
+            assert_eq!(&list_mod.description, &list.description);
+        }
+
+        {
+            let mut request = req!(post "/list/new-name/edit/",
+                crate::lists::ChangeSetting::SubscriptionPolicy {
+                    send_confirmation: BoolPOST(false),
+                    subscription_policy: crate::lists::SubscriptionPolicySettings::Custom,
+                }
+            );
+            request
+                .headers_mut()
+                .insert(COOKIE, session_cookie.to_owned());
+            let response = login_app.clone().oneshot(request).await.unwrap();
+
+            assert_eq!(response.status(), StatusCode::SEE_OTHER);
+            let policy = db.list_subscription_policy(list.pk()).unwrap().unwrap();
+            assert!(!policy.send_confirmation);
+            assert!(policy.custom);
+        }
+        {
+            let mut request = req!(post "/list/new-name/edit/",
+                crate::lists::ChangeSetting::PostPolicy {
+                    delete_post_policy: None,
+                    post_policy: crate::lists::PostPolicySettings::Custom,
+                }
+            );
+            request
+                .headers_mut()
+                .insert(COOKIE, session_cookie.to_owned());
+            let response = login_app.clone().oneshot(request).await.unwrap();
+
+            assert_eq!(response.status(), StatusCode::SEE_OTHER);
+            let policy = db.list_post_policy(list.pk()).unwrap().unwrap();
+            assert!(policy.custom);
+        }
     }
 }
