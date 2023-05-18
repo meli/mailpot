@@ -217,6 +217,10 @@ mod tests {
 
         let db_path = tmp_dir.path().join("mpot.db");
         std::fs::copy("../mailpot-tests/for_testing.db", &db_path).unwrap();
+        let mut perms = std::fs::metadata(&db_path).unwrap().permissions();
+        #[allow(clippy::permissions_set_readonly_false)]
+        perms.set_readonly(false);
+        std::fs::set_permissions(&db_path, perms).unwrap();
         let config = Configuration {
             send_mail: SendMail::ShellCommand("/usr/bin/false".to_string()),
             db_path,
@@ -231,9 +235,11 @@ mod tests {
             name: "foobar chat".into(),
             id: "foo-chat".into(),
             address: "foo-chat@example.com".into(),
+            topics: vec![],
             description: None,
             archive_url: None,
         };
+        assert_eq!(&db.lists().unwrap().remove(0).into_inner(), &foo_chat);
         drop(db);
 
         let config = Arc::new(config);

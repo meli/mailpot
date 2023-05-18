@@ -92,6 +92,8 @@ pub struct MailingList {
     pub id: String,
     /// Mailing list e-mail address.
     pub address: String,
+    /// Discussion topics.
+    pub topics: Vec<String>,
     /// Mailing list description.
     pub description: Option<String>,
     /// Mailing list archive URL.
@@ -416,6 +418,52 @@ impl MailingList {
             }),
             contact = self.owner_mailto().address,
         )
+    }
+
+    /// Utility function to get a `Vec<String>` -which is the expected type of
+    /// the `topics` field- from a `serde_json::Value`, which is the value
+    /// stored in the `topics` column in `sqlite3`.
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    /// # use mailpot::models::MailingList;
+    /// use serde_json::Value;
+    ///
+    /// # fn main() -> Result<(), serde_json::Error> {
+    /// let value: Value = serde_json::from_str(r#"["fruits","vegetables"]"#)?;
+    /// assert_eq!(
+    ///     MailingList::topics_from_json_value(value),
+    ///     Ok(vec!["fruits".to_string(), "vegetables".to_string()])
+    /// );
+    ///
+    /// let value: Value = serde_json::from_str(r#"{"invalid":"value"}"#)?;
+    /// assert!(MailingList::topics_from_json_value(value).is_err());
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub fn topics_from_json_value(
+        v: serde_json::Value,
+    ) -> std::result::Result<Vec<String>, rusqlite::Error> {
+        let err_fn = || {
+            rusqlite::Error::FromSqlConversionFailure(
+                8,
+                rusqlite::types::Type::Text,
+                anyhow::Error::msg(
+                    "topics column must be a json array of strings serialized as a string, e.g. \
+                     \"[]\" or \"['topicA', 'topicB']\"",
+                )
+                .into(),
+            )
+        };
+        v.as_array()
+            .map(|arr| {
+                arr.iter()
+                    .map(|v| v.as_str().map(str::to_string))
+                    .collect::<Option<Vec<String>>>()
+            })
+            .ok_or_else(err_fn)?
+            .ok_or_else(err_fn)
     }
 }
 

@@ -34,4 +34,5 @@ tempfile = "3.3"
 [build-dependencies]
 clap = { version = "^4.2", default-features = false, features = ["derive", "cargo", "unicode", "wrap_help", "help", "usage", "error-context", "suggestions"] }
 clap_mangen = "0.2.10"
+mailpot = { version = "^0.1", path = "../core" }
 stderrlog = "^0.5"

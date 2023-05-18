@@ -228,6 +228,7 @@ pub fn warn_list_no_owner_lint(db: &mut Connection, _: bool) -> Result<()> {
                 id: row.get("id")?,
                 address: row.get("address")?,
                 description: row.get("description")?,
+                topics: vec![],
                 archive_url: row.get("archive_url")?,
             },
             pk,

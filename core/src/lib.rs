@@ -83,6 +83,7 @@
 //!         name: "foobar chat".into(),
 //!         id: "foo-chat".into(),
 //!         address: "foo-chat@example.com".into(),
+//!         topics: vec![],
 //!         description: None,
 //!         archive_url: None,
 //!     })?

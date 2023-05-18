@@ -66,3 +66,11 @@ error_chain! {
        Template(minijinja::Error) #[doc="Error returned from minijinja template engine."];
    }
 }
+
+impl Error {
+    /// Helper function to create a new generic error message.
+    pub fn new_external<S: Into<String>>(msg: S) -> Self {
+        let msg = msg.into();
+        Self::from(ErrorKind::External(anyhow::Error::msg(msg)))
+    }
+}

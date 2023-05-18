@@ -1,11 +1,11 @@
 
 //(user_version, redo sql, undo sql
 &[(1,"PRAGMA foreign_keys=ON;
-BEGIN;
 ALTER TABLE templates RENAME TO template;
-COMMIT;
 ","PRAGMA foreign_keys=ON;
-BEGIN;
 ALTER TABLE template RENAME TO templates;
-COMMIT;
+"),(2,"PRAGMA foreign_keys=ON;
+ALTER TABLE list ADD COLUMN topics JSON NOT NULL CHECK (json_type(topics) == 'array') DEFAULT '[]';
+","PRAGMA foreign_keys=ON;
+ALTER TABLE list DROP COLUMN topics;
 "),]

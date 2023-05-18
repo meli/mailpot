@@ -85,6 +85,7 @@ fn test_out_queue_flush() {
                 id: "foo-chat".into(),
                 address: "foo-chat@example.com".into(),
                 description: None,
+                topics: vec![],
                 archive_url: None,
             })
             .unwrap();
@@ -282,6 +283,7 @@ fn test_list_requests_submission() {
                 id: "foo-chat".into(),
                 address: "foo-chat@example.com".into(),
                 description: None,
+                topics: vec![],
                 archive_url: None,
             })
             .unwrap();

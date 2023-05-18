@@ -57,6 +57,7 @@ pub struct MailingList {
     pub id: String,
     pub address: String,
     pub description: Option<String>,
+    pub topics: Vec<String>,
     pub archive_url: Option<String>,
     pub inner: DbVal<mailpot::models::MailingList>,
 }
@@ -70,6 +71,7 @@ impl From<DbVal<mailpot::models::MailingList>> for MailingList {
                 id,
                 address,
                 description,
+                topics,
                 archive_url,
             },
             _,
@@ -81,6 +83,7 @@ impl From<DbVal<mailpot::models::MailingList>> for MailingList {
             id,
             address,
             description,
+            topics,
             archive_url,
             inner: val,
         }
@@ -127,13 +130,24 @@ impl minijinja::value::StructObject for MailingList {
             "id" => Some(Value::from_serializable(&self.id)),
             "address" => Some(Value::from_serializable(&self.address)),
             "description" => Some(Value::from_serializable(&self.description)),
+            "topics" => Some(Value::from_serializable(&self.topics)),
             "archive_url" => Some(Value::from_serializable(&self.archive_url)),
             _ => None,
         }
     }
 
     fn static_fields(&self) -> Option<&'static [&'static str]> {
-        Some(&["pk", "name", "id", "address", "description", "archive_url"][..])
+        Some(
+            &[
+                "pk",
+                "name",
+                "id",
+                "address",
+                "description",
+                "topics",
+                "archive_url",
+            ][..],
+        )
     }
 }
 

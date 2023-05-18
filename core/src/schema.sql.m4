@@ -44,6 +44,7 @@ CREATE TABLE IF NOT EXISTS list (
   request_local_part    TEXT,
   archive_url           TEXT,
   description           TEXT,
+  topics                JSON NOT NULL CHECK (json_type(topics) = 'array') DEFAULT '[]',
   created               INTEGER NOT NULL DEFAULT (unixepoch()),
   last_modified         INTEGER NOT NULL DEFAULT (unixepoch()),
   verify                BOOLEAN_TYPE(verify) DEFAULT BOOLEAN_TRUE(),

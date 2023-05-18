@@ -430,6 +430,7 @@ fn test_postfix_generation() -> Result<()> {
         id: "first".into(),
         address: "first@example.com".into(),
         description: None,
+        topics: vec![],
         archive_url: None,
     })?;
     assert_eq!(first.pk(), 1);
@@ -439,6 +440,7 @@ fn test_postfix_generation() -> Result<()> {
         id: "second".into(),
         address: "second@example.com".into(),
         description: None,
+        topics: vec![],
         archive_url: None,
     })?;
     assert_eq!(second.pk(), 2);
@@ -459,6 +461,7 @@ fn test_postfix_generation() -> Result<()> {
         id: "third".into(),
         address: "third@example.com".into(),
         description: None,
+        topics: vec![],
         archive_url: None,
     })?;
     assert_eq!(third.pk(), 3);

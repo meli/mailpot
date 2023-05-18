@@ -132,6 +132,7 @@ For more information, try '--help'."#,
                 name: "foobar chat".into(),
                 id: "foo-chat".into(),
                 address: "foo-chat@example.com".into(),
+                topics: vec![],
                 description: None,
                 archive_url: None,
             })
@@ -142,8 +143,8 @@ For more information, try '--help'."#,
     list_lists(
         &conf_path,
         "- foo-chat DbVal(MailingList { pk: 1, name: \"foobar chat\", id: \"foo-chat\", address: \
-         \"foo-chat@example.com\", description: None, archive_url: None }, 1)\n\tList owners: \
-         None\n\tList policy: None",
+         \"foo-chat@example.com\", topics: [], description: None, archive_url: None }, 1)\n\tList \
+         owners: None\n\tPost policy: None\n\tSubscription policy: None",
     );
 
     fn create_list(conf: &Path) {
@@ -171,9 +172,10 @@ For more information, try '--help'."#,
     list_lists(
         &conf_path,
         "- foo-chat DbVal(MailingList { pk: 1, name: \"foobar chat\", id: \"foo-chat\", address: \
-         \"foo-chat@example.com\", description: None, archive_url: None }, 1)\n\tList owners: \
-         None\n\tList policy: None\n\n- twobar-chat DbVal(MailingList { pk: 2, name: \"twobar\", \
-         id: \"twobar-chat\", address: \"twobar-chat@example.com\", description: None, \
-         archive_url: None }, 2)\n\tList owners: None\n\tList policy: None",
+         \"foo-chat@example.com\", topics: [], description: None, archive_url: None }, 1)\n\tList \
+         owners: None\n\tPost policy: None\n\tSubscription policy: None\n\n- twobar-chat \
+         DbVal(MailingList { pk: 2, name: \"twobar\", id: \"twobar-chat\", address: \
+         \"twobar-chat@example.com\", topics: [], description: None, archive_url: None }, \
+         2)\n\tList owners: None\n\tPost policy: None\n\tSubscription policy: None",
     );
 }

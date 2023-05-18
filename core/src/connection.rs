@@ -195,7 +195,7 @@ impl Connection {
         conn.set_db_config(DbConfig::SQLITE_DBCONFIG_ENABLE_FKEY, true)?;
         conn.set_db_config(DbConfig::SQLITE_DBCONFIG_ENABLE_TRIGGER, true)?;
         conn.set_db_config(DbConfig::SQLITE_DBCONFIG_DEFENSIVE, true)?;
-        conn.set_db_config(DbConfig::SQLITE_DBCONFIG_TRUSTED_SCHEMA, false)?;
+        conn.set_db_config(DbConfig::SQLITE_DBCONFIG_TRUSTED_SCHEMA, true)?;
         conn.busy_timeout(core::time::Duration::from_millis(500))?;
         conn.busy_handler(Some(|times: i32| -> bool { times < 5 }))?;
 
@@ -246,14 +246,14 @@ impl Connection {
                 if undo { "un " } else { "re" }
             );
             if undo {
-                trace!("{}", Self::MIGRATIONS[from as usize].2);
+                trace!("{}", Self::MIGRATIONS[from as usize - 1].2);
                 tx.connection
-                    .execute(Self::MIGRATIONS[from as usize].2, [])?;
+                    .execute_batch(Self::MIGRATIONS[from as usize - 1].2)?;
                 from -= 1;
             } else {
                 trace!("{}", Self::MIGRATIONS[from as usize].1);
                 tx.connection
-                    .execute(Self::MIGRATIONS[from as usize].1, [])?;
+                    .execute_batch(Self::MIGRATIONS[from as usize].1)?;
                 from += 1;
             }
         }
@@ -384,6 +384,8 @@ impl Connection {
         let mut stmt = self.connection.prepare("SELECT * FROM list;")?;
         let list_iter = stmt.query_map([], |row| {
             let pk = row.get("pk")?;
+            let topics: serde_json::Value = row.get("topics")?;
+            let topics = MailingList::topics_from_json_value(topics)?;
             Ok(DbVal(
                 MailingList {
                     pk,
@@ -391,6 +393,7 @@ impl Connection {
                     id: row.get("id")?,
                     address: row.get("address")?,
                     description: row.get("description")?,
+                    topics,
                     archive_url: row.get("archive_url")?,
                 },
                 pk,
@@ -413,6 +416,8 @@ impl Connection {
         let ret = stmt
             .query_row([&pk], |row| {
                 let pk = row.get("pk")?;
+                let topics: serde_json::Value = row.get("topics")?;
+                let topics = MailingList::topics_from_json_value(topics)?;
                 Ok(DbVal(
                     MailingList {
                         pk,
@@ -420,6 +425,7 @@ impl Connection {
                         id: row.get("id")?,
                         address: row.get("address")?,
                         description: row.get("description")?,
+                        topics,
                         archive_url: row.get("archive_url")?,
                     },
                     pk,
@@ -438,6 +444,8 @@ impl Connection {
         let ret = stmt
             .query_row([&id], |row| {
                 let pk = row.get("pk")?;
+                let topics: serde_json::Value = row.get("topics")?;
+                let topics = MailingList::topics_from_json_value(topics)?;
                 Ok(DbVal(
                     MailingList {
                         pk,
@@ -445,6 +453,7 @@ impl Connection {
                         id: row.get("id")?,
                         address: row.get("address")?,
                         description: row.get("description")?,
+                        topics,
                         archive_url: row.get("archive_url")?,
                     },
                     pk,
@@ -458,8 +467,8 @@ impl Connection {
     /// Create a new list.
     pub fn create_list(&self, new_val: MailingList) -> Result<DbVal<MailingList>> {
         let mut stmt = self.connection.prepare(
-            "INSERT INTO list(name, id, address, description, archive_url) VALUES(?, ?, ?, ?, ?) \
-             RETURNING *;",
+            "INSERT INTO list(name, id, address, description, archive_url, topics) VALUES(?, ?, \
+             ?, ?, ?, ?) RETURNING *;",
         )?;
         let ret = stmt.query_row(
             rusqlite::params![
@@ -468,9 +477,12 @@ impl Connection {
                 &new_val.address,
                 new_val.description.as_ref(),
                 new_val.archive_url.as_ref(),
+                serde_json::json!(new_val.topics.as_slice()),
             ],
             |row| {
                 let pk = row.get("pk")?;
+                let topics: serde_json::Value = row.get("topics")?;
+                let topics = MailingList::topics_from_json_value(topics)?;
                 Ok(DbVal(
                     MailingList {
                         pk,
@@ -478,6 +490,7 @@ impl Connection {
                         id: row.get("id")?,
                         address: row.get("address")?,
                         description: row.get("description")?,
+                        topics,
                         archive_url: row.get("archive_url")?,
                     },
                     pk,
@@ -999,6 +1012,7 @@ mod tests {
             name: "".into(),
             id: "".into(),
             description: None,
+            topics: vec![],
             address: "".into(),
             archive_url: None,
         };

@@ -44,6 +44,7 @@ fn test_list_subscription() {
             id: "foo-chat".into(),
             address: "foo-chat@example.com".into(),
             description: None,
+            topics: vec![],
             archive_url: None,
         })
         .unwrap();
@@ -178,6 +179,7 @@ fn test_post_rejection() {
                 id: "foo-chat".into(),
                 address: "foo-chat@example.com".into(),
                 description: None,
+                topics: vec![],
                 archive_url: None,
             })
             .unwrap();

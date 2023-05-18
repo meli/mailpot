@@ -51,6 +51,22 @@ pub enum Queue {
     Error,
 }
 
+impl std::str::FromStr for Queue {
+    type Err = Error;
+
+    fn from_str(s: &str) -> Result<Self> {
+        Ok(match s.trim() {
+            s if s.eq_ignore_ascii_case(stringify!(Maildrop)) => Self::Maildrop,
+            s if s.eq_ignore_ascii_case(stringify!(Hold)) => Self::Hold,
+            s if s.eq_ignore_ascii_case(stringify!(Deferred)) => Self::Deferred,
+            s if s.eq_ignore_ascii_case(stringify!(Corrupt)) => Self::Corrupt,
+            s if s.eq_ignore_ascii_case(stringify!(Out)) => Self::Out,
+            s if s.eq_ignore_ascii_case(stringify!(Error)) => Self::Error,
+            other => return Err(Error::new_external(format!("Invalid Queue name: {other}."))),
+        })
+    }
+}
+
 impl Queue {
     /// Returns the name of the queue used in the database schema.
     pub fn as_str(&self) -> &'static str {
@@ -62,6 +78,12 @@ impl Queue {
             Self::Out => "out",
             Self::Error => "error",
         }
+    }
+}
+
+impl std::fmt::Display for Queue {
+    fn fmt(&self, fmt: &mut std::fmt::Formatter) -> std::fmt::Result {
+        write!(fmt, "{}", self.as_str())
     }
 }
 

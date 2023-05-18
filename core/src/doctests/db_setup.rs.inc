@@ -29,6 +29,7 @@
 #         id: "foo-chat".into(),
 #         address: "foo-chat@example.com".into(),
 #         description: Some("Hello world, from foo-chat list".into()),
+#         topics: vec![],
 #         archive_url: Some("https://lists.example.com".into()),
 #     })
 #     .unwrap();

@@ -623,6 +623,7 @@ mod tests {
                 name: "foobar chat".into(),
                 id: "foo-chat".into(),
                 address: "foo-chat@example.com".into(),
+                topics: vec![],
                 description: None,
                 archive_url: None,
             })
@@ -633,6 +634,7 @@ mod tests {
                 name: "foobar chat2".into(),
                 id: "foo-chat2".into(),
                 address: "foo-chat2@example.com".into(),
+                topics: vec![],
                 description: None,
                 archive_url: None,
             })

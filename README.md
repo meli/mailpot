@@ -228,6 +228,7 @@ let list_pk = db.create_list(MailingList {
     id: "foo-chat".into(),
     address: "foo-chat@example.com".into(),
     description: None,
+    topics: vec![],
     archive_url: None,
 })?.pk;
 

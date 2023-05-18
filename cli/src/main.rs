@@ -29,7 +29,7 @@ use lints::*;
 use mailpot::{
     melib::{backends::maildir::MaildirPathTrait, smol, smtp::*, Envelope, EnvelopeHash},
     models::{changesets::*, *},
-    queue::{Queue, QueueEntry},
+    queue::QueueEntry,
     transaction::TransactionBehavior,
     Configuration, Connection, Error, ErrorKind, Result, *,
 };
@@ -127,9 +127,14 @@ fn run_app(opt: Opt) -> Result<()> {
                         }
                     }
                     if let Some(s) = db.list_post_policy(l.pk)? {
-                        println!("\tList policy: {}", s);
+                        println!("\tPost policy: {}", s);
                     } else {
-                        println!("\tList policy: None");
+                        println!("\tPost policy: None");
+                    }
+                    if let Some(s) = db.list_subscription_policy(l.pk)? {
+                        println!("\tSubscription policy: {}", s);
+                    } else {
+                        println!("\tSubscription policy: None");
                     }
                     println!();
                 }
@@ -299,7 +304,7 @@ fn run_app(opt: Opt) -> Result<()> {
                     };
                     db.update_subscription(changeset)?;
                 }
-                AddPolicy {
+                AddPostPolicy {
                     announce_only,
                     subscription_only,
                     approval_needed,
@@ -318,11 +323,11 @@ fn run_app(opt: Opt) -> Result<()> {
                     let new_val = db.set_list_post_policy(policy)?;
                     println!("Added new policy with pk = {}", new_val.pk());
                 }
-                RemovePolicy { pk } => {
+                RemovePostPolicy { pk } => {
                     db.remove_list_post_policy(list.pk, pk)?;
                     println!("Removed policy with pk = {}", pk);
                 }
-                AddSubscribePolicy {
+                AddSubscriptionPolicy {
                     send_confirmation,
                     open,
                     manual,
@@ -341,7 +346,7 @@ fn run_app(opt: Opt) -> Result<()> {
                     let new_val = db.set_list_subscription_policy(policy)?;
                     println!("Added new subscribe policy with pk = {}", new_val.pk());
                 }
-                RemoveSubscribePolicy { pk } => {
+                RemoveSubscriptionPolicy { pk } => {
                     db.remove_list_subscription_policy(list.pk, pk)?;
                     println!("Removed subscribe policy with pk = {}", pk);
                 }
@@ -491,6 +496,7 @@ fn run_app(opt: Opt) -> Result<()> {
                 name,
                 id,
                 description,
+                topics: vec![],
                 address,
                 archive_url,
             })?;
@@ -535,17 +541,17 @@ fn run_app(opt: Opt) -> Result<()> {
             let tx = db.transaction(TransactionBehavior::Exclusive).unwrap();
             let messages = if opt.debug {
                 println!("flush-queue dry_run {:?}", dry_run);
-                tx.queue(Queue::Out)?
+                tx.queue(mailpot::queue::Queue::Out)?
                     .into_iter()
                     .map(DbVal::into_inner)
                     .chain(
-                        tx.queue(Queue::Deferred)?
+                        tx.queue(mailpot::queue::Queue::Deferred)?
                             .into_iter()
                             .map(DbVal::into_inner),
                     )
                     .collect()
             } else {
-                tx.delete_from_queue(Queue::Out, vec![])?
+                tx.delete_from_queue(mailpot::queue::Queue::Out, vec![])?
             };
             if opt.verbose > 0 || opt.debug {
                 println!("Queue out has {} messages.", messages.len());
@@ -614,15 +620,15 @@ fn run_app(opt: Opt) -> Result<()> {
             for (err, mut msg) in failures {
                 log::error!("Message {msg:?} failed with: {err}. Inserting to Deferred queue.");
 
-                msg.queue = Queue::Deferred;
+                msg.queue = mailpot::queue::Queue::Deferred;
                 tx.insert_to_queue(msg)?;
             }
 
             tx.commit()?;
         }
         ErrorQueue { cmd } => match cmd {
-            ErrorQueueCommand::List => {
-                let errors = db.queue(Queue::Error)?;
+            QueueCommand::List => {
+                let errors = db.queue(mailpot::queue::Queue::Error)?;
                 if errors.is_empty() {
                     println!("Error queue is empty.");
                 } else {
@@ -634,8 +640,8 @@ fn run_app(opt: Opt) -> Result<()> {
                     }
                 }
             }
-            ErrorQueueCommand::Print { index } => {
-                let mut errors = db.queue(Queue::Error)?;
+            QueueCommand::Print { index } => {
+                let mut errors = db.queue(mailpot::queue::Queue::Error)?;
                 if !index.is_empty() {
                     errors.retain(|el| index.contains(&el.pk()));
                 }
@@ -647,8 +653,8 @@ fn run_app(opt: Opt) -> Result<()> {
                     }
                 }
             }
-            ErrorQueueCommand::Delete { index, quiet } => {
-                let mut errors = db.queue(Queue::Error)?;
+            QueueCommand::Delete { index, quiet } => {
+                let mut errors = db.queue(mailpot::queue::Queue::Error)?;
                 if !index.is_empty() {
                     errors.retain(|el| index.contains(&el.pk()));
                 }
@@ -660,9 +666,58 @@ fn run_app(opt: Opt) -> Result<()> {
                     if !quiet {
                         println!("Deleting error queue elements {:?}", &index);
                     }
-                    db.delete_from_queue(Queue::Error, index)?;
+                    db.delete_from_queue(mailpot::queue::Queue::Error, index)?;
                     if !quiet {
                         for e in errors {
+                            println!("{e:?}");
+                        }
+                    }
+                }
+            }
+        },
+        Queue { queue, cmd } => match cmd {
+            QueueCommand::List => {
+                let entries = db.queue(queue)?;
+                if entries.is_empty() {
+                    println!("Queue {queue} is empty.");
+                } else {
+                    for e in entries {
+                        println!(
+                            "- {} {} {} {} {}",
+                            e.pk, e.datetime, e.from_address, e.to_addresses, e.subject
+                        );
+                    }
+                }
+            }
+            QueueCommand::Print { index } => {
+                let mut entries = db.queue(queue)?;
+                if !index.is_empty() {
+                    entries.retain(|el| index.contains(&el.pk()));
+                }
+                if entries.is_empty() {
+                    println!("Queue {queue} is empty.");
+                } else {
+                    for e in entries {
+                        println!("{e:?}");
+                    }
+                }
+            }
+            QueueCommand::Delete { index, quiet } => {
+                let mut entries = db.queue(queue)?;
+                if !index.is_empty() {
+                    entries.retain(|el| index.contains(&el.pk()));
+                }
+                if entries.is_empty() {
+                    if !quiet {
+                        println!("Queue {queue} is empty.");
+                    }
+                } else {
+                    if !quiet {
+                        println!("Deleting queue {queue} elements {:?}", &index);
+                    }
+                    db.delete_from_queue(queue, index)?;
+                    if !quiet {
+                        for e in entries {
                             println!("{e:?}");
                         }
                     }

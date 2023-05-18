@@ -330,13 +330,13 @@ Is subscription enabled.
 .ie \n(.g .ds Aq \(aq
 .el .ds Aq '
 .\fB
-.SS mpot list add-policy
+.SS mpot list add-post-policy
 .\fR
 .br
 
 .br
 
-mpot list add\-policy [\-\-announce\-only \fIANNOUNCE_ONLY\fR] [\-\-subscription\-only \fISUBSCRIPTION_ONLY\fR] [\-\-approval\-needed \fIAPPROVAL_NEEDED\fR] [\-\-open \fIOPEN\fR] [\-\-custom \fICUSTOM\fR] 
+mpot list add\-post\-policy [\-\-announce\-only \fIANNOUNCE_ONLY\fR] [\-\-subscription\-only \fISUBSCRIPTION_ONLY\fR] [\-\-approval\-needed \fIAPPROVAL_NEEDED\fR] [\-\-open \fIOPEN\fR] [\-\-custom \fICUSTOM\fR] 
 .br
 
 Add a new post policy.
@@ -358,13 +358,13 @@ Allow posts, but handle it manually.
 .ie \n(.g .ds Aq \(aq
 .el .ds Aq '
 .\fB
-.SS mpot list remove-policy
+.SS mpot list remove-post-policy
 .\fR
 .br
 
 .br
 
-mpot list remove\-policy \-\-pk \fIPK\fR 
+mpot list remove\-post\-policy \-\-pk \fIPK\fR 
 .br
 
 .TP
@@ -373,13 +373,13 @@ Post policy primary key.
 .ie \n(.g .ds Aq \(aq
 .el .ds Aq '
 .\fB
-.SS mpot list add-subscribe-policy
+.SS mpot list add-subscription-policy
 .\fR
 .br
 
 .br
 
-mpot list add\-subscribe\-policy [\-\-send\-confirmation \fISEND_CONFIRMATION\fR] [\-\-open \fIOPEN\fR] [\-\-manual \fIMANUAL\fR] [\-\-request \fIREQUEST\fR] [\-\-custom \fICUSTOM\fR] 
+mpot list add\-subscription\-policy [\-\-send\-confirmation \fISEND_CONFIRMATION\fR] [\-\-open \fIOPEN\fR] [\-\-manual \fIMANUAL\fR] [\-\-request \fIREQUEST\fR] [\-\-custom \fICUSTOM\fR] 
 .br
 
 Add subscription policy to list.
@@ -401,18 +401,18 @@ Allow subscriptions, but handle it manually.
 .ie \n(.g .ds Aq \(aq
 .el .ds Aq '
 .\fB
-.SS mpot list remove-subscribe-policy
+.SS mpot list remove-subscription-policy
 .\fR
 .br
 
 .br
 
-mpot list remove\-subscribe\-policy \-\-pk \fIPK\fR 
+mpot list remove\-subscription\-policy \-\-pk \fIPK\fR 
 .br
 
 .TP
 \-\-pk \fIPK\fR
-Subscribe policy primary key.
+Subscription policy primary key.
 .ie \n(.g .ds Aq \(aq
 .el .ds Aq '
 .\fB
@@ -703,6 +703,67 @@ index of entry.
 .br
 
 mpot error\-queue delete [\-\-index \fIINDEX\fR] [\-\-quiet \fIQUIET\fR] 
+.br
+
+Delete entry and print it in stdout.
+.TP
+\-\-index \fIINDEX\fR
+index of entry.
+.TP
+\-\-quiet
+Do not print in stdout.
+.ie \n(.g .ds Aq \(aq
+.el .ds Aq '
+.\fB
+.SS mpot queue
+.\fR
+.br
+
+.br
+
+mpot queue \-\-queue \fIQUEUE\fR 
+.br
+
+Mail that has not been handled properly end up in the error queue.
+.TP
+\-\-queue \fIQUEUE\fR
+
+.ie \n(.g .ds Aq \(aq
+.el .ds Aq '
+.\fB
+.SS mpot queue list
+.\fR
+.br
+
+.br
+
+List.
+.ie \n(.g .ds Aq \(aq
+.el .ds Aq '
+.\fB
+.SS mpot queue print
+.\fR
+.br
+
+.br
+
+mpot queue print [\-\-index \fIINDEX\fR] 
+.br
+
+Print entry in RFC5322 or JSON format.
+.TP
+\-\-index \fIINDEX\fR
+index of entry.
+.ie \n(.g .ds Aq \(aq
+.el .ds Aq '
+.\fB
+.SS mpot queue delete
+.\fR
+.br
+
+.br
+
+mpot queue delete [\-\-index \fIINDEX\fR] [\-\-quiet \fIQUIET\fR] 
 .br
 
 Delete entry and print it in stdout.

@@ -19,7 +19,7 @@
 
 pub use std::path::PathBuf;
 
-pub use clap::{Args, CommandFactory, Parser, Subcommand};
+pub use clap::{builder::TypedValueParser, Args, CommandFactory, Parser, Subcommand};
 
 #[derive(Debug, Parser)]
 #[command(
@@ -105,7 +105,14 @@ pub enum Command {
     /// Mail that has not been handled properly end up in the error queue.
     ErrorQueue {
         #[command(subcommand)]
-        cmd: ErrorQueueCommand,
+        cmd: QueueCommand,
+    },
+    /// Mail that has not been handled properly end up in the error queue.
+    Queue {
+        #[arg(long, value_parser = QueueValueParser)]
+        queue: mailpot::queue::Queue,
+        #[command(subcommand)]
+        cmd: QueueCommand,
     },
     /// Import a maildir folder into an existing list.
     ImportMaildir {
@@ -254,7 +261,7 @@ pub struct PostfixConfig {
 }
 
 #[derive(Debug, Subcommand)]
-pub enum ErrorQueueCommand {
+pub enum QueueCommand {
     /// List.
     List,
     /// Print entry in RFC5322 or JSON format.
@@ -344,7 +351,7 @@ pub enum ListCommand {
         subscription_options: SubscriptionOptions,
     },
     /// Add a new post policy.
-    AddPolicy {
+    AddPostPolicy {
         #[arg(long)]
         /// Only list owners can post.
         announce_only: bool,
@@ -363,13 +370,13 @@ pub enum ListCommand {
         custom: bool,
     },
     // Remove post policy.
-    RemovePolicy {
+    RemovePostPolicy {
         #[arg(long)]
         /// Post policy primary key.
         pk: i64,
     },
     /// Add subscription policy to list.
-    AddSubscribePolicy {
+    AddSubscriptionPolicy {
         #[arg(long)]
         /// Send confirmation e-mail when subscription is finalized.
         send_confirmation: bool,
@@ -386,9 +393,9 @@ pub enum ListCommand {
         /// Allow subscriptions, but handle it manually.
         custom: bool,
     },
-    RemoveSubscribePolicy {
+    RemoveSubscriptionPolicy {
         #[arg(long)]
-        /// Subscribe policy primary key.
+        /// Subscription policy primary key.
         pk: i64,
     },
     /// Add list owner to list.
@@ -493,4 +500,58 @@ pub enum ListCommand {
         #[arg(long)]
         skip_owners: bool,
     },
+}
+
+#[derive(Clone, Copy, Debug)]
+pub struct QueueValueParser;
+
+impl QueueValueParser {
+    /// Implementation for [`ValueParser::path_buf`]
+    pub fn new() -> Self {
+        Self
+    }
+}
+
+impl TypedValueParser for QueueValueParser {
+    type Value = mailpot::queue::Queue;
+
+    fn parse_ref(
+        &self,
+        cmd: &clap::Command,
+        arg: Option<&clap::Arg>,
+        value: &std::ffi::OsStr,
+    ) -> std::result::Result<Self::Value, clap::Error> {
+        TypedValueParser::parse(self, cmd, arg, value.to_owned())
+    }
+
+    fn parse(
+        &self,
+        cmd: &clap::Command,
+        _arg: Option<&clap::Arg>,
+        value: std::ffi::OsString,
+    ) -> std::result::Result<Self::Value, clap::Error> {
+        use std::str::FromStr;
+
+        use clap::error::ErrorKind;
+
+        if value.is_empty() {
+            return Err(cmd.clone().error(
+                ErrorKind::DisplayHelpOnMissingArgumentOrSubcommand,
+                "queue value required",
+            ));
+        }
+        Self::Value::from_str(value.to_str().ok_or_else(|| {
+            cmd.clone().error(
+                ErrorKind::InvalidValue,
+                "Queue value is not an UTF-8 string",
+            )
+        })?)
+        .map_err(|err| cmd.clone().error(ErrorKind::InvalidValue, err))
+    }
+}
+
+impl Default for QueueValueParser {
+    fn default() -> Self {
+        Self::new()
+    }
 }
