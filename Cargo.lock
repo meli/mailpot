@@ -2036,6 +2036,7 @@ dependencies = [
  "serde",
  "serde_json",
  "serde_urlencoded",
+ "stderrlog",
  "tempfile",
  "tokio",
  "tower",

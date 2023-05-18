@@ -1,5 +1,9 @@
 {% include "header.html" %}
 <div class="body">
+    {% if list.topics|length > 0 %}<span><em>Topics</em>:</span>&nbsp;{{ list.topics() }}
+        <br aria-hidden="true">
+        <br aria-hidden="true">
+    {% endif %}
     {% if list.description %}
         <p title="mailing list description">List description: {{ list.description }}</p>
     {% else %}

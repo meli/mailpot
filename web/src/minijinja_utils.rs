@@ -19,6 +19,8 @@
 
 //! Utils for templates with the [`minijinja`] crate.
 
+use std::fmt::Write;
+
 use super::*;
 
 mod compressed;
@@ -150,6 +152,20 @@ impl Object for MailingList {
             "unsubscription_mailto" => Ok(Value::from_serializable(
                 &self.inner.unsubscription_mailto(),
             )),
+            "topics" => {
+                let mut ul = String::new();
+                write!(&mut ul, r#"<ul class="tags inline">"#)?;
+                for topic in &self.topics {
+                    write!(
+                        &mut ul,
+                        r#"<li class="tag" style="--red:110;--green:120;--blue:180;"><span class="tag-name">"#
+                    )?;
+                    write!(&mut ul, "{}", topic)?;
+                    write!(&mut ul, r#"</span></li>"#)?;
+                }
+                write!(&mut ul, r#"</ul>"#)?;
+                Ok(Value::from_safe_string(ul))
+            }
             _ => Err(Error::new(
                 minijinja::ErrorKind::UnknownMethod,
                 format!("object has no method named {name}"),

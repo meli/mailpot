@@ -7,9 +7,13 @@ async fn main() {
     let config_path = std::env::args()
         .nth(1)
         .expect("Expected configuration file path as first argument.");
+    #[cfg(test)]
+    let verbosity = log::LevelFilter::Trace;
+    #[cfg(not(test))]
+    let verbosity = log::LevelFilter::Info;
     stderrlog::new()
         .quiet(false)
-        .verbosity(15)
+        .verbosity(verbosity)
         .show_module_names(true)
         .timestamp(stderrlog::Timestamp::Millisecond)
         .init()

@@ -42,7 +42,7 @@ pub fn init_stderr_logging() {
     INIT_STDERR_LOGGING.call_once(|| {
         stderrlog::new()
             .quiet(false)
-            .verbosity(15)
+            .verbosity(log::LevelFilter::Trace)
             .show_module_names(true)
             .timestamp(stderrlog::Timestamp::Millisecond)
             .init()

@@ -20,7 +20,7 @@
 use std::{collections::HashMap, sync::Arc};
 
 use chrono::TimeZone;
-use mailpot::{Configuration, Connection};
+use mailpot::{log, Configuration, Connection};
 use mailpot_web::*;
 use minijinja::value::Value;
 use rand::Rng;
@@ -156,6 +156,17 @@ async fn main() {
 
         return;
     }
+    #[cfg(test)]
+    let verbosity = log::LevelFilter::Trace;
+    #[cfg(not(test))]
+    let verbosity = log::LevelFilter::Info;
+    stderrlog::new()
+        .quiet(false)
+        .verbosity(verbosity)
+        .show_module_names(true)
+        .timestamp(stderrlog::Timestamp::Millisecond)
+        .init()
+        .unwrap();
     let conf = Configuration::from_file(config_path).unwrap();
     let app = create_app(new_state(conf));
 
