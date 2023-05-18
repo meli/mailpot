@@ -184,7 +184,7 @@ impl Connection {
             return Err("Database doesn't exist".into());
         }
         INIT_SQLITE_LOGGING.call_once(|| {
-            unsafe { rusqlite::trace::config_log(Some(log_callback)).unwrap() };
+            _ = unsafe { rusqlite::trace::config_log(Some(log_callback)) };
         });
         let conn = DbConnection::open(conf.db_path.to_str().unwrap())?;
         rusqlite::vtab::array::load_module(&conn)?;

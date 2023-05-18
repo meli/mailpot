@@ -506,7 +506,6 @@ pub enum ListCommand {
 pub struct QueueValueParser;
 
 impl QueueValueParser {
-    /// Implementation for [`ValueParser::path_buf`]
     pub fn new() -> Self {
         Self
     }

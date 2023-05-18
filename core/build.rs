@@ -18,10 +18,8 @@
  */
 
 use std::{
-    fs::{metadata, read_dir, OpenOptions},
+    fs::{metadata, OpenOptions},
     io,
-    io::Write,
-    path::Path,
     process::{Command, Stdio},
 };
 
@@ -46,7 +44,12 @@ where
     }
 }
 
+include!("make_migrations.rs");
+
+const MIGRATION_RS: &str = "src/migrations.rs.inc";
+
 fn main() {
+    println!("cargo:rerun-if-changed=src/migrations.rs.inc");
     println!("cargo:rerun-if-changed=migrations");
     println!("cargo:rerun-if-changed=src/schema.sql.m4");
 
@@ -88,71 +91,5 @@ fn main() {
         file.write_all(&output.stdout).unwrap();
     }
 
-    const MIGRATION_RS: &str = "src/migrations.rs.inc";
-
-    let mut regen = false;
-    let mut paths = vec![];
-    let mut undo_paths = vec![];
-    for entry in read_dir("migrations").unwrap() {
-        let entry = entry.unwrap();
-        let path = entry.path();
-        if path.is_dir() || path.extension().map(|os| os.to_str().unwrap()) != Some("sql") {
-            continue;
-        }
-        if is_output_file_outdated(&path, MIGRATION_RS).unwrap() {
-            regen = true;
-        }
-        if path
-            .file_name()
-            .unwrap()
-            .to_str()
-            .unwrap()
-            .ends_with("undo.sql")
-        {
-            undo_paths.push(path);
-        } else {
-            paths.push(path);
-        }
-    }
-
-    if regen {
-        paths.sort();
-        undo_paths.sort();
-        let mut migr_rs = OpenOptions::new()
-            .write(true)
-            .create(true)
-            .truncate(true)
-            .open(MIGRATION_RS)
-            .unwrap();
-        migr_rs
-            .write_all(b"\n//(user_version, redo sql, undo sql\n&[")
-            .unwrap();
-        for (p, u) in paths.iter().zip(undo_paths.iter()) {
-            // This should be a number string, padded with 2 zeros if it's less than 3
-            // digits. e.g. 001, \d{3}
-            let num = p.file_stem().unwrap().to_str().unwrap();
-            if !u.file_name().unwrap().to_str().unwrap().starts_with(num) {
-                panic!("Undo file {u:?} should match with {p:?}");
-            }
-            if num.parse::<u32>().is_err() {
-                panic!("Migration file {p:?} should start with a number");
-            }
-            migr_rs.write_all(b"(").unwrap();
-            migr_rs
-                .write_all(num.trim_start_matches('0').as_bytes())
-                .unwrap();
-            migr_rs.write_all(b",\"").unwrap();
-
-            migr_rs
-                .write_all(std::fs::read_to_string(p).unwrap().as_bytes())
-                .unwrap();
-            migr_rs.write_all(b"\",\"").unwrap();
-            migr_rs
-                .write_all(std::fs::read_to_string(u).unwrap().as_bytes())
-                .unwrap();
-            migr_rs.write_all(b"\"),").unwrap();
-        }
-        migr_rs.write_all(b"]").unwrap();
-        migr_rs.flush().unwrap();
-    }
+    make_migrations("migrations", MIGRATION_RS);
 }
