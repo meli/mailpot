@@ -1016,28 +1016,27 @@
     }
 
     .tag {
-        --padding-top-bottom: 1px;
-        --padding-left-right: 5.4px;
+        --padding-top-bottom: 0.2rem;
+        --padding-left-right: .5rem;
 
         display: inline-block;
         border: 1px solid var(--tag-border-color);
         border-radius:.2rem;
         color: #555;
-        font-size: .9rem;
-        padding: 0px 0.4em 1px 0.4em;
-        padding: var(--padding-top-bottom) var(--padding-left-right);
+        font-size: 1.05rem;
+        padding: calc(var(--padding-top-bottom) / 2) var(--padding-left-right) var(--padding-top-bottom) var(--padding-left-right);
         text-decoration: none;
-
         --aa-brightness: ((var(--red) * 299) + (var(--green) * 587) + (var(--blue) * 114)) / 1000;
         --aa-color: calc((var(--aa-brightness) - 128) * -1000);
         background: rgb(var(--red), var(--green), var(--blue));
         color: rgb(var(--aa-color), var(--aa-color), var(--aa-color));
         min-width: max-content;
+        /* fallback */
+        max-height: 1rem;
+        min-height: 1rem;
         max-height: calc(1.5cap + var(--padding-top-bottom));
         min-height: calc(1.5cap + var(--padding-top-bottom));
     }
-
-
 
     span.tag-name a {
         text-decoration: none;
