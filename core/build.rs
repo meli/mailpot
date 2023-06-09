@@ -53,43 +53,39 @@ fn main() {
     println!("cargo:rerun-if-changed=migrations");
     println!("cargo:rerun-if-changed=src/schema.sql.m4");
 
-    if is_output_file_outdated("src/schema.sql.m4", "src/schema.sql").unwrap() {
-        let output = Command::new("m4")
-            .arg("./src/schema.sql.m4")
-            .output()
-            .unwrap();
-        if String::from_utf8_lossy(&output.stdout).trim().is_empty() {
-            panic!(
-                "m4 output is empty. stderr was {}",
-                String::from_utf8_lossy(&output.stderr)
-            );
-        }
-        let mut verify = Command::new("sqlite3")
-            .stdin(Stdio::piped())
-            .stdout(Stdio::piped())
-            .stderr(Stdio::piped())
-            .spawn()
-            .unwrap();
-        println!(
-            "Verifying by creating an in-memory database in sqlite3 and feeding it the output \
-             schema."
+    let mut output = Command::new("m4")
+        .arg("./src/schema.sql.m4")
+        .output()
+        .unwrap();
+    if String::from_utf8_lossy(&output.stdout).trim().is_empty() {
+        panic!(
+            "m4 output is empty. stderr was {}",
+            String::from_utf8_lossy(&output.stderr)
         );
-        verify
-            .stdin
-            .take()
-            .unwrap()
-            .write_all(&output.stdout)
-            .unwrap();
-        let exit = verify.wait_with_output().unwrap();
-        if !exit.status.success() {
-            panic!(
-                "sqlite3 could not read SQL schema: {}",
-                String::from_utf8_lossy(&exit.stdout)
-            );
-        }
-        let mut file = std::fs::File::create("./src/schema.sql").unwrap();
-        file.write_all(&output.stdout).unwrap();
     }
-
-    make_migrations("migrations", MIGRATION_RS);
+    make_migrations("migrations", MIGRATION_RS, &mut output.stdout);
+    let mut verify = Command::new("sqlite3")
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()
+        .unwrap();
+    println!(
+        "Verifying by creating an in-memory database in sqlite3 and feeding it the output schema."
+    );
+    verify
+        .stdin
+        .take()
+        .unwrap()
+        .write_all(&output.stdout)
+        .unwrap();
+    let exit = verify.wait_with_output().unwrap();
+    if !exit.status.success() {
+        panic!(
+            "sqlite3 could not read SQL schema: {}",
+            String::from_utf8_lossy(&exit.stdout)
+        );
+    }
+    let mut file = std::fs::File::create("./src/schema.sql").unwrap();
+    file.write_all(&output.stdout).unwrap();
 }

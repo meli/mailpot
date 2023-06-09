@@ -203,10 +203,10 @@ fn test_migration_gen() {
         undo_file.flush().unwrap();
     }
 
-    make_migrations(&in_path, &out_path);
+    make_migrations(&in_path, &out_path, &mut vec![]);
     let output = std::fs::read_to_string(&out_path).unwrap();
-    assert_eq!(&output.replace([' ', '\n'], ""), &r#"//(user_version, redo sql, undo sql
-&[(1,"ALTER TABLE PERSON ADD COLUMN interests TEXT;","ALTER TABLE PERSON DROP COLUMN interests;"),(2,"CREATE TABLE hobby ( pk INTEGER PRIMARY KEY NOT NULL,title TEXT NOT NULL);","DROP TABLE hobby;"),(3,"ALTER TABLE PERSON ADD COLUMN main_hobby INTEGER REFERENCES hobby(pk) ON DELETE SET NULL;","ALTER TABLE PERSON DROP COLUMN main_hobby;"),]"#.replace([' ', '\n'], ""));
+    assert_eq!(&output.replace([' ', '\n'], ""), &r####"//(user_version, redo sql, undo sql
+&[(1,r###"ALTER TABLE PERSON ADD COLUMN interests TEXT;"###,r###"ALTER TABLE PERSON DROP COLUMN interests;"###),(2,r###"CREATE TABLE hobby ( pk INTEGER PRIMARY KEY NOT NULL,title TEXT NOT NULL);"###,r###"DROP TABLE hobby;"###),(3,r###"ALTER TABLE PERSON ADD COLUMN main_hobby INTEGER REFERENCES hobby(pk) ON DELETE SET NULL;"###,r###"ALTER TABLE PERSON DROP COLUMN main_hobby;"###),]"####.replace([' ', '\n'], ""));
 }
 
 #[test]
@@ -237,7 +237,7 @@ fn test_migration_gen_panic() {
         undo_file.flush().unwrap();
     }
 
-    make_migrations(&in_path, &out_path);
+    make_migrations(&in_path, &out_path, &mut vec![]);
     let output = std::fs::read_to_string(&out_path).unwrap();
     assert_eq!(&output.replace([' ','\n'], ""), &r#"//(user_version, redo sql, undo sql
 &[(1,"ALTER TABLE PERSON ADD COLUMN interests TEXT;","ALTER TABLE PERSON DROP COLUMN interests;"),(2,"CREATE TABLE hobby ( pk INTEGER PRIMARY KEY NOT NULL,title TEXT NOT NULL);","DROP TABLE hobby;"),(3,"ALTER TABLE PERSON ADD COLUMN main_hobby INTEGER REFERENCES hobby(pk) ON DELETE SET NULL;","ALTER TABLE PERSON DROP COLUMN main_hobby;"),]"#.replace([' ', '\n'], ""));

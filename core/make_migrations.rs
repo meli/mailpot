@@ -19,7 +19,17 @@
 
 use std::{fs::read_dir, io::Write, path::Path};
 
-pub fn make_migrations<M: AsRef<Path>, O: AsRef<Path>>(migrations_path: M, output_file: O) {
+/// Scans migrations directory for file entries, and creates a rust file with an array containing
+/// the migration slices.
+///
+///
+/// If a migration is a data migration (not a CREATE, DROP or ALTER statement) it is appended to
+/// the schema file.
+pub fn make_migrations<M: AsRef<Path>, O: AsRef<Path>>(
+    migrations_path: M,
+    output_file: O,
+    schema_file: &mut Vec<u8>,
+) {
     let migrations_folder_path = migrations_path.as_ref();
     let output_file_path = output_file.as_ref();
 
@@ -63,10 +73,16 @@ pub fn make_migrations<M: AsRef<Path>, O: AsRef<Path>>(migrations_path: M, outpu
         for (i, (p, u)) in paths.iter().zip(undo_paths.iter()).enumerate() {
             // This should be a number string, padded with 2 zeros if it's less than 3
             // digits. e.g. 001, \d{3}
-            let num = p.file_stem().unwrap().to_str().unwrap();
+            let mut num = p.file_stem().unwrap().to_str().unwrap();
+            let is_data = num.ends_with(".data");
+            if is_data {
+                num = num.strip_suffix(".data").unwrap();
+            }
+
             if !u.file_name().unwrap().to_str().unwrap().starts_with(num) {
                 panic!("Undo file {u:?} should match with {p:?}");
             }
+
             if num.parse::<u32>().is_err() {
                 panic!("Migration file {p:?} should start with a number");
             }
@@ -75,16 +91,21 @@ pub fn make_migrations<M: AsRef<Path>, O: AsRef<Path>>(migrations_path: M, outpu
             migr_rs
                 .write_all(num.trim_start_matches('0').as_bytes())
                 .unwrap();
-            migr_rs.write_all(b",\"").unwrap();
+            migr_rs.write_all(b",r###\"").unwrap();
 
+            let redo = std::fs::read_to_string(p).unwrap();
+            migr_rs.write_all(redo.trim().as_bytes()).unwrap();
+            migr_rs.write_all(b"\"###,r###\"").unwrap();
             migr_rs
-                .write_all(std::fs::read_to_string(p).unwrap().as_bytes())
+                .write_all(std::fs::read_to_string(u).unwrap().trim().as_bytes())
                 .unwrap();
-            migr_rs.write_all(b"\",\"").unwrap();
-            migr_rs
-                .write_all(std::fs::read_to_string(u).unwrap().as_bytes())
-                .unwrap();
-            migr_rs.write_all(b"\"),").unwrap();
+            migr_rs.write_all(b"\"###),").unwrap();
+            if is_data {
+                schema_file.extend(b"\n\n-- ".iter());
+                schema_file.extend(num.as_bytes().iter());
+                schema_file.extend(b".data.sql\n\n".iter());
+                schema_file.extend(redo.into_bytes().into_iter());
+            }
         }
         migr_rs.write_all(b"]").unwrap();
         migr_rs.flush().unwrap();
