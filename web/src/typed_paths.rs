@@ -130,6 +130,10 @@ pub struct SettingsPath;
 #[typed_path("/help/")]
 pub struct HelpPath;
 
+#[derive(Debug, PartialEq, Eq, Clone, serde::Deserialize, serde::Serialize, TypedPath)]
+#[typed_path("/topics/")]
+pub struct TopicsPath;
+
 macro_rules! unit_impl {
     ($ident:ident, $ty:expr) => {
         pub fn $ident(state: &minijinja::State) -> std::result::Result<Value, Error> {

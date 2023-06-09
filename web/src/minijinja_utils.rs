@@ -22,6 +22,7 @@
 use std::fmt::Write;
 
 use mailpot::models::ListOwner;
+use percent_encoding::utf8_percent_encode;
 
 use super::*;
 
@@ -42,6 +43,7 @@ lazy_static::lazy_static! {
             strip_carets,
             urlize,
             heading,
+            topics,
             login_path,
             logout_path,
             settings_path,
@@ -178,20 +180,7 @@ impl Object for MailingList {
             "unsubscription_mailto" => Ok(Value::from_serializable(
                 &self.inner.unsubscription_mailto(),
             )),
-            "topics" => {
-                let mut ul = String::new();
-                write!(&mut ul, r#"<ul class="tags inline">"#)?;
-                for topic in &self.topics {
-                    write!(
-                        &mut ul,
-                        r#"<li class="tag" style="--red:110;--green:120;--blue:180;"><span class="tag-name">"#
-                    )?;
-                    write!(&mut ul, "{}", topic)?;
-                    write!(&mut ul, r#"</span></li>"#)?;
-                }
-                write!(&mut ul, r#"</ul>"#)?;
-                Ok(Value::from_safe_string(ul))
-            }
+            "topics" => topics_common(&self.topics),
             _ => Err(Error::new(
                 minijinja::ErrorKind::UnknownMethod,
                 format!("object has no method named {name}"),
@@ -594,6 +583,62 @@ pub fn heading(level: Value, text: Value, id: Option<Value>) -> std::result::Res
              href=\"#{kebab}\"></a></h{level}>"
         )))
     }
+}
+
+/// Make an array of topic strings into html badges.
+///
+/// # Example
+/// ```rust
+/// use mailpot_web::minijinja_utils::topics;
+/// use minijinja::value::Value;
+///
+/// let v: Value = topics(Value::from_serializable(&vec![
+///     "a".to_string(),
+///     "aab".to_string(),
+///     "aaab".to_string(),
+/// ]))
+/// .unwrap();
+/// assert_eq!(
+///     "<ul class=\"tags inline\"><li class=\"tag\" \
+///      style=\"--red:110;--green:120;--blue:180;\"><span class=\"tag-name\"><a \
+///      href=\"/topics/?query=a\">a</a></span></li><li class=\"tag\" \
+///      style=\"--red:110;--green:120;--blue:180;\"><span class=\"tag-name\"><a \
+///      href=\"/topics/?query=aab\">aab</a></span></li><li class=\"tag\" \
+///      style=\"--red:110;--green:120;--blue:180;\"><span class=\"tag-name\"><a \
+///      href=\"/topics/?query=aaab\">aaab</a></span></li></ul>",
+///     &v.to_string()
+/// );
+/// ```
+pub fn topics(topics: Value) -> std::result::Result<Value, Error> {
+    topics.try_iter()?;
+    let topics: Vec<String> = topics
+        .try_iter()?
+        .map(|v| v.to_string())
+        .collect::<Vec<String>>();
+    topics_common(&topics)
+}
+
+pub(crate) fn topics_common(topics: &[String]) -> std::result::Result<Value, Error> {
+    let mut ul = String::new();
+    write!(&mut ul, r#"<ul class="tags inline">"#)?;
+    for topic in topics {
+        write!(
+            &mut ul,
+            r#"<li class="tag" style="--red:110;--green:120;--blue:180;"><span class="tag-name"><a href=""#
+        )?;
+        write!(&mut ul, "{}", TopicsPath)?;
+        write!(&mut ul, r#"?query="#)?;
+        write!(
+            &mut ul,
+            "{}",
+            utf8_percent_encode(topic, crate::typed_paths::PATH_SEGMENT)
+        )?;
+        write!(&mut ul, r#"">"#)?;
+        write!(&mut ul, "{}", topic)?;
+        write!(&mut ul, r#"</a></span></li>"#)?;
+    }
+    write!(&mut ul, r#"</ul>"#)?;
+    Ok(Value::from_safe_string(ul))
 }
 
 #[cfg(test)]

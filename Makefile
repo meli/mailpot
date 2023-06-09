@@ -11,7 +11,7 @@ check:
 fmt:
 	@cargo +nightly fmt --all || cargo fmt --all
 	@cargo sort -w || printf "cargo-sort binary not found in PATH.\n"
-	@djhtml -i $(HTML_FILES) || printf "djhtml binary not found in PATH.\n"
+	@djhtml $(HTML_FILES) || printf "djhtml binary not found in PATH.\n"
 
 .PHONY: lint
 lint:

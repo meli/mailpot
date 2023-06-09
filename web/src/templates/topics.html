@@ -1,0 +1,12 @@
+{% include "header.html" %}
+<div class="body">
+  <p>Results for <em>{{ term }}</em></p>
+  <div class="entry">
+    <ul>
+      {% for r in results %}
+        <li><a href="{{ list_path(r.pk) }}">{{ r.id }}</a>. {% if r.topics|length > 0 %}<br aria-hidden="true"><br aria-hidden="true"><span><em>Topics</em>:</span>&nbsp;{{ r.topics_html() }}{% endif %}
+      {% endfor %}
+    </ul>
+  </div>
+</div>
+{% include "footer.html" %}

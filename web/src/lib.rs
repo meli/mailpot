@@ -87,6 +87,7 @@ pub mod help;
 pub mod lists;
 pub mod minijinja_utils;
 pub mod settings;
+pub mod topics;
 pub mod typed_paths;
 pub mod utils;
 
@@ -96,6 +97,7 @@ pub use help::*;
 pub use lists::*;
 pub use minijinja_utils::*;
 pub use settings::*;
+pub use topics::*;
 pub use typed_paths::{tsr::RouterExt, *};
 pub use utils::*;
 

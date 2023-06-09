@@ -55,6 +55,7 @@ fn create_app(shared_state: Arc<AppState>) -> Router {
         .typed_get(list)
         .typed_get(list_post)
         .typed_get(list_post_raw)
+        .typed_get(list_topics)
         .typed_get(list_post_eml)
         .typed_get(list_edit.layer(RequireAuth::login_with_role_or_redirect(
             Role::User..,
