@@ -2020,6 +2020,7 @@ dependencies = [
  "mailpot-tests",
  "melib",
  "minijinja",
+ "percent-encoding",
  "reqwest",
  "rusqlite",
  "serde",

@@ -207,3 +207,29 @@ pub struct MailtoAddress {
 #[doc = include_str!("../../README.md")]
 #[cfg(doctest)]
 pub struct ReadmeDoctests;
+
+/// Trait for stripping carets ('<','>') from Message IDs.
+pub trait StripCarets {
+    /// If `self` is surrounded by carets, strip them.
+    fn strip_carets(&self) -> &str;
+}
+
+impl StripCarets for &str {
+    fn strip_carets(&self) -> &str {
+        let mut self_ref = self.trim();
+        if self_ref.starts_with('<') && self_ref.ends_with('>') {
+            self_ref = &self_ref[1..self_ref.len().saturating_sub(1)];
+        }
+        self_ref
+    }
+}
+
+use percent_encoding::CONTROLS;
+pub use percent_encoding::{utf8_percent_encode, AsciiSet};
+
+// from https://github.com/servo/rust-url/blob/master/url/src/parser.rs
+const FRAGMENT: &AsciiSet = &CONTROLS.add(b' ').add(b'"').add(b'<').add(b'>').add(b'`');
+const PATH: &AsciiSet = &FRAGMENT.add(b'#').add(b'?').add(b'{').add(b'}');
+
+/// Set for percent encoding URL components.
+pub const PATH_SEGMENT: &AsciiSet = &PATH.add(b'/').add(b'%');

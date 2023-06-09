@@ -17,14 +17,10 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-use percent_encoding::{utf8_percent_encode, AsciiSet, CONTROLS};
+pub use mailpot::PATH_SEGMENT;
+use percent_encoding::utf8_percent_encode;
 
 use super::*;
-
-// from https://github.com/servo/rust-url/blob/master/url/src/parser.rs
-const FRAGMENT: &AsciiSet = &CONTROLS.add(b' ').add(b'"').add(b'<').add(b'>').add(b'`');
-const PATH: &AsciiSet = &FRAGMENT.add(b'#').add(b'?').add(b'{').add(b'}');
-pub const PATH_SEGMENT: &AsciiSet = &PATH.add(b'/').add(b'%');
 
 pub trait IntoCrumb: TypedPath {
     fn to_crumb(&self) -> Cow<'static, str> {

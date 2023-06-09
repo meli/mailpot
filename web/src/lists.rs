@@ -583,7 +583,11 @@ pub async fn list_post_eml(
     );
     response.headers_mut().insert(
         http::header::CONTENT_DISPOSITION,
-        http::HeaderValue::try_from(format!("attachment; filename=\"{}.eml\"", msg_id)).unwrap(),
+        http::HeaderValue::try_from(format!(
+            "attachment; filename=\"{}.eml\"",
+            msg_id.trim().strip_carets()
+        ))
+        .unwrap(),
     );
 
     Ok(response)

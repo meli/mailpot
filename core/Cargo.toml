@@ -18,6 +18,7 @@ jsonschema = { version = "0.17", default-features = false }
 log = "0.4"
 melib = { version = "*", default-features = false, features = ["smtp", "unicode_algorithms", "maildir_backend"], git = "https://github.com/meli/meli", rev = "2447a2c" }
 minijinja = { version = "0.31.0", features = ["source", ] }
+percent-encoding = { version = "^2.1" }
 rusqlite = { version = "^0.28", features = ["bundled", "functions", "trace", "hooks", "serde_json", "array", "chrono", "unlock_notify"] }
 serde = { version = "^1", features = ["derive", ] }
 serde_json = "^1"
