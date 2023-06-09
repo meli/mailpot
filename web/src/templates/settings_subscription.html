@@ -4,7 +4,9 @@
     <address>
         {{ list.name }} <a href="mailto:{{ list.address | safe }}"><code>{{ list.address }}</code></a>
     </address>
-    {% if list.description %}
+    {% if list.is_description_html_safe %}
+        {{ list.description|safe}}
+    {% else %}
         <p>{{ list.description }}</p>
     {% endif %}
     {% if list.archive_url %}

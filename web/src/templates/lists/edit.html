@@ -5,7 +5,11 @@
         {{ list.name }} <a href="mailto:{{ list.address | safe }}"><code>{{ list.address }}</code></a>
     </address>
     {% if list.description %}
-        <p>{{ list.description }}</p>
+        {% if list.is_description_html_safe %}
+            {{ list.description|safe}}
+        {% else %}
+            <p>{{ list.description }}</p>
+        {% endif %}
     {% endif %}
     {% if list.archive_url %}
         <p><a href="{{ list.archive_url }}">{{ list.archive_url }}</a></p>

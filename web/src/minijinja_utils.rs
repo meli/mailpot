@@ -21,6 +21,8 @@
 
 use std::fmt::Write;
 
+use mailpot::models::ListOwner;
+
 use super::*;
 
 mod compressed;
@@ -98,6 +100,29 @@ pub struct MailingList {
     #[serde(serialize_with = "super::utils::to_safe_string_opt")]
     pub archive_url: Option<String>,
     pub inner: DbVal<mailpot::models::MailingList>,
+    #[serde(default)]
+    pub is_description_html_safe: bool,
+}
+
+impl MailingList {
+    /// Set whether it's safe to not escape the list's description field.
+    ///
+    /// If anyone can display arbitrary html in the server, that's bad.
+    ///
+    /// Note: uses `Borrow` so that it can use both `DbVal<ListOwner>` and
+    /// `ListOwner` slices.
+    pub fn set_safety<O: std::borrow::Borrow<ListOwner>>(
+        &mut self,
+        owners: &[O],
+        administrators: &[String],
+    ) {
+        if owners.is_empty() || administrators.is_empty() {
+            return;
+        }
+        self.is_description_html_safe = owners
+            .iter()
+            .any(|o| administrators.contains(&o.borrow().address));
+    }
 }
 
 impl From<DbVal<mailpot::models::MailingList>> for MailingList {
@@ -124,6 +149,7 @@ impl From<DbVal<mailpot::models::MailingList>> for MailingList {
             topics,
             archive_url,
             inner: val,
+            is_description_html_safe: false,
         }
     }
 }
@@ -181,9 +207,18 @@ impl minijinja::value::StructObject for MailingList {
             "name" => Some(Value::from_serializable(&self.name)),
             "id" => Some(Value::from_serializable(&self.id)),
             "address" => Some(Value::from_serializable(&self.address)),
+            "description" if self.is_description_html_safe => {
+                self.description.as_ref().map_or_else(
+                    || Some(Value::from_serializable(&self.description)),
+                    |d| Some(Value::from_safe_string(d.clone())),
+                )
+            }
             "description" => Some(Value::from_serializable(&self.description)),
             "topics" => Some(Value::from_serializable(&self.topics)),
             "archive_url" => Some(Value::from_serializable(&self.archive_url)),
+            "is_description_html_safe" => {
+                Some(Value::from_serializable(&self.is_description_html_safe))
+            }
             _ => None,
         }
     }
@@ -198,6 +233,7 @@ impl minijinja::value::StructObject for MailingList {
                 "description",
                 "topics",
                 "archive_url",
+                "is_description_html_safe",
             ][..],
         )
     }
@@ -781,5 +817,47 @@ mod tests {
      0)(12, 0)(13, 0)(14, 0)(15, 0)(16, 5)(17, 0)(18, 0)(19, 0)(20, 0)(21, 0)(22, 0)(23, \
      0)(24, 0)(25, 0)(26, 0)(27, 0)(28, 0)(29, 0)(30, 0)"
 );
+    }
+
+    #[test]
+    fn test_list_html_safe() {
+        let mut list = MailingList {
+            pk: 0,
+            name: String::new(),
+            id: String::new(),
+            address: String::new(),
+            description: None,
+            topics: vec![],
+            archive_url: None,
+            inner: DbVal(
+                mailpot::models::MailingList {
+                    pk: 0,
+                    name: String::new(),
+                    id: String::new(),
+                    address: String::new(),
+                    description: None,
+                    topics: vec![],
+                    archive_url: None,
+                },
+                0,
+            ),
+            is_description_html_safe: false,
+        };
+
+        let mut list_owners = vec![ListOwner {
+            pk: 0,
+            list: 0,
+            address: "admin@example.com".to_string(),
+            name: None,
+        }];
+        let administrators = vec!["admin@example.com".to_string()];
+        list.set_safety(&list_owners, &administrators);
+        assert!(list.is_description_html_safe);
+        list.set_safety::<ListOwner>(&[], &[]);
+        assert!(list.is_description_html_safe);
+        list.is_description_html_safe = false;
+        list_owners[0].address = "user@example.com".to_string();
+        list.set_safety(&list_owners, &administrators);
+        assert!(!list.is_description_html_safe);
     }
 }

@@ -5,7 +5,7 @@
         <br aria-hidden="true">
     {% endif %}
     {% if list.description %}
-        <p title="mailing list description">List description: {{ list.description }}</p>
+        <p title="mailing list description">{{ list.description }}</p>
     {% else %}
         <p title="mailing list description">No list description.</p>
     {% endif %}
@@ -17,12 +17,14 @@
                 <input type="hidden" name="list_pk", value="{{ list.pk }}">
                 <input type="submit" name="unsubscribe" value="Unsubscribe as {{ current_user.address }}">
             </form>
+            <br />
         {% else %}
             <form method="post" action="{{ settings_path() }}" class="settings-form">
                 <input type="hidden" name="type", value="subscribe">
                 <input type="hidden" name="list_pk", value="{{ list.pk }}">
                 <input type="submit" name="subscribe" value="Subscribe as {{ current_user.address }}">
             </form>
+            <br />
         {% endif %}
     {% endif %}
     {% if preamble %}

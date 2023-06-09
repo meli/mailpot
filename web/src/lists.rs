@@ -118,6 +118,9 @@ pub async fn list(
             url: ListPath(list.id.to_string().into()).to_crumb(),
         },
     ];
+    let list_owners = db.list_owners(list.pk)?;
+    let mut list_obj = MailingList::from(list.clone());
+    list_obj.set_safety(list_owners.as_slice(), &state.conf.administrators);
     let context = minijinja::context! {
         canonical_url => ListPath::from(&list).to_crumb(),
         page_title => &list.name,
@@ -128,7 +131,7 @@ pub async fn list(
         months,
         hists => &hist,
         posts => posts_ctx,
-        list => Value::from_object(MailingList::from(list)),
+        list => Value::from_object(list_obj),
         current_user => auth.current_user,
         user_context,
         messages => session.drain_messages(),
@@ -196,11 +199,16 @@ pub async fn list_post(
             url: ListPostPath(list.id.to_string().into(), msg_id.to_string()).to_crumb(),
         },
     ];
+
+    let list_owners = db.list_owners(list.pk)?;
+    let mut list_obj = MailingList::from(list.clone());
+    list_obj.set_safety(list_owners.as_slice(), &state.conf.administrators);
+
     let context = minijinja::context! {
         canonical_url => ListPostPath(ListPathIdentifier::from(list.id.clone()), msg_id.to_string()).to_crumb(),
         page_title => subject_ref,
         description => &list.description,
-        list => Value::from_object(MailingList::from(list)),
+        list => Value::from_object(list_obj),
         pk => post.pk,
         body => &body_text,
         from => &envelope.field_from_to_string(),
@@ -300,6 +308,9 @@ pub async fn list_edit(
             url: ListEditPath(ListPathIdentifier::from(list.id.clone())).to_crumb(),
         },
     ];
+    let list_owners = db.list_owners(list.pk)?;
+    let mut list_obj = MailingList::from(list.clone());
+    list_obj.set_safety(list_owners.as_slice(), &state.conf.administrators);
     let context = minijinja::context! {
         canonical_url => ListEditPath(ListPathIdentifier::from(list.id.clone())).to_crumb(),
         page_title => format!("Edit {} settings", list.name),
@@ -310,7 +321,7 @@ pub async fn list_edit(
         post_count,
         subs_count,
         sub_requests_count,
-        list => Value::from_object(MailingList::from(list)),
+        list => Value::from_object(list_obj),
         current_user => auth.current_user,
         messages => session.drain_messages(),
         crumbs,
@@ -661,11 +672,14 @@ pub async fn list_subscribers(
             url: ListEditSubscribersPath(list.id.to_string().into()).to_crumb(),
         },
     ];
+    let list_owners = db.list_owners(list.pk)?;
+    let mut list_obj = MailingList::from(list.clone());
+    list_obj.set_safety(list_owners.as_slice(), &state.conf.administrators);
     let context = minijinja::context! {
         canonical_url => ListEditSubscribersPath(ListPathIdentifier::from(list.id.clone())).to_crumb(),
         page_title => format!("Subscribers of {}", list.name),
         subs,
-        list => Value::from_object(MailingList::from(list)),
+        list => Value::from_object(list_obj),
         current_user => auth.current_user,
         messages => session.drain_messages(),
         crumbs,
@@ -744,11 +758,13 @@ pub async fn list_candidates(
             url: ListEditCandidatesPath(list.id.to_string().into()).to_crumb(),
         },
     ];
+    let mut list_obj: MailingList = MailingList::from(list.clone());
+    list_obj.set_safety(list_owners.as_slice(), &state.conf.administrators);
     let context = minijinja::context! {
         canonical_url => ListEditCandidatesPath(ListPathIdentifier::from(list.id.clone())).to_crumb(),
         page_title => format!("Requests of {}", list.name),
         subs,
-        list => Value::from_object(MailingList::from(list)),
+        list => Value::from_object(list_obj),
         current_user => auth.current_user,
         messages => session.drain_messages(),
         crumbs,

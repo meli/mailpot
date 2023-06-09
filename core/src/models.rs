@@ -58,6 +58,15 @@ impl<T> DbVal<T> {
     }
 }
 
+impl<T> std::borrow::Borrow<T> for DbVal<T>
+where
+    T: Sized,
+{
+    fn borrow(&self) -> &T {
+        &self.0
+    }
+}
+
 impl<T> std::ops::Deref for DbVal<T> {
     type Target = T;
     fn deref(&self) -> &T {

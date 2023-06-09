@@ -198,13 +198,14 @@ async fn root(
                     .earliest()
                     .map(|d| d.to_string())
             });
+            let list_owners = db.list_owners(list.pk)?;
+            let mut list_obj = MailingList::from(list.clone());
+            list_obj.set_safety(list_owners.as_slice(), &state.conf.administrators);
             Ok(minijinja::context! {
-                name => &list.name,
                 newest,
                 posts => &posts,
                 months => &months,
-                description => &list.description.as_deref().unwrap_or_default(),
-                list => Value::from_object(MailingList::from(list.clone())),
+                list => Value::from_object(list_obj),
             })
         })
         .collect::<Result<Vec<_>, mailpot::Error>>()?;

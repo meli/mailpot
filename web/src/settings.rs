@@ -302,6 +302,9 @@ pub async fn user_list_subscription(
         },
     ];
 
+    let list_owners = db.list_owners(list.pk)?;
+    let mut list = crate::minijinja_utils::MailingList::from(list);
+    list.set_safety(list_owners.as_slice(), &state.conf.administrators);
     let context = minijinja::context! {
         page_title => "Subscription settings",
         user => user,
