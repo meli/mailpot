@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS list (
   topics                JSON NOT NULL CHECK (json_type(topics) = 'array') DEFAULT '[]',
   created               INTEGER NOT NULL DEFAULT (unixepoch()),
   last_modified         INTEGER NOT NULL DEFAULT (unixepoch()),
-  verify                BOOLEAN CHECK (verify IN (0, 1)) NOT NULL DEFAULT 1,
+  verify                BOOLEAN CHECK (verify IN (0, 1)) NOT NULL DEFAULT 1, -- BOOLEAN FALSE == 0, BOOLEAN TRUE == 1
   hidden                BOOLEAN CHECK (hidden IN (0, 1)) NOT NULL DEFAULT 0,
   enabled               BOOLEAN CHECK (enabled IN (0, 1)) NOT NULL DEFAULT 1
 );
@@ -32,7 +32,7 @@ CREATE TABLE IF NOT EXISTS post_policy (
   pk                   INTEGER PRIMARY KEY NOT NULL,
   list                 INTEGER NOT NULL UNIQUE,
   announce_only        BOOLEAN CHECK (announce_only IN (0, 1)) NOT NULL
-                       DEFAULT 0,
+                       DEFAULT 0, -- BOOLEAN FALSE == 0, BOOLEAN TRUE == 1
   subscription_only    BOOLEAN CHECK (subscription_only IN (0, 1)) NOT NULL
                        DEFAULT 0,
   approval_needed      BOOLEAN CHECK (approval_needed IN (0, 1)) NOT NULL
@@ -139,7 +139,7 @@ CREATE TABLE IF NOT EXISTS subscription_policy (
   pk                   INTEGER PRIMARY KEY NOT NULL,
   list                 INTEGER NOT NULL UNIQUE,
   send_confirmation    BOOLEAN CHECK (send_confirmation IN (0, 1)) NOT NULL
-                       DEFAULT 1,
+                       DEFAULT 1, -- BOOLEAN FALSE == 0, BOOLEAN TRUE == 1
   open                 BOOLEAN CHECK (open IN (0, 1)) NOT NULL DEFAULT 0,
   manual               BOOLEAN CHECK (manual IN (0, 1)) NOT NULL DEFAULT 0,
   request              BOOLEAN CHECK (request IN (0, 1)) NOT NULL DEFAULT 0,
@@ -199,7 +199,7 @@ CREATE TABLE IF NOT EXISTS subscription (
   name                    TEXT,
   account                 INTEGER,
   enabled                 BOOLEAN CHECK (enabled IN (0, 1)) NOT NULL
-                          DEFAULT 1,
+                          DEFAULT 1, -- BOOLEAN FALSE == 0, BOOLEAN TRUE == 1
   verified                BOOLEAN CHECK (verified IN (0, 1)) NOT NULL
                           DEFAULT 1,
   digest                  BOOLEAN CHECK (digest IN (0, 1)) NOT NULL
@@ -226,7 +226,7 @@ CREATE TABLE IF NOT EXISTS account (
   address          TEXT NOT NULL UNIQUE,
   public_key       TEXT,
   password         TEXT NOT NULL,
-  enabled          BOOLEAN CHECK (enabled IN (0, 1)) NOT NULL DEFAULT 1,
+  enabled          BOOLEAN CHECK (enabled IN (0, 1)) NOT NULL DEFAULT 1, -- BOOLEAN FALSE == 0, BOOLEAN TRUE == 1
   created          INTEGER NOT NULL DEFAULT (unixepoch()),
   last_modified    INTEGER NOT NULL DEFAULT (unixepoch())
 );
@@ -269,6 +269,53 @@ CREATE TABLE IF NOT EXISTS template (
   FOREIGN KEY (list) REFERENCES list(pk) ON DELETE CASCADE,
   UNIQUE (list, name) ON CONFLICT ROLLBACK
 );
+
+CREATE TABLE IF NOT EXISTS settings_json_schema (
+  pk               INTEGER PRIMARY KEY NOT NULL,
+  id               TEXT NOT NULL UNIQUE,
+  value            JSON NOT NULL CHECK (json_type(value) = 'object'),
+  created          INTEGER NOT NULL DEFAULT (unixepoch()),
+  last_modified    INTEGER NOT NULL DEFAULT (unixepoch())
+);
+
+CREATE TABLE IF NOT EXISTS list_settings_json (
+  pk               INTEGER PRIMARY KEY NOT NULL,
+  name             TEXT NOT NULL,
+  list             INTEGER,
+  value            JSON NOT NULL CHECK (json_type(value) = 'object'),
+  is_valid         BOOLEAN CHECK (is_valid IN (0, 1)) NOT NULL DEFAULT 0, -- BOOLEAN FALSE == 0, BOOLEAN TRUE == 1
+  created          INTEGER NOT NULL DEFAULT (unixepoch()),
+  last_modified    INTEGER NOT NULL DEFAULT (unixepoch()),
+  FOREIGN KEY (list) REFERENCES list(pk) ON DELETE CASCADE,
+  FOREIGN KEY (name) REFERENCES settings_json_schema(id) ON DELETE CASCADE,
+  UNIQUE (list, name) ON CONFLICT ROLLBACK
+);
+
+CREATE TRIGGER
+IF NOT EXISTS is_valid_settings_json_on_update
+AFTER UPDATE OF value, name, is_valid ON list_settings_json
+FOR EACH ROW
+BEGIN
+  SELECT RAISE(ROLLBACK, 'new settings value is not valid according to the json schema. Rolling back transaction.') FROM settings_json_schema AS schema WHERE schema.id = NEW.name AND NOT validate_json_schema(schema.value, NEW.value);
+  UPDATE list_settings_json SET is_valid = 1 WHERE pk = NEW.pk;
+END;
+
+CREATE TRIGGER
+IF NOT EXISTS is_valid_settings_json_on_insert
+AFTER INSERT ON list_settings_json
+FOR EACH ROW
+BEGIN
+  SELECT RAISE(ROLLBACK, 'new settings value is not valid according to the json schema. Rolling back transaction.') FROM settings_json_schema AS schema WHERE schema.id = NEW.name AND NOT validate_json_schema(schema.value, NEW.value);
+  UPDATE list_settings_json SET is_valid = 1 WHERE pk = NEW.pk;
+END;
+
+CREATE TRIGGER
+IF NOT EXISTS invalidate_settings_json_on_schema_update
+AFTER UPDATE OF value, id ON settings_json_schema
+FOR EACH ROW
+BEGIN
+  UPDATE list_settings_json SET name = NEW.id, is_valid = 0 WHERE name = OLD.id;
+END;
 
 -- # Queues
 --
@@ -386,7 +433,7 @@ CREATE TRIGGER
 IF NOT EXISTS last_modified_list
 AFTER UPDATE ON list
 FOR EACH ROW
-WHEN NEW.last_modified != OLD.last_modified
+WHEN NEW.last_modified == OLD.last_modified
 BEGIN
   UPDATE list SET last_modified = unixepoch()
   WHERE pk = NEW.pk;
@@ -397,7 +444,7 @@ CREATE TRIGGER
 IF NOT EXISTS last_modified_owner
 AFTER UPDATE ON owner
 FOR EACH ROW
-WHEN NEW.last_modified != OLD.last_modified
+WHEN NEW.last_modified == OLD.last_modified
 BEGIN
   UPDATE owner SET last_modified = unixepoch()
   WHERE pk = NEW.pk;
@@ -408,7 +455,7 @@ CREATE TRIGGER
 IF NOT EXISTS last_modified_post_policy
 AFTER UPDATE ON post_policy
 FOR EACH ROW
-WHEN NEW.last_modified != OLD.last_modified
+WHEN NEW.last_modified == OLD.last_modified
 BEGIN
   UPDATE post_policy SET last_modified = unixepoch()
   WHERE pk = NEW.pk;
@@ -419,7 +466,7 @@ CREATE TRIGGER
 IF NOT EXISTS last_modified_subscription_policy
 AFTER UPDATE ON subscription_policy
 FOR EACH ROW
-WHEN NEW.last_modified != OLD.last_modified
+WHEN NEW.last_modified == OLD.last_modified
 BEGIN
   UPDATE subscription_policy SET last_modified = unixepoch()
   WHERE pk = NEW.pk;
@@ -430,7 +477,7 @@ CREATE TRIGGER
 IF NOT EXISTS last_modified_subscription
 AFTER UPDATE ON subscription
 FOR EACH ROW
-WHEN NEW.last_modified != OLD.last_modified
+WHEN NEW.last_modified == OLD.last_modified
 BEGIN
   UPDATE subscription SET last_modified = unixepoch()
   WHERE pk = NEW.pk;
@@ -441,7 +488,7 @@ CREATE TRIGGER
 IF NOT EXISTS last_modified_account
 AFTER UPDATE ON account
 FOR EACH ROW
-WHEN NEW.last_modified != OLD.last_modified
+WHEN NEW.last_modified == OLD.last_modified
 BEGIN
   UPDATE account SET last_modified = unixepoch()
   WHERE pk = NEW.pk;
@@ -452,7 +499,7 @@ CREATE TRIGGER
 IF NOT EXISTS last_modified_candidate_subscription
 AFTER UPDATE ON candidate_subscription
 FOR EACH ROW
-WHEN NEW.last_modified != OLD.last_modified
+WHEN NEW.last_modified == OLD.last_modified
 BEGIN
   UPDATE candidate_subscription SET last_modified = unixepoch()
   WHERE pk = NEW.pk;
@@ -463,9 +510,31 @@ CREATE TRIGGER
 IF NOT EXISTS last_modified_template
 AFTER UPDATE ON template
 FOR EACH ROW
-WHEN NEW.last_modified != OLD.last_modified
+WHEN NEW.last_modified == OLD.last_modified
 BEGIN
   UPDATE template SET last_modified = unixepoch()
+  WHERE pk = NEW.pk;
+END;
+
+-- [tag:last_modified_settings_json_schema]: update last_modified on every change.
+CREATE TRIGGER
+IF NOT EXISTS last_modified_settings_json_schema
+AFTER UPDATE ON settings_json_schema
+FOR EACH ROW
+WHEN NEW.last_modified == OLD.last_modified
+BEGIN
+  UPDATE settings_json_schema SET last_modified = unixepoch()
+  WHERE pk = NEW.pk;
+END;
+
+-- [tag:last_modified_list_settings_json]: update last_modified on every change.
+CREATE TRIGGER
+IF NOT EXISTS last_modified_list_settings_json
+AFTER UPDATE ON list_settings_json
+FOR EACH ROW
+WHEN NEW.last_modified == OLD.last_modified
+BEGIN
+  UPDATE list_settings_json SET last_modified = unixepoch()
   WHERE pk = NEW.pk;
 END;
 

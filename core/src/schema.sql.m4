@@ -11,6 +11,7 @@ dnl # Define boolean column types and defaults
 define(BOOLEAN_TYPE, `BOOLEAN CHECK ($1 IN (0, 1)) NOT NULL')dnl
 define(BOOLEAN_FALSE, `0')dnl
 define(BOOLEAN_TRUE, `1')dnl
+define(BOOLEAN_DOCS, ` -- BOOLEAN FALSE == 0, BOOLEAN TRUE == 1')dnl
 dnl
 dnl # defile comment functions
 dnl
@@ -26,7 +27,7 @@ CREATE TRIGGER
 IF NOT EXISTS last_modified_$1
 AFTER UPDATE ON $1
 FOR EACH ROW
-WHEN NEW.last_modified != OLD.last_modified
+WHEN NEW.last_modified == OLD.last_modified
 BEGIN
   UPDATE $1 SET last_modified = unixepoch()
   WHERE pk = NEW.pk;
@@ -47,7 +48,7 @@ CREATE TABLE IF NOT EXISTS list (
   topics                JSON NOT NULL CHECK (json_type(topics) = 'array') DEFAULT '[]',
   created               INTEGER NOT NULL DEFAULT (unixepoch()),
   last_modified         INTEGER NOT NULL DEFAULT (unixepoch()),
-  verify                BOOLEAN_TYPE(verify) DEFAULT BOOLEAN_TRUE(),
+  verify                BOOLEAN_TYPE(verify) DEFAULT BOOLEAN_TRUE(),BOOLEAN_DOCS()
   hidden                BOOLEAN_TYPE(hidden) DEFAULT BOOLEAN_FALSE(),
   enabled               BOOLEAN_TYPE(enabled) DEFAULT BOOLEAN_TRUE()
 );
@@ -66,7 +67,7 @@ CREATE TABLE IF NOT EXISTS post_policy (
   pk                   INTEGER PRIMARY KEY NOT NULL,
   list                 INTEGER NOT NULL UNIQUE,
   announce_only        BOOLEAN_TYPE(announce_only)
-                       DEFAULT BOOLEAN_FALSE(),
+                       DEFAULT BOOLEAN_FALSE(),BOOLEAN_DOCS()
   subscription_only    BOOLEAN_TYPE(subscription_only)
                        DEFAULT BOOLEAN_FALSE(),
   approval_needed      BOOLEAN_TYPE(approval_needed)
@@ -83,7 +84,7 @@ CREATE TABLE IF NOT EXISTS subscription_policy (
   pk                   INTEGER PRIMARY KEY NOT NULL,
   list                 INTEGER NOT NULL UNIQUE,
   send_confirmation    BOOLEAN_TYPE(send_confirmation)
-                       DEFAULT BOOLEAN_TRUE(),
+                       DEFAULT BOOLEAN_TRUE(),BOOLEAN_DOCS()
   open                 BOOLEAN_TYPE(open) DEFAULT BOOLEAN_FALSE(),
   manual               BOOLEAN_TYPE(manual) DEFAULT BOOLEAN_FALSE(),
   request              BOOLEAN_TYPE(request) DEFAULT BOOLEAN_FALSE(),
@@ -101,7 +102,7 @@ CREATE TABLE IF NOT EXISTS subscription (
   name                    TEXT,
   account                 INTEGER,
   enabled                 BOOLEAN_TYPE(enabled)
-                          DEFAULT BOOLEAN_TRUE(),
+                          DEFAULT BOOLEAN_TRUE(),BOOLEAN_DOCS()
   verified                BOOLEAN_TYPE(verified)
                           DEFAULT BOOLEAN_TRUE(),
   digest                  BOOLEAN_TYPE(digest)
@@ -128,7 +129,7 @@ CREATE TABLE IF NOT EXISTS account (
   address          TEXT NOT NULL UNIQUE,
   public_key       TEXT,
   password         TEXT NOT NULL,
-  enabled          BOOLEAN_TYPE(enabled) DEFAULT BOOLEAN_TRUE(),
+  enabled          BOOLEAN_TYPE(enabled) DEFAULT BOOLEAN_TRUE(),BOOLEAN_DOCS()
   created          INTEGER NOT NULL DEFAULT (unixepoch()),
   last_modified    INTEGER NOT NULL DEFAULT (unixepoch())
 );
@@ -171,6 +172,53 @@ CREATE TABLE IF NOT EXISTS template (
   FOREIGN KEY (list) REFERENCES list(pk) ON DELETE CASCADE,
   UNIQUE (list, name) ON CONFLICT ROLLBACK
 );
+
+CREATE TABLE IF NOT EXISTS settings_json_schema (
+  pk               INTEGER PRIMARY KEY NOT NULL,
+  id               TEXT NOT NULL UNIQUE,
+  value            JSON NOT NULL CHECK (json_type(value) = 'object'),
+  created          INTEGER NOT NULL DEFAULT (unixepoch()),
+  last_modified    INTEGER NOT NULL DEFAULT (unixepoch())
+);
+
+CREATE TABLE IF NOT EXISTS list_settings_json (
+  pk               INTEGER PRIMARY KEY NOT NULL,
+  name             TEXT NOT NULL,
+  list             INTEGER,
+  value            JSON NOT NULL CHECK (json_type(value) = 'object'),
+  is_valid         BOOLEAN_TYPE(is_valid) DEFAULT BOOLEAN_FALSE(),BOOLEAN_DOCS()
+  created          INTEGER NOT NULL DEFAULT (unixepoch()),
+  last_modified    INTEGER NOT NULL DEFAULT (unixepoch()),
+  FOREIGN KEY (list) REFERENCES list(pk) ON DELETE CASCADE,
+  FOREIGN KEY (name) REFERENCES settings_json_schema(id) ON DELETE CASCADE,
+  UNIQUE (list, name) ON CONFLICT ROLLBACK
+);
+
+CREATE TRIGGER
+IF NOT EXISTS is_valid_settings_json_on_update
+AFTER UPDATE OF value, name, is_valid ON list_settings_json
+FOR EACH ROW
+BEGIN
+  SELECT RAISE(ROLLBACK, 'new settings value is not valid according to the json schema. Rolling back transaction.') FROM settings_json_schema AS schema WHERE schema.id = NEW.name AND NOT validate_json_schema(schema.value, NEW.value);
+  UPDATE list_settings_json SET is_valid = BOOLEAN_TRUE() WHERE pk = NEW.pk;
+END;
+
+CREATE TRIGGER
+IF NOT EXISTS is_valid_settings_json_on_insert
+AFTER INSERT ON list_settings_json
+FOR EACH ROW
+BEGIN
+  SELECT RAISE(ROLLBACK, 'new settings value is not valid according to the json schema. Rolling back transaction.') FROM settings_json_schema AS schema WHERE schema.id = NEW.name AND NOT validate_json_schema(schema.value, NEW.value);
+  UPDATE list_settings_json SET is_valid = BOOLEAN_TRUE() WHERE pk = NEW.pk;
+END;
+
+CREATE TRIGGER
+IF NOT EXISTS invalidate_settings_json_on_schema_update
+AFTER UPDATE OF value, id ON settings_json_schema
+FOR EACH ROW
+BEGIN
+  UPDATE list_settings_json SET name = NEW.id, is_valid = BOOLEAN_FALSE() WHERE name = OLD.id;
+END;
 
 -- # Queues
 --
@@ -290,6 +338,8 @@ update_last_modified(`subscription')
 update_last_modified(`account')
 update_last_modified(`candidate_subscription')
 update_last_modified(`template')
+update_last_modified(`settings_json_schema')
+update_last_modified(`list_settings_json')
 
 CREATE TRIGGER
 IF NOT EXISTS sort_topics_update_trigger

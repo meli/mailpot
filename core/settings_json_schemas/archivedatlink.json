@@ -1,0 +1,31 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema",
+  "$ref": "#/$defs/ArchivedAtLinkSettings",
+  "$defs": {
+    "ArchivedAtLinkSettings": {
+      "title": "ArchivedAtLinkSettings",
+      "description": "Settings for ArchivedAtLink message filter",
+      "type": "object",
+      "properties": {
+        "template": {
+          "title": "Jinja template for header value",
+          "description": "Template for `Archived-At` header value, as described in RFC 5064 \"The Archived-At Message Header Field\". The template receives only one string variable with the value of the mailing list post `Message-ID` header.\n\nFor example, if:\n\n- the template is `http://www.example.com/mid/{{msg_id}}`\n- the `Message-ID` is `<0C2U00F01DFGCR@mailsj-v3.example.com>`\n\nThe full header will be generated as:\n\n`Archived-At: <http://www.example.com/mid/0C2U00F01DFGCR@mailsj-v3.example.com>\n\nNote: Surrounding carets in the `Message-ID` value are not required. If you wish to preserve them in the URL, set option `preserve-carets` to true.",
+          "examples": [
+            "https://www.example.com/{{msg_id}}",
+            "https://www.example.com/{{msg_id}}.html"
+          ],
+          "type": "string",
+          "pattern": ".+[{][{]msg_id[}][}].*"
+        },
+        "preserve_carets": {
+          "title": "Preserve carets of `Message-ID` in generated value",
+          "type": "boolean",
+          "default": false
+        }
+      },
+      "required": [
+        "template"
+      ]
+    }
+  }
+}

@@ -144,6 +144,38 @@ impl ConnectionExt for rusqlite::Connection {
     }
 }
 
+const FIRST_SCHEMA: &str = r#"
+PRAGMA foreign_keys = true;
+PRAGMA encoding = 'UTF-8';
+PRAGMA schema_version = 0;
+
+CREATE TABLE IF NOT EXISTS person (
+  pk               INTEGER PRIMARY KEY NOT NULL,
+  name             TEXT,
+  address          TEXT NOT NULL,
+  created          INTEGER NOT NULL DEFAULT (unixepoch()),
+  last_modified    INTEGER NOT NULL DEFAULT (unixepoch())
+);
+"#;
+
+const MIGRATIONS: &[(u32, &str, &str)] = &[
+    (
+        1,
+        "ALTER TABLE PERSON ADD COLUMN interests TEXT;",
+        "ALTER TABLE PERSON DROP COLUMN interests;",
+    ),
+    (
+        2,
+        "CREATE TABLE hobby ( pk INTEGER PRIMARY KEY NOT NULL,title TEXT NOT NULL);",
+        "DROP TABLE hobby;",
+    ),
+    (
+        3,
+        "ALTER TABLE PERSON ADD COLUMN main_hobby INTEGER REFERENCES hobby(pk) ON DELETE SET NULL;",
+        "ALTER TABLE PERSON DROP COLUMN main_hobby;",
+    ),
+];
+
 #[test]
 fn test_migration_gen() {
     init_stderr_logging();
@@ -329,35 +361,3 @@ CREATE TABLE person (
         )
     );
 }
-
-const FIRST_SCHEMA: &str = r#"
-PRAGMA foreign_keys = true;
-PRAGMA encoding = 'UTF-8';
-PRAGMA schema_version = 0;
-
-CREATE TABLE IF NOT EXISTS person (
-  pk               INTEGER PRIMARY KEY NOT NULL,
-  name             TEXT,
-  address          TEXT NOT NULL,
-  created          INTEGER NOT NULL DEFAULT (unixepoch()),
-  last_modified    INTEGER NOT NULL DEFAULT (unixepoch())
-);
-"#;
-
-const MIGRATIONS: &[(u32, &str, &str)] = &[
-    (
-        1,
-        "ALTER TABLE PERSON ADD COLUMN interests TEXT;",
-        "ALTER TABLE PERSON DROP COLUMN interests;",
-    ),
-    (
-        2,
-        "CREATE TABLE hobby ( pk INTEGER PRIMARY KEY NOT NULL,title TEXT NOT NULL);",
-        "DROP TABLE hobby;",
-    ),
-    (
-        3,
-        "ALTER TABLE PERSON ADD COLUMN main_hobby INTEGER REFERENCES hobby(pk) ON DELETE SET NULL;",
-        "ALTER TABLE PERSON DROP COLUMN main_hobby;",
-    ),
-];

@@ -24,8 +24,9 @@ use std::{
     process::{Command, Stdio},
 };
 
+use jsonschema::JSONSchema;
 use log::{info, trace};
-use rusqlite::{Connection as DbConnection, OptionalExtension};
+use rusqlite::{functions::FunctionFlags, Connection as DbConnection, OptionalExtension};
 
 use crate::{
     config::Configuration,
@@ -65,9 +66,9 @@ impl Drop for Connection {
 
 fn log_callback(error_code: std::ffi::c_int, message: &str) {
     match error_code {
+        rusqlite::ffi::SQLITE_NOTICE => log::trace!("{}", message),
         rusqlite::ffi::SQLITE_OK
         | rusqlite::ffi::SQLITE_DONE
-        | rusqlite::ffi::SQLITE_NOTICE
         | rusqlite::ffi::SQLITE_NOTICE_RECOVER_WAL
         | rusqlite::ffi::SQLITE_NOTICE_RECOVER_ROLLBACK => log::info!("{}", message),
         rusqlite::ffi::SQLITE_WARNING | rusqlite::ffi::SQLITE_WARNING_AUTOINDEX => {
@@ -198,6 +199,44 @@ impl Connection {
         conn.set_db_config(DbConfig::SQLITE_DBCONFIG_TRUSTED_SCHEMA, true)?;
         conn.busy_timeout(core::time::Duration::from_millis(500))?;
         conn.busy_handler(Some(|times: i32| -> bool { times < 5 }))?;
+        conn.create_scalar_function(
+            "validate_json_schema",
+            2,
+            FunctionFlags::SQLITE_INNOCUOUS
+                | FunctionFlags::SQLITE_UTF8
+                | FunctionFlags::SQLITE_DETERMINISTIC,
+            |ctx| {
+                if log::log_enabled!(log::Level::Trace) {
+                    rusqlite::trace::log(
+                        rusqlite::ffi::SQLITE_NOTICE,
+                        "validate_json_schema RUNNING",
+                    );
+                }
+                let map_err = rusqlite::Error::UserFunctionError;
+                let schema = ctx.get::<String>(0)?;
+                let value = ctx.get::<String>(1)?;
+                let schema_val: serde_json::Value = serde_json::from_str(&schema)
+                    .map_err(Into::into)
+                    .map_err(map_err)?;
+                let value: serde_json::Value = serde_json::from_str(&value)
+                    .map_err(Into::into)
+                    .map_err(map_err)?;
+                let compiled = JSONSchema::compile(&schema_val)
+                    .map_err(|err| err.to_string())
+                    .map_err(Into::into)
+                    .map_err(map_err)?;
+                let x = if let Err(errors) = compiled.validate(&value) {
+                    for err in errors {
+                        rusqlite::trace::log(rusqlite::ffi::SQLITE_WARNING, &err.to_string());
+                        drop(err);
+                    }
+                    Ok(false)
+                } else {
+                    Ok(true)
+                };
+                x
+            },
+        )?;
 
         let ret = Self {
             conf,
