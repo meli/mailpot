@@ -51,9 +51,10 @@ impl Connection {
     /// Return the post filters of a mailing list.
     pub fn list_filters(&self, _list: &DbVal<MailingList>) -> Vec<Box<dyn PostFilter>> {
         vec![
-            Box::new(FixCRLF),
             Box::new(PostRightsCheck),
+            Box::new(FixCRLF),
             Box::new(AddListHeaders),
+            Box::new(AddSubjectTagPrefix),
             Box::new(FinalizeRecipients),
         ]
     }
@@ -163,16 +164,6 @@ impl PostFilter for AddListHeaders {
         let (mut headers, body) = melib::email::parser::mail(&post.bytes).unwrap();
         let sender = format!("<{}>", ctx.list.address);
         headers.push((&b"Sender"[..], sender.as_bytes()));
-        let mut subject = format!("[{}] ", ctx.list.id).into_bytes();
-        if let Some((_, subj_val)) = headers
-            .iter_mut()
-            .find(|(k, _)| k.eq_ignore_ascii_case(b"Subject"))
-        {
-            subject.extend(subj_val.iter().cloned());
-            *subj_val = subject.as_slice();
-        } else {
-            headers.push((&b"Subject"[..], subject.as_slice()));
-        }
 
         let list_id = Some(ctx.list.id_header());
         let list_help = ctx.list.help_header();
@@ -196,6 +187,51 @@ impl PostFilter for AddListHeaders {
             if let Some(val) = val {
                 headers.push((hdr, val.as_bytes()));
             }
+        }
+
+        let mut new_vec = Vec::with_capacity(
+            headers
+                .iter()
+                .map(|(h, v)| h.len() + v.len() + ": \r\n".len())
+                .sum::<usize>()
+                + "\r\n\r\n".len()
+                + body.len(),
+        );
+        for (h, v) in headers {
+            new_vec.extend_from_slice(h);
+            new_vec.extend_from_slice(b": ");
+            new_vec.extend_from_slice(v);
+            new_vec.extend_from_slice(b"\r\n");
+        }
+        new_vec.extend_from_slice(b"\r\n\r\n");
+        new_vec.extend_from_slice(body);
+
+        post.bytes = new_vec;
+        Ok((post, ctx))
+    }
+}
+
+/// Add List ID prefix in Subject header (e.g. `[list-id] ...`)
+pub struct AddSubjectTagPrefix;
+impl PostFilter for AddSubjectTagPrefix {
+    fn feed<'p, 'list>(
+        self: Box<Self>,
+        post: &'p mut PostEntry,
+        ctx: &'p mut ListContext<'list>,
+    ) -> std::result::Result<(&'p mut PostEntry, &'p mut ListContext<'list>), ()> {
+        trace!("Running AddSubjectTagPrefix filter");
+        let (mut headers, body) = melib::email::parser::mail(&post.bytes).unwrap();
+        let mut subject;
+        if let Some((_, subj_val)) = headers
+            .iter_mut()
+            .find(|(k, _)| k.eq_ignore_ascii_case(b"Subject"))
+        {
+            subject = format!("[{}] ", ctx.list.id).into_bytes();
+            subject.extend(subj_val.iter().cloned());
+            *subj_val = subject.as_slice();
+        } else {
+            subject = format!("[{}] (no subject)", ctx.list.id).into_bytes();
+            headers.push((&b"Subject"[..], subject.as_slice()));
         }
 
         let mut new_vec = Vec::with_capacity(
