@@ -1016,8 +1016,24 @@
     }
 
     .tag {
+        --aa-brightness: ((var(--red) * 299) + (var(--green) * 587) + (var(--blue) * 114)) / 1000;
+        --aa-color: calc((var(--aa-brightness) - 128) * -1000);
+
         --padding-top-bottom: 0.2rem;
         --padding-left-right: .5rem;
+        --padding-top-bottom: 0.5rem;
+        --height: calc(1.5cap + var(--padding-top-bottom));
+        /* fallback */
+        max-height: 1rem;
+        max-height: var(--height);
+        min-height: 1.45rem;
+        /* fallback */
+        line-height: 1.3;
+        line-height: calc(var(--height) / 2);
+        min-width: max-content;
+        /* fallback */
+        min-height: 1rem;
+        min-height: var(--height);
 
         display: inline-block;
         border: 1px solid var(--tag-border-color);
@@ -1026,16 +1042,8 @@
         font-size: 1.05rem;
         padding: calc(var(--padding-top-bottom) / 2) var(--padding-left-right) var(--padding-top-bottom) var(--padding-left-right);
         text-decoration: none;
-        --aa-brightness: ((var(--red) * 299) + (var(--green) * 587) + (var(--blue) * 114)) / 1000;
-        --aa-color: calc((var(--aa-brightness) - 128) * -1000);
         background: rgb(var(--red), var(--green), var(--blue));
         color: rgb(var(--aa-color), var(--aa-color), var(--aa-color));
-        min-width: max-content;
-        /* fallback */
-        max-height: 1rem;
-        min-height: 1rem;
-        max-height: calc(1.5cap + var(--padding-top-bottom));
-        min-height: calc(1.5cap + var(--padding-top-bottom));
     }
 
     span.tag-name a {
