@@ -181,11 +181,13 @@ impl Connection {
                 post_policy: self.list_post_policy(list.pk)?,
                 subscription_policy: self.list_subscription_policy(list.pk)?,
                 list_owners: &owners,
-                list: &mut list,
                 subscriptions: &subscriptions,
                 scheduled_jobs: vec![],
+                filter_settings: self.get_settings(list.pk)?,
+                list: &mut list,
             };
             let mut post = PostEntry {
+                message_id: env.message_id().clone(),
                 from: env.from()[0].clone(),
                 bytes: raw.to_vec(),
                 to: env.to().to_vec(),

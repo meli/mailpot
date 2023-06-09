@@ -38,13 +38,16 @@
 //!
 //! so the processing stops at the first returned error.
 
+mod settings;
 use log::trace;
 use melib::Address;
+use percent_encoding::utf8_percent_encode;
+pub use settings::*;
 
 use crate::{
     mail::{ListContext, MailJob, PostAction, PostEntry},
     models::{DbVal, MailingList},
-    Connection,
+    Connection, StripCarets, PATH_SEGMENT,
 };
 
 impl Connection {
@@ -54,6 +57,7 @@ impl Connection {
             Box::new(PostRightsCheck),
             Box::new(FixCRLF),
             Box::new(AddListHeaders),
+            Box::new(ArchivedAtLink),
             Box::new(AddSubjectTagPrefix),
             Box::new(FinalizeRecipients),
         ]
@@ -219,6 +223,18 @@ impl PostFilter for AddSubjectTagPrefix {
         post: &'p mut PostEntry,
         ctx: &'p mut ListContext<'list>,
     ) -> std::result::Result<(&'p mut PostEntry, &'p mut ListContext<'list>), ()> {
+        if let Some(mut settings) = ctx.filter_settings.remove("AddSubjectTagPrefixSettings") {
+            let map = settings.as_object_mut().unwrap();
+            let enabled = serde_json::from_value::<bool>(map.remove("enabled").unwrap()).unwrap();
+            if !enabled {
+                trace!(
+                    "AddSubjectTagPrefix is disabled from settings found for list.pk = {} \
+                     skipping filter",
+                    ctx.list.pk
+                );
+                return Ok((post, ctx));
+            }
+        }
         trace!("Running AddSubjectTagPrefix filter");
         let (mut headers, body) = melib::email::parser::mail(&post.bytes).unwrap();
         let mut subject;
@@ -264,7 +280,58 @@ impl PostFilter for ArchivedAtLink {
         post: &'p mut PostEntry,
         ctx: &'p mut ListContext<'list>,
     ) -> std::result::Result<(&'p mut PostEntry, &'p mut ListContext<'list>), ()> {
+        let Some(mut settings) = ctx.filter_settings.remove("ArchivedAtLinkSettings") else {
+            trace!("No ArchivedAtLink settings found for list.pk = {} skipping filter", ctx.list.pk);
+            return Ok((post, ctx));
+        };
         trace!("Running ArchivedAtLink filter");
+
+        let map = settings.as_object_mut().unwrap();
+        let template = serde_json::from_value::<String>(map.remove("template").unwrap()).unwrap();
+        let preserve_carets =
+            serde_json::from_value::<bool>(map.remove("preserve_carets").unwrap()).unwrap();
+
+        let env = minijinja::Environment::new();
+        let message_id = post.message_id.to_string();
+        let header_val = env
+            .render_named_str(
+                "ArchivedAtLinkSettings.template",
+                &template,
+                &if preserve_carets {
+                    minijinja::context! {
+                    msg_id =>  utf8_percent_encode(message_id.as_str(), PATH_SEGMENT).to_string()
+                    }
+                } else {
+                    minijinja::context! {
+                    msg_id =>  utf8_percent_encode(message_id.as_str().strip_carets(), PATH_SEGMENT).to_string()
+                    }
+                },
+            )
+            .map_err(|err| {
+                log::error!("ArchivedAtLink: {}", err);
+            })?;
+        let (mut headers, body) = melib::email::parser::mail(&post.bytes).unwrap();
+        headers.push((&b"Archived-At"[..], header_val.as_bytes()));
+
+        let mut new_vec = Vec::with_capacity(
+            headers
+                .iter()
+                .map(|(h, v)| h.len() + v.len() + ": \r\n".len())
+                .sum::<usize>()
+                + "\r\n\r\n".len()
+                + body.len(),
+        );
+        for (h, v) in headers {
+            new_vec.extend_from_slice(h);
+            new_vec.extend_from_slice(b": ");
+            new_vec.extend_from_slice(v);
+            new_vec.extend_from_slice(b"\r\n");
+        }
+        new_vec.extend_from_slice(b"\r\n\r\n");
+        new_vec.extend_from_slice(body);
+
+        post.bytes = new_vec;
+
         Ok((post, ctx))
     }
 }

@@ -613,7 +613,7 @@ impl ListOwner {
 }
 
 /// A mailing list post entry.
-#[derive(Clone, Debug, Deserialize, Serialize, PartialEq, Eq)]
+#[derive(Clone, Deserialize, Serialize, PartialEq, Eq)]
 pub struct Post {
     /// Database primary key.
     pub pk: i64,
@@ -633,6 +633,22 @@ pub struct Post {
     pub datetime: String,
     /// Month-year as a `YYYY-mm` formatted string, for use in archives.
     pub month_year: String,
+}
+
+impl std::fmt::Debug for Post {
+    fn fmt(&self, fmt: &mut std::fmt::Formatter) -> std::fmt::Result {
+        fmt.debug_struct(stringify!(Post))
+            .field("pk", &self.pk)
+            .field("list", &self.list)
+            .field("envelope_from", &self.envelope_from)
+            .field("address", &self.address)
+            .field("message_id", &self.message_id)
+            .field("message", &String::from_utf8_lossy(&self.message))
+            .field("timestamp", &self.timestamp)
+            .field("datetime", &self.datetime)
+            .field("month_year", &self.month_year)
+            .finish()
+    }
 }
 
 impl std::fmt::Display for Post {

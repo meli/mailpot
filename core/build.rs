@@ -18,31 +18,30 @@
  */
 
 use std::{
-    fs::{metadata, OpenOptions},
-    io,
+    fs::OpenOptions,
     process::{Command, Stdio},
 };
 
-// Source: https://stackoverflow.com/a/64535181
-fn is_output_file_outdated<P1, P2>(input: P1, output: P2) -> io::Result<bool>
-where
-    P1: AsRef<Path>,
-    P2: AsRef<Path>,
-{
-    let out_meta = metadata(output);
-    if let Ok(meta) = out_meta {
-        let output_mtime = meta.modified()?;
-
-        // if input file is more recent than our output, we are outdated
-        let input_meta = metadata(input)?;
-        let input_mtime = input_meta.modified()?;
-
-        Ok(input_mtime > output_mtime)
-    } else {
-        // output file not found, we are outdated
-        Ok(true)
-    }
-}
+// // Source: https://stackoverflow.com/a/64535181
+// fn is_output_file_outdated<P1, P2>(input: P1, output: P2) -> io::Result<bool>
+// where
+//     P1: AsRef<Path>,
+//     P2: AsRef<Path>,
+// {
+//     let out_meta = metadata(output);
+//     if let Ok(meta) = out_meta {
+//         let output_mtime = meta.modified()?;
+//
+//         // if input file is more recent than our output, we are outdated
+//         let input_meta = metadata(input)?;
+//         let input_mtime = input_meta.modified()?;
+//
+//         Ok(input_mtime > output_mtime)
+//     } else {
+//         // output file not found, we are outdated
+//         Ok(true)
+//     }
+// }
 
 include!("make_migrations.rs");
 

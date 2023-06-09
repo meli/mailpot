@@ -21,8 +21,10 @@
 //! [`PostFilter`](crate::message_filters::PostFilter), [`ListContext`],
 //! [`MailJob`] and [`PostAction`].
 
+use std::collections::HashMap;
+
 use log::trace;
-use melib::Address;
+use melib::{Address, MessageID};
 
 use crate::{
     models::{ListOwner, ListSubscription, MailingList, PostPolicy, SubscriptionPolicy},
@@ -65,6 +67,9 @@ pub struct ListContext<'list> {
     /// The scheduled jobs added by each filter in a list's
     /// [`PostFilter`](crate::message_filters::PostFilter) stack.
     pub scheduled_jobs: Vec<MailJob>,
+    /// Saved settings for message filters, which process a
+    /// received e-mail before taking a final decision/action.
+    pub filter_settings: HashMap<String, DbVal<serde_json::Value>>,
 }
 
 /// Post to be considered by the list's
@@ -79,12 +84,15 @@ pub struct PostEntry {
     /// Final action set by each filter in a list's
     /// [`PostFilter`](crate::message_filters::PostFilter) stack.
     pub action: PostAction,
+    /// Post's Message-ID
+    pub message_id: MessageID,
 }
 
 impl core::fmt::Debug for PostEntry {
     fn fmt(&self, fmt: &mut core::fmt::Formatter) -> core::fmt::Result {
         fmt.debug_struct(stringify!(PostEntry))
             .field("from", &self.from)
+            .field("message_id", &self.message_id)
             .field("bytes", &format_args!("{} bytes", self.bytes.len()))
             .field("to", &self.to.as_slice())
             .field("action", &self.action)

@@ -60,7 +60,8 @@ fn test_settings_json() {
             rusqlite::params![
                 &list.pk(),
                 &json!({
-                    "template": "https://www.example.com/{msg-id}.html"
+                    "template": "https://www.example.com/{{msg_id}}.html",
+                    "preserve_carets": false
                 }),
             ],
             |row| {
@@ -103,7 +104,7 @@ fn test_settings_json() {
                     rusqlite::params![
                         &list.pk(),
                         &json!({
-                            "template": "https://www.example.com/msg-id}.html"
+                            "template": "https://www.example.com/msg-id}.html" // should be msg_id
                         }),
                     ],
                     |row| {
@@ -132,7 +133,7 @@ fn test_settings_json() {
             &stmt
                 .query_row(
                     rusqlite::params![&json!({
-                        "template": "https://www.example.com/msg-id}.html"
+                        "template": "https://www.example.com/msg-id}.html" // should be msg_id
                     }),],
                     |row| {
                         let pk: i64 = row.get("pk")?;

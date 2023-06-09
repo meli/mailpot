@@ -17,32 +17,12 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-use std::fs::{metadata, File, OpenOptions};
+use std::fs::{File, OpenOptions};
 
 use mailpot::{Configuration, Connection, SendMail};
 use mailpot_tests::init_stderr_logging;
 use tempfile::TempDir;
 
-// Source: https://stackoverflow.com/a/64535181
-fn is_output_file_outdated<P1, P2>(input: P1, output: P2) -> std::io::Result<bool>
-where
-    P1: AsRef<Path>,
-    P2: AsRef<Path>,
-{
-    let out_meta = metadata(output);
-    if let Ok(meta) = out_meta {
-        let output_mtime = meta.modified()?;
-
-        // if input file is more recent than our output, we are outdated
-        let input_meta = metadata(input)?;
-        let input_mtime = input_meta.modified()?;
-
-        Ok(input_mtime > output_mtime)
-    } else {
-        // output file not found, we are outdated
-        Ok(true)
-    }
-}
 include!("../make_migrations.rs");
 
 #[test]

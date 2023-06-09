@@ -359,7 +359,7 @@ mod tests {
             assert_eq!(
                 res.headers().get(http::header::CONTENT_DISPOSITION),
                 Some(&http::HeaderValue::from_static(
-                    "attachment; filename=\"<abcdefgh@sator.example.com>.eml\""
+                    "attachment; filename=\"abcdefgh@sator.example.com.eml\""
                 )),
             );
         }
