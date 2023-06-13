@@ -1,12 +1,13 @@
 {% include "header.html" %}
 <div class="body">
-  <p>Results for <em>{{ term }}</em></p>
+  <p style="margin-block-end: 1rem;">Results for <em>{{ term }}</em></p>
   <div class="entry">
-    <ul>
-      {% for r in results %}
-        <li><a href="{{ list_path(r.pk) }}">{{ r.id }}</a>. {% if r.topics|length > 0 %}<br aria-hidden="true"><br aria-hidden="true"><span><em>Topics</em>:</span>&nbsp;{{ r.topics_html() }}{% endif %}
+    <dl class="lists" aria-label="list of mailing lists">
+      {% for list in results %}
+        <dt aria-label="mailing list name"><a href="{{ list_path(list.id) }}">{{ list.id }}</a></dt>
+        <dd><span aria-label="mailing list description"{% if not list.description %} class="no-description"{% endif %}>{{ list.description if list.description else "<p>no description</p>"|safe }}</span>{% if list.topics|length > 0 %}<span class="list-topics"><span>Topics:</span>&nbsp;{{ list.topics_html() }}</span>{% endif %}</dd>
       {% endfor %}
-    </ul>
+    </dl>
   </div>
 </div>
 {% include "footer.html" %}

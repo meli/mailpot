@@ -763,6 +763,21 @@
 
     dl.lists dt {
         font-weight: bold;
+        font-size: 1.2rem;
+        padding-bottom: .3em;
+        background: #88929d36;
+        padding: .2rem .2rem;
+        border-radius: .2rem;
+    }
+
+    dl.lists dd > * + * {
+        margin-top: 1rem;
+    }
+
+    dl.lists dd .list-topics,
+    dl.lists dd .list-posts-dates {
+        display: block;
+        width: 100%;
     }
 
     dl.lists dl,
@@ -775,9 +790,10 @@
         margin-bottom: 1rem;
         margin-block-start: 0.3rem;
         margin-block-end: 1rem;
+        line-height: 1.5;
     }
 
-    dl.lists dd.no-description {
+    dl.lists .no-description {
         color: var(--text-faded);
     }
 
@@ -1060,5 +1076,10 @@
         font-style: italic;
         border-inline-start: 1px solid var(--graphical-fg);
         color: var(--muted-fg);
+    }
+
+    time, .tabular-nums {
+        font-family: var(--grotesque-system-stack);
+        font-variant-numeric: tabular-nums slashed-zero;
     }
 </style>

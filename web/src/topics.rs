@@ -28,6 +28,7 @@ pub struct SearchTerm {
 pub struct SearchResult {
     pk: i64,
     id: String,
+    description: Option<String>,
     topics: Vec<String>,
 }
 
@@ -63,13 +64,19 @@ impl minijinja::value::StructObject for SearchResult {
         match name {
             "pk" => Some(Value::from_serializable(&self.pk)),
             "id" => Some(Value::from_serializable(&self.id)),
+            "description" => Some(
+                self.description
+                    .clone()
+                    .map(Value::from_safe_string)
+                    .unwrap_or_else(|| Value::from_serializable(&self.description)),
+            ),
             "topics" => Some(Value::from_serializable(&self.topics)),
             _ => None,
         }
     }
 
     fn static_fields(&self) -> Option<&'static [&'static str]> {
-        Some(&["pk", "id", "topics"][..])
+        Some(&["pk", "id", "description", "topics"][..])
     }
 }
 pub async fn list_topics(
@@ -84,14 +91,20 @@ pub async fn list_topics(
     let results: Vec<Value> = {
         if let Some(term) = term.as_ref() {
             let mut stmt = db.connection.prepare(
-                "SELECT DISTINCT list.pk, list.id, list.topics FROM list, json_each(list.topics) \
-                 WHERE json_each.value IS ?;",
+                "SELECT DISTINCT list.pk, list.id, list.description, list.topics FROM list, \
+                 json_each(list.topics) WHERE json_each.value IS ?;",
             )?;
             let iter = stmt.query_map([&term], |row| {
                 let pk = row.get(0)?;
                 let id = row.get(1)?;
-                let topics = mailpot::models::MailingList::topics_from_json_value(row.get(2)?)?;
-                Ok(Value::from_object(SearchResult { pk, id, topics }))
+                let description = row.get(2)?;
+                let topics = mailpot::models::MailingList::topics_from_json_value(row.get(3)?)?;
+                Ok(Value::from_object(SearchResult {
+                    pk,
+                    id,
+                    description,
+                    topics,
+                }))
             })?;
             let mut ret = vec![];
             for el in iter {
@@ -106,6 +119,7 @@ pub async fn list_topics(
                 .map(|l| SearchResult {
                     pk: l.pk,
                     id: l.id,
+                    description: l.description,
                     topics: l.topics,
                 })
                 .map(Value::from_object)
