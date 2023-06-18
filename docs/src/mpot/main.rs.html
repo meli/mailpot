@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `cli/src/main.rs`."><title>main.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-ba5701c5741a7b69.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="mpot" data-themes="" data-resource-suffix="" data-rustdoc-version="1.71.0-nightly (f5559e338 2023-04-24)" data-search-js="search-618e954b235f6acc.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-6f6ffb5395b17c6e.css" data-theme-light-css="light-0f8c037637f9eb3e.css" data-theme-dark-css="dark-1097f8e92a01e3cf.css" data-theme-ayu-css="ayu-614652228113ac93.css" ></div><script src="../../static.files/storage-62ce34ea385b278a.js"></script><script defer src="../../static.files/source-script-11255107d0a65077.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-f0540c1d82cde29b.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../static.files/light-0f8c037637f9eb3e.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../static.files/dark-1097f8e92a01e3cf.css"><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><style>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `cli/src/main.rs`."><title>main.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-d1c027e9fb12379c.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="mpot" data-themes="" data-resource-suffix="" data-rustdoc-version="1.72.0-nightly (3b2073f07 2023-06-17)" data-search-js="search-1e8f84b2d523d42b.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-8c76f75bfb6bd192.css" data-theme-light-css="light-0f8c037637f9eb3e.css" data-theme-dark-css="dark-1097f8e92a01e3cf.css" data-theme-ayu-css="ayu-614652228113ac93.css" ></div><script src="../../static.files/storage-62ce34ea385b278a.js"></script><script defer src="../../static.files/source-script-11255107d0a65077.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-190c35055d2a8300.js"></script><script defer src="../../static.files/scrape-examples-ef1e698c1d417c0c.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../static.files/light-0f8c037637f9eb3e.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../static.files/dark-1097f8e92a01e3cf.css"><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><style>
 .rustdoc { flex-wrap: wrap; }
 @media (prefers-color-scheme: light) {
     :root {
@@ -876,6 +876,202 @@ a[href]:focus, a[href]:hover {
 <a href="#778" id="778">778</a>
 <a href="#779" id="779">779</a>
 <a href="#780" id="780">780</a>
+<a href="#781" id="781">781</a>
+<a href="#782" id="782">782</a>
+<a href="#783" id="783">783</a>
+<a href="#784" id="784">784</a>
+<a href="#785" id="785">785</a>
+<a href="#786" id="786">786</a>
+<a href="#787" id="787">787</a>
+<a href="#788" id="788">788</a>
+<a href="#789" id="789">789</a>
+<a href="#790" id="790">790</a>
+<a href="#791" id="791">791</a>
+<a href="#792" id="792">792</a>
+<a href="#793" id="793">793</a>
+<a href="#794" id="794">794</a>
+<a href="#795" id="795">795</a>
+<a href="#796" id="796">796</a>
+<a href="#797" id="797">797</a>
+<a href="#798" id="798">798</a>
+<a href="#799" id="799">799</a>
+<a href="#800" id="800">800</a>
+<a href="#801" id="801">801</a>
+<a href="#802" id="802">802</a>
+<a href="#803" id="803">803</a>
+<a href="#804" id="804">804</a>
+<a href="#805" id="805">805</a>
+<a href="#806" id="806">806</a>
+<a href="#807" id="807">807</a>
+<a href="#808" id="808">808</a>
+<a href="#809" id="809">809</a>
+<a href="#810" id="810">810</a>
+<a href="#811" id="811">811</a>
+<a href="#812" id="812">812</a>
+<a href="#813" id="813">813</a>
+<a href="#814" id="814">814</a>
+<a href="#815" id="815">815</a>
+<a href="#816" id="816">816</a>
+<a href="#817" id="817">817</a>
+<a href="#818" id="818">818</a>
+<a href="#819" id="819">819</a>
+<a href="#820" id="820">820</a>
+<a href="#821" id="821">821</a>
+<a href="#822" id="822">822</a>
+<a href="#823" id="823">823</a>
+<a href="#824" id="824">824</a>
+<a href="#825" id="825">825</a>
+<a href="#826" id="826">826</a>
+<a href="#827" id="827">827</a>
+<a href="#828" id="828">828</a>
+<a href="#829" id="829">829</a>
+<a href="#830" id="830">830</a>
+<a href="#831" id="831">831</a>
+<a href="#832" id="832">832</a>
+<a href="#833" id="833">833</a>
+<a href="#834" id="834">834</a>
+<a href="#835" id="835">835</a>
+<a href="#836" id="836">836</a>
+<a href="#837" id="837">837</a>
+<a href="#838" id="838">838</a>
+<a href="#839" id="839">839</a>
+<a href="#840" id="840">840</a>
+<a href="#841" id="841">841</a>
+<a href="#842" id="842">842</a>
+<a href="#843" id="843">843</a>
+<a href="#844" id="844">844</a>
+<a href="#845" id="845">845</a>
+<a href="#846" id="846">846</a>
+<a href="#847" id="847">847</a>
+<a href="#848" id="848">848</a>
+<a href="#849" id="849">849</a>
+<a href="#850" id="850">850</a>
+<a href="#851" id="851">851</a>
+<a href="#852" id="852">852</a>
+<a href="#853" id="853">853</a>
+<a href="#854" id="854">854</a>
+<a href="#855" id="855">855</a>
+<a href="#856" id="856">856</a>
+<a href="#857" id="857">857</a>
+<a href="#858" id="858">858</a>
+<a href="#859" id="859">859</a>
+<a href="#860" id="860">860</a>
+<a href="#861" id="861">861</a>
+<a href="#862" id="862">862</a>
+<a href="#863" id="863">863</a>
+<a href="#864" id="864">864</a>
+<a href="#865" id="865">865</a>
+<a href="#866" id="866">866</a>
+<a href="#867" id="867">867</a>
+<a href="#868" id="868">868</a>
+<a href="#869" id="869">869</a>
+<a href="#870" id="870">870</a>
+<a href="#871" id="871">871</a>
+<a href="#872" id="872">872</a>
+<a href="#873" id="873">873</a>
+<a href="#874" id="874">874</a>
+<a href="#875" id="875">875</a>
+<a href="#876" id="876">876</a>
+<a href="#877" id="877">877</a>
+<a href="#878" id="878">878</a>
+<a href="#879" id="879">879</a>
+<a href="#880" id="880">880</a>
+<a href="#881" id="881">881</a>
+<a href="#882" id="882">882</a>
+<a href="#883" id="883">883</a>
+<a href="#884" id="884">884</a>
+<a href="#885" id="885">885</a>
+<a href="#886" id="886">886</a>
+<a href="#887" id="887">887</a>
+<a href="#888" id="888">888</a>
+<a href="#889" id="889">889</a>
+<a href="#890" id="890">890</a>
+<a href="#891" id="891">891</a>
+<a href="#892" id="892">892</a>
+<a href="#893" id="893">893</a>
+<a href="#894" id="894">894</a>
+<a href="#895" id="895">895</a>
+<a href="#896" id="896">896</a>
+<a href="#897" id="897">897</a>
+<a href="#898" id="898">898</a>
+<a href="#899" id="899">899</a>
+<a href="#900" id="900">900</a>
+<a href="#901" id="901">901</a>
+<a href="#902" id="902">902</a>
+<a href="#903" id="903">903</a>
+<a href="#904" id="904">904</a>
+<a href="#905" id="905">905</a>
+<a href="#906" id="906">906</a>
+<a href="#907" id="907">907</a>
+<a href="#908" id="908">908</a>
+<a href="#909" id="909">909</a>
+<a href="#910" id="910">910</a>
+<a href="#911" id="911">911</a>
+<a href="#912" id="912">912</a>
+<a href="#913" id="913">913</a>
+<a href="#914" id="914">914</a>
+<a href="#915" id="915">915</a>
+<a href="#916" id="916">916</a>
+<a href="#917" id="917">917</a>
+<a href="#918" id="918">918</a>
+<a href="#919" id="919">919</a>
+<a href="#920" id="920">920</a>
+<a href="#921" id="921">921</a>
+<a href="#922" id="922">922</a>
+<a href="#923" id="923">923</a>
+<a href="#924" id="924">924</a>
+<a href="#925" id="925">925</a>
+<a href="#926" id="926">926</a>
+<a href="#927" id="927">927</a>
+<a href="#928" id="928">928</a>
+<a href="#929" id="929">929</a>
+<a href="#930" id="930">930</a>
+<a href="#931" id="931">931</a>
+<a href="#932" id="932">932</a>
+<a href="#933" id="933">933</a>
+<a href="#934" id="934">934</a>
+<a href="#935" id="935">935</a>
+<a href="#936" id="936">936</a>
+<a href="#937" id="937">937</a>
+<a href="#938" id="938">938</a>
+<a href="#939" id="939">939</a>
+<a href="#940" id="940">940</a>
+<a href="#941" id="941">941</a>
+<a href="#942" id="942">942</a>
+<a href="#943" id="943">943</a>
+<a href="#944" id="944">944</a>
+<a href="#945" id="945">945</a>
+<a href="#946" id="946">946</a>
+<a href="#947" id="947">947</a>
+<a href="#948" id="948">948</a>
+<a href="#949" id="949">949</a>
+<a href="#950" id="950">950</a>
+<a href="#951" id="951">951</a>
+<a href="#952" id="952">952</a>
+<a href="#953" id="953">953</a>
+<a href="#954" id="954">954</a>
+<a href="#955" id="955">955</a>
+<a href="#956" id="956">956</a>
+<a href="#957" id="957">957</a>
+<a href="#958" id="958">958</a>
+<a href="#959" id="959">959</a>
+<a href="#960" id="960">960</a>
+<a href="#961" id="961">961</a>
+<a href="#962" id="962">962</a>
+<a href="#963" id="963">963</a>
+<a href="#964" id="964">964</a>
+<a href="#965" id="965">965</a>
+<a href="#966" id="966">966</a>
+<a href="#967" id="967">967</a>
+<a href="#968" id="968">968</a>
+<a href="#969" id="969">969</a>
+<a href="#970" id="970">970</a>
+<a href="#971" id="971">971</a>
+<a href="#972" id="972">972</a>
+<a href="#973" id="973">973</a>
+<a href="#974" id="974">974</a>
+<a href="#975" id="975">975</a>
+<a href="#976" id="976">976</a>
 </pre></div><pre class="rust"><code><span class="comment">/*
  * This file is part of mailpot
  *
@@ -902,10 +1098,14 @@ a[href]:focus, a[href]:hover {
     process::Stdio,
 };
 
+<span class="kw">mod </span>lints;
+<span class="kw">use </span>lints::<span class="kw-2">*</span>;
 <span class="kw">use </span>mailpot::{
-    melib::{backends::maildir::MaildirPathTrait, smol, Envelope, EnvelopeHash},
+    melib::{backends::maildir::MaildirPathTrait, smol, smtp::<span class="kw-2">*</span>, Envelope, EnvelopeHash},
     models::{changesets::<span class="kw-2">*</span>, <span class="kw-2">*</span>},
-    <span class="kw-2">*</span>,
+    queue::QueueEntry,
+    transaction::TransactionBehavior,
+    Configuration, Connection, Error, ErrorKind, <span class="prelude-ty">Result</span>, <span class="kw-2">*</span>,
 };
 <span class="kw">use </span>mailpot_cli::<span class="kw-2">*</span>;
 
@@ -936,8 +1136,27 @@ a[href]:focus, a[href]:hover {
     <span class="kw">if </span>opt.debug {
         <span class="macro">println!</span>(<span class="string">&quot;DEBUG: {:?}&quot;</span>, <span class="kw-2">&amp;</span>opt);
     }
-    <span class="kw">if let </span>Command::SampleConfig = opt.cmd {
-        <span class="macro">println!</span>(<span class="string">&quot;{}&quot;</span>, Configuration::new(<span class="string">&quot;/path/to/sqlite.db&quot;</span>).to_toml());
+    <span class="kw">if let </span>Command::SampleConfig { with_smtp } = opt.cmd {
+        <span class="kw">let </span><span class="kw-2">mut </span>new = Configuration::new(<span class="string">&quot;/path/to/sqlite.db&quot;</span>);
+        new.administrators.push(<span class="string">&quot;admin@example.com&quot;</span>.to_string());
+        <span class="kw">if </span>with_smtp {
+            new.send_mail = mailpot::SendMail::Smtp(SmtpServerConf {
+                hostname: <span class="string">&quot;mail.example.com&quot;</span>.to_string(),
+                port: <span class="number">587</span>,
+                envelope_from: <span class="string">&quot;&quot;</span>.to_string(),
+                auth: SmtpAuth::Auto {
+                    username: <span class="string">&quot;user&quot;</span>.to_string(),
+                    password: Password::Raw(<span class="string">&quot;hunter2&quot;</span>.to_string()),
+                    auth_type: SmtpAuthType::default(),
+                    require_auth: <span class="bool-val">true</span>,
+                },
+                security: SmtpSecurity::StartTLS {
+                    danger_accept_invalid_certs: <span class="bool-val">false</span>,
+                },
+                extensions: Default::default(),
+            });
+        }
+        <span class="macro">println!</span>(<span class="string">&quot;{}&quot;</span>, new.to_toml());
         <span class="kw">return </span><span class="prelude-val">Ok</span>(());
     };
     <span class="kw">let </span>config_path = <span class="kw">if let </span><span class="prelude-val">Some</span>(path) = opt.config.as_ref() {
@@ -956,7 +1175,7 @@ a[href]:focus, a[href]:hover {
     <span class="kw">use </span>Command::<span class="kw-2">*</span>;
     <span class="kw">let </span><span class="kw-2">mut </span>db = Connection::open_or_create_db(config)<span class="question-mark">?</span>.trusted();
     <span class="kw">match </span>opt.cmd {
-        SampleConfig =&gt; {}
+        SampleConfig { .. } =&gt; {}
         DumpDatabase =&gt; {
             <span class="kw">let </span>lists = db.lists()<span class="question-mark">?</span>;
             <span class="kw">let </span><span class="kw-2">mut </span>stdout = std::io::stdout();
@@ -982,9 +1201,14 @@ a[href]:focus, a[href]:hover {
                         }
                     }
                     <span class="kw">if let </span><span class="prelude-val">Some</span>(s) = db.list_post_policy(l.pk)<span class="question-mark">? </span>{
-                        <span class="macro">println!</span>(<span class="string">&quot;\tList policy: {}&quot;</span>, s);
+                        <span class="macro">println!</span>(<span class="string">&quot;\tPost policy: {}&quot;</span>, s);
                     } <span class="kw">else </span>{
-                        <span class="macro">println!</span>(<span class="string">&quot;\tList policy: None&quot;</span>);
+                        <span class="macro">println!</span>(<span class="string">&quot;\tPost policy: None&quot;</span>);
+                    }
+                    <span class="kw">if let </span><span class="prelude-val">Some</span>(s) = db.list_subscription_policy(l.pk)<span class="question-mark">? </span>{
+                        <span class="macro">println!</span>(<span class="string">&quot;\tSubscription policy: {}&quot;</span>, s);
+                    } <span class="kw">else </span>{
+                        <span class="macro">println!</span>(<span class="string">&quot;\tSubscription policy: None&quot;</span>);
                     }
                     <span class="macro">println!</span>();
                 }
@@ -1154,7 +1378,7 @@ a[href]:focus, a[href]:hover {
                     };
                     db.update_subscription(changeset)<span class="question-mark">?</span>;
                 }
-                AddPolicy {
+                AddPostPolicy {
                     announce_only,
                     subscription_only,
                     approval_needed,
@@ -1173,11 +1397,11 @@ a[href]:focus, a[href]:hover {
                     <span class="kw">let </span>new_val = db.set_list_post_policy(policy)<span class="question-mark">?</span>;
                     <span class="macro">println!</span>(<span class="string">&quot;Added new policy with pk = {}&quot;</span>, new_val.pk());
                 }
-                RemovePolicy { pk } =&gt; {
+                RemovePostPolicy { pk } =&gt; {
                     db.remove_list_post_policy(list.pk, pk)<span class="question-mark">?</span>;
                     <span class="macro">println!</span>(<span class="string">&quot;Removed policy with pk = {}&quot;</span>, pk);
                 }
-                AddSubscribePolicy {
+                AddSubscriptionPolicy {
                     send_confirmation,
                     open,
                     manual,
@@ -1196,7 +1420,7 @@ a[href]:focus, a[href]:hover {
                     <span class="kw">let </span>new_val = db.set_list_subscription_policy(policy)<span class="question-mark">?</span>;
                     <span class="macro">println!</span>(<span class="string">&quot;Added new subscribe policy with pk = {}&quot;</span>, new_val.pk());
                 }
-                RemoveSubscribePolicy { pk } =&gt; {
+                RemoveSubscriptionPolicy { pk } =&gt; {
                     db.remove_list_subscription_policy(list.pk, pk)<span class="question-mark">?</span>;
                     <span class="macro">println!</span>(<span class="string">&quot;Removed subscribe policy with pk = {}&quot;</span>, pk);
                 }
@@ -1277,6 +1501,61 @@ a[href]:focus, a[href]:hover {
                     };
                     db.update_list(changeset)<span class="question-mark">?</span>;
                 }
+                ImportMembers {
+                    url,
+                    username,
+                    password,
+                    list_id,
+                    dry_run,
+                    skip_owners,
+                } =&gt; {
+                    <span class="kw">let </span>conn = import::Mailman3Connection::new(<span class="kw-2">&amp;</span>url, <span class="kw-2">&amp;</span>username, <span class="kw-2">&amp;</span>password).unwrap();
+                    <span class="kw">if </span>dry_run {
+                        <span class="kw">let </span>entries = conn.users(<span class="kw-2">&amp;</span>list_id).unwrap();
+                        <span class="macro">println!</span>(<span class="string">&quot;{} result(s)&quot;</span>, entries.len());
+                        <span class="kw">for </span>e <span class="kw">in </span>entries {
+                            <span class="macro">println!</span>(
+                                <span class="string">&quot;{}{}&lt;{}&gt;&quot;</span>,
+                                <span class="kw">if let </span><span class="prelude-val">Some</span>(n) = e.display_name() {
+                                    n
+                                } <span class="kw">else </span>{
+                                    <span class="string">&quot;&quot;
+                                </span>},
+                                <span class="kw">if </span>e.display_name().is_none() { <span class="string">&quot;&quot; </span>} <span class="kw">else </span>{ <span class="string">&quot; &quot; </span>},
+                                e.email()
+                            );
+                        }
+                        <span class="kw">if </span>!skip_owners {
+                            <span class="kw">let </span>entries = conn.owners(<span class="kw-2">&amp;</span>list_id).unwrap();
+                            <span class="macro">println!</span>(<span class="string">&quot;\nOwners: {} result(s)&quot;</span>, entries.len());
+                            <span class="kw">for </span>e <span class="kw">in </span>entries {
+                                <span class="macro">println!</span>(
+                                    <span class="string">&quot;{}{}&lt;{}&gt;&quot;</span>,
+                                    <span class="kw">if let </span><span class="prelude-val">Some</span>(n) = e.display_name() {
+                                        n
+                                    } <span class="kw">else </span>{
+                                        <span class="string">&quot;&quot;
+                                    </span>},
+                                    <span class="kw">if </span>e.display_name().is_none() { <span class="string">&quot;&quot; </span>} <span class="kw">else </span>{ <span class="string">&quot; &quot; </span>},
+                                    e.email()
+                                );
+                            }
+                        }
+                    } <span class="kw">else </span>{
+                        <span class="kw">let </span>entries = conn.users(<span class="kw-2">&amp;</span>list_id).unwrap();
+                        <span class="kw">let </span>tx = db.transaction(Default::default()).unwrap();
+                        <span class="kw">for </span>sub <span class="kw">in </span>entries.into_iter().map(|e| e.into_subscription(list.pk)) {
+                            tx.add_subscription(list.pk, sub)<span class="question-mark">?</span>;
+                        }
+                        <span class="kw">if </span>!skip_owners {
+                            <span class="kw">let </span>entries = conn.owners(<span class="kw-2">&amp;</span>list_id).unwrap();
+                            <span class="kw">for </span>sub <span class="kw">in </span>entries.into_iter().map(|e| e.into_owner(list.pk)) {
+                                tx.add_list_owner(sub)<span class="question-mark">?</span>;
+                            }
+                        }
+                        tx.commit()<span class="question-mark">?</span>;
+                    }
+                }
             }
         }
         CreateList {
@@ -1291,6 +1570,7 @@ a[href]:focus, a[href]:hover {
                 name,
                 id,
                 description,
+                topics: <span class="macro">vec!</span>[],
                 address,
                 archive_url,
             })<span class="question-mark">?</span>;
@@ -1308,6 +1588,7 @@ a[href]:focus, a[href]:hover {
                 <span class="macro">println!</span>(<span class="string">&quot;post dry_run{:?}&quot;</span>, dry_run);
             }
 
+            <span class="kw">let </span>tx = db.transaction(TransactionBehavior::Exclusive).unwrap();
             <span class="kw">let </span><span class="kw-2">mut </span>input = String::new();
             std::io::stdin().read_to_string(<span class="kw-2">&amp;mut </span>input)<span class="question-mark">?</span>;
             <span class="kw">match </span>Envelope::from_bytes(input.as_bytes(), <span class="prelude-val">None</span>) {
@@ -1315,7 +1596,7 @@ a[href]:focus, a[href]:hover {
                     <span class="kw">if </span>opt.debug {
                         <span class="macro">eprintln!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="kw-2">&amp;</span>env);
                     }
-                    db.post(<span class="kw-2">&amp;</span>env, input.as_bytes(), dry_run)<span class="question-mark">?</span>;
+                    tx.post(<span class="kw-2">&amp;</span>env, input.as_bytes(), dry_run)<span class="question-mark">?</span>;
                 }
                 <span class="prelude-val">Err</span>(err) <span class="kw">if </span>input.trim().is_empty() =&gt; {
                     <span class="macro">eprintln!</span>(<span class="string">&quot;Empty input, abort.&quot;</span>);
@@ -1323,21 +1604,28 @@ a[href]:focus, a[href]:hover {
                 }
                 <span class="prelude-val">Err</span>(err) =&gt; {
                     <span class="macro">eprintln!</span>(<span class="string">&quot;Could not parse message: {}&quot;</span>, err);
-                    <span class="kw">let </span>p = db.conf().save_message(input)<span class="question-mark">?</span>;
+                    <span class="kw">let </span>p = tx.conf().save_message(input)<span class="question-mark">?</span>;
                     <span class="macro">eprintln!</span>(<span class="string">&quot;Message saved at {}&quot;</span>, p.display());
                     <span class="kw">return </span><span class="prelude-val">Err</span>(err.into());
                 }
             }
+            tx.commit()<span class="question-mark">?</span>;
         }
         FlushQueue { dry_run } =&gt; {
+            <span class="kw">let </span>tx = db.transaction(TransactionBehavior::Exclusive).unwrap();
             <span class="kw">let </span>messages = <span class="kw">if </span>opt.debug {
                 <span class="macro">println!</span>(<span class="string">&quot;flush-queue dry_run {:?}&quot;</span>, dry_run);
-                db.queue(Queue::Out)<span class="question-mark">?
+                tx.queue(mailpot::queue::Queue::Out)<span class="question-mark">?
                     </span>.into_iter()
                     .map(DbVal::into_inner)
+                    .chain(
+                        tx.queue(mailpot::queue::Queue::Deferred)<span class="question-mark">?
+                            </span>.into_iter()
+                            .map(DbVal::into_inner),
+                    )
                     .collect()
             } <span class="kw">else </span>{
-                db.delete_from_queue(Queue::Out, <span class="macro">vec!</span>[])<span class="question-mark">?
+                tx.delete_from_queue(mailpot::queue::Queue::Out, <span class="macro">vec!</span>[])<span class="question-mark">?
             </span>};
             <span class="kw">if </span>opt.verbose &gt; <span class="number">0 </span>|| opt.debug {
                 <span class="macro">println!</span>(<span class="string">&quot;Queue out has {} messages.&quot;</span>, messages.len());
@@ -1345,7 +1633,7 @@ a[href]:focus, a[href]:hover {
 
             <span class="kw">let </span><span class="kw-2">mut </span>failures = Vec::with_capacity(messages.len());
 
-            <span class="kw">let </span>send_mail = db.conf().send_mail.clone();
+            <span class="kw">let </span>send_mail = tx.conf().send_mail.clone();
             <span class="kw">match </span>send_mail {
                 mailpot::SendMail::ShellCommand(cmd) =&gt; {
                     <span class="kw">fn </span>submit(cmd: <span class="kw-2">&amp;</span>str, msg: <span class="kw-2">&amp;</span>QueueEntry) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
@@ -1390,22 +1678,31 @@ a[href]:focus, a[href]:hover {
                     }
                 }
                 mailpot::SendMail::Smtp(<span class="kw">_</span>) =&gt; {
-                    <span class="kw">let </span>conn_future = db.new_smtp_connection()<span class="question-mark">?</span>;
-                    smol::future::block_on(smol::spawn(<span class="kw">async move </span>{
+                    <span class="kw">let </span>conn_future = tx.new_smtp_connection()<span class="question-mark">?</span>;
+                    failures = smol::future::block_on(smol::spawn(<span class="kw">async move </span>{
                         <span class="kw">let </span><span class="kw-2">mut </span>conn = conn_future.<span class="kw">await</span><span class="question-mark">?</span>;
                         <span class="kw">for </span>msg <span class="kw">in </span>messages {
                             <span class="kw">if let </span><span class="prelude-val">Err</span>(err) = Connection::submit(<span class="kw-2">&amp;mut </span>conn, <span class="kw-2">&amp;</span>msg, dry_run).<span class="kw">await </span>{
                                 failures.push((err, msg));
                             }
                         }
-                        <span class="prelude-val">Ok</span>::&lt;(), Error&gt;(())
+                        <span class="prelude-val">Ok</span>::&lt;<span class="kw">_</span>, Error&gt;(failures)
                     }))<span class="question-mark">?</span>;
                 }
             }
+
+            <span class="kw">for </span>(err, <span class="kw-2">mut </span>msg) <span class="kw">in </span>failures {
+                <span class="macro">log::error!</span>(<span class="string">&quot;Message {msg:?} failed with: {err}. Inserting to Deferred queue.&quot;</span>);
+
+                msg.queue = mailpot::queue::Queue::Deferred;
+                tx.insert_to_queue(msg)<span class="question-mark">?</span>;
+            }
+
+            tx.commit()<span class="question-mark">?</span>;
         }
         ErrorQueue { cmd } =&gt; <span class="kw">match </span>cmd {
-            ErrorQueueCommand::List =&gt; {
-                <span class="kw">let </span>errors = db.queue(Queue::Error)<span class="question-mark">?</span>;
+            QueueCommand::List =&gt; {
+                <span class="kw">let </span>errors = db.queue(mailpot::queue::Queue::Error)<span class="question-mark">?</span>;
                 <span class="kw">if </span>errors.is_empty() {
                     <span class="macro">println!</span>(<span class="string">&quot;Error queue is empty.&quot;</span>);
                 } <span class="kw">else </span>{
@@ -1417,8 +1714,8 @@ a[href]:focus, a[href]:hover {
                     }
                 }
             }
-            ErrorQueueCommand::Print { index } =&gt; {
-                <span class="kw">let </span><span class="kw-2">mut </span>errors = db.queue(Queue::Error)<span class="question-mark">?</span>;
+            QueueCommand::Print { index } =&gt; {
+                <span class="kw">let </span><span class="kw-2">mut </span>errors = db.queue(mailpot::queue::Queue::Error)<span class="question-mark">?</span>;
                 <span class="kw">if </span>!index.is_empty() {
                     errors.retain(|el| index.contains(<span class="kw-2">&amp;</span>el.pk()));
                 }
@@ -1430,8 +1727,8 @@ a[href]:focus, a[href]:hover {
                     }
                 }
             }
-            ErrorQueueCommand::Delete { index, quiet } =&gt; {
-                <span class="kw">let </span><span class="kw-2">mut </span>errors = db.queue(Queue::Error)<span class="question-mark">?</span>;
+            QueueCommand::Delete { index, quiet } =&gt; {
+                <span class="kw">let </span><span class="kw-2">mut </span>errors = db.queue(mailpot::queue::Queue::Error)<span class="question-mark">?</span>;
                 <span class="kw">if </span>!index.is_empty() {
                     errors.retain(|el| index.contains(<span class="kw-2">&amp;</span>el.pk()));
                 }
@@ -1443,9 +1740,58 @@ a[href]:focus, a[href]:hover {
                     <span class="kw">if </span>!quiet {
                         <span class="macro">println!</span>(<span class="string">&quot;Deleting error queue elements {:?}&quot;</span>, <span class="kw-2">&amp;</span>index);
                     }
-                    db.delete_from_queue(Queue::Error, index)<span class="question-mark">?</span>;
+                    db.delete_from_queue(mailpot::queue::Queue::Error, index)<span class="question-mark">?</span>;
                     <span class="kw">if </span>!quiet {
                         <span class="kw">for </span>e <span class="kw">in </span>errors {
+                            <span class="macro">println!</span>(<span class="string">&quot;{e:?}&quot;</span>);
+                        }
+                    }
+                }
+            }
+        },
+        Queue { queue, cmd } =&gt; <span class="kw">match </span>cmd {
+            QueueCommand::List =&gt; {
+                <span class="kw">let </span>entries = db.queue(queue)<span class="question-mark">?</span>;
+                <span class="kw">if </span>entries.is_empty() {
+                    <span class="macro">println!</span>(<span class="string">&quot;Queue {queue} is empty.&quot;</span>);
+                } <span class="kw">else </span>{
+                    <span class="kw">for </span>e <span class="kw">in </span>entries {
+                        <span class="macro">println!</span>(
+                            <span class="string">&quot;- {} {} {} {} {}&quot;</span>,
+                            e.pk, e.datetime, e.from_address, e.to_addresses, e.subject
+                        );
+                    }
+                }
+            }
+            QueueCommand::Print { index } =&gt; {
+                <span class="kw">let </span><span class="kw-2">mut </span>entries = db.queue(queue)<span class="question-mark">?</span>;
+                <span class="kw">if </span>!index.is_empty() {
+                    entries.retain(|el| index.contains(<span class="kw-2">&amp;</span>el.pk()));
+                }
+                <span class="kw">if </span>entries.is_empty() {
+                    <span class="macro">println!</span>(<span class="string">&quot;Queue {queue} is empty.&quot;</span>);
+                } <span class="kw">else </span>{
+                    <span class="kw">for </span>e <span class="kw">in </span>entries {
+                        <span class="macro">println!</span>(<span class="string">&quot;{e:?}&quot;</span>);
+                    }
+                }
+            }
+            QueueCommand::Delete { index, quiet } =&gt; {
+                <span class="kw">let </span><span class="kw-2">mut </span>entries = db.queue(queue)<span class="question-mark">?</span>;
+                <span class="kw">if </span>!index.is_empty() {
+                    entries.retain(|el| index.contains(<span class="kw-2">&amp;</span>el.pk()));
+                }
+                <span class="kw">if </span>entries.is_empty() {
+                    <span class="kw">if </span>!quiet {
+                        <span class="macro">println!</span>(<span class="string">&quot;Queue {queue} is empty.&quot;</span>);
+                    }
+                } <span class="kw">else </span>{
+                    <span class="kw">if </span>!quiet {
+                        <span class="macro">println!</span>(<span class="string">&quot;Deleting queue {queue} elements {:?}&quot;</span>, <span class="kw-2">&amp;</span>index);
+                    }
+                    db.delete_from_queue(queue, index)<span class="question-mark">?</span>;
+                    <span class="kw">if </span>!quiet {
+                        <span class="kw">for </span>e <span class="kw">in </span>entries {
                             <span class="macro">println!</span>(<span class="string">&quot;{e:?}&quot;</span>);
                         }
                     }
@@ -1635,6 +1981,52 @@ a[href]:focus, a[href]:hover {
             };
             db.update_account(changeset)<span class="question-mark">?</span>;
         }
+        Repair {
+            fix,
+            all,
+            <span class="kw-2">mut </span>datetime_header_value,
+            <span class="kw-2">mut </span>remove_empty_accounts,
+            <span class="kw-2">mut </span>remove_accepted_subscription_requests,
+            <span class="kw-2">mut </span>warn_list_no_owner,
+        } =&gt; {
+            <span class="kw">type </span>LintFn =
+                <span class="kw">fn</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;_ </span><span class="kw-2">mut </span>mailpot::Connection, bool) -&gt; std::result::Result&lt;(), mailpot::Error&gt;;
+            <span class="kw">let </span>dry_run = !fix;
+            <span class="kw">if </span>all {
+                datetime_header_value = <span class="bool-val">true</span>;
+                remove_empty_accounts = <span class="bool-val">true</span>;
+                remove_accepted_subscription_requests = <span class="bool-val">true</span>;
+                warn_list_no_owner = <span class="bool-val">true</span>;
+            }
+
+            <span class="kw">if </span>!(datetime_header_value
+                | remove_empty_accounts
+                | remove_accepted_subscription_requests
+                | warn_list_no_owner)
+            {
+                <span class="kw">return </span><span class="prelude-val">Err</span>(
+                    <span class="string">&quot;No lints selected: specify them with flag arguments. See --help&quot;</span>.into(),
+                );
+            }
+
+            <span class="kw">if </span>dry_run {
+                <span class="macro">println!</span>(<span class="string">&quot;running without making modifications (dry run)&quot;</span>);
+            }
+
+            <span class="kw">for </span>(flag, lint_fn) <span class="kw">in </span>[
+                (datetime_header_value, datetime_header_value_lint <span class="kw">as </span>LintFn),
+                (remove_empty_accounts, remove_empty_accounts_lint <span class="kw">as _</span>),
+                (
+                    remove_accepted_subscription_requests,
+                    remove_accepted_subscription_requests_lint <span class="kw">as _</span>,
+                ),
+                (warn_list_no_owner, warn_list_no_owner_lint <span class="kw">as _</span>),
+            ] {
+                <span class="kw">if </span>flag {
+                    lint_fn(<span class="kw-2">&amp;mut </span>db, dry_run)<span class="question-mark">?</span>;
+                }
+            }
+        }
     }
 
     <span class="prelude-val">Ok</span>(())
@@ -1651,7 +2043,7 @@ a[href]:focus, a[href]:hover {
         .init()
         .unwrap();
     <span class="kw">if let </span><span class="prelude-val">Err</span>(err) = run_app(opt) {
-        <span class="macro">println!</span>(<span class="string">&quot;{}&quot;</span>, err.display_chain());
+        <span class="macro">print!</span>(<span class="string">&quot;{}&quot;</span>, err.display_chain());
         std::process::exit(-<span class="number">1</span>);
     }
     <span class="prelude-val">Ok</span>(())

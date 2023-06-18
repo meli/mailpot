@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["ListRequest","MailJob","PostAction"],"mod":["message_filters"],"struct":["ListContext","Post"]};
+window.SIDEBAR_ITEMS = {"enum":["ListRequest","MailJob","PostAction"],"struct":["ListContext","PostEntry"]};

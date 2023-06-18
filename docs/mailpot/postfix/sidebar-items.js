@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":["find_binary_in_path"],"macro":["push_addr"],"struct":["PostfixConfiguration"]};
+window.SIDEBAR_ITEMS = {"fn":["find_binary_in_path"],"struct":["PostfixConfiguration"]};

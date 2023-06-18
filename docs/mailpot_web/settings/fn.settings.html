@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="API documentation for the Rust `settings` fn in crate `mailpot_web`."><title>settings in mailpot_web::settings - Rust</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-ba5701c5741a7b69.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="mailpot_web" data-themes="" data-resource-suffix="" data-rustdoc-version="1.71.0-nightly (f5559e338 2023-04-24)" data-search-js="search-618e954b235f6acc.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-6f6ffb5395b17c6e.css" data-theme-light-css="light-0f8c037637f9eb3e.css" data-theme-dark-css="dark-1097f8e92a01e3cf.css" data-theme-ayu-css="ayu-614652228113ac93.css" ></div><script src="../../static.files/storage-62ce34ea385b278a.js"></script><script defer src="sidebar-items.js"></script><script defer src="../../static.files/main-f0540c1d82cde29b.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../static.files/light-0f8c037637f9eb3e.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../static.files/dark-1097f8e92a01e3cf.css"><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc fn"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><style>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="API documentation for the Rust `settings` fn in crate `mailpot_web`."><title>settings in mailpot_web::settings - Rust</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-d1c027e9fb12379c.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="mailpot_web" data-themes="" data-resource-suffix="" data-rustdoc-version="1.72.0-nightly (3b2073f07 2023-06-17)" data-search-js="search-1e8f84b2d523d42b.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-8c76f75bfb6bd192.css" data-theme-light-css="light-0f8c037637f9eb3e.css" data-theme-dark-css="dark-1097f8e92a01e3cf.css" data-theme-ayu-css="ayu-614652228113ac93.css" ></div><script src="../../static.files/storage-62ce34ea385b278a.js"></script><script defer src="sidebar-items.js"></script><script defer src="../../static.files/main-190c35055d2a8300.js"></script><script defer src="../../static.files/scrape-examples-ef1e698c1d417c0c.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../static.files/light-0f8c037637f9eb3e.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../static.files/dark-1097f8e92a01e3cf.css"><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc fn"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><style>
 .rustdoc { flex-wrap: wrap; }
 @media (prefers-color-scheme: light) {
     :root {
@@ -96,9 +96,216 @@ a[href]:focus, a[href]:hover {
   </ul>
 </nav>
 
-<nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="logo-container" href="../../mailpot_web/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><h2></h2></nav><nav class="sidebar"><a class="logo-container" href="../../mailpot_web/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><div class="sidebar-elems"><h2><a href="index.html">In mailpot_web::settings</a></h2></div></nav><main><div class="width-limiter"><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="main-heading"><h1>Function <a href="../index.html">mailpot_web</a>::<wbr><a href="index.html">settings</a>::<wbr><a class="fn" href="#">settings</a><button id="copy-path" title="Copy item path to clipboard"><img src="../../static.files/clipboard-7571035ce49a181d.svg" width="19" height="18" alt="Copy item path"></button></h1><span class="out-of-band"><a class="srclink" href="../../src/mailpot_web/settings.rs.html#27-82">source</a> · <button id="toggle-all-docs" title="collapse all docs">[<span>&#x2212;</span>]</button></span></div><pre class="rust item-decl"><code>pub async fn settings(
+<nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="logo-container" href="../../mailpot_web/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><h2></h2></nav><nav class="sidebar"><a class="logo-container" href="../../mailpot_web/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><div class="sidebar-elems"><h2><a href="index.html">In mailpot_web::settings</a></h2></div></nav><main><div class="width-limiter"><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="main-heading"><h1>Function <a href="../index.html">mailpot_web</a>::<wbr><a href="index.html">settings</a>::<wbr><a class="fn" href="#">settings</a><button id="copy-path" title="Copy item path to clipboard"><img src="../../static.files/clipboard-7571035ce49a181d.svg" width="19" height="18" alt="Copy item path"></button></h1><span class="out-of-band"><a class="srclink" href="../../src/mailpot_web/settings.rs.html#27-78">source</a> · <button id="toggle-all-docs" title="collapse all docs">[<span>&#x2212;</span>]</button></span></div><pre class="rust item-decl"><code>pub async fn settings(
     _: <a class="struct" href="../typed_paths/struct.SettingsPath.html" title="struct mailpot_web::typed_paths::SettingsPath">SettingsPath</a>,
     session: <a class="struct" href="../struct.WritableSession.html" title="struct mailpot_web::WritableSession">WritableSession</a>,
     __arg2: <a class="struct" href="../struct.Extension.html" title="struct mailpot_web::Extension">Extension</a>&lt;<a class="struct" href="../auth/struct.User.html" title="struct mailpot_web::auth::User">User</a>&gt;,
     state: <a class="struct" href="https://doc.rust-lang.org/nightly/alloc/sync/struct.Arc.html" title="struct alloc::sync::Arc">Arc</a>&lt;<a class="struct" href="../struct.AppState.html" title="struct mailpot_web::AppState">AppState</a>&gt;
-) -&gt; <a class="enum" href="../enum.Result.html" title="enum mailpot_web::Result">Result</a>&lt;<a class="struct" href="../struct.Html.html" title="struct mailpot_web::Html">Html</a>&lt;<a class="struct" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html" title="struct alloc::string::String">String</a>&gt;, <a class="struct" href="../struct.ResponseError.html" title="struct mailpot_web::ResponseError">ResponseError</a>&gt;</code></pre></section></div></main></body></html>
+) -&gt; <a class="enum" href="../enum.Result.html" title="enum mailpot_web::Result">Result</a>&lt;<a class="struct" href="../struct.Html.html" title="struct mailpot_web::Html">Html</a>&lt;<a class="struct" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html" title="struct alloc::string::String">String</a>&gt;, <a class="struct" href="../struct.ResponseError.html" title="struct mailpot_web::ResponseError">ResponseError</a>&gt;</code></pre><div class="docblock scraped-example-list"><span></span><h5 id="scraped-examples"><a href="#scraped-examples">Examples found in repository</a><a class="scrape-help" href="../../scrape-examples-help.html">?</a></h5><div class="scraped-example " data-locs="[[[61,61],&quot;../../src/mpot_web/main.rs.html#105&quot;,&quot;line 105&quot;]]"><div class="scraped-example-title">web/src/main.rs (<a href="../../src/mpot_web/main.rs.html#105">line 105</a>)</div><div class="code-wrapper"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><span>44</span>
+<span>45</span>
+<span>46</span>
+<span>47</span>
+<span>48</span>
+<span>49</span>
+<span>50</span>
+<span>51</span>
+<span>52</span>
+<span>53</span>
+<span>54</span>
+<span>55</span>
+<span>56</span>
+<span>57</span>
+<span>58</span>
+<span>59</span>
+<span>60</span>
+<span>61</span>
+<span>62</span>
+<span>63</span>
+<span>64</span>
+<span>65</span>
+<span>66</span>
+<span>67</span>
+<span>68</span>
+<span>69</span>
+<span>70</span>
+<span>71</span>
+<span>72</span>
+<span>73</span>
+<span>74</span>
+<span>75</span>
+<span>76</span>
+<span>77</span>
+<span>78</span>
+<span>79</span>
+<span>80</span>
+<span>81</span>
+<span>82</span>
+<span>83</span>
+<span>84</span>
+<span>85</span>
+<span>86</span>
+<span>87</span>
+<span>88</span>
+<span>89</span>
+<span>90</span>
+<span>91</span>
+<span>92</span>
+<span>93</span>
+<span>94</span>
+<span>95</span>
+<span>96</span>
+<span>97</span>
+<span>98</span>
+<span>99</span>
+<span>100</span>
+<span>101</span>
+<span>102</span>
+<span>103</span>
+<span>104</span>
+<span>105</span>
+<span>106</span>
+<span>107</span>
+<span>108</span>
+<span>109</span>
+<span>110</span>
+<span>111</span>
+<span>112</span>
+<span>113</span>
+<span>114</span>
+<span>115</span>
+<span>116</span>
+<span>117</span>
+<span>118</span>
+<span>119</span>
+<span>120</span>
+<span>121</span>
+<span>122</span>
+<span>123</span>
+<span>124</span>
+<span>125</span>
+<span>126</span>
+<span>127</span>
+<span>128</span>
+<span>129</span>
+<span>130</span>
+<span>131</span>
+<span>132</span>
+<span>133</span>
+<span>134</span>
+<span>135</span>
+<span>136</span>
+<span>137</span>
+<span>138</span>
+<span>139</span>
+<span>140</span>
+<span>141</span>
+<span>142</span>
+<span>143</span>
+<span>144</span>
+<span>145</span>
+<span>146</span>
+<span>147</span>
+</pre></div><pre class="rust"><code><button class="expand">&varr;</button><span class="kw">fn </span>create_app(shared_state: Arc&lt;AppState&gt;) -&gt; Router {
+    <span class="kw">let </span>store = MemoryStore::new();
+    <span class="kw">let </span>secret = rand::thread_rng().gen::&lt;[u8; <span class="number">128</span>]&gt;();
+    <span class="kw">let </span>session_layer = SessionLayer::new(store, <span class="kw-2">&amp;</span>secret).with_secure(<span class="bool-val">false</span>);
+
+    <span class="kw">let </span>auth_layer = AuthLayer::new(shared_state.clone(), <span class="kw-2">&amp;</span>secret);
+
+    <span class="kw">let </span>login_url =
+        Arc::new(<span class="macro">format!</span>(<span class="string">&quot;{}{}&quot;</span>, shared_state.root_url_prefix, LoginPath.to_crumb()).into());
+    Router::new()
+        .route(<span class="string">&quot;/&quot;</span>, get(root))
+        .typed_get(list)
+        .typed_get(list_post)
+        .typed_get(list_post_raw)
+        .typed_get(list_topics)
+        .typed_get(list_post_eml)
+        .typed_get(list_edit.layer(RequireAuth::login_with_role_or_redirect(
+            Role::User..,
+            Arc::clone(<span class="kw-2">&amp;</span>login_url),
+            <span class="prelude-val">Some</span>(Arc::new(<span class="string">&quot;next&quot;</span>.into())),
+        )))
+        .typed_post(
+            {
+                <span class="kw">let </span>shared_state = Arc::clone(<span class="kw-2">&amp;</span>shared_state);
+                <span class="kw">move </span>|path, session, user, payload| {
+                    list_edit_POST(path, session, user, payload, State(shared_state))
+                }
+            }
+            .layer(RequireAuth::login_with_role_or_redirect(
+                Role::User..,
+                Arc::clone(<span class="kw-2">&amp;</span>login_url),
+                <span class="prelude-val">Some</span>(Arc::new(<span class="string">&quot;next&quot;</span>.into())),
+            )),
+        )
+        .typed_get(
+            list_subscribers.layer(RequireAuth::login_with_role_or_redirect(
+                Role::User..,
+                Arc::clone(<span class="kw-2">&amp;</span>login_url),
+                <span class="prelude-val">Some</span>(Arc::new(<span class="string">&quot;next&quot;</span>.into())),
+            )),
+        )
+        .typed_get(
+            list_candidates.layer(RequireAuth::login_with_role_or_redirect(
+                Role::User..,
+                Arc::clone(<span class="kw-2">&amp;</span>login_url),
+                <span class="prelude-val">Some</span>(Arc::new(<span class="string">&quot;next&quot;</span>.into())),
+            )),
+        )
+        .typed_get(help)
+        .typed_get(auth::ssh_signin)
+        .typed_post({
+            <span class="kw">let </span>shared_state = Arc::clone(<span class="kw-2">&amp;</span>shared_state);
+            <span class="kw">move </span>|path, session, query, auth, body| {
+                auth::ssh_signin_POST(path, session, query, auth, body, shared_state)
+            }
+        })
+        .typed_get(logout_handler)
+        .typed_post(logout_handler)
+        .typed_get(
+            {
+                <span class="kw">let </span>shared_state = Arc::clone(<span class="kw-2">&amp;</span>shared_state);
+                <span class="kw">move </span>|path, session, user| <span class="highlight focus">settings</span>(path, session, user, shared_state)
+            }
+            .layer(RequireAuth::login_or_redirect(
+                Arc::clone(<span class="kw-2">&amp;</span>login_url),
+                <span class="prelude-val">Some</span>(Arc::new(<span class="string">&quot;next&quot;</span>.into())),
+            )),
+        )
+        .typed_post(
+            {
+                <span class="kw">let </span>shared_state = Arc::clone(<span class="kw-2">&amp;</span>shared_state);
+                <span class="kw">move </span>|path, session, auth, body| {
+                    settings_POST(path, session, auth, body, shared_state)
+                }
+            }
+            .layer(RequireAuth::login_or_redirect(
+                Arc::clone(<span class="kw-2">&amp;</span>login_url),
+                <span class="prelude-val">Some</span>(Arc::new(<span class="string">&quot;next&quot;</span>.into())),
+            )),
+        )
+        .typed_get(
+            user_list_subscription.layer(RequireAuth::login_with_role_or_redirect(
+                Role::User..,
+                Arc::clone(<span class="kw-2">&amp;</span>login_url),
+                <span class="prelude-val">Some</span>(Arc::new(<span class="string">&quot;next&quot;</span>.into())),
+            )),
+        )
+        .typed_post(
+            {
+                <span class="kw">let </span>shared_state = Arc::clone(<span class="kw-2">&amp;</span>shared_state);
+                <span class="kw">move </span>|session, path, user, body| {
+                    user_list_subscription_POST(session, path, user, body, shared_state)
+                }
+            }
+            .layer(RequireAuth::login_with_role_or_redirect(
+                Role::User..,
+                Arc::clone(<span class="kw-2">&amp;</span>login_url),
+                <span class="prelude-val">Some</span>(Arc::new(<span class="string">&quot;next&quot;</span>.into())),
+            )),
+        )
+        .layer(auth_layer)
+        .layer(session_layer)
+        .with_state(shared_state)
+}</code></pre></div></div></div></div></section></div></main></body></html>

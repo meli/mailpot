@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/src/mail.rs`."><title>mail.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-ba5701c5741a7b69.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="mailpot" data-themes="" data-resource-suffix="" data-rustdoc-version="1.71.0-nightly (f5559e338 2023-04-24)" data-search-js="search-618e954b235f6acc.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-6f6ffb5395b17c6e.css" data-theme-light-css="light-0f8c037637f9eb3e.css" data-theme-dark-css="dark-1097f8e92a01e3cf.css" data-theme-ayu-css="ayu-614652228113ac93.css" ></div><script src="../../static.files/storage-62ce34ea385b278a.js"></script><script defer src="../../static.files/source-script-11255107d0a65077.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-f0540c1d82cde29b.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../static.files/light-0f8c037637f9eb3e.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../static.files/dark-1097f8e92a01e3cf.css"><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><style>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/src/mail.rs`."><title>mail.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-d1c027e9fb12379c.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="mailpot" data-themes="" data-resource-suffix="" data-rustdoc-version="1.72.0-nightly (3b2073f07 2023-06-17)" data-search-js="search-1e8f84b2d523d42b.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-8c76f75bfb6bd192.css" data-theme-light-css="light-0f8c037637f9eb3e.css" data-theme-dark-css="dark-1097f8e92a01e3cf.css" data-theme-ayu-css="ayu-614652228113ac93.css" ></div><script src="../../static.files/storage-62ce34ea385b278a.js"></script><script defer src="../../static.files/source-script-11255107d0a65077.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-190c35055d2a8300.js"></script><script defer src="../../static.files/scrape-examples-ef1e698c1d417c0c.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../static.files/light-0f8c037637f9eb3e.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../static.files/dark-1097f8e92a01e3cf.css"><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><style>
 .rustdoc { flex-wrap: wrap; }
 @media (prefers-color-scheme: light) {
     :root {
@@ -266,6 +266,17 @@ a[href]:focus, a[href]:hover {
 <a href="#168" id="168">168</a>
 <a href="#169" id="169">169</a>
 <a href="#170" id="170">170</a>
+<a href="#171" id="171">171</a>
+<a href="#172" id="172">172</a>
+<a href="#173" id="173">173</a>
+<a href="#174" id="174">174</a>
+<a href="#175" id="175">175</a>
+<a href="#176" id="176">176</a>
+<a href="#177" id="177">177</a>
+<a href="#178" id="178">178</a>
+<a href="#179" id="179">179</a>
+<a href="#180" id="180">180</a>
+<a href="#181" id="181">181</a>
 </pre></div><pre class="rust"><code><span class="comment">/*
  * This file is part of mailpot
  *
@@ -285,16 +296,21 @@ a[href]:focus, a[href]:hover {
  * along with this program. If not, see &lt;https://www.gnu.org/licenses/&gt;.
  */
 
-</span><span class="doccomment">//! Types for processing new posts: [`PostFilter`](message_filters::PostFilter),
-//! [`ListContext`], [`MailJob`] and [`PostAction`].
+</span><span class="doccomment">//! Types for processing new posts:
+//! [`PostFilter`](crate::message_filters::PostFilter), [`ListContext`],
+//! [`MailJob`] and [`PostAction`].
 
-</span><span class="kw">use </span>melib::Address;
+</span><span class="kw">use </span>std::collections::HashMap;
 
-<span class="kw">use super</span>::<span class="kw-2">*</span>;
-<span class="kw">pub mod </span>message_filters;
+<span class="kw">use </span>log::trace;
+<span class="kw">use </span>melib::{Address, MessageID};
 
+<span class="kw">use crate</span>::{
+    models::{ListOwner, ListSubscription, MailingList, PostPolicy, SubscriptionPolicy},
+    DbVal,
+};
 <span class="doccomment">/// Post action returned from a list&#39;s
-/// [`PostFilter`](message_filters::PostFilter) stack.
+/// [`PostFilter`](crate::message_filters::PostFilter) stack.
 </span><span class="attr">#[derive(Debug)]
 </span><span class="kw">pub enum </span>PostAction {
     <span class="doccomment">/// Add to `hold` queue.
@@ -313,8 +329,8 @@ a[href]:focus, a[href]:hover {
     },
 }
 
-<span class="doccomment">/// List context passed to a list&#39;s [`PostFilter`](message_filters::PostFilter)
-/// stack.
+<span class="doccomment">/// List context passed to a list&#39;s
+/// [`PostFilter`](crate::message_filters::PostFilter) stack.
 </span><span class="attr">#[derive(Debug)]
 </span><span class="kw">pub struct </span>ListContext&lt;<span class="lifetime">&#39;list</span>&gt; {
     <span class="doccomment">/// Which mailing list a post was addressed to.
@@ -328,13 +344,16 @@ a[href]:focus, a[href]:hover {
     <span class="doccomment">/// The mailing list subscription policy.
     </span><span class="kw">pub </span>subscription_policy: <span class="prelude-ty">Option</span>&lt;DbVal&lt;SubscriptionPolicy&gt;&gt;,
     <span class="doccomment">/// The scheduled jobs added by each filter in a list&#39;s
-    /// [`PostFilter`](message_filters::PostFilter) stack.
+    /// [`PostFilter`](crate::message_filters::PostFilter) stack.
     </span><span class="kw">pub </span>scheduled_jobs: Vec&lt;MailJob&gt;,
+    <span class="doccomment">/// Saved settings for message filters, which process a
+    /// received e-mail before taking a final decision/action.
+    </span><span class="kw">pub </span>filter_settings: HashMap&lt;String, DbVal&lt;serde_json::Value&gt;&gt;,
 }
 
 <span class="doccomment">/// Post to be considered by the list&#39;s
-/// [`PostFilter`](message_filters::PostFilter) stack.
-</span><span class="kw">pub struct </span>Post {
+/// [`PostFilter`](crate::message_filters::PostFilter) stack.
+</span><span class="kw">pub struct </span>PostEntry {
     <span class="doccomment">/// `From` address of post.
     </span><span class="kw">pub </span>from: Address,
     <span class="doccomment">/// Raw bytes of post.
@@ -342,14 +361,17 @@ a[href]:focus, a[href]:hover {
     <span class="doccomment">/// `To` addresses of post.
     </span><span class="kw">pub </span>to: Vec&lt;Address&gt;,
     <span class="doccomment">/// Final action set by each filter in a list&#39;s
-    /// [`PostFilter`](message_filters::PostFilter) stack.
+    /// [`PostFilter`](crate::message_filters::PostFilter) stack.
     </span><span class="kw">pub </span>action: PostAction,
+    <span class="doccomment">/// Post&#39;s Message-ID
+    </span><span class="kw">pub </span>message_id: MessageID,
 }
 
-<span class="kw">impl </span>core::fmt::Debug <span class="kw">for </span>Post {
+<span class="kw">impl </span>core::fmt::Debug <span class="kw">for </span>PostEntry {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>core::fmt::Formatter) -&gt; core::fmt::Result {
-        fmt.debug_struct(<span class="string">&quot;Post&quot;</span>)
+        fmt.debug_struct(<span class="macro">stringify!</span>(PostEntry))
             .field(<span class="string">&quot;from&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.from)
+            .field(<span class="string">&quot;message_id&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.message_id)
             .field(<span class="string">&quot;bytes&quot;</span>, <span class="kw-2">&amp;</span><span class="macro">format_args!</span>(<span class="string">&quot;{} bytes&quot;</span>, <span class="self">self</span>.bytes.len()))
             .field(<span class="string">&quot;to&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.to.as_slice())
             .field(<span class="string">&quot;action&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.action)
@@ -358,7 +380,7 @@ a[href]:focus, a[href]:hover {
 }
 
 <span class="doccomment">/// Scheduled jobs added to a [`ListContext`] by a list&#39;s
-/// [`PostFilter`](message_filters::PostFilter) stack.
+/// [`PostFilter`](crate::message_filters::PostFilter) stack.
 </span><span class="attr">#[derive(Debug)]
 </span><span class="kw">pub enum </span>MailJob {
     <span class="doccomment">/// Send post to recipients.

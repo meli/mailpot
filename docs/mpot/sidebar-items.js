@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":["main","run_app"],"macro":["list","string_opts"]};
+window.SIDEBAR_ITEMS = {"fn":["main","run_app"],"macro":["list","string_opts"],"mod":["lints"]};

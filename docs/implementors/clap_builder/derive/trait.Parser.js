@@ -1,3 +1,3 @@
 (function() {var implementors = {
-"mailpot_cli":[["impl <a class=\"trait\" href=\"mailpot_cli/trait.Parser.html\" title=\"trait mailpot_cli::Parser\">Parser</a> for <a class=\"struct\" href=\"mailpot_cli/struct.Opt.html\" title=\"struct mailpot_cli::Opt\">Opt</a>"]]
+"mailpot_cli":[["impl <a class=\"trait\" href=\"mailpot_cli/trait.Parser.html\" title=\"trait mailpot_cli::Parser\">Parser</a> for <a class=\"struct\" href=\"mailpot_cli/args/struct.Opt.html\" title=\"struct mailpot_cli::args::Opt\">Opt</a>"]]
 };if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

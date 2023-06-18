@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"derive":["Args","Parser","Subcommand"],"enum":["Command","ListCommand","QueueCommand"],"struct":["AccountOptions","Opt","PathBuf","PostfixConfig","QueueValueParser","SubscriptionOptions"],"trait":["Args","CommandFactory","Parser","Subcommand","TypedValueParser"]};

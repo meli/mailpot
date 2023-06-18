@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {};
+window.SIDEBAR_ITEMS = {"enum":["SocketAddr"],"fn":["create_app"],"macro":["debug","info","trace"],"mod":["changesets","errors","header","routes","settings"],"struct":["Account","Arc","Configuration","Connection","DbVal","ListCandidateSubscription","ListOwner","ListSubscription","MailingList","Post","PostPolicy","Router","SubscriptionPolicy"]};

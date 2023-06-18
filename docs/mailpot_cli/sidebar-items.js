@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"derive":["Args","Parser","Subcommand"],"enum":["Command","ErrorQueueCommand","ListCommand"],"struct":["AccountOptions","Opt","PathBuf","PostfixConfig","SubscriptionOptions"],"trait":["Args","CommandFactory","Parser","Subcommand"]};
+window.SIDEBAR_ITEMS = {"derive":["Args","Parser","Subcommand"],"enum":["Command","ListCommand","QueueCommand"],"mod":["args","import"],"struct":["AccountOptions","Opt","PathBuf","PostfixConfig","QueueValueParser","SubscriptionOptions"],"trait":["Args","CommandFactory","Parser","Subcommand","TypedValueParser"]};

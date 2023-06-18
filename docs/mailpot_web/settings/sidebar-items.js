@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["ChangeSetting"],"fn":["settings","settings_post","user_list_subscription","user_list_subscription_post"],"struct":["SubscriptionFormPayload"]};
+window.SIDEBAR_ITEMS = {"enum":["ChangeSetting"],"fn":["settings","settings_POST","user_list_subscription","user_list_subscription_POST"],"struct":["SubscriptionFormPayload"]};

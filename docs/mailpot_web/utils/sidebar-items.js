@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["Level"],"fn":["empty_string_as_none","to_safe_string","to_safe_string_opt"],"struct":["BoolPOST","BoolVisitor","Crumb","IntPOST","IntVisitor","Message","Next"],"trait":["SessionMessages"]};
+window.SIDEBAR_ITEMS = {"enum":["Level"],"fn":["empty_string_as_none","thread","thread_db","thread_roots","to_safe_string","to_safe_string_opt"],"struct":["BoolPOST","Crumb","IntPOST","Message","Next","ThreadEntry"],"trait":["SessionMessages"]};

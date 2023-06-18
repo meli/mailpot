@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"mod":["settings"],"struct":["AddListHeaders","AddSubjectTagPrefix","ArchivedAtLink","FinalizeRecipients","FixCRLF","PostRightsCheck"],"trait":["PostFilter"]};

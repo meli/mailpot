@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `web/src/utils.rs`."><title>utils.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-ba5701c5741a7b69.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="mailpot_web" data-themes="" data-resource-suffix="" data-rustdoc-version="1.71.0-nightly (f5559e338 2023-04-24)" data-search-js="search-618e954b235f6acc.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-6f6ffb5395b17c6e.css" data-theme-light-css="light-0f8c037637f9eb3e.css" data-theme-dark-css="dark-1097f8e92a01e3cf.css" data-theme-ayu-css="ayu-614652228113ac93.css" ></div><script src="../../static.files/storage-62ce34ea385b278a.js"></script><script defer src="../../static.files/source-script-11255107d0a65077.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-f0540c1d82cde29b.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../static.files/light-0f8c037637f9eb3e.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../static.files/dark-1097f8e92a01e3cf.css"><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><style>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `web/src/utils.rs`."><title>utils.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-d1c027e9fb12379c.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="mailpot_web" data-themes="" data-resource-suffix="" data-rustdoc-version="1.72.0-nightly (3b2073f07 2023-06-17)" data-search-js="search-1e8f84b2d523d42b.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-8c76f75bfb6bd192.css" data-theme-light-css="light-0f8c037637f9eb3e.css" data-theme-dark-css="dark-1097f8e92a01e3cf.css" data-theme-ayu-css="ayu-614652228113ac93.css" ></div><script src="../../static.files/storage-62ce34ea385b278a.js"></script><script defer src="../../static.files/source-script-11255107d0a65077.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-190c35055d2a8300.js"></script><script defer src="../../static.files/scrape-examples-ef1e698c1d417c0c.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../static.files/light-0f8c037637f9eb3e.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../static.files/dark-1097f8e92a01e3cf.css"><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><style>
 .rustdoc { flex-wrap: wrap; }
 @media (prefers-color-scheme: light) {
     :root {
@@ -310,6 +310,367 @@ a[href]:focus, a[href]:hover {
 <a href="#212" id="212">212</a>
 <a href="#213" id="213">213</a>
 <a href="#214" id="214">214</a>
+<a href="#215" id="215">215</a>
+<a href="#216" id="216">216</a>
+<a href="#217" id="217">217</a>
+<a href="#218" id="218">218</a>
+<a href="#219" id="219">219</a>
+<a href="#220" id="220">220</a>
+<a href="#221" id="221">221</a>
+<a href="#222" id="222">222</a>
+<a href="#223" id="223">223</a>
+<a href="#224" id="224">224</a>
+<a href="#225" id="225">225</a>
+<a href="#226" id="226">226</a>
+<a href="#227" id="227">227</a>
+<a href="#228" id="228">228</a>
+<a href="#229" id="229">229</a>
+<a href="#230" id="230">230</a>
+<a href="#231" id="231">231</a>
+<a href="#232" id="232">232</a>
+<a href="#233" id="233">233</a>
+<a href="#234" id="234">234</a>
+<a href="#235" id="235">235</a>
+<a href="#236" id="236">236</a>
+<a href="#237" id="237">237</a>
+<a href="#238" id="238">238</a>
+<a href="#239" id="239">239</a>
+<a href="#240" id="240">240</a>
+<a href="#241" id="241">241</a>
+<a href="#242" id="242">242</a>
+<a href="#243" id="243">243</a>
+<a href="#244" id="244">244</a>
+<a href="#245" id="245">245</a>
+<a href="#246" id="246">246</a>
+<a href="#247" id="247">247</a>
+<a href="#248" id="248">248</a>
+<a href="#249" id="249">249</a>
+<a href="#250" id="250">250</a>
+<a href="#251" id="251">251</a>
+<a href="#252" id="252">252</a>
+<a href="#253" id="253">253</a>
+<a href="#254" id="254">254</a>
+<a href="#255" id="255">255</a>
+<a href="#256" id="256">256</a>
+<a href="#257" id="257">257</a>
+<a href="#258" id="258">258</a>
+<a href="#259" id="259">259</a>
+<a href="#260" id="260">260</a>
+<a href="#261" id="261">261</a>
+<a href="#262" id="262">262</a>
+<a href="#263" id="263">263</a>
+<a href="#264" id="264">264</a>
+<a href="#265" id="265">265</a>
+<a href="#266" id="266">266</a>
+<a href="#267" id="267">267</a>
+<a href="#268" id="268">268</a>
+<a href="#269" id="269">269</a>
+<a href="#270" id="270">270</a>
+<a href="#271" id="271">271</a>
+<a href="#272" id="272">272</a>
+<a href="#273" id="273">273</a>
+<a href="#274" id="274">274</a>
+<a href="#275" id="275">275</a>
+<a href="#276" id="276">276</a>
+<a href="#277" id="277">277</a>
+<a href="#278" id="278">278</a>
+<a href="#279" id="279">279</a>
+<a href="#280" id="280">280</a>
+<a href="#281" id="281">281</a>
+<a href="#282" id="282">282</a>
+<a href="#283" id="283">283</a>
+<a href="#284" id="284">284</a>
+<a href="#285" id="285">285</a>
+<a href="#286" id="286">286</a>
+<a href="#287" id="287">287</a>
+<a href="#288" id="288">288</a>
+<a href="#289" id="289">289</a>
+<a href="#290" id="290">290</a>
+<a href="#291" id="291">291</a>
+<a href="#292" id="292">292</a>
+<a href="#293" id="293">293</a>
+<a href="#294" id="294">294</a>
+<a href="#295" id="295">295</a>
+<a href="#296" id="296">296</a>
+<a href="#297" id="297">297</a>
+<a href="#298" id="298">298</a>
+<a href="#299" id="299">299</a>
+<a href="#300" id="300">300</a>
+<a href="#301" id="301">301</a>
+<a href="#302" id="302">302</a>
+<a href="#303" id="303">303</a>
+<a href="#304" id="304">304</a>
+<a href="#305" id="305">305</a>
+<a href="#306" id="306">306</a>
+<a href="#307" id="307">307</a>
+<a href="#308" id="308">308</a>
+<a href="#309" id="309">309</a>
+<a href="#310" id="310">310</a>
+<a href="#311" id="311">311</a>
+<a href="#312" id="312">312</a>
+<a href="#313" id="313">313</a>
+<a href="#314" id="314">314</a>
+<a href="#315" id="315">315</a>
+<a href="#316" id="316">316</a>
+<a href="#317" id="317">317</a>
+<a href="#318" id="318">318</a>
+<a href="#319" id="319">319</a>
+<a href="#320" id="320">320</a>
+<a href="#321" id="321">321</a>
+<a href="#322" id="322">322</a>
+<a href="#323" id="323">323</a>
+<a href="#324" id="324">324</a>
+<a href="#325" id="325">325</a>
+<a href="#326" id="326">326</a>
+<a href="#327" id="327">327</a>
+<a href="#328" id="328">328</a>
+<a href="#329" id="329">329</a>
+<a href="#330" id="330">330</a>
+<a href="#331" id="331">331</a>
+<a href="#332" id="332">332</a>
+<a href="#333" id="333">333</a>
+<a href="#334" id="334">334</a>
+<a href="#335" id="335">335</a>
+<a href="#336" id="336">336</a>
+<a href="#337" id="337">337</a>
+<a href="#338" id="338">338</a>
+<a href="#339" id="339">339</a>
+<a href="#340" id="340">340</a>
+<a href="#341" id="341">341</a>
+<a href="#342" id="342">342</a>
+<a href="#343" id="343">343</a>
+<a href="#344" id="344">344</a>
+<a href="#345" id="345">345</a>
+<a href="#346" id="346">346</a>
+<a href="#347" id="347">347</a>
+<a href="#348" id="348">348</a>
+<a href="#349" id="349">349</a>
+<a href="#350" id="350">350</a>
+<a href="#351" id="351">351</a>
+<a href="#352" id="352">352</a>
+<a href="#353" id="353">353</a>
+<a href="#354" id="354">354</a>
+<a href="#355" id="355">355</a>
+<a href="#356" id="356">356</a>
+<a href="#357" id="357">357</a>
+<a href="#358" id="358">358</a>
+<a href="#359" id="359">359</a>
+<a href="#360" id="360">360</a>
+<a href="#361" id="361">361</a>
+<a href="#362" id="362">362</a>
+<a href="#363" id="363">363</a>
+<a href="#364" id="364">364</a>
+<a href="#365" id="365">365</a>
+<a href="#366" id="366">366</a>
+<a href="#367" id="367">367</a>
+<a href="#368" id="368">368</a>
+<a href="#369" id="369">369</a>
+<a href="#370" id="370">370</a>
+<a href="#371" id="371">371</a>
+<a href="#372" id="372">372</a>
+<a href="#373" id="373">373</a>
+<a href="#374" id="374">374</a>
+<a href="#375" id="375">375</a>
+<a href="#376" id="376">376</a>
+<a href="#377" id="377">377</a>
+<a href="#378" id="378">378</a>
+<a href="#379" id="379">379</a>
+<a href="#380" id="380">380</a>
+<a href="#381" id="381">381</a>
+<a href="#382" id="382">382</a>
+<a href="#383" id="383">383</a>
+<a href="#384" id="384">384</a>
+<a href="#385" id="385">385</a>
+<a href="#386" id="386">386</a>
+<a href="#387" id="387">387</a>
+<a href="#388" id="388">388</a>
+<a href="#389" id="389">389</a>
+<a href="#390" id="390">390</a>
+<a href="#391" id="391">391</a>
+<a href="#392" id="392">392</a>
+<a href="#393" id="393">393</a>
+<a href="#394" id="394">394</a>
+<a href="#395" id="395">395</a>
+<a href="#396" id="396">396</a>
+<a href="#397" id="397">397</a>
+<a href="#398" id="398">398</a>
+<a href="#399" id="399">399</a>
+<a href="#400" id="400">400</a>
+<a href="#401" id="401">401</a>
+<a href="#402" id="402">402</a>
+<a href="#403" id="403">403</a>
+<a href="#404" id="404">404</a>
+<a href="#405" id="405">405</a>
+<a href="#406" id="406">406</a>
+<a href="#407" id="407">407</a>
+<a href="#408" id="408">408</a>
+<a href="#409" id="409">409</a>
+<a href="#410" id="410">410</a>
+<a href="#411" id="411">411</a>
+<a href="#412" id="412">412</a>
+<a href="#413" id="413">413</a>
+<a href="#414" id="414">414</a>
+<a href="#415" id="415">415</a>
+<a href="#416" id="416">416</a>
+<a href="#417" id="417">417</a>
+<a href="#418" id="418">418</a>
+<a href="#419" id="419">419</a>
+<a href="#420" id="420">420</a>
+<a href="#421" id="421">421</a>
+<a href="#422" id="422">422</a>
+<a href="#423" id="423">423</a>
+<a href="#424" id="424">424</a>
+<a href="#425" id="425">425</a>
+<a href="#426" id="426">426</a>
+<a href="#427" id="427">427</a>
+<a href="#428" id="428">428</a>
+<a href="#429" id="429">429</a>
+<a href="#430" id="430">430</a>
+<a href="#431" id="431">431</a>
+<a href="#432" id="432">432</a>
+<a href="#433" id="433">433</a>
+<a href="#434" id="434">434</a>
+<a href="#435" id="435">435</a>
+<a href="#436" id="436">436</a>
+<a href="#437" id="437">437</a>
+<a href="#438" id="438">438</a>
+<a href="#439" id="439">439</a>
+<a href="#440" id="440">440</a>
+<a href="#441" id="441">441</a>
+<a href="#442" id="442">442</a>
+<a href="#443" id="443">443</a>
+<a href="#444" id="444">444</a>
+<a href="#445" id="445">445</a>
+<a href="#446" id="446">446</a>
+<a href="#447" id="447">447</a>
+<a href="#448" id="448">448</a>
+<a href="#449" id="449">449</a>
+<a href="#450" id="450">450</a>
+<a href="#451" id="451">451</a>
+<a href="#452" id="452">452</a>
+<a href="#453" id="453">453</a>
+<a href="#454" id="454">454</a>
+<a href="#455" id="455">455</a>
+<a href="#456" id="456">456</a>
+<a href="#457" id="457">457</a>
+<a href="#458" id="458">458</a>
+<a href="#459" id="459">459</a>
+<a href="#460" id="460">460</a>
+<a href="#461" id="461">461</a>
+<a href="#462" id="462">462</a>
+<a href="#463" id="463">463</a>
+<a href="#464" id="464">464</a>
+<a href="#465" id="465">465</a>
+<a href="#466" id="466">466</a>
+<a href="#467" id="467">467</a>
+<a href="#468" id="468">468</a>
+<a href="#469" id="469">469</a>
+<a href="#470" id="470">470</a>
+<a href="#471" id="471">471</a>
+<a href="#472" id="472">472</a>
+<a href="#473" id="473">473</a>
+<a href="#474" id="474">474</a>
+<a href="#475" id="475">475</a>
+<a href="#476" id="476">476</a>
+<a href="#477" id="477">477</a>
+<a href="#478" id="478">478</a>
+<a href="#479" id="479">479</a>
+<a href="#480" id="480">480</a>
+<a href="#481" id="481">481</a>
+<a href="#482" id="482">482</a>
+<a href="#483" id="483">483</a>
+<a href="#484" id="484">484</a>
+<a href="#485" id="485">485</a>
+<a href="#486" id="486">486</a>
+<a href="#487" id="487">487</a>
+<a href="#488" id="488">488</a>
+<a href="#489" id="489">489</a>
+<a href="#490" id="490">490</a>
+<a href="#491" id="491">491</a>
+<a href="#492" id="492">492</a>
+<a href="#493" id="493">493</a>
+<a href="#494" id="494">494</a>
+<a href="#495" id="495">495</a>
+<a href="#496" id="496">496</a>
+<a href="#497" id="497">497</a>
+<a href="#498" id="498">498</a>
+<a href="#499" id="499">499</a>
+<a href="#500" id="500">500</a>
+<a href="#501" id="501">501</a>
+<a href="#502" id="502">502</a>
+<a href="#503" id="503">503</a>
+<a href="#504" id="504">504</a>
+<a href="#505" id="505">505</a>
+<a href="#506" id="506">506</a>
+<a href="#507" id="507">507</a>
+<a href="#508" id="508">508</a>
+<a href="#509" id="509">509</a>
+<a href="#510" id="510">510</a>
+<a href="#511" id="511">511</a>
+<a href="#512" id="512">512</a>
+<a href="#513" id="513">513</a>
+<a href="#514" id="514">514</a>
+<a href="#515" id="515">515</a>
+<a href="#516" id="516">516</a>
+<a href="#517" id="517">517</a>
+<a href="#518" id="518">518</a>
+<a href="#519" id="519">519</a>
+<a href="#520" id="520">520</a>
+<a href="#521" id="521">521</a>
+<a href="#522" id="522">522</a>
+<a href="#523" id="523">523</a>
+<a href="#524" id="524">524</a>
+<a href="#525" id="525">525</a>
+<a href="#526" id="526">526</a>
+<a href="#527" id="527">527</a>
+<a href="#528" id="528">528</a>
+<a href="#529" id="529">529</a>
+<a href="#530" id="530">530</a>
+<a href="#531" id="531">531</a>
+<a href="#532" id="532">532</a>
+<a href="#533" id="533">533</a>
+<a href="#534" id="534">534</a>
+<a href="#535" id="535">535</a>
+<a href="#536" id="536">536</a>
+<a href="#537" id="537">537</a>
+<a href="#538" id="538">538</a>
+<a href="#539" id="539">539</a>
+<a href="#540" id="540">540</a>
+<a href="#541" id="541">541</a>
+<a href="#542" id="542">542</a>
+<a href="#543" id="543">543</a>
+<a href="#544" id="544">544</a>
+<a href="#545" id="545">545</a>
+<a href="#546" id="546">546</a>
+<a href="#547" id="547">547</a>
+<a href="#548" id="548">548</a>
+<a href="#549" id="549">549</a>
+<a href="#550" id="550">550</a>
+<a href="#551" id="551">551</a>
+<a href="#552" id="552">552</a>
+<a href="#553" id="553">553</a>
+<a href="#554" id="554">554</a>
+<a href="#555" id="555">555</a>
+<a href="#556" id="556">556</a>
+<a href="#557" id="557">557</a>
+<a href="#558" id="558">558</a>
+<a href="#559" id="559">559</a>
+<a href="#560" id="560">560</a>
+<a href="#561" id="561">561</a>
+<a href="#562" id="562">562</a>
+<a href="#563" id="563">563</a>
+<a href="#564" id="564">564</a>
+<a href="#565" id="565">565</a>
+<a href="#566" id="566">566</a>
+<a href="#567" id="567">567</a>
+<a href="#568" id="568">568</a>
+<a href="#569" id="569">569</a>
+<a href="#570" id="570">570</a>
+<a href="#571" id="571">571</a>
+<a href="#572" id="572">572</a>
+<a href="#573" id="573">573</a>
+<a href="#574" id="574">574</a>
+<a href="#575" id="575">575</a>
 </pre></div><pre class="rust"><code><span class="comment">/*
  * This file is part of mailpot
  *
@@ -331,14 +692,29 @@ a[href]:focus, a[href]:hover {
 
 </span><span class="kw">use super</span>::<span class="kw-2">*</span>;
 
-<span class="attr">#[derive(Debug, PartialEq, Eq, Clone, serde::Deserialize, serde::Serialize)]
+<span class="doccomment">/// Navigation crumbs, e.g.: Home &gt; Page &gt; Subpage
+///
+/// # Example
+///
+/// ```rust
+/// # use mailpot_web::utils::Crumb;
+/// let crumbs = vec![Crumb {
+///     label: &quot;Home&quot;.into(),
+///     url: &quot;/&quot;.into(),
+/// }];
+/// println!(&quot;{} {}&quot;, crumbs[0].label, crumbs[0].url);
+/// ```
+</span><span class="attr">#[derive(Debug, PartialEq, Eq, Clone, serde::Deserialize, serde::Serialize)]
 </span><span class="kw">pub struct </span>Crumb {
     <span class="kw">pub </span>label: Cow&lt;<span class="lifetime">&#39;static</span>, str&gt;,
     <span class="attr">#[serde(serialize_with = <span class="string">&quot;to_safe_string&quot;</span>)]
     </span><span class="kw">pub </span>url: Cow&lt;<span class="lifetime">&#39;static</span>, str&gt;,
 }
 
-<span class="attr">#[derive(Debug, Default, Hash, Copy, Clone, serde::Deserialize, serde::Serialize)]
+<span class="doccomment">/// Message urgency level or info.
+</span><span class="attr">#[derive(
+    Debug, Default, Hash, Copy, Clone, serde::Deserialize, serde::Serialize, PartialEq, Eq,
+)]
 </span><span class="kw">pub enum </span>Level {
     Success,
     <span class="attr">#[default]
@@ -347,7 +723,8 @@ a[href]:focus, a[href]:hover {
     Error,
 }
 
-<span class="attr">#[derive(Debug, Hash, Clone, serde::Deserialize, serde::Serialize)]
+<span class="doccomment">/// UI message notifications.
+</span><span class="attr">#[derive(Debug, Hash, Clone, serde::Deserialize, serde::Serialize, PartialEq, Eq)]
 </span><span class="kw">pub struct </span>Message {
     <span class="kw">pub </span>message: Cow&lt;<span class="lifetime">&#39;static</span>, str&gt;,
     <span class="attr">#[serde(default)]
@@ -358,12 +735,62 @@ a[href]:focus, a[href]:hover {
     <span class="kw">const </span>MESSAGE_KEY: <span class="kw-2">&amp;</span>str = <span class="string">&quot;session-message&quot;</span>;
 }
 
-<span class="kw">pub trait </span>SessionMessages {
+<span class="doccomment">/// Drain messages from session.
+///
+/// # Example
+///
+/// ```no_run
+/// # use mailpot_web::utils::{Message, Level, SessionMessages};
+/// struct Session(Vec&lt;Message&gt;);
+///
+/// impl SessionMessages for Session {
+///     type Error = std::convert::Infallible;
+///     fn drain_messages(&amp;mut self) -&gt; Vec&lt;Message&gt; {
+///         std::mem::take(&amp;mut self.0)
+///     }
+///
+///     fn add_message(&amp;mut self, m: Message) -&gt; Result&lt;(), std::convert::Infallible&gt; {
+///         self.0.push(m);
+///         Ok(())
+///     }
+/// }
+/// let mut s = Session(vec![]);
+/// s.add_message(Message {
+///     message: &quot;foo&quot;.into(),
+///     level: Level::default(),
+/// })
+/// .unwrap();
+/// s.add_message(Message {
+///     message: &quot;bar&quot;.into(),
+///     level: Level::Error,
+/// })
+/// .unwrap();
+/// assert_eq!(
+///     s.drain_messages().as_slice(),
+///     [
+///         Message {
+///             message: &quot;foo&quot;.into(),
+///             level: Level::default(),
+///         },
+///         Message {
+///             message: &quot;bar&quot;.into(),
+///             level: Level::Error
+///         }
+///     ]
+///     .as_slice()
+/// );
+/// assert!(s.0.is_empty());
+/// ```
+</span><span class="kw">pub trait </span>SessionMessages {
+    <span class="kw">type </span>Error;
+
     <span class="kw">fn </span>drain_messages(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; Vec&lt;Message&gt;;
-    <span class="kw">fn </span>add_message(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <span class="kw">_</span>: Message) -&gt; <span class="prelude-ty">Result</span>&lt;(), ResponseError&gt;;
+    <span class="kw">fn </span>add_message(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <span class="kw">_</span>: Message) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt;;
 }
 
 <span class="kw">impl </span>SessionMessages <span class="kw">for </span>WritableSession {
+    <span class="kw">type </span>Error = ResponseError;
+
     <span class="kw">fn </span>drain_messages(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; Vec&lt;Message&gt; {
         <span class="kw">let </span>ret = <span class="self">self</span>.get(Message::MESSAGE_KEY).unwrap_or_default();
         <span class="self">self</span>.remove(Message::MESSAGE_KEY);
@@ -379,7 +806,9 @@ a[href]:focus, a[href]:hover {
     }
 }
 
-<span class="attr">#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Hash)]
+<span class="doccomment">/// Deserialize a string integer into `i64`, because POST parameters are
+/// strings.
+</span><span class="attr">#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Hash)]
 #[repr(transparent)]
 </span><span class="kw">pub struct </span>IntPOST(<span class="kw">pub </span>i64);
 
@@ -413,6 +842,13 @@ a[href]:focus, a[href]:hover {
                 <span class="prelude-val">Ok</span>(IntPOST(int))
             }
 
+            <span class="kw">fn </span>visit_u64&lt;E&gt;(<span class="self">self</span>, int: u64) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Value, E&gt;
+            <span class="kw">where
+                </span>E: serde::de::Error,
+            {
+                <span class="prelude-val">Ok</span>(IntPOST(int.try_into().unwrap()))
+            }
+
             <span class="kw">fn </span>visit_str&lt;E&gt;(<span class="self">self</span>, int: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Value, E&gt;
             <span class="kw">where
                 </span>E: serde::de::Error,
@@ -425,7 +861,9 @@ a[href]:focus, a[href]:hover {
     }
 }
 
-<span class="attr">#[derive(Clone, Copy, Default, Debug, PartialEq, Eq, PartialOrd, Hash)]
+<span class="doccomment">/// Deserialize a string integer into `bool`, because POST parameters are
+/// strings.
+</span><span class="attr">#[derive(Clone, Copy, Default, Debug, PartialEq, Eq, PartialOrd, Hash)]
 #[repr(transparent)]
 </span><span class="kw">pub struct </span>BoolPOST(<span class="kw">pub </span>bool);
 
@@ -523,5 +961,289 @@ a[href]:focus, a[href]:hover {
     s.as_ref()
         .map(|s| Value::from_safe_string(s.to_string()))
         .serialize(ser)
+}
+
+<span class="kw">pub struct </span>ThreadEntry {
+    <span class="kw">pub </span>hash: melib::EnvelopeHash,
+    <span class="kw">pub </span>depth: usize,
+    <span class="kw">pub </span>thread_node: melib::ThreadNodeHash,
+    <span class="kw">pub </span>thread: melib::ThreadHash,
+    <span class="kw">pub </span>from: String,
+    <span class="kw">pub </span>message_id: String,
+    <span class="kw">pub </span>timestamp: u64,
+    <span class="kw">pub </span>datetime: String,
+}
+
+<span class="kw">pub fn </span>thread_db(
+    db: <span class="kw-2">&amp;</span>mailpot::Connection,
+    list: i64,
+    root: <span class="kw-2">&amp;</span>str,
+) -&gt; Vec&lt;(i64, DbVal&lt;mailpot::models::Post&gt;, String, String)&gt; {
+    <span class="kw">let </span><span class="kw-2">mut </span>stmt = db
+        .connection
+        .prepare(
+            <span class="string">&quot;WITH RECURSIVE cte_replies AS MATERIALIZED
+            (
+                SELECT
+                pk,
+                message_id,
+                REPLACE(
+                    TRIM(
+                        SUBSTR(
+                            CAST(message AS TEXT),
+                            INSTR(
+                                CAST(message AS TEXT),
+                                &#39;In-Reply-To: &#39;
+                            )
+                            +
+                            LENGTH(&#39;in-reply-to: &#39;),
+                            INSTR(
+                                SUBSTR(
+                                    CAST(message AS TEXT),
+                                    INSTR(
+                                        CAST(message AS TEXT),
+                                        &#39;In-Reply-To: &#39;)
+                                        +
+                                        LENGTH(&#39;in-reply-to: &#39;)
+                                ),
+                                &#39;&gt;&#39;
+                            )
+                        )
+                    ),
+                    &#39; &#39;,
+                    &#39;&#39;
+                ) AS in_reply_to,
+                INSTR(
+                    CAST(message AS TEXT),
+                    &#39;In-Reply-To: &#39;
+                ) AS offset
+                FROM post
+                WHERE
+                    offset &gt; 0
+                UNION
+                SELECT
+                pk,
+                message_id,
+                NULL AS in_reply_to,
+                INSTR(
+                    CAST(message AS TEXT),
+                    &#39;In-Reply-To: &#39;
+                ) AS offset
+                FROM post
+                WHERE
+                offset = 0
+            ),
+            cte_thread(parent, root, depth) AS (
+              SELECT DISTINCT
+                message_id AS parent,
+                message_id AS root,
+                0 AS depth
+              FROM cte_replies
+              WHERE
+                in_reply_to IS NULL
+              UNION ALL
+              SELECT
+                t.message_id AS parent,
+                cte_thread.root AS root,
+                (cte_thread.depth + 1) AS depth
+              FROM cte_replies
+              AS t
+              JOIN
+              cte_thread
+              ON cte_thread.parent = t.in_reply_to
+              WHERE t.in_reply_to IS NOT NULL
+)
+SELECT * FROM cte_thread WHERE root = ? ORDER BY root, depth;&quot;</span>,
+        )
+        .unwrap();
+    <span class="kw">let </span>iter = stmt
+        .query_map(<span class="macro">rusqlite::params!</span>[root], |row| {
+            <span class="kw">let </span>parent: String = row.get(<span class="string">&quot;parent&quot;</span>)<span class="question-mark">?</span>;
+            <span class="kw">let </span>root: String = row.get(<span class="string">&quot;root&quot;</span>)<span class="question-mark">?</span>;
+            <span class="kw">let </span>depth: i64 = row.get(<span class="string">&quot;depth&quot;</span>)<span class="question-mark">?</span>;
+            <span class="prelude-val">Ok</span>((parent, root, depth))
+        })
+        .unwrap();
+    <span class="kw">let </span><span class="kw-2">mut </span>ret = <span class="macro">vec!</span>[];
+    <span class="kw">for </span>post <span class="kw">in </span>iter {
+        <span class="kw">let </span>post = post.unwrap();
+        ret.push(post);
+    }
+    <span class="kw">let </span>posts = db.list_posts(list, <span class="prelude-val">None</span>).unwrap();
+    ret.into_iter()
+        .filter_map(|(m, <span class="kw">_</span>, depth)| {
+            posts
+                .iter()
+                .find(|p| m.as_str().strip_carets() == p.message_id.as_str().strip_carets())
+                .map(|p| {
+                    <span class="kw">let </span>envelope = melib::Envelope::from_bytes(p.message.as_slice(), <span class="prelude-val">None</span>).unwrap();
+                    <span class="kw">let </span>body = envelope.body_bytes(p.message.as_slice());
+                    <span class="kw">let </span>body_text = body.text();
+                    <span class="kw">let </span>date = envelope.date_as_str().to_string();
+                    (depth, p.clone(), body_text, date)
+                })
+        })
+        .skip(<span class="number">1</span>)
+        .collect()
+}
+
+<span class="kw">pub fn </span>thread(
+    envelopes: <span class="kw-2">&amp;</span>Arc&lt;std::sync::RwLock&lt;HashMap&lt;melib::EnvelopeHash, melib::Envelope&gt;&gt;&gt;,
+    threads: <span class="kw-2">&amp;</span>melib::Threads,
+    root_env_hash: melib::EnvelopeHash,
+) -&gt; Vec&lt;ThreadEntry&gt; {
+    <span class="kw">let </span>env_lock = envelopes.read().unwrap();
+    <span class="kw">let </span>thread = threads.envelope_to_thread[<span class="kw-2">&amp;</span>root_env_hash];
+    <span class="kw">let </span><span class="kw-2">mut </span>ret = <span class="macro">vec!</span>[];
+    <span class="kw">for </span>(depth, t) <span class="kw">in </span>threads.thread_group_iter(thread) {
+        <span class="kw">let </span>hash = threads.thread_nodes[<span class="kw-2">&amp;</span>t].message.unwrap();
+        ret.push(ThreadEntry {
+            hash,
+            depth,
+            thread_node: t,
+            thread,
+            message_id: env_lock[<span class="kw-2">&amp;</span>hash].message_id().to_string(),
+            from: env_lock[<span class="kw-2">&amp;</span>hash].field_from_to_string(),
+            datetime: env_lock[<span class="kw-2">&amp;</span>hash].date_as_str().to_string(),
+            timestamp: env_lock[<span class="kw-2">&amp;</span>hash].timestamp,
+        });
+    }
+    ret
+}
+
+<span class="kw">pub fn </span>thread_roots(
+    envelopes: <span class="kw-2">&amp;</span>Arc&lt;std::sync::RwLock&lt;HashMap&lt;melib::EnvelopeHash, melib::Envelope&gt;&gt;&gt;,
+    threads: <span class="kw-2">&amp;mut </span>melib::Threads,
+) -&gt; Vec&lt;(ThreadEntry, usize, u64)&gt; {
+    <span class="kw">let </span>items = threads.roots();
+    <span class="kw">let </span>env_lock = envelopes.read().unwrap();
+    <span class="kw">let </span><span class="kw-2">mut </span>ret = <span class="macro">vec!</span>[];
+    <span class="lifetime">&#39;items_for_loop</span>: <span class="kw">for </span>thread <span class="kw">in </span>items {
+        <span class="kw">let </span><span class="kw-2">mut </span>iter_ptr = threads.thread_ref(thread).root();
+        <span class="kw">let </span>thread_node = <span class="kw-2">&amp;</span>threads.thread_nodes()[<span class="kw-2">&amp;</span>iter_ptr];
+        <span class="kw">let </span>root_env_hash = <span class="kw">if let </span><span class="prelude-val">Some</span>(h) = thread_node.message().or_else(|| {
+            <span class="kw">if </span>thread_node.children().is_empty() {
+                <span class="kw">return </span><span class="prelude-val">None</span>;
+            }
+            iter_ptr = thread_node.children()[<span class="number">0</span>];
+            <span class="kw">while </span>threads.thread_nodes()[<span class="kw-2">&amp;</span>iter_ptr].message().is_none() {
+                <span class="kw">if </span>threads.thread_nodes()[<span class="kw-2">&amp;</span>iter_ptr].children().is_empty() {
+                    <span class="kw">return </span><span class="prelude-val">None</span>;
+                }
+                iter_ptr = threads.thread_nodes()[<span class="kw-2">&amp;</span>iter_ptr].children()[<span class="number">0</span>];
+            }
+            threads.thread_nodes()[<span class="kw-2">&amp;</span>iter_ptr].message()
+        }) {
+            h
+        } <span class="kw">else </span>{
+            <span class="kw">continue </span><span class="lifetime">&#39;items_for_loop</span>;
+        };
+        <span class="kw">if </span>!env_lock.contains_key(<span class="kw-2">&amp;</span>root_env_hash) {
+            <span class="macro">panic!</span>(<span class="string">&quot;key = {}&quot;</span>, root_env_hash);
+        }
+        <span class="kw">let </span>envelope: <span class="kw-2">&amp;</span>melib::Envelope = <span class="kw-2">&amp;</span>env_lock[<span class="kw-2">&amp;</span>root_env_hash];
+        <span class="kw">let </span>tref = threads.thread_ref(thread);
+        ret.push((
+            ThreadEntry {
+                hash: root_env_hash,
+                depth: <span class="number">0</span>,
+                thread_node: iter_ptr,
+                thread,
+                message_id: envelope.message_id().to_string(),
+                from: envelope.field_from_to_string(),
+                datetime: envelope.date_as_str().to_string(),
+                timestamp: envelope.timestamp,
+            },
+            tref.len,
+            tref.date,
+        ));
+    }
+    ret.sort_by_key(|(<span class="kw">_</span>, <span class="kw">_</span>, key)| std::cmp::Reverse(<span class="kw-2">*</span>key));
+    ret
+}
+
+<span class="attr">#[cfg(test)]
+</span><span class="kw">mod </span>tests {
+    <span class="kw">use super</span>::<span class="kw-2">*</span>;
+
+    <span class="attr">#[test]
+    </span><span class="kw">fn </span>test_session() {
+        <span class="kw">struct </span>Session(Vec&lt;Message&gt;);
+
+        <span class="kw">impl </span>SessionMessages <span class="kw">for </span>Session {
+            <span class="kw">type </span>Error = std::convert::Infallible;
+            <span class="kw">fn </span>drain_messages(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; Vec&lt;Message&gt; {
+                std::mem::take(<span class="kw-2">&amp;mut </span><span class="self">self</span>.<span class="number">0</span>)
+            }
+
+            <span class="kw">fn </span>add_message(<span class="kw-2">&amp;mut </span><span class="self">self</span>, m: Message) -&gt; <span class="prelude-ty">Result</span>&lt;(), std::convert::Infallible&gt; {
+                <span class="self">self</span>.<span class="number">0</span>.push(m);
+                <span class="prelude-val">Ok</span>(())
+            }
+        }
+        <span class="kw">let </span><span class="kw-2">mut </span>s = Session(<span class="macro">vec!</span>[]);
+        s.add_message(Message {
+            message: <span class="string">&quot;foo&quot;</span>.into(),
+            level: Level::default(),
+        })
+        .unwrap();
+        s.add_message(Message {
+            message: <span class="string">&quot;bar&quot;</span>.into(),
+            level: Level::Error,
+        })
+        .unwrap();
+        <span class="macro">assert_eq!</span>(
+            s.drain_messages().as_slice(),
+            [
+                Message {
+                    message: <span class="string">&quot;foo&quot;</span>.into(),
+                    level: Level::default(),
+                },
+                Message {
+                    message: <span class="string">&quot;bar&quot;</span>.into(),
+                    level: Level::Error
+                }
+            ]
+            .as_slice()
+        );
+        <span class="macro">assert!</span>(s.<span class="number">0</span>.is_empty());
+    }
+
+    <span class="attr">#[test]
+    </span><span class="kw">fn </span>test_post_serde() {
+        <span class="kw">use </span>mailpot::serde_json::{<span class="self">self</span>, json};
+        <span class="macro">assert_eq!</span>(
+            IntPOST(<span class="number">5</span>),
+            serde_json::from_str::&lt;IntPOST&gt;(<span class="string">&quot;\&quot;5\&quot;&quot;</span>).unwrap()
+        );
+        <span class="macro">assert_eq!</span>(IntPOST(<span class="number">5</span>), serde_json::from_str::&lt;IntPOST&gt;(<span class="string">&quot;5&quot;</span>).unwrap());
+        <span class="macro">assert_eq!</span>(<span class="kw-2">&amp;</span><span class="macro">json! </span>{ IntPOST(<span class="number">5</span>) }.to_string(), <span class="string">&quot;5&quot;</span>);
+
+        <span class="macro">assert_eq!</span>(
+            BoolPOST(<span class="bool-val">true</span>),
+            serde_json::from_str::&lt;BoolPOST&gt;(<span class="string">&quot;true&quot;</span>).unwrap()
+        );
+        <span class="macro">assert_eq!</span>(
+            BoolPOST(<span class="bool-val">true</span>),
+            serde_json::from_str::&lt;BoolPOST&gt;(<span class="string">&quot;\&quot;true\&quot;&quot;</span>).unwrap()
+        );
+        <span class="macro">assert_eq!</span>(<span class="kw-2">&amp;</span><span class="macro">json! </span>{ BoolPOST(<span class="bool-val">false</span>) }.to_string(), <span class="string">&quot;false&quot;</span>);
+    }
+
+    <span class="attr">#[test]
+    </span><span class="kw">fn </span>test_next() {
+        <span class="kw">let </span>next = Next {
+            next: <span class="prelude-val">Some</span>(<span class="string">&quot;foo&quot;</span>.to_string()),
+        };
+        <span class="macro">assert_eq!</span>(
+            <span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, Redirect::to(<span class="string">&quot;foo&quot;</span>)),
+            <span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, next.or_else(|| <span class="string">&quot;bar&quot;</span>.to_string()))
+        );
+        <span class="kw">let </span>next = Next { next: <span class="prelude-val">None </span>};
+        <span class="macro">assert_eq!</span>(
+            <span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, Redirect::to(<span class="string">&quot;bar&quot;</span>)),
+            <span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, next.or_else(|| <span class="string">&quot;bar&quot;</span>.to_string()))
+        );
+    }
 }
 </code></pre></div></section></main></body></html>

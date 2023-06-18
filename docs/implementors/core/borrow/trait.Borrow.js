@@ -1,6 +1,3 @@
 (function() {var implementors = {
-"mailpot_web":[],
-"mpot":[],
-"mpot_gen":[],
-"mpot_http":[]
+"mailpot":[["impl&lt;T&gt; <a class=\"trait\" href=\"https://doc.rust-lang.org/nightly/core/borrow/trait.Borrow.html\" title=\"trait core::borrow::Borrow\">Borrow</a>&lt;T&gt; for <a class=\"struct\" href=\"mailpot/models/struct.DbVal.html\" title=\"struct mailpot::models::DbVal\">DbVal</a>&lt;T&gt;<span class=\"where fmt-newline\">where\n    T: <a class=\"trait\" href=\"https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html\" title=\"trait core::marker::Sized\">Sized</a>,</span>"]]
 };if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

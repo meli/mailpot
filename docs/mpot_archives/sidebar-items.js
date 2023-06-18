@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":["main"],"static":["S"]};
+window.SIDEBAR_ITEMS = {"fn":["main","run_app"]};
