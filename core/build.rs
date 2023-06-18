@@ -63,7 +63,7 @@ fn main() {
         );
     }
     make_migrations("migrations", MIGRATION_RS, &mut output.stdout);
-    let mut verify = Command::new("sqlite3")
+    let mut verify = Command::new(std::env::var("SQLITE_BIN").unwrap_or("sqlite3".into()))
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())

@@ -340,12 +340,13 @@ impl Connection {
             info!("Creating database in {}", db_path.display());
             std::fs::File::create(db_path).context("Could not create db path")?;
 
-            let mut child = Command::new("sqlite3")
-                .arg(db_path)
-                .stdin(Stdio::piped())
-                .stdout(Stdio::piped())
-                .stderr(Stdio::piped())
-                .spawn()?;
+            let mut child =
+                Command::new(std::env::var("SQLITE_BIN").unwrap_or_else(|_| "sqlite3".into()))
+                    .arg(db_path)
+                    .stdin(Stdio::piped())
+                    .stdout(Stdio::piped())
+                    .stderr(Stdio::piped())
+                    .spawn()?;
             let mut stdin = child.stdin.take().unwrap();
             std::thread::spawn(move || {
                 stdin
