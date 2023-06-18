@@ -61,10 +61,12 @@ mod post_policy {
 
         /// Remove an existing list policy.
         ///
+        /// # Examples
+        ///
         /// ```
         /// # use mailpot::{models::*, Configuration, Connection, SendMail};
         /// # use tempfile::TempDir;
-        ///
+        /// #
         /// # let tmp_dir = TempDir::new().unwrap();
         /// # let db_path = tmp_dir.path().join("mpot.db");
         /// # let config = Configuration {
@@ -73,7 +75,7 @@ mod post_policy {
         /// #     data_path: tmp_dir.path().to_path_buf(),
         /// #     administrators: vec![],
         /// # };
-        ///
+        /// #
         /// # fn do_test(config: Configuration) {
         /// let db = Connection::open_or_create_db(config).unwrap().trusted();
         /// # assert!(db.list_post_policy(1).unwrap().is_none());
@@ -107,6 +109,26 @@ mod post_policy {
         /// # }
         /// # do_test(config);
         /// ```
+        ///
+        /// ```should_panic
+        /// # use mailpot::{models::*, Configuration, Connection, SendMail};
+        /// # use tempfile::TempDir;
+        /// #
+        /// # let tmp_dir = TempDir::new().unwrap();
+        /// # let db_path = tmp_dir.path().join("mpot.db");
+        /// # let config = Configuration {
+        /// #     send_mail: SendMail::ShellCommand("/usr/bin/false".to_string()),
+        /// #     db_path: db_path.clone(),
+        /// #     data_path: tmp_dir.path().to_path_buf(),
+        /// #     administrators: vec![],
+        /// # };
+        /// #
+        /// # fn do_test(config: Configuration) {
+        /// let db = Connection::open_or_create_db(config).unwrap().trusted();
+        /// db.remove_list_post_policy(1, 1).unwrap();
+        /// # }
+        /// # do_test(config);
+        /// ```
         pub fn remove_list_post_policy(&self, list_pk: i64, policy_pk: i64) -> Result<()> {
             let mut stmt = self
                 .connection
@@ -123,28 +145,6 @@ mod post_policy {
             trace!("remove_list_post_policy {} {}.", list_pk, policy_pk);
             Ok(())
         }
-
-        /// ```should_panic
-        /// # use mailpot::{models::*, Configuration, Connection, SendMail};
-        /// # use tempfile::TempDir;
-        ///
-        /// # let tmp_dir = TempDir::new().unwrap();
-        /// # let db_path = tmp_dir.path().join("mpot.db");
-        /// # let config = Configuration {
-        /// #     send_mail: SendMail::ShellCommand("/usr/bin/false".to_string()),
-        /// #     db_path: db_path.clone(),
-        /// #     data_path: tmp_dir.path().to_path_buf(),
-        /// #     administrators: vec![],
-        /// # };
-        ///
-        /// # fn do_test(config: Configuration) {
-        /// let db = Connection::open_or_create_db(config).unwrap().trusted();
-        /// db.remove_list_post_policy(1, 1).unwrap();
-        /// # }
-        /// # do_test(config);
-        /// ```
-        #[cfg(doc)]
-        pub fn remove_list_post_policy_panic() {}
 
         /// Set the unique post policy for a list.
         pub fn set_list_post_policy(&self, policy: PostPolicy) -> Result<DbVal<PostPolicy>> {
@@ -257,10 +257,12 @@ mod subscription_policy {
 
         /// Remove an existing subscription policy.
         ///
+        /// # Examples
+        ///
         /// ```
         /// # use mailpot::{models::*, Configuration, Connection, SendMail};
         /// # use tempfile::TempDir;
-        ///
+        /// #
         /// # let tmp_dir = TempDir::new().unwrap();
         /// # let db_path = tmp_dir.path().join("mpot.db");
         /// # let config = Configuration {
@@ -269,7 +271,7 @@ mod subscription_policy {
         /// #     data_path: tmp_dir.path().to_path_buf(),
         /// #     administrators: vec![],
         /// # };
-        ///
+        /// #
         /// # fn do_test(config: Configuration) {
         /// let db = Connection::open_or_create_db(config).unwrap().trusted();
         /// let list = db
@@ -302,6 +304,26 @@ mod subscription_policy {
         /// # }
         /// # do_test(config);
         /// ```
+        ///
+        /// ```should_panic
+        /// # use mailpot::{models::*, Configuration, Connection, SendMail};
+        /// # use tempfile::TempDir;
+        /// #
+        /// # let tmp_dir = TempDir::new().unwrap();
+        /// # let db_path = tmp_dir.path().join("mpot.db");
+        /// # let config = Configuration {
+        /// #     send_mail: SendMail::ShellCommand("/usr/bin/false".to_string()),
+        /// #     db_path: db_path.clone(),
+        /// #     data_path: tmp_dir.path().to_path_buf(),
+        /// #     administrators: vec![],
+        /// # };
+        /// #
+        /// # fn do_test(config: Configuration) {
+        /// let db = Connection::open_or_create_db(config).unwrap().trusted();
+        /// db.remove_list_post_policy(1, 1).unwrap();
+        /// # }
+        /// # do_test(config);
+        /// ```
         pub fn remove_list_subscription_policy(&self, list_pk: i64, policy_pk: i64) -> Result<()> {
             let mut stmt = self.connection.prepare(
                 "DELETE FROM subscription_policy WHERE pk = ? AND list = ? RETURNING *;",
@@ -318,28 +340,6 @@ mod subscription_policy {
             trace!("remove_list_subscription_policy {} {}.", list_pk, policy_pk);
             Ok(())
         }
-
-        /// ```should_panic
-        /// # use mailpot::{models::*, Configuration, Connection, SendMail};
-        /// # use tempfile::TempDir;
-        ///
-        /// # let tmp_dir = TempDir::new().unwrap();
-        /// # let db_path = tmp_dir.path().join("mpot.db");
-        /// # let config = Configuration {
-        /// #     send_mail: SendMail::ShellCommand("/usr/bin/false".to_string()),
-        /// #     db_path: db_path.clone(),
-        /// #     data_path: tmp_dir.path().to_path_buf(),
-        /// #     administrators: vec![],
-        /// # };
-        ///
-        /// # fn do_test(config: Configuration) {
-        /// let db = Connection::open_or_create_db(config).unwrap().trusted();
-        /// db.remove_list_post_policy(1, 1).unwrap();
-        /// # }
-        /// # do_test(config);
-        /// ```
-        #[cfg(doc)]
-        pub fn remove_list_subscription_policy_panic() {}
 
         /// Set the unique post policy for a list.
         pub fn set_list_subscription_policy(

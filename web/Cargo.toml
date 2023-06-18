@@ -13,6 +13,7 @@ categories = ["email"]
 [[bin]]
 name = "mpot-web"
 path = "src/main.rs"
+doc-scrape-examples = true
 
 [dependencies]
 axum = { version = "^0.6" }

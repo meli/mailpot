@@ -30,7 +30,7 @@ jobs:
           override: true
       - name: Make rustdocs
         run: |
-          make rustdoc
+          make rustdoc-nightly || make rustdoc
           rm -rf docs
           ls -R
           mv target/doc docs

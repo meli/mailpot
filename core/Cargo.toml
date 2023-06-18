@@ -10,6 +10,9 @@ repository = "https://github.com/meli/mailpot"
 keywords = ["mail", "mailing-lists"]
 categories = ["email"]
 
+[lib]
+doc-scrape-examples = true
+
 [dependencies]
 anyhow = "1.0.58"
 chrono = { version = "^0.4", features = ["serde", ] }

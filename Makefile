@@ -36,3 +36,11 @@ rustdoc:
 .PHONY: rustdoc-open
 rustdoc-open:
 	@RUSTDOCFLAGS="--html-before-content ./.github/doc_extra.html" $(CARGOBIN) doc --workspace --all-features --no-deps --document-private-items --open
+
+.PHONY: rustdoc-nightly
+rustdoc-nightly:
+	@RUSTDOCFLAGS="--html-before-content ./.github/doc_extra.html" $(CARGOBIN) +nightly doc -Zrustdoc-map -Z rustdoc-scrape-examples --workspace --all-features --no-deps --document-private-items
+
+.PHONY: rustdoc-nightly-open
+rustdoc-nightly-open:
+	@RUSTDOCFLAGS="--html-before-content ./.github/doc_extra.html" $(CARGOBIN) +nightly doc -Zrustdoc-map -Z rustdoc-scrape-examples --workspace --all-features --no-deps --document-private-items --open

@@ -19,7 +19,7 @@
 
 //! Named templates, for generated e-mail like confirmations, alerts etc.
 //!
-//! Template database model: [`Template`].
+//! Template database model: [`Template`](crate::Template).
 
 use std::collections::HashMap;
 
