@@ -177,3 +177,47 @@ fn test_settings_json() {
     assert!(is_valid);
     assert!(new_last_modified != last_modified);
 }
+
+#[test]
+fn test_settings_json_schemas() {
+    init_stderr_logging();
+    let tmp_dir = TempDir::new().unwrap();
+
+    let db_path = tmp_dir.path().join("mpot.db");
+    std::fs::copy("../mailpot-tests/for_testing.db", &db_path).unwrap();
+    let mut perms = std::fs::metadata(&db_path).unwrap().permissions();
+    #[allow(clippy::permissions_set_readonly_false)]
+    perms.set_readonly(false);
+    std::fs::set_permissions(&db_path, perms).unwrap();
+
+    let config = Configuration {
+        send_mail: SendMail::ShellCommand("/usr/bin/false".to_string()),
+        db_path,
+        data_path: tmp_dir.path().to_path_buf(),
+        administrators: vec![],
+    };
+    let db = Connection::open_or_create_db(config).unwrap().trusted();
+
+    let schemas: Vec<String> = {
+        let mut stmt = db
+            .connection
+            .prepare("SELECT value FROM list_settings_json;")
+            .unwrap();
+        let iter = stmt
+            .query_map([], |row| {
+                let value: String = row.get("value")?;
+                Ok(value)
+            })
+            .unwrap();
+        let mut ret = vec![];
+        for item in iter {
+            ret.push(item.unwrap());
+        }
+        ret
+    };
+    println!("Testing that schemas are valid…");
+    for schema in schemas {
+        let schema: Value = serde_json::from_str(&schema).unwrap();
+        let _compiled = JSONSchema::compile(&schema).expect("A valid schema");
+    }
+}

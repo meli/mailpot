@@ -613,3 +613,40 @@ INSERT OR REPLACE INTO settings_json_schema(id, value) VALUES('AddSubjectTagPref
     }
   }
 }');
+
+
+-- 007.data.sql
+
+INSERT OR REPLACE INTO settings_json_schema(id, value) VALUES('MimeRejectSettings', '{
+  "$schema": "http://json-schema.org/draft-07/schema",
+  "$ref": "#/$defs/MimeRejectSettings",
+  "$defs": {
+    "MimeRejectSettings": {
+      "title": "MimeRejectSettings",
+      "description": "Settings for MimeReject message filter",
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "title": "If true, list posts that contain mime types in the reject array are rejected.",
+          "type": "boolean"
+        },
+        "reject": {
+          "title": "Mime types to reject.",
+          "type": "array",
+          "minLength": 0,
+          "items": { "$ref": "#/$defs/MimeType" }
+        },
+        "required": [
+          "enabled"
+        ]
+      }
+    },
+    "MimeType": {
+      "type": "string",
+      "maxLength": 127,
+      "minLength": 3,
+      "uniqueItems": true,
+      "pattern": "^[a-zA-Z!#$&-^_]+[/][a-zA-Z!#$&-^_]+$"
+    }
+  }
+}');

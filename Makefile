@@ -27,7 +27,7 @@ lint:
 
 .PHONY: test
 test: check lint
-	@$(CARGOBIN) test --all --no-fail-fast --all-features
+	@$(CARGOBIN) nextest run --all --no-fail-fast --all-features
 
 .PHONY: rustdoc
 rustdoc:

@@ -55,6 +55,7 @@ impl Connection {
     pub fn list_filters(&self, _list: &DbVal<MailingList>) -> Vec<Box<dyn PostFilter>> {
         vec![
             Box::new(PostRightsCheck),
+            Box::new(MimeReject),
             Box::new(FixCRLF),
             Box::new(AddListHeaders),
             Box::new(ArchivedAtLink),
@@ -373,6 +374,35 @@ impl PostFilter for FinalizeRecipients {
             });
         }
         post.action = PostAction::Accept;
+        Ok((post, ctx))
+    }
+}
+
+/// Allow specific MIMEs only.
+pub struct MimeReject;
+
+impl PostFilter for MimeReject {
+    fn feed<'p, 'list>(
+        self: Box<Self>,
+        post: &'p mut PostEntry,
+        ctx: &'p mut ListContext<'list>,
+    ) -> std::result::Result<(&'p mut PostEntry, &'p mut ListContext<'list>), ()> {
+        let reject = if let Some(mut settings) = ctx.filter_settings.remove("MimeRejectSettings") {
+            let map = settings.as_object_mut().unwrap();
+            let enabled = serde_json::from_value::<bool>(map.remove("enabled").unwrap()).unwrap();
+            if !enabled {
+                trace!(
+                    "MimeReject is disabled from settings found for list.pk = {} \
+                     skipping filter",
+                    ctx.list.pk
+                );
+                return Ok((post, ctx));
+            }
+            serde_json::from_value::<Vec<String>>(map.remove("reject").unwrap())
+        } else {
+            return Ok((post, ctx));
+        };
+        trace!("Running MimeReject filter with reject = {:?}", reject);
         Ok((post, ctx))
     }
 }
