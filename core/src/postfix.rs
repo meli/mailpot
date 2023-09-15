@@ -142,7 +142,9 @@ flags=RX user={username}{group_sep}{groupname} directory={{{data_dir}}} argv={{{
             }
         };
 
-        let Some(width): Option<usize> = lists.iter().map(|(l, p)| calc_width(l, p.as_deref())).max() else {
+        let Some(width): Option<usize> =
+            lists.iter().map(|(l, p)| calc_width(l, p.as_deref())).max()
+        else {
             return ret;
         };
 
@@ -232,9 +234,9 @@ flags=RX user={username}{group_sep}{groupname} directory={{{data_dir}}} argv={{{
         let transport_name = self.transport_name.as_deref().unwrap_or("mailpot");
 
         if let Some(line) = lines.iter().find(|l| l.starts_with(transport_name)) {
-            let pos = previous_content.find(line).ok_or_else(|| {
-                Error::from(ErrorKind::Bug("Unepected logical error.".to_string()))
-            })?;
+            let pos = previous_content
+                .find(line)
+                .ok_or_else(|| Error::Bug("Unepected logical error.".to_string()))?;
             let end_needle = " argv=";
             let end_pos = previous_content[pos..]
                 .find(end_needle)
@@ -243,9 +245,7 @@ flags=RX user={username}{group_sep}{groupname} directory={{{data_dir}}} argv={{{
                         .find('\n')
                         .map(|p| p + pos + pos2 + end_needle.len())
                 })
-                .ok_or_else(|| {
-                    Error::from(ErrorKind::Bug("Unepected logical error.".to_string()))
-                })?;
+                .ok_or_else(|| Error::Bug("Unepected logical error.".to_string()))?;
             previous_content.replace_range(pos..end_pos, &new_entry);
         } else {
             previous_content.push_str(&new_entry);
@@ -281,7 +281,9 @@ flags=RX user={username}{group_sep}{groupname} directory={{{data_dir}}} argv={{{
     pub fn save_maps(&self, config: &Configuration) -> Result<()> {
         let db = Connection::open_db(config.clone())?;
         let Some(postmap) = find_binary_in_path("postmap") else {
-            return Err(Error::from(ErrorKind::External(anyhow::Error::msg("Could not find postmap binary in PATH."))));
+            return Err(Error::External(anyhow::Error::msg(
+                "Could not find postmap binary in PATH.",
+            )));
         };
         let lists = db.lists()?;
         let lists_post_policies = lists
@@ -324,35 +326,29 @@ flags=RX user={username}{group_sep}{groupname} directory={{{data_dir}}} argv={{{
         if !output.status.success() {
             use std::os::unix::process::ExitStatusExt;
             if let Some(code) = output.status.code() {
-                return Err(Error::from(ErrorKind::External(anyhow::Error::msg(
-                    format!(
-                        "{} exited with {}.\nstderr was:\n---{}---\nstdout was\n---{}---\n",
-                        code,
-                        postmap.display(),
-                        String::from_utf8_lossy(&output.stderr),
-                        String::from_utf8_lossy(&output.stdout)
-                    ),
+                return Err(Error::External(anyhow::Error::msg(format!(
+                    "{} exited with {}.\nstderr was:\n---{}---\nstdout was\n---{}---\n",
+                    code,
+                    postmap.display(),
+                    String::from_utf8_lossy(&output.stderr),
+                    String::from_utf8_lossy(&output.stdout)
                 ))));
             } else if let Some(signum) = output.status.signal() {
-                return Err(Error::from(ErrorKind::External(anyhow::Error::msg(
-                    format!(
-                        "{} was killed with signal {}.\nstderr was:\n---{}---\nstdout \
+                return Err(Error::External(anyhow::Error::msg(format!(
+                    "{} was killed with signal {}.\nstderr was:\n---{}---\nstdout \
                          was\n---{}---\n",
-                        signum,
-                        postmap.display(),
-                        String::from_utf8_lossy(&output.stderr),
-                        String::from_utf8_lossy(&output.stdout)
-                    ),
+                    signum,
+                    postmap.display(),
+                    String::from_utf8_lossy(&output.stderr),
+                    String::from_utf8_lossy(&output.stdout)
                 ))));
             } else {
-                return Err(Error::from(ErrorKind::External(anyhow::Error::msg(
-                    format!(
-                        "{} failed for unknown reason.\nstderr was:\n---{}---\nstdout \
+                return Err(Error::External(anyhow::Error::msg(format!(
+                    "{} failed for unknown reason.\nstderr was:\n---{}---\nstdout \
                          was\n---{}---\n",
-                        postmap.display(),
-                        String::from_utf8_lossy(&output.stderr),
-                        String::from_utf8_lossy(&output.stdout)
-                    ),
+                    postmap.display(),
+                    String::from_utf8_lossy(&output.stderr),
+                    String::from_utf8_lossy(&output.stdout)
                 ))));
             }
         }

@@ -151,9 +151,6 @@
  * - [tag:VERIFY] Verify whether this is the correct way to do something
  */
 
-#[macro_use]
-extern crate error_chain;
-
 /// Error library
 pub extern crate anyhow;
 /// Date library

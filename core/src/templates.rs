@@ -24,10 +24,7 @@
 use log::trace;
 use rusqlite::OptionalExtension;
 
-use crate::{
-    errors::{ErrorKind::*, *},
-    Connection, DbVal,
-};
+use crate::{errors::*, Connection, DbVal};
 
 /// A named template.
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
@@ -331,7 +328,10 @@ impl Connection {
                         _
                     )
                 ) {
-                    Error::from(err).chain_err(|| NotFound("Could not find a list with this pk."))
+                    Error::from(format!(
+                        "{err} {}",
+                        Error::NotFound("Could not find a list with this pk.")
+                    ))
                 } else {
                     err.into()
                 }

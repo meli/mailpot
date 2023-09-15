@@ -112,7 +112,7 @@ impl Connection {
                         env.from(),
                     );
 
-                    Err(err.chain_err(|| err2))
+                    Err(format!("{err} {err2}").into())
                 }
             };
         }

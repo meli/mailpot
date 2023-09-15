@@ -27,7 +27,7 @@ mod post_policy {
     use rusqlite::OptionalExtension;
 
     use crate::{
-        errors::{ErrorKind::*, *},
+        errors::*,
         models::{DbVal, PostPolicy},
         Connection,
     };
@@ -136,7 +136,7 @@ mod post_policy {
             stmt.query_row(rusqlite::params![&policy_pk, &list_pk,], |_| Ok(()))
                 .map_err(|err| {
                     if matches!(err, rusqlite::Error::QueryReturnedNoRows) {
-                        Error::from(err).chain_err(|| NotFound("list or list policy not found!"))
+                        Error::NotFound("list or list policy not found!")
                     } else {
                         err.into()
                     }
@@ -154,10 +154,9 @@ mod post_policy {
                 || policy.open
                 || policy.custom)
             {
-                return Err(
-                    "Cannot add empty policy. Having no policies is probably what you want to do."
-                        .into(),
-                );
+                return Err(Error::new_external(
+                    "Cannot add empty policy. Having no policies is probably what you want to do.",
+                ));
             }
             let list_pk = policy.list;
 
@@ -202,8 +201,7 @@ mod post_policy {
                             _
                         )
                     ) {
-                        Error::from(err)
-                            .chain_err(|| NotFound("Could not find a list with this pk."))
+                        Error::NotFound("Could not find a list with this pk.")
                     } else {
                         err.into()
                     }
@@ -220,7 +218,7 @@ mod subscription_policy {
     use rusqlite::OptionalExtension;
 
     use crate::{
-        errors::{ErrorKind::*, *},
+        errors::*,
         models::{DbVal, SubscriptionPolicy},
         Connection,
     };
@@ -331,7 +329,7 @@ mod subscription_policy {
             stmt.query_row(rusqlite::params![&policy_pk, &list_pk,], |_| Ok(()))
                 .map_err(|err| {
                     if matches!(err, rusqlite::Error::QueryReturnedNoRows) {
-                        Error::from(err).chain_err(|| NotFound("list or list policy not found!"))
+                        Error::NotFound("list or list policy not found!")
                     } else {
                         err.into()
                     }
@@ -347,10 +345,9 @@ mod subscription_policy {
             policy: SubscriptionPolicy,
         ) -> Result<DbVal<SubscriptionPolicy>> {
             if !(policy.open || policy.manual || policy.request || policy.custom) {
-                return Err(
-                    "Cannot add empty policy. Having no policy is probably what you want to do."
-                        .into(),
-                );
+                return Err(Error::new_external(
+                    "Cannot add empty policy. Having no policy is probably what you want to do.",
+                ));
             }
             let list_pk = policy.list;
 
@@ -395,8 +392,7 @@ mod subscription_policy {
                             _
                         )
                     ) {
-                        Error::from(err)
-                            .chain_err(|| NotFound("Could not find a list with this pk."))
+                        Error::NotFound("Could not find a list with this pk.")
                     } else {
                         err.into()
                     }

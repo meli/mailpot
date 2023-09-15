@@ -23,7 +23,7 @@ use log::trace;
 use rusqlite::OptionalExtension;
 
 use crate::{
-    errors::{ErrorKind::*, *},
+    errors::*,
     models::{
         changesets::{AccountChangeset, ListSubscriptionChangeset},
         Account, ListCandidateSubscription, ListSubscription,
@@ -242,8 +242,10 @@ impl Connection {
             })
             .map_err(|err| {
                 if matches!(err, rusqlite::Error::QueryReturnedNoRows) {
-                    Error::from(err)
-                        .chain_err(|| NotFound("Candidate subscription with this pk not found!"))
+                    Error::from(format!(
+                        "{err} {}",
+                        Error::NotFound("Candidate subscription with this pk not found!")
+                    ))
                 } else {
                     err.into()
                 }
@@ -301,7 +303,10 @@ impl Connection {
             )
             .map_err(|err| {
                 if matches!(err, rusqlite::Error::QueryReturnedNoRows) {
-                    Error::from(err).chain_err(|| NotFound("list or list owner not found!"))
+                    Error::from(format!(
+                        "{err} {}",
+                        Error::NotFound("list or list owner not found!")
+                    ))
                 } else {
                     err.into()
                 }
@@ -537,7 +542,7 @@ impl Connection {
             )
             .map_err(|err| {
                 if matches!(err, rusqlite::Error::QueryReturnedNoRows) {
-                    Error::from(err).chain_err(|| NotFound("account not found!"))
+                    Error::from(format!("{err} {}", Error::NotFound("account not found!")))
                 } else {
                     err.into()
                 }
@@ -549,7 +554,7 @@ impl Connection {
     /// Update an account.
     pub fn update_account(&self, change_set: AccountChangeset) -> Result<()> {
         let Some(acc) = self.account_by_address(&change_set.address)? else {
-            return Err(NotFound("account with this address not found!").into());
+            return Err(Error::NotFound("account with this address not found!"));
         };
         let pk = acc.pk;
         if matches!(

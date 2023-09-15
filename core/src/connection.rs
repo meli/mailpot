@@ -30,7 +30,7 @@ use rusqlite::{functions::FunctionFlags, Connection as DbConnection, OptionalExt
 
 use crate::{
     config::Configuration,
-    errors::{ErrorKind::*, *},
+    errors::*,
     models::{changesets::MailingListChangeset, DbVal, ListOwner, MailingList, Post},
 };
 
@@ -615,7 +615,7 @@ impl Connection {
             )
             .map_err(|err| {
                 if matches!(err, rusqlite::Error::QueryReturnedNoRows) {
-                    Error::from(err).chain_err(|| NotFound("list or list owner not found!"))
+                    Error::NotFound("list or list owner not found!")
                 } else {
                     err.into()
                 }
@@ -656,7 +656,7 @@ impl Connection {
                         _
                     )
                 ) {
-                    Error::from(err).chain_err(|| NotFound("Could not find a list with this pk."))
+                    Error::NotFound("Could not find a list with this pk.")
                 } else {
                     err.into()
                 }

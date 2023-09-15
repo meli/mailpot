@@ -42,9 +42,9 @@ use melib::email::Address;
 /// ```
 #[derive(Debug, PartialEq, Eq, Clone, Deserialize, Serialize)]
 #[serde(transparent)]
-pub struct DbVal<T>(pub T, #[serde(skip)] pub i64);
+pub struct DbVal<T: Send + Sync>(pub T, #[serde(skip)] pub i64);
 
-impl<T> DbVal<T> {
+impl<T: Send + Sync> DbVal<T> {
     /// Primary key.
     #[inline(always)]
     pub fn pk(&self) -> i64 {
@@ -60,21 +60,27 @@ impl<T> DbVal<T> {
 
 impl<T> std::borrow::Borrow<T> for DbVal<T>
 where
-    T: Sized,
+    T: Send + Sync + Sized,
 {
     fn borrow(&self) -> &T {
         &self.0
     }
 }
 
-impl<T> std::ops::Deref for DbVal<T> {
+impl<T> std::ops::Deref for DbVal<T>
+where
+    T: Send + Sync,
+{
     type Target = T;
     fn deref(&self) -> &T {
         &self.0
     }
 }
 
-impl<T> std::ops::DerefMut for DbVal<T> {
+impl<T> std::ops::DerefMut for DbVal<T>
+where
+    T: Send + Sync,
+{
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.0
     }
@@ -82,7 +88,7 @@ impl<T> std::ops::DerefMut for DbVal<T> {
 
 impl<T> std::fmt::Display for DbVal<T>
 where
-    T: std::fmt::Display,
+    T: std::fmt::Display + Send + Sync,
 {
     fn fmt(&self, fmt: &mut std::fmt::Formatter) -> std::fmt::Result {
         write!(fmt, "{}", self.0)
