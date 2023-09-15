@@ -103,7 +103,7 @@ pub use utils::*;
 
 #[derive(Debug)]
 pub struct ResponseError {
-    pub inner: Box<dyn std::error::Error>,
+    pub inner: Box<dyn std::error::Error + Send + Sync>,
     pub status: StatusCode,
 }
 
@@ -113,6 +113,8 @@ impl std::fmt::Display for ResponseError {
     }
 }
 
+impl std::error::Error for ResponseError {}
+
 impl ResponseError {
     pub fn new(msg: String, status: StatusCode) -> Self {
         Self {
@@ -120,29 +122,33 @@ impl ResponseError {
             status,
         }
     }
-}
 
-impl<E: Into<Box<dyn std::error::Error>>> From<E> for ResponseError {
-    fn from(err: E) -> Self {
-        Self {
-            inner: err.into(),
-            status: StatusCode::INTERNAL_SERVER_ERROR,
-        }
-    }
-}
-
-pub trait IntoResponseError {
-    fn with_status(self, status: StatusCode) -> ResponseError;
-}
-
-impl<E: Into<Box<dyn std::error::Error>>> IntoResponseError for E {
-    fn with_status(self, status: StatusCode) -> ResponseError {
+    pub fn with_status(self, status: StatusCode) -> ResponseError {
         ResponseError {
             status,
             ..ResponseError::from(self)
         }
     }
 }
+
+macro_rules! impl_from {
+    ($t:ty) => {
+        impl From<$t> for ResponseError {
+            fn from(err: $t) -> Self {
+                Self {
+                    inner: err.into(),
+                    status: StatusCode::INTERNAL_SERVER_ERROR,
+                }
+            }
+        }
+    };
+}
+
+impl_from! { mailpot::Error }
+impl_from! { minijinja::Error }
+impl_from! { mailpot::rusqlite::Error }
+impl_from! { mailpot::serde_json::Error }
+impl_from! { mailpot::melib::Error }
 
 impl IntoResponse for ResponseError {
     fn into_response(self) -> axum::response::Response {
@@ -157,10 +163,10 @@ pub trait IntoResponseErrorResult<R> {
 
 impl<R, E> IntoResponseErrorResult<R> for std::result::Result<R, E>
 where
-    E: IntoResponseError,
+    E: Into<ResponseError>
 {
     fn with_status(self, status: StatusCode) -> std::result::Result<R, ResponseError> {
-        self.map_err(|err| err.with_status(status))
+        self.map_err(|err| E::into(err).with_status(status))
     }
 }
 
@@ -193,11 +199,12 @@ mod auth_impls {
         User: axum_login::AuthUser<UserId, Role>,
     {
         type User = User;
+        type Error = ResponseError;
 
         async fn load_user(
             &self,
             user_id: &UserId,
-        ) -> std::result::Result<Option<Self::User>, eyre::Report> {
+        ) -> std::result::Result<Option<Self::User>, Self::Error> {
             Ok(self.user_store.read().await.get(user_id).cloned())
         }
     }
