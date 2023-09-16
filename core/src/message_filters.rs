@@ -282,7 +282,10 @@ impl PostFilter for ArchivedAtLink {
         ctx: &'p mut ListContext<'list>,
     ) -> std::result::Result<(&'p mut PostEntry, &'p mut ListContext<'list>), ()> {
         let Some(mut settings) = ctx.filter_settings.remove("ArchivedAtLinkSettings") else {
-            trace!("No ArchivedAtLink settings found for list.pk = {} skipping filter", ctx.list.pk);
+            trace!(
+                "No ArchivedAtLink settings found for list.pk = {} skipping filter",
+                ctx.list.pk
+            );
             return Ok((post, ctx));
         };
         trace!("Running ArchivedAtLink filter");
@@ -392,8 +395,7 @@ impl PostFilter for MimeReject {
             let enabled = serde_json::from_value::<bool>(map.remove("enabled").unwrap()).unwrap();
             if !enabled {
                 trace!(
-                    "MimeReject is disabled from settings found for list.pk = {} \
-                     skipping filter",
+                    "MimeReject is disabled from settings found for list.pk = {} skipping filter",
                     ctx.list.pk
                 );
                 return Ok((post, ctx));

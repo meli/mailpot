@@ -1,10 +1,10 @@
 
 //(user_version, redo sql, undo sql
-&[(1,r###"PRAGMA foreign_keys=ON;
-ALTER TABLE templates RENAME TO template;"###,r###"PRAGMA foreign_keys=ON;
-ALTER TABLE template RENAME TO templates;"###),(2,r###"PRAGMA foreign_keys=ON;
-ALTER TABLE list ADD COLUMN topics JSON NOT NULL CHECK (json_type(topics) == 'array') DEFAULT '[]';"###,r###"PRAGMA foreign_keys=ON;
-ALTER TABLE list DROP COLUMN topics;"###),(3,r###"PRAGMA foreign_keys=ON;
+&[(1,r##"PRAGMA foreign_keys=ON;
+ALTER TABLE templates RENAME TO template;"##,r##"PRAGMA foreign_keys=ON;
+ALTER TABLE template RENAME TO templates;"##),(2,r##"PRAGMA foreign_keys=ON;
+ALTER TABLE list ADD COLUMN topics JSON NOT NULL CHECK (json_type(topics) == 'array') DEFAULT '[]';"##,r##"PRAGMA foreign_keys=ON;
+ALTER TABLE list DROP COLUMN topics;"##),(3,r##"PRAGMA foreign_keys=ON;
 
 UPDATE list SET topics = arr FROM (SELECT json_group_array(ord.val) AS arr, ord.pk AS pk FROM (SELECT json_each.value AS val, list.pk AS pk FROM list, json_each(list.topics) ORDER BY val ASC) AS ord GROUP BY pk) AS ord WHERE ord.pk = list.pk;
 
@@ -23,10 +23,10 @@ AFTER INSERT ON list
 FOR EACH ROW
 BEGIN
   UPDATE list SET topics = arr FROM (SELECT json_group_array(ord.val) AS arr, ord.pk AS pk FROM (SELECT json_each.value AS val, list.pk AS pk FROM list, json_each(list.topics) ORDER BY val ASC) AS ord GROUP BY pk) AS ord WHERE ord.pk = list.pk AND list.pk = NEW.pk;
-END;"###,r###"PRAGMA foreign_keys=ON;
+END;"##,r##"PRAGMA foreign_keys=ON;
 
 DROP TRIGGER sort_topics_update_trigger;
-DROP TRIGGER sort_topics_new_trigger;"###),(4,r###"CREATE TABLE IF NOT EXISTS settings_json_schema (
+DROP TRIGGER sort_topics_new_trigger;"##),(4,r##"CREATE TABLE IF NOT EXISTS settings_json_schema (
   pk               INTEGER PRIMARY KEY NOT NULL,
   id               TEXT NOT NULL UNIQUE,
   value            JSON NOT NULL CHECK (json_type(value) = 'object'),
@@ -192,8 +192,8 @@ WHEN NEW.last_modified == OLD.last_modified
 BEGIN
   UPDATE list_settings_json SET last_modified = unixepoch()
   WHERE pk = NEW.pk;
-END;"###,r###"DROP TABLE settings_json_schema;
-DROP TABLE list_settings_json;"###),(5,r###"INSERT OR REPLACE INTO settings_json_schema(id, value) VALUES('ArchivedAtLinkSettings', '{
+END;"##,r##"DROP TABLE settings_json_schema;
+DROP TABLE list_settings_json;"##),(5,r##"INSERT OR REPLACE INTO settings_json_schema(id, value) VALUES('ArchivedAtLinkSettings', '{
   "$schema": "http://json-schema.org/draft-07/schema",
   "$ref": "#/$defs/ArchivedAtLinkSettings",
   "$defs": {
@@ -223,7 +223,7 @@ DROP TABLE list_settings_json;"###),(5,r###"INSERT OR REPLACE INTO settings_json
       ]
     }
   }
-}');"###,r###"DELETE FROM settings_json_schema WHERE id = 'ArchivedAtLinkSettings';"###),(6,r###"INSERT OR REPLACE INTO settings_json_schema(id, value) VALUES('AddSubjectTagPrefixSettings', '{
+}');"##,r##"DELETE FROM settings_json_schema WHERE id = 'ArchivedAtLinkSettings';"##),(6,r##"INSERT OR REPLACE INTO settings_json_schema(id, value) VALUES('AddSubjectTagPrefixSettings', '{
   "$schema": "http://json-schema.org/draft-07/schema",
   "$ref": "#/$defs/AddSubjectTagPrefixSettings",
   "$defs": {
@@ -242,7 +242,7 @@ DROP TABLE list_settings_json;"###),(5,r###"INSERT OR REPLACE INTO settings_json
       ]
     }
   }
-}');"###,r###"DELETE FROM settings_json_schema WHERE id = 'AddSubjectTagPrefixSettings';"###),(7,r###"INSERT OR REPLACE INTO settings_json_schema(id, value) VALUES('MimeRejectSettings', '{
+}');"##,r##"DELETE FROM settings_json_schema WHERE id = 'AddSubjectTagPrefixSettings';"##),(7,r##"INSERT OR REPLACE INTO settings_json_schema(id, value) VALUES('MimeRejectSettings', '{
   "$schema": "http://json-schema.org/draft-07/schema",
   "$ref": "#/$defs/MimeRejectSettings",
   "$defs": {
@@ -274,4 +274,4 @@ DROP TABLE list_settings_json;"###),(5,r###"INSERT OR REPLACE INTO settings_json
       "pattern": "^[a-zA-Z!#$&-^_]+[/][a-zA-Z!#$&-^_]+$"
     }
   }
-}');"###,r###"DELETE FROM settings_json_schema WHERE id = 'MimeRejectSettings';"###),]
+}');"##,r##"DELETE FROM settings_json_schema WHERE id = 'MimeRejectSettings';"##),]

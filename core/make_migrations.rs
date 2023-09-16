@@ -86,15 +86,15 @@ pub fn make_migrations<M: AsRef<Path>, O: AsRef<Path>>(
         migr_rs
             .write_all(num.trim_start_matches('0').as_bytes())
             .unwrap();
-        migr_rs.write_all(b",r###\"").unwrap();
+        migr_rs.write_all(b",r##\"").unwrap();
 
         let redo = std::fs::read_to_string(p).unwrap();
         migr_rs.write_all(redo.trim().as_bytes()).unwrap();
-        migr_rs.write_all(b"\"###,r###\"").unwrap();
+        migr_rs.write_all(b"\"##,r##\"").unwrap();
         migr_rs
             .write_all(std::fs::read_to_string(u).unwrap().trim().as_bytes())
             .unwrap();
-        migr_rs.write_all(b"\"###),").unwrap();
+        migr_rs.write_all(b"\"##),").unwrap();
         if is_data {
             schema_file.extend(b"\n\n-- ".iter());
             schema_file.extend(num.as_bytes().iter());

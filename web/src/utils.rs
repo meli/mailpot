@@ -485,6 +485,8 @@ pub fn thread_roots(
             tref.date,
         ));
     }
+    // clippy: error: temporary with significant `Drop` can be early dropped
+    drop(env_lock);
     ret.sort_by_key(|(_, _, key)| std::cmp::Reverse(*key));
     ret
 }

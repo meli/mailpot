@@ -69,16 +69,14 @@ async fn all_lists(
     let lists_values = db.lists()?;
     let page = page.unwrap_or(0);
     let Some(count) = count else {
-        let mut stmt = db
-            .connection
-            .prepare("SELECT count(*) FROM list;")?;
+        let mut stmt = db.connection.prepare("SELECT count(*) FROM list;")?;
         return Ok(Json(GetResponse {
             entries: vec![],
             total: stmt.query_row([], |row| {
-            let count: usize = row.get(0)?;
-            Ok(count)
-        })?,
-        start: 0,
+                let count: usize = row.get(0)?;
+                Ok(count)
+            })?,
+            start: 0,
         }));
     };
     let offset = page * count;

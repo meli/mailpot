@@ -142,7 +142,9 @@ flags=RX user={username}{group_sep}{groupname} directory={{{data_dir}}} argv={{{
             }
         };
 
-        let Some(width): Option<usize> = lists.iter().map(|(l, p)| calc_width(l, p.as_deref())).max() else {
+        let Some(width): Option<usize> =
+            lists.iter().map(|(l, p)| calc_width(l, p.as_deref())).max()
+        else {
             return ret;
         };
 
@@ -281,7 +283,9 @@ flags=RX user={username}{group_sep}{groupname} directory={{{data_dir}}} argv={{{
     pub fn save_maps(&self, config: &Configuration) -> Result<()> {
         let db = Connection::open_db(config.clone())?;
         let Some(postmap) = find_binary_in_path("postmap") else {
-            return Err(Error::from(ErrorKind::External(anyhow::Error::msg("Could not find postmap binary in PATH."))));
+            return Err(Error::from(ErrorKind::External(anyhow::Error::msg(
+                "Could not find postmap binary in PATH.",
+            ))));
         };
         let lists = db.lists()?;
         let lists_post_policies = lists

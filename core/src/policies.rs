@@ -154,10 +154,9 @@ mod post_policy {
                 || policy.open
                 || policy.custom)
             {
-                return Err(
-                    "Cannot add empty policy. Having no policies is probably what you want to do."
-                        .into(),
-                );
+                return Err(Error::new_external(
+                    "Cannot add empty policy. Having no policies is probably what you want to do.",
+                ));
             }
             let list_pk = policy.list;
 
@@ -347,10 +346,9 @@ mod subscription_policy {
             policy: SubscriptionPolicy,
         ) -> Result<DbVal<SubscriptionPolicy>> {
             if !(policy.open || policy.manual || policy.request || policy.custom) {
-                return Err(
-                    "Cannot add empty policy. Having no policy is probably what you want to do."
-                        .into(),
-                );
+                return Err(Error::new_external(
+                    "Cannot add empty policy. Having no policy is probably what you want to do.",
+                ));
             }
             let list_pk = policy.list;
 

@@ -195,9 +195,7 @@ impl Connection {
             };
             let result = filters
                 .into_iter()
-                .fold(Ok((&mut post, &mut list_ctx)), |p, f| {
-                    p.and_then(|(p, c)| f.feed(p, c))
-                });
+                .try_fold((&mut post, &mut list_ctx), |(p, c), f| f.feed(p, c));
             trace!("result {:#?}", result);
 
             let PostEntry { bytes, action, .. } = post;

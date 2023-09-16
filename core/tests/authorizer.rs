@@ -17,9 +17,7 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-use std::error::Error;
-
-use mailpot::{models::*, Configuration, Connection, SendMail};
+use mailpot::{models::*, Configuration, Connection, ErrorKind, SendMail};
 use mailpot_tests::init_stderr_logging;
 use tempfile::TempDir;
 
@@ -64,14 +62,15 @@ fn test_authorizer() {
         .unwrap_err(),
     ] {
         assert_eq!(
-            err.source()
-                .unwrap()
-                .downcast_ref::<rusqlite::ffi::Error>()
-                .unwrap(),
-            &rusqlite::ffi::Error {
-                code: rusqlite::ErrorCode::AuthorizationForStatementDenied,
-                extended_code: 23
-            },
+            err.kind().to_string(),
+            ErrorKind::Sql(rusqlite::Error::SqliteFailure(
+                rusqlite::ffi::Error {
+                    code: rusqlite::ErrorCode::AuthorizationForStatementDenied,
+                    extended_code: 23,
+                },
+                Some("not authorized".into()),
+            ))
+            .to_string()
         );
     }
     assert!(db.lists().unwrap().is_empty());
