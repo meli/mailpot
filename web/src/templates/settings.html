@@ -9,7 +9,7 @@
             <span>Address: <span class="value">{{ user.address }}</span></span>
         </div>
         <div class="entry">
-            <span>PGP public key: <span class="value{% if not user.public_key %} empty{% endif %}">{{ user.public_key if user.public_key else "None." }}</span></span>
+          {% if user.public_key %}<details style="overflow: auto;"><summary>PGP public key: </summary><pre style="font-size: 1em;max-width: 64ch;font-size: 1em;font-size: monospace;">{{ user.public_key | escape }}</pre></details>{% else %}<span>PGP public key: <span class"value empty">None.</span></span>{% endif %}
         </div>
         <div class="entry">
             <span>SSH public key: <span class="value{% if not user.password %} empty{% endif %}">{{ user.password if user.password else "None." }}</span></span>
