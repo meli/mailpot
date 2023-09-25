@@ -43,7 +43,10 @@ fn new_state(conf: Configuration) -> Arc<AppState> {
 
 fn create_app(shared_state: Arc<AppState>) -> Router {
     let store = MemoryStore::new();
-    let secret = rand::thread_rng().gen::<[u8; 128]>();
+    #[cfg(debug_assertions)]
+    let secret = std::env::var("SECRET").ok().and_then(|s| s.into_bytes().try_into().ok()).unwrap_or_else(|| rand::thread_rng().gen::<[u8; 128]>());
+    #[cfg(not(debug_assertions))]
+    let secret = std::env::var("SECRET").ok().and_then(|s| s.into_bytes().try_into().ok()).expect("environment variable SECRET must be set for production use. It must be a slice of 128 bytes. Try this command: SECRET=\"$(dd if=/dev/urandom bs=1 count=128)\"");
     let session_layer = SessionLayer::new(store, &secret).with_secure(false);
 
     let auth_layer = AuthLayer::new(shared_state.clone(), &secret);
