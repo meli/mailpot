@@ -650,3 +650,8 @@ INSERT OR REPLACE INTO settings_json_schema(id, value) VALUES('MimeRejectSetting
     }
   }
 }');
+
+
+-- Set current schema version.
+
+PRAGMA user_version = 7;

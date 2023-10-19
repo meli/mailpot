@@ -62,7 +62,7 @@ fn main() {
             String::from_utf8_lossy(&output.stderr)
         );
     }
-    make_migrations("migrations", MIGRATION_RS, &mut output.stdout);
+    let user_version: i32 = make_migrations("migrations", MIGRATION_RS, &mut output.stdout);
     let mut verify = Command::new(std::env::var("SQLITE_BIN").unwrap_or("sqlite3".into()))
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())
@@ -87,4 +87,9 @@ fn main() {
     }
     let mut file = std::fs::File::create("./src/schema.sql").unwrap();
     file.write_all(&output.stdout).unwrap();
+    file.write_all(
+        &format!("\n\n-- Set current schema version.\n\nPRAGMA user_version = {user_version};\n")
+            .as_bytes(),
+    )
+    .unwrap();
 }

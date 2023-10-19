@@ -25,11 +25,13 @@ use std::{fs::read_dir, io::Write, path::Path};
 ///
 /// If a migration is a data migration (not a CREATE, DROP or ALTER statement) it is appended to
 /// the schema file.
+///
+/// Returns the current `user_version` PRAGMA value.
 pub fn make_migrations<M: AsRef<Path>, O: AsRef<Path>>(
     migrations_path: M,
     output_file: O,
     schema_file: &mut Vec<u8>,
-) {
+) -> i32 {
     let migrations_folder_path = migrations_path.as_ref();
     let output_file_path = output_file.as_ref();
 
@@ -104,4 +106,5 @@ pub fn make_migrations<M: AsRef<Path>, O: AsRef<Path>>(
     }
     migr_rs.write_all(b"]").unwrap();
     migr_rs.flush().unwrap();
+    paths.len() as i32
 }
