@@ -47,8 +47,8 @@ $ mkdir -p /home/user/.config/mailpot
 $ export MPOT_CONFIG=/home/user/.config/mailpot/config.toml
 $ cargo run --bin mpot -- sample-config > "$MPOT_CONFIG"
 $ # edit config and set database path e.g. "/home/user/.local/share/mailpot/mpot.db"
-$ cargo run --bin mpot -- -c "$MPOT_CONFIG" db-location
-/home/user/.local/share/mailpot/mpot.db
+$ cargo run --bin mpot -- -c "$MPOT_CONFIG" list-lists
+No lists found.
 ```
 
 This creates the database file in the configuration file as if you executed the following:
@@ -61,27 +61,73 @@ $ sqlite3 /home/user/.local/share/mailpot/mpot.db < ./core/src/schema.sql
 
 ```text
 % mpot help
-mailpot 0.1.0
-mini mailing list manager
+GNU Affero version 3 or later <https://www.gnu.org/licenses/>
 
-USAGE:
-    mpot [FLAGS] [OPTIONS] <SUBCOMMAND>
+Tool for mailpot mailing list management.
 
-FLAGS:
-    -d, --debug      Activate debug mode
-    -h, --help       Prints help information
-    -V, --version    Prints version information
+Usage: mpot [OPTIONS] <COMMAND>
 
-OPTIONS:
-    -c, --config <config>    Set config file
+Commands:
+  sample-config
+          Prints a sample config file to STDOUT
+  dump-database
+          Dumps database data to STDOUT
+  list-lists
+          Lists all registered mailing lists
+  list
+          Mailing list management
+  create-list
+          Create new list
+  post
+          Post message from STDIN to list
+  flush-queue
+          Flush outgoing e-mail queue
+  error-queue
+          Mail that has not been handled properly end up in the error queue
+  queue
+          Mail that has not been handled properly end up in the error queue
+  import-maildir
+          Import a maildir folder into an existing list
+  update-postfix-config
+          Update postfix maps and master.cf (probably needs root permissions)
+  print-postfix-config
+          Print postfix maps and master.cf entry to STDOUT
+  accounts
+          All Accounts
+  account-info
+          Account info
+  add-account
+          Add account
+  remove-account
+          Remove account
+  update-account
+          Update account info
+  repair
+          Show and fix possible data mistakes or inconsistencies
+  help
+          Print this message or the help of the given subcommand(s)
 
-SUBCOMMANDS:
-    create-list    Create new list
-    db-location    Prints database filesystem location
-    help           Prints this message or the help of the given subcommand(s)
-    list           Mailing list management
-    list-lists     Lists all registered mailing lists
-    post           Post message from STDIN to list
+Options:
+  -d, --debug
+          Print logs
+
+  -c, --config <CONFIG>
+          Configuration file to use
+
+  -q, --quiet
+          Silence all output
+
+  -v, --verbose...
+          Verbose mode (-v, -vv, -vvv, etc)
+
+  -t, --ts <TS>
+          Debug log timestamp (sec, ms, ns, none)
+
+  -h, --help
+          Print help (see a summary with '-h')
+
+  -V, --version
+          Print version
 ```
 
 ### Receiving mail
