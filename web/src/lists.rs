@@ -284,7 +284,7 @@ pub async fn list_edit(
     };
     let sub_requests_count = {
         let mut stmt = db.connection.prepare(
-            "SELECT count(*) FROM candidate_subscription WHERE list = ? AND accepted IS NOT NULL;",
+            "SELECT count(*) FROM candidate_subscription WHERE list = ? AND accepted IS NULL;",
         )?;
         stmt.query_row([&list.pk], |row| {
             let count: usize = row.get(0)?;
