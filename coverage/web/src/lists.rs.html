@@ -15,7 +15,7 @@
         <div>
             <p class="heading">Lines</p>
             <p class="title has-text-danger">
-                <abbr title="24 / 46">52.17 %</abbr></p>
+                <abbr title="24 / 47">51.06 %</abbr></p>
         </div>
     </div>
 
@@ -23,7 +23,7 @@
         <div>
             <p class="heading">Functions</p>
             <p class="title has-text-danger">
-                <abbr title="6 / 50">12 %</abbr></p>
+                <abbr title="6 / 54">11.11 %</abbr></p>
         </div>
     </div>
 
@@ -32,7 +32,7 @@
         <div>
             <p class="heading">Branches</p>
             <p class="title has-text-danger">
-                <abbr title="0 / 30">0 %</abbr></p>
+                <abbr title="0 / 32">0 %</abbr></p>
         </div>
     </div>
 
@@ -1173,7 +1173,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">    let roots = thread_roots(&amp;envelopes, &amp;mut threads);</pre>
+                <pre class="has-background-white py-0 px-2">    let roots = thread_roots(&amp;envelopes, &amp;threads);</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -7493,7 +7493,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">    }</pre>
+                <pre class="has-background-white py-0 px-2">        ChangeSetting::AcceptSubscriptionRequest { pk } =&gt; {</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -7509,7 +7509,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2"></pre>
+                <pre class="has-background-white py-0 px-2">            session.add_message(match db.accept_candidate_subscription(pk) {</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -7525,7 +7525,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">    Ok(Redirect::to(&amp;format!(</pre>
+                <pre class="has-background-white py-0 px-2">                Ok(subscription) =&gt; Message {</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -7541,7 +7541,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">        &quot;{}{}&quot;,</pre>
+                <pre class="has-background-white py-0 px-2">                    message: format!(&quot;Added: {subscription:#?}&quot;).into(),</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -7557,7 +7557,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">        &amp;state.root_url_prefix,</pre>
+                <pre class="has-background-white py-0 px-2">                    level: Level::Success,</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -7573,7 +7573,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">        ListEditPath(id).to_uri()</pre>
+                <pre class="has-background-white py-0 px-2">                },</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -7589,7 +7589,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">    )))</pre>
+                <pre class="has-background-white py-0 px-2">                Err(err) =&gt; Message {</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -7599,13 +7599,13 @@
                 <a href="#473">473</a>
             </div>
             <div
-                class="column is-1 is-narrow p-0 has-text-centered has-text-success-light has-background-success"
-                role="cell" aria-label="6">
-                6
+                class="column is-1 is-narrow p-0 has-text-centered has-text-white has-background-white"
+                role="cell" aria-label="no coverage">
+                
             </div>
-            <div class="column has-background-success-light p-0"
+            <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-success-light py-0 px-2">}</pre>
+                <pre class="has-background-white py-0 px-2">                    message: format!(&quot;Could not accept subscription request! Reason: {err}&quot;).into(),</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -7621,7 +7621,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2"></pre>
+                <pre class="has-background-white py-0 px-2">                    level: Level::Error,</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -7631,13 +7631,13 @@
                 <a href="#475">475</a>
             </div>
             <div
-                class="column is-1 is-narrow p-0 has-text-centered has-text-danger-light has-background-danger"
-                role="cell" aria-label="0">
+                class="column is-1 is-narrow p-0 has-text-centered has-text-white has-background-white"
+                role="cell" aria-label="no coverage">
                 
             </div>
-            <div class="column has-background-danger-light p-0"
+            <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-danger-light py-0 px-2">#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]</pre>
+                <pre class="has-background-white py-0 px-2">                },</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -7653,7 +7653,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">#[serde(tag = &quot;type&quot;, rename_all = &quot;kebab-case&quot;)]</pre>
+                <pre class="has-background-white py-0 px-2">            })?;</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -7669,7 +7669,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">pub enum ChangeSetting {</pre>
+                <pre class="has-background-white py-0 px-2">        }</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -7685,7 +7685,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">    PostPolicy {</pre>
+                <pre class="has-background-white py-0 px-2">    }</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -7701,7 +7701,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">        #[serde(rename = &quot;delete-post-policy&quot;, default)]</pre>
+                <pre class="has-background-white py-0 px-2"></pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -7711,13 +7711,13 @@
                 <a href="#480">480</a>
             </div>
             <div
-                class="column is-1 is-narrow p-0 has-text-centered has-text-danger-light has-background-danger"
-                role="cell" aria-label="0">
+                class="column is-1 is-narrow p-0 has-text-centered has-text-white has-background-white"
+                role="cell" aria-label="no coverage">
                 
             </div>
-            <div class="column has-background-danger-light p-0"
+            <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-danger-light py-0 px-2">        delete_post_policy: Option&lt;String&gt;,</pre>
+                <pre class="has-background-white py-0 px-2">    Ok(Redirect::to(&amp;format!(</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -7733,7 +7733,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">        #[serde(rename = &quot;post-policy&quot;)]</pre>
+                <pre class="has-background-white py-0 px-2">        &quot;{}{}&quot;,</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -7743,13 +7743,13 @@
                 <a href="#482">482</a>
             </div>
             <div
-                class="column is-1 is-narrow p-0 has-text-centered has-text-danger-light has-background-danger"
-                role="cell" aria-label="0">
+                class="column is-1 is-narrow p-0 has-text-centered has-text-white has-background-white"
+                role="cell" aria-label="no coverage">
                 
             </div>
-            <div class="column has-background-danger-light p-0"
+            <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-danger-light py-0 px-2">        post_policy: PostPolicySettings,</pre>
+                <pre class="has-background-white py-0 px-2">        &amp;state.root_url_prefix,</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -7765,7 +7765,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">    },</pre>
+                <pre class="has-background-white py-0 px-2">        ListEditPath(id).to_uri()</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -7781,7 +7781,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">    SubscriptionPolicy {</pre>
+                <pre class="has-background-white py-0 px-2">    )))</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -7791,13 +7791,13 @@
                 <a href="#485">485</a>
             </div>
             <div
-                class="column is-1 is-narrow p-0 has-text-centered has-text-white has-background-white"
-                role="cell" aria-label="no coverage">
-                
+                class="column is-1 is-narrow p-0 has-text-centered has-text-success-light has-background-success"
+                role="cell" aria-label="6">
+                6
             </div>
-            <div class="column has-background-white p-0"
+            <div class="column has-background-success-light p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">        #[serde(rename = &quot;send-confirmation&quot;, default)]</pre>
+                <pre class="has-background-success-light py-0 px-2">}</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -7807,13 +7807,13 @@
                 <a href="#486">486</a>
             </div>
             <div
-                class="column is-1 is-narrow p-0 has-text-centered has-text-danger-light has-background-danger"
-                role="cell" aria-label="0">
+                class="column is-1 is-narrow p-0 has-text-centered has-text-white has-background-white"
+                role="cell" aria-label="no coverage">
                 
             </div>
-            <div class="column has-background-danger-light p-0"
+            <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-danger-light py-0 px-2">        send_confirmation: BoolPOST,</pre>
+                <pre class="has-background-white py-0 px-2"></pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -7823,13 +7823,13 @@
                 <a href="#487">487</a>
             </div>
             <div
-                class="column is-1 is-narrow p-0 has-text-centered has-text-white has-background-white"
-                role="cell" aria-label="no coverage">
+                class="column is-1 is-narrow p-0 has-text-centered has-text-danger-light has-background-danger"
+                role="cell" aria-label="0">
                 
             </div>
-            <div class="column has-background-white p-0"
+            <div class="column has-background-danger-light p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">        #[serde(rename = &quot;subscription-policy&quot;)]</pre>
+                <pre class="has-background-danger-light py-0 px-2">#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -7839,13 +7839,13 @@
                 <a href="#488">488</a>
             </div>
             <div
-                class="column is-1 is-narrow p-0 has-text-centered has-text-danger-light has-background-danger"
-                role="cell" aria-label="0">
+                class="column is-1 is-narrow p-0 has-text-centered has-text-white has-background-white"
+                role="cell" aria-label="no coverage">
                 
             </div>
-            <div class="column has-background-danger-light p-0"
+            <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-danger-light py-0 px-2">        subscription_policy: SubscriptionPolicySettings,</pre>
+                <pre class="has-background-white py-0 px-2">#[serde(tag = &quot;type&quot;, rename_all = &quot;kebab-case&quot;)]</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -7861,7 +7861,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">    },</pre>
+                <pre class="has-background-white py-0 px-2">pub enum ChangeSetting {</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -7877,7 +7877,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">    Metadata {</pre>
+                <pre class="has-background-white py-0 px-2">    PostPolicy {</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -7887,13 +7887,13 @@
                 <a href="#491">491</a>
             </div>
             <div
-                class="column is-1 is-narrow p-0 has-text-centered has-text-danger-light has-background-danger"
-                role="cell" aria-label="0">
+                class="column is-1 is-narrow p-0 has-text-centered has-text-white has-background-white"
+                role="cell" aria-label="no coverage">
                 
             </div>
-            <div class="column has-background-danger-light p-0"
+            <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-danger-light py-0 px-2">        name: String,</pre>
+                <pre class="has-background-white py-0 px-2">        #[serde(rename = &quot;delete-post-policy&quot;, default)]</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -7909,7 +7909,7 @@
             </div>
             <div class="column has-background-danger-light p-0"
                  role="cell">
-                <pre class="has-background-danger-light py-0 px-2">        id: String,</pre>
+                <pre class="has-background-danger-light py-0 px-2">        delete_post_policy: Option&lt;String&gt;,</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -7925,7 +7925,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">        #[serde(default)]</pre>
+                <pre class="has-background-white py-0 px-2">        #[serde(rename = &quot;post-policy&quot;)]</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -7941,7 +7941,7 @@
             </div>
             <div class="column has-background-danger-light p-0"
                  role="cell">
-                <pre class="has-background-danger-light py-0 px-2">        address: String,</pre>
+                <pre class="has-background-danger-light py-0 px-2">        post_policy: PostPolicySettings,</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -7957,7 +7957,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">        #[serde(default)]</pre>
+                <pre class="has-background-white py-0 px-2">    },</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -7967,13 +7967,13 @@
                 <a href="#496">496</a>
             </div>
             <div
-                class="column is-1 is-narrow p-0 has-text-centered has-text-danger-light has-background-danger"
-                role="cell" aria-label="0">
+                class="column is-1 is-narrow p-0 has-text-centered has-text-white has-background-white"
+                role="cell" aria-label="no coverage">
                 
             </div>
-            <div class="column has-background-danger-light p-0"
+            <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-danger-light py-0 px-2">        description: Option&lt;String&gt;,</pre>
+                <pre class="has-background-white py-0 px-2">    SubscriptionPolicy {</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -7989,7 +7989,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">        #[serde(rename = &quot;owner-local-part&quot;)]</pre>
+                <pre class="has-background-white py-0 px-2">        #[serde(rename = &quot;send-confirmation&quot;, default)]</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -7999,13 +7999,13 @@
                 <a href="#498">498</a>
             </div>
             <div
-                class="column is-1 is-narrow p-0 has-text-centered has-text-white has-background-white"
-                role="cell" aria-label="no coverage">
+                class="column is-1 is-narrow p-0 has-text-centered has-text-danger-light has-background-danger"
+                role="cell" aria-label="0">
                 
             </div>
-            <div class="column has-background-white p-0"
+            <div class="column has-background-danger-light p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">        #[serde(default)]</pre>
+                <pre class="has-background-danger-light py-0 px-2">        send_confirmation: BoolPOST,</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -8015,13 +8015,13 @@
                 <a href="#499">499</a>
             </div>
             <div
-                class="column is-1 is-narrow p-0 has-text-centered has-text-danger-light has-background-danger"
-                role="cell" aria-label="0">
+                class="column is-1 is-narrow p-0 has-text-centered has-text-white has-background-white"
+                role="cell" aria-label="no coverage">
                 
             </div>
-            <div class="column has-background-danger-light p-0"
+            <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-danger-light py-0 px-2">        owner_local_part: Option&lt;String&gt;,</pre>
+                <pre class="has-background-white py-0 px-2">        #[serde(rename = &quot;subscription-policy&quot;)]</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -8031,13 +8031,13 @@
                 <a href="#500">500</a>
             </div>
             <div
-                class="column is-1 is-narrow p-0 has-text-centered has-text-white has-background-white"
-                role="cell" aria-label="no coverage">
+                class="column is-1 is-narrow p-0 has-text-centered has-text-danger-light has-background-danger"
+                role="cell" aria-label="0">
                 
             </div>
-            <div class="column has-background-white p-0"
+            <div class="column has-background-danger-light p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">        #[serde(rename = &quot;request-local-part&quot;)]</pre>
+                <pre class="has-background-danger-light py-0 px-2">        subscription_policy: SubscriptionPolicySettings,</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -8053,7 +8053,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">        #[serde(default)]</pre>
+                <pre class="has-background-white py-0 px-2">    },</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -8063,13 +8063,13 @@
                 <a href="#502">502</a>
             </div>
             <div
-                class="column is-1 is-narrow p-0 has-text-centered has-text-danger-light has-background-danger"
-                role="cell" aria-label="0">
+                class="column is-1 is-narrow p-0 has-text-centered has-text-white has-background-white"
+                role="cell" aria-label="no coverage">
                 
             </div>
-            <div class="column has-background-danger-light p-0"
+            <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-danger-light py-0 px-2">        request_local_part: Option&lt;String&gt;,</pre>
+                <pre class="has-background-white py-0 px-2">    Metadata {</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -8079,13 +8079,13 @@
                 <a href="#503">503</a>
             </div>
             <div
-                class="column is-1 is-narrow p-0 has-text-centered has-text-white has-background-white"
-                role="cell" aria-label="no coverage">
+                class="column is-1 is-narrow p-0 has-text-centered has-text-danger-light has-background-danger"
+                role="cell" aria-label="0">
                 
             </div>
-            <div class="column has-background-white p-0"
+            <div class="column has-background-danger-light p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">        #[serde(rename = &quot;archive-url&quot;)]</pre>
+                <pre class="has-background-danger-light py-0 px-2">        name: String,</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -8093,6 +8093,22 @@
                 id="504"
                 role="cell">
                 <a href="#504">504</a>
+            </div>
+            <div
+                class="column is-1 is-narrow p-0 has-text-centered has-text-danger-light has-background-danger"
+                role="cell" aria-label="0">
+                
+            </div>
+            <div class="column has-background-danger-light p-0"
+                 role="cell">
+                <pre class="has-background-danger-light py-0 px-2">        id: String,</pre>
+            </div>
+        </div><div class="columns p-0 m-0" role="row">
+            <div
+                class="column is-1 is-narrow p-0 has-text-centered"
+                id="505"
+                role="cell">
+                <a href="#505">505</a>
             </div>
             <div
                 class="column is-1 is-narrow p-0 has-text-centered has-text-white has-background-white"
@@ -8106,9 +8122,9 @@
         </div><div class="columns p-0 m-0" role="row">
             <div
                 class="column is-1 is-narrow p-0 has-text-centered"
-                id="505"
+                id="506"
                 role="cell">
-                <a href="#505">505</a>
+                <a href="#506">506</a>
             </div>
             <div
                 class="column is-1 is-narrow p-0 has-text-centered has-text-danger-light has-background-danger"
@@ -8117,23 +8133,7 @@
             </div>
             <div class="column has-background-danger-light p-0"
                  role="cell">
-                <pre class="has-background-danger-light py-0 px-2">        archive_url: Option&lt;String&gt;,</pre>
-            </div>
-        </div><div class="columns p-0 m-0" role="row">
-            <div
-                class="column is-1 is-narrow p-0 has-text-centered"
-                id="506"
-                role="cell">
-                <a href="#506">506</a>
-            </div>
-            <div
-                class="column is-1 is-narrow p-0 has-text-centered has-text-white has-background-white"
-                role="cell" aria-label="no coverage">
-                
-            </div>
-            <div class="column has-background-white p-0"
-                 role="cell">
-                <pre class="has-background-white py-0 px-2">    },</pre>
+                <pre class="has-background-danger-light py-0 px-2">        address: String,</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -8149,7 +8149,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">}</pre>
+                <pre class="has-background-white py-0 px-2">        #[serde(default)]</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -8159,13 +8159,13 @@
                 <a href="#508">508</a>
             </div>
             <div
-                class="column is-1 is-narrow p-0 has-text-centered has-text-white has-background-white"
-                role="cell" aria-label="no coverage">
+                class="column is-1 is-narrow p-0 has-text-centered has-text-danger-light has-background-danger"
+                role="cell" aria-label="0">
                 
             </div>
-            <div class="column has-background-white p-0"
+            <div class="column has-background-danger-light p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2"></pre>
+                <pre class="has-background-danger-light py-0 px-2">        description: Option&lt;String&gt;,</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -8175,13 +8175,13 @@
                 <a href="#509">509</a>
             </div>
             <div
-                class="column is-1 is-narrow p-0 has-text-centered has-text-danger-light has-background-danger"
-                role="cell" aria-label="0">
+                class="column is-1 is-narrow p-0 has-text-centered has-text-white has-background-white"
+                role="cell" aria-label="no coverage">
                 
             </div>
-            <div class="column has-background-danger-light p-0"
+            <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-danger-light py-0 px-2">#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]</pre>
+                <pre class="has-background-white py-0 px-2">        #[serde(rename = &quot;owner-local-part&quot;)]</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -8197,7 +8197,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">#[serde(rename_all = &quot;kebab-case&quot;)]</pre>
+                <pre class="has-background-white py-0 px-2">        #[serde(default)]</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -8207,13 +8207,13 @@
                 <a href="#511">511</a>
             </div>
             <div
-                class="column is-1 is-narrow p-0 has-text-centered has-text-white has-background-white"
-                role="cell" aria-label="no coverage">
+                class="column is-1 is-narrow p-0 has-text-centered has-text-danger-light has-background-danger"
+                role="cell" aria-label="0">
                 
             </div>
-            <div class="column has-background-white p-0"
+            <div class="column has-background-danger-light p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">pub enum PostPolicySettings {</pre>
+                <pre class="has-background-danger-light py-0 px-2">        owner_local_part: Option&lt;String&gt;,</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -8229,7 +8229,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">    AnnounceOnly,</pre>
+                <pre class="has-background-white py-0 px-2">        #[serde(rename = &quot;request-local-part&quot;)]</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -8245,7 +8245,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">    SubscriptionOnly,</pre>
+                <pre class="has-background-white py-0 px-2">        #[serde(default)]</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -8255,13 +8255,13 @@
                 <a href="#514">514</a>
             </div>
             <div
-                class="column is-1 is-narrow p-0 has-text-centered has-text-white has-background-white"
-                role="cell" aria-label="no coverage">
+                class="column is-1 is-narrow p-0 has-text-centered has-text-danger-light has-background-danger"
+                role="cell" aria-label="0">
                 
             </div>
-            <div class="column has-background-white p-0"
+            <div class="column has-background-danger-light p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">    ApprovalNeeded,</pre>
+                <pre class="has-background-danger-light py-0 px-2">        request_local_part: Option&lt;String&gt;,</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -8277,7 +8277,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">    Open,</pre>
+                <pre class="has-background-white py-0 px-2">        #[serde(rename = &quot;archive-url&quot;)]</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -8293,7 +8293,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">    Custom,</pre>
+                <pre class="has-background-white py-0 px-2">        #[serde(default)]</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -8303,13 +8303,13 @@
                 <a href="#517">517</a>
             </div>
             <div
-                class="column is-1 is-narrow p-0 has-text-centered has-text-white has-background-white"
-                role="cell" aria-label="no coverage">
+                class="column is-1 is-narrow p-0 has-text-centered has-text-danger-light has-background-danger"
+                role="cell" aria-label="0">
                 
             </div>
-            <div class="column has-background-white p-0"
+            <div class="column has-background-danger-light p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">}</pre>
+                <pre class="has-background-danger-light py-0 px-2">        archive_url: Option&lt;String&gt;,</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -8325,7 +8325,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2"></pre>
+                <pre class="has-background-white py-0 px-2">    },</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -8335,13 +8335,13 @@
                 <a href="#519">519</a>
             </div>
             <div
-                class="column is-1 is-narrow p-0 has-text-centered has-text-danger-light has-background-danger"
-                role="cell" aria-label="0">
+                class="column is-1 is-narrow p-0 has-text-centered has-text-white has-background-white"
+                role="cell" aria-label="no coverage">
                 
             </div>
-            <div class="column has-background-danger-light p-0"
+            <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-danger-light py-0 px-2">#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]</pre>
+                <pre class="has-background-white py-0 px-2">    AcceptSubscriptionRequest {</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -8351,13 +8351,13 @@
                 <a href="#520">520</a>
             </div>
             <div
-                class="column is-1 is-narrow p-0 has-text-centered has-text-white has-background-white"
-                role="cell" aria-label="no coverage">
+                class="column is-1 is-narrow p-0 has-text-centered has-text-danger-light has-background-danger"
+                role="cell" aria-label="0">
                 
             </div>
-            <div class="column has-background-white p-0"
+            <div class="column has-background-danger-light p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">#[serde(rename_all = &quot;kebab-case&quot;)]</pre>
+                <pre class="has-background-danger-light py-0 px-2">        pk: i64,</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -8373,7 +8373,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">pub enum SubscriptionPolicySettings {</pre>
+                <pre class="has-background-white py-0 px-2">    },</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -8389,7 +8389,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">    Open,</pre>
+                <pre class="has-background-white py-0 px-2">}</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -8405,7 +8405,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">    Manual,</pre>
+                <pre class="has-background-white py-0 px-2"></pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -8415,13 +8415,13 @@
                 <a href="#524">524</a>
             </div>
             <div
-                class="column is-1 is-narrow p-0 has-text-centered has-text-white has-background-white"
-                role="cell" aria-label="no coverage">
+                class="column is-1 is-narrow p-0 has-text-centered has-text-danger-light has-background-danger"
+                role="cell" aria-label="0">
                 
             </div>
-            <div class="column has-background-white p-0"
+            <div class="column has-background-danger-light p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">    Request,</pre>
+                <pre class="has-background-danger-light py-0 px-2">#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -8437,7 +8437,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">    Custom,</pre>
+                <pre class="has-background-white py-0 px-2">#[serde(rename_all = &quot;kebab-case&quot;)]</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -8453,7 +8453,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">}</pre>
+                <pre class="has-background-white py-0 px-2">pub enum PostPolicySettings {</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -8469,7 +8469,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2"></pre>
+                <pre class="has-background-white py-0 px-2">    AnnounceOnly,</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -8485,7 +8485,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">&#x2F;&#x2F;&#x2F; Raw post page.</pre>
+                <pre class="has-background-white py-0 px-2">    SubscriptionOnly,</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -8495,13 +8495,13 @@
                 <a href="#529">529</a>
             </div>
             <div
-                class="column is-1 is-narrow p-0 has-text-centered has-text-success-light has-background-success"
-                role="cell" aria-label="1">
-                1
+                class="column is-1 is-narrow p-0 has-text-centered has-text-white has-background-white"
+                role="cell" aria-label="no coverage">
+                
             </div>
-            <div class="column has-background-success-light p-0"
+            <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-success-light py-0 px-2">pub async fn list_post_raw(</pre>
+                <pre class="has-background-white py-0 px-2">    ApprovalNeeded,</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -8511,13 +8511,13 @@
                 <a href="#530">530</a>
             </div>
             <div
-                class="column is-1 is-narrow p-0 has-text-centered has-text-success-light has-background-success"
-                role="cell" aria-label="1">
-                1
+                class="column is-1 is-narrow p-0 has-text-centered has-text-white has-background-white"
+                role="cell" aria-label="no coverage">
+                
             </div>
-            <div class="column has-background-success-light p-0"
+            <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-success-light py-0 px-2">    ListPostRawPath(id, msg_id): ListPostRawPath,</pre>
+                <pre class="has-background-white py-0 px-2">    Open,</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -8533,7 +8533,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">    State(state): State&lt;Arc&lt;AppState&gt;&gt;,</pre>
+                <pre class="has-background-white py-0 px-2">    Custom,</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -8543,13 +8543,13 @@
                 <a href="#532">532</a>
             </div>
             <div
-                class="column is-1 is-narrow p-0 has-text-centered has-text-success-light has-background-success"
-                role="cell" aria-label="1">
-                1
+                class="column is-1 is-narrow p-0 has-text-centered has-text-white has-background-white"
+                role="cell" aria-label="no coverage">
+                
             </div>
-            <div class="column has-background-success-light p-0"
+            <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-success-light py-0 px-2">) -&gt; Result&lt;String, ResponseError&gt; {</pre>
+                <pre class="has-background-white py-0 px-2">}</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -8565,7 +8565,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">    let db = Connection::open_db(state.conf.clone())?.trusted();</pre>
+                <pre class="has-background-white py-0 px-2"></pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -8575,13 +8575,13 @@
                 <a href="#534">534</a>
             </div>
             <div
-                class="column is-1 is-narrow p-0 has-text-centered has-text-white has-background-white"
-                role="cell" aria-label="no coverage">
+                class="column is-1 is-narrow p-0 has-text-centered has-text-danger-light has-background-danger"
+                role="cell" aria-label="0">
                 
             </div>
-            <div class="column has-background-white p-0"
+            <div class="column has-background-danger-light p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">    let Some(list) = (match id {</pre>
+                <pre class="has-background-danger-light py-0 px-2">#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -8597,7 +8597,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">        ListPathIdentifier::Pk(id) =&gt; db.list(id)?,</pre>
+                <pre class="has-background-white py-0 px-2">#[serde(rename_all = &quot;kebab-case&quot;)]</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -8613,7 +8613,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">        ListPathIdentifier::Id(id) =&gt; db.list_by_id(id)?,</pre>
+                <pre class="has-background-white py-0 px-2">pub enum SubscriptionPolicySettings {</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -8629,7 +8629,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">    }) else {</pre>
+                <pre class="has-background-white py-0 px-2">    Open,</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -8645,7 +8645,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">        return Err(ResponseError::new(</pre>
+                <pre class="has-background-white py-0 px-2">    Manual,</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -8661,7 +8661,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">            &quot;List not found&quot;.to_string(),</pre>
+                <pre class="has-background-white py-0 px-2">    Request,</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -8677,7 +8677,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">            StatusCode::NOT_FOUND,</pre>
+                <pre class="has-background-white py-0 px-2">    Custom,</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -8693,7 +8693,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">        ));</pre>
+                <pre class="has-background-white py-0 px-2">}</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -8709,7 +8709,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">    };</pre>
+                <pre class="has-background-white py-0 px-2"></pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -8725,7 +8725,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2"></pre>
+                <pre class="has-background-white py-0 px-2">&#x2F;&#x2F;&#x2F; Raw post page.</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -8735,13 +8735,13 @@
                 <a href="#544">544</a>
             </div>
             <div
-                class="column is-1 is-narrow p-0 has-text-centered has-text-white has-background-white"
-                role="cell" aria-label="no coverage">
-                
+                class="column is-1 is-narrow p-0 has-text-centered has-text-success-light has-background-success"
+                role="cell" aria-label="1">
+                1
             </div>
-            <div class="column has-background-white p-0"
+            <div class="column has-background-success-light p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">    let post = if let Some(post) = db.list_post_by_message_id(list.pk, &amp;msg_id)? {</pre>
+                <pre class="has-background-success-light py-0 px-2">pub async fn list_post_raw(</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -8751,13 +8751,13 @@
                 <a href="#545">545</a>
             </div>
             <div
-                class="column is-1 is-narrow p-0 has-text-centered has-text-white has-background-white"
-                role="cell" aria-label="no coverage">
-                
+                class="column is-1 is-narrow p-0 has-text-centered has-text-success-light has-background-success"
+                role="cell" aria-label="1">
+                1
             </div>
-            <div class="column has-background-white p-0"
+            <div class="column has-background-success-light p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">        post</pre>
+                <pre class="has-background-success-light py-0 px-2">    ListPostRawPath(id, msg_id): ListPostRawPath,</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -8773,7 +8773,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">    } else {</pre>
+                <pre class="has-background-white py-0 px-2">    State(state): State&lt;Arc&lt;AppState&gt;&gt;,</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -8783,13 +8783,13 @@
                 <a href="#547">547</a>
             </div>
             <div
-                class="column is-1 is-narrow p-0 has-text-centered has-text-white has-background-white"
-                role="cell" aria-label="no coverage">
-                
+                class="column is-1 is-narrow p-0 has-text-centered has-text-success-light has-background-success"
+                role="cell" aria-label="1">
+                1
             </div>
-            <div class="column has-background-white p-0"
+            <div class="column has-background-success-light p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">        return Err(ResponseError::new(</pre>
+                <pre class="has-background-success-light py-0 px-2">) -&gt; Result&lt;String, ResponseError&gt; {</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -8805,7 +8805,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">            format!(&quot;Post with Message-ID {} not found&quot;, msg_id),</pre>
+                <pre class="has-background-white py-0 px-2">    let db = Connection::open_db(state.conf.clone())?.trusted();</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -8821,7 +8821,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">            StatusCode::NOT_FOUND,</pre>
+                <pre class="has-background-white py-0 px-2">    let Some(list) = (match id {</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -8837,7 +8837,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">        ));</pre>
+                <pre class="has-background-white py-0 px-2">        ListPathIdentifier::Pk(id) =&gt; db.list(id)?,</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -8853,7 +8853,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">    };</pre>
+                <pre class="has-background-white py-0 px-2">        ListPathIdentifier::Id(id) =&gt; db.list_by_id(id)?,</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -8869,7 +8869,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">    Ok(String::from_utf8_lossy(&amp;post.message).to_string())</pre>
+                <pre class="has-background-white py-0 px-2">    }) else {</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -8879,13 +8879,13 @@
                 <a href="#553">553</a>
             </div>
             <div
-                class="column is-1 is-narrow p-0 has-text-centered has-text-success-light has-background-success"
-                role="cell" aria-label="2">
-                2
+                class="column is-1 is-narrow p-0 has-text-centered has-text-white has-background-white"
+                role="cell" aria-label="no coverage">
+                
             </div>
-            <div class="column has-background-success-light p-0"
+            <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-success-light py-0 px-2">}</pre>
+                <pre class="has-background-white py-0 px-2">        return Err(ResponseError::new(</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -8901,7 +8901,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2"></pre>
+                <pre class="has-background-white py-0 px-2">            &quot;List not found&quot;.to_string(),</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -8917,7 +8917,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">&#x2F;&#x2F;&#x2F; .eml post page.</pre>
+                <pre class="has-background-white py-0 px-2">            StatusCode::NOT_FOUND,</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -8927,13 +8927,13 @@
                 <a href="#556">556</a>
             </div>
             <div
-                class="column is-1 is-narrow p-0 has-text-centered has-text-success-light has-background-success"
-                role="cell" aria-label="1">
-                1
+                class="column is-1 is-narrow p-0 has-text-centered has-text-white has-background-white"
+                role="cell" aria-label="no coverage">
+                
             </div>
-            <div class="column has-background-success-light p-0"
+            <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-success-light py-0 px-2">pub async fn list_post_eml(</pre>
+                <pre class="has-background-white py-0 px-2">        ));</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -8943,13 +8943,13 @@
                 <a href="#557">557</a>
             </div>
             <div
-                class="column is-1 is-narrow p-0 has-text-centered has-text-success-light has-background-success"
-                role="cell" aria-label="1">
-                1
+                class="column is-1 is-narrow p-0 has-text-centered has-text-white has-background-white"
+                role="cell" aria-label="no coverage">
+                
             </div>
-            <div class="column has-background-success-light p-0"
+            <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-success-light py-0 px-2">    ListPostEmlPath(id, msg_id): ListPostEmlPath,</pre>
+                <pre class="has-background-white py-0 px-2">    };</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -8965,7 +8965,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">    State(state): State&lt;Arc&lt;AppState&gt;&gt;,</pre>
+                <pre class="has-background-white py-0 px-2"></pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -8975,13 +8975,13 @@
                 <a href="#559">559</a>
             </div>
             <div
-                class="column is-1 is-narrow p-0 has-text-centered has-text-success-light has-background-success"
-                role="cell" aria-label="1">
-                1
+                class="column is-1 is-narrow p-0 has-text-centered has-text-white has-background-white"
+                role="cell" aria-label="no coverage">
+                
             </div>
-            <div class="column has-background-success-light p-0"
+            <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-success-light py-0 px-2">) -&gt; Result&lt;impl IntoResponse, ResponseError&gt; {</pre>
+                <pre class="has-background-white py-0 px-2">    let post = if let Some(post) = db.list_post_by_message_id(list.pk, &amp;msg_id)? {</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -8997,7 +8997,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">    let db = Connection::open_db(state.conf.clone())?.trusted();</pre>
+                <pre class="has-background-white py-0 px-2">        post</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -9013,7 +9013,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">    let Some(list) = (match id {</pre>
+                <pre class="has-background-white py-0 px-2">    } else {</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -9029,7 +9029,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">        ListPathIdentifier::Pk(id) =&gt; db.list(id)?,</pre>
+                <pre class="has-background-white py-0 px-2">        return Err(ResponseError::new(</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -9045,7 +9045,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">        ListPathIdentifier::Id(id) =&gt; db.list_by_id(id)?,</pre>
+                <pre class="has-background-white py-0 px-2">            format!(&quot;Post with Message-ID {} not found&quot;, msg_id),</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -9061,7 +9061,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">    }) else {</pre>
+                <pre class="has-background-white py-0 px-2">            StatusCode::NOT_FOUND,</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -9077,7 +9077,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">        return Err(ResponseError::new(</pre>
+                <pre class="has-background-white py-0 px-2">        ));</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -9093,7 +9093,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">            &quot;List not found&quot;.to_string(),</pre>
+                <pre class="has-background-white py-0 px-2">    };</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -9109,7 +9109,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">            StatusCode::NOT_FOUND,</pre>
+                <pre class="has-background-white py-0 px-2">    Ok(String::from_utf8_lossy(&amp;post.message).to_string())</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -9119,13 +9119,13 @@
                 <a href="#568">568</a>
             </div>
             <div
-                class="column is-1 is-narrow p-0 has-text-centered has-text-white has-background-white"
-                role="cell" aria-label="no coverage">
-                
+                class="column is-1 is-narrow p-0 has-text-centered has-text-success-light has-background-success"
+                role="cell" aria-label="2">
+                2
             </div>
-            <div class="column has-background-white p-0"
+            <div class="column has-background-success-light p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">        ));</pre>
+                <pre class="has-background-success-light py-0 px-2">}</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -9141,7 +9141,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">    };</pre>
+                <pre class="has-background-white py-0 px-2"></pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -9157,7 +9157,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2"></pre>
+                <pre class="has-background-white py-0 px-2">&#x2F;&#x2F;&#x2F; .eml post page.</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -9167,13 +9167,13 @@
                 <a href="#571">571</a>
             </div>
             <div
-                class="column is-1 is-narrow p-0 has-text-centered has-text-white has-background-white"
-                role="cell" aria-label="no coverage">
-                
+                class="column is-1 is-narrow p-0 has-text-centered has-text-success-light has-background-success"
+                role="cell" aria-label="1">
+                1
             </div>
-            <div class="column has-background-white p-0"
+            <div class="column has-background-success-light p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">    let post = if let Some(post) = db.list_post_by_message_id(list.pk, &amp;msg_id)? {</pre>
+                <pre class="has-background-success-light py-0 px-2">pub async fn list_post_eml(</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -9183,13 +9183,13 @@
                 <a href="#572">572</a>
             </div>
             <div
-                class="column is-1 is-narrow p-0 has-text-centered has-text-white has-background-white"
-                role="cell" aria-label="no coverage">
-                
+                class="column is-1 is-narrow p-0 has-text-centered has-text-success-light has-background-success"
+                role="cell" aria-label="1">
+                1
             </div>
-            <div class="column has-background-white p-0"
+            <div class="column has-background-success-light p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">        post</pre>
+                <pre class="has-background-success-light py-0 px-2">    ListPostEmlPath(id, msg_id): ListPostEmlPath,</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -9205,7 +9205,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">    } else {</pre>
+                <pre class="has-background-white py-0 px-2">    State(state): State&lt;Arc&lt;AppState&gt;&gt;,</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -9215,13 +9215,13 @@
                 <a href="#574">574</a>
             </div>
             <div
-                class="column is-1 is-narrow p-0 has-text-centered has-text-white has-background-white"
-                role="cell" aria-label="no coverage">
-                
+                class="column is-1 is-narrow p-0 has-text-centered has-text-success-light has-background-success"
+                role="cell" aria-label="1">
+                1
             </div>
-            <div class="column has-background-white p-0"
+            <div class="column has-background-success-light p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">        return Err(ResponseError::new(</pre>
+                <pre class="has-background-success-light py-0 px-2">) -&gt; Result&lt;impl IntoResponse, ResponseError&gt; {</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -9237,7 +9237,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">            format!(&quot;Post with Message-ID {} not found&quot;, msg_id),</pre>
+                <pre class="has-background-white py-0 px-2">    let db = Connection::open_db(state.conf.clone())?.trusted();</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -9253,7 +9253,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">            StatusCode::NOT_FOUND,</pre>
+                <pre class="has-background-white py-0 px-2">    let Some(list) = (match id {</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -9269,7 +9269,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">        ));</pre>
+                <pre class="has-background-white py-0 px-2">        ListPathIdentifier::Pk(id) =&gt; db.list(id)?,</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -9285,7 +9285,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">    };</pre>
+                <pre class="has-background-white py-0 px-2">        ListPathIdentifier::Id(id) =&gt; db.list_by_id(id)?,</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -9301,7 +9301,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">    let mut response = post.into_inner().message.into_response();</pre>
+                <pre class="has-background-white py-0 px-2">    }) else {</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -9317,7 +9317,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">    response.headers_mut().insert(</pre>
+                <pre class="has-background-white py-0 px-2">        return Err(ResponseError::new(</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -9333,7 +9333,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">        http::header::CONTENT_TYPE,</pre>
+                <pre class="has-background-white py-0 px-2">            &quot;List not found&quot;.to_string(),</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -9349,7 +9349,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">        http::HeaderValue::from_static(&quot;application&#x2F;octet-stream&quot;),</pre>
+                <pre class="has-background-white py-0 px-2">            StatusCode::NOT_FOUND,</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -9365,7 +9365,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">    );</pre>
+                <pre class="has-background-white py-0 px-2">        ));</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -9381,7 +9381,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">    response.headers_mut().insert(</pre>
+                <pre class="has-background-white py-0 px-2">    };</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -9397,7 +9397,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">        http::header::CONTENT_DISPOSITION,</pre>
+                <pre class="has-background-white py-0 px-2"></pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -9413,7 +9413,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">        http::HeaderValue::try_from(format!(</pre>
+                <pre class="has-background-white py-0 px-2">    let post = if let Some(post) = db.list_post_by_message_id(list.pk, &amp;msg_id)? {</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -9429,7 +9429,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">            &quot;attachment; filename=\&quot;{}.eml\&quot;&quot;,</pre>
+                <pre class="has-background-white py-0 px-2">        post</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -9445,7 +9445,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">            msg_id.trim().strip_carets()</pre>
+                <pre class="has-background-white py-0 px-2">    } else {</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -9461,7 +9461,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">        ))</pre>
+                <pre class="has-background-white py-0 px-2">        return Err(ResponseError::new(</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -9477,7 +9477,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">        .unwrap(),</pre>
+                <pre class="has-background-white py-0 px-2">            format!(&quot;Post with Message-ID {} not found&quot;, msg_id),</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -9493,7 +9493,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">    );</pre>
+                <pre class="has-background-white py-0 px-2">            StatusCode::NOT_FOUND,</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -9509,7 +9509,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2"></pre>
+                <pre class="has-background-white py-0 px-2">        ));</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -9525,7 +9525,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">    Ok(response)</pre>
+                <pre class="has-background-white py-0 px-2">    };</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -9535,13 +9535,13 @@
                 <a href="#594">594</a>
             </div>
             <div
-                class="column is-1 is-narrow p-0 has-text-centered has-text-success-light has-background-success"
-                role="cell" aria-label="2">
-                2
+                class="column is-1 is-narrow p-0 has-text-centered has-text-white has-background-white"
+                role="cell" aria-label="no coverage">
+                
             </div>
-            <div class="column has-background-success-light p-0"
+            <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-success-light py-0 px-2">}</pre>
+                <pre class="has-background-white py-0 px-2">    let mut response = post.into_inner().message.into_response();</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -9557,7 +9557,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2"></pre>
+                <pre class="has-background-white py-0 px-2">    response.headers_mut().insert(</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -9567,13 +9567,13 @@
                 <a href="#596">596</a>
             </div>
             <div
-                class="column is-1 is-narrow p-0 has-text-centered has-text-danger-light has-background-danger"
-                role="cell" aria-label="0">
+                class="column is-1 is-narrow p-0 has-text-centered has-text-white has-background-white"
+                role="cell" aria-label="no coverage">
                 
             </div>
-            <div class="column has-background-danger-light p-0"
+            <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-danger-light py-0 px-2">pub async fn list_subscribers(</pre>
+                <pre class="has-background-white py-0 px-2">        http::header::CONTENT_TYPE,</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -9583,13 +9583,13 @@
                 <a href="#597">597</a>
             </div>
             <div
-                class="column is-1 is-narrow p-0 has-text-centered has-text-danger-light has-background-danger"
-                role="cell" aria-label="0">
+                class="column is-1 is-narrow p-0 has-text-centered has-text-white has-background-white"
+                role="cell" aria-label="no coverage">
                 
             </div>
-            <div class="column has-background-danger-light p-0"
+            <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-danger-light py-0 px-2">    ListEditSubscribersPath(id): ListEditSubscribersPath,</pre>
+                <pre class="has-background-white py-0 px-2">        http::HeaderValue::from_static(&quot;application&#x2F;octet-stream&quot;),</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -9605,7 +9605,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">    mut session: WritableSession,</pre>
+                <pre class="has-background-white py-0 px-2">    );</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -9621,7 +9621,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">    auth: AuthContext,</pre>
+                <pre class="has-background-white py-0 px-2">    response.headers_mut().insert(</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -9637,7 +9637,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">    State(state): State&lt;Arc&lt;AppState&gt;&gt;,</pre>
+                <pre class="has-background-white py-0 px-2">        http::header::CONTENT_DISPOSITION,</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -9647,13 +9647,13 @@
                 <a href="#601">601</a>
             </div>
             <div
-                class="column is-1 is-narrow p-0 has-text-centered has-text-danger-light has-background-danger"
-                role="cell" aria-label="0">
+                class="column is-1 is-narrow p-0 has-text-centered has-text-white has-background-white"
+                role="cell" aria-label="no coverage">
                 
             </div>
-            <div class="column has-background-danger-light p-0"
+            <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-danger-light py-0 px-2">) -&gt; Result&lt;Html&lt;String&gt;, ResponseError&gt; {</pre>
+                <pre class="has-background-white py-0 px-2">        http::HeaderValue::try_from(format!(</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -9669,7 +9669,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">    let db = Connection::open_db(state.conf.clone())?;</pre>
+                <pre class="has-background-white py-0 px-2">            &quot;attachment; filename=\&quot;{}.eml\&quot;&quot;,</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -9685,7 +9685,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">    let Some(list) = (match id {</pre>
+                <pre class="has-background-white py-0 px-2">            msg_id.trim().strip_carets()</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -9701,7 +9701,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">        ListPathIdentifier::Pk(id) =&gt; db.list(id)?,</pre>
+                <pre class="has-background-white py-0 px-2">        ))</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -9717,7 +9717,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">        ListPathIdentifier::Id(id) =&gt; db.list_by_id(id)?,</pre>
+                <pre class="has-background-white py-0 px-2">        .unwrap(),</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -9733,7 +9733,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">    }) else {</pre>
+                <pre class="has-background-white py-0 px-2">    );</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -9749,7 +9749,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">        return Err(ResponseError::new(</pre>
+                <pre class="has-background-white py-0 px-2"></pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -9765,7 +9765,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">            &quot;Not found&quot;.to_string(),</pre>
+                <pre class="has-background-white py-0 px-2">    Ok(response)</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -9775,13 +9775,13 @@
                 <a href="#609">609</a>
             </div>
             <div
-                class="column is-1 is-narrow p-0 has-text-centered has-text-white has-background-white"
-                role="cell" aria-label="no coverage">
-                
+                class="column is-1 is-narrow p-0 has-text-centered has-text-success-light has-background-success"
+                role="cell" aria-label="2">
+                2
             </div>
-            <div class="column has-background-white p-0"
+            <div class="column has-background-success-light p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">            StatusCode::NOT_FOUND,</pre>
+                <pre class="has-background-success-light py-0 px-2">}</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -9797,7 +9797,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">        ));</pre>
+                <pre class="has-background-white py-0 px-2"></pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -9807,13 +9807,13 @@
                 <a href="#611">611</a>
             </div>
             <div
-                class="column is-1 is-narrow p-0 has-text-centered has-text-white has-background-white"
-                role="cell" aria-label="no coverage">
+                class="column is-1 is-narrow p-0 has-text-centered has-text-danger-light has-background-danger"
+                role="cell" aria-label="0">
                 
             </div>
-            <div class="column has-background-white p-0"
+            <div class="column has-background-danger-light p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">    };</pre>
+                <pre class="has-background-danger-light py-0 px-2">pub async fn list_subscribers(</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -9823,13 +9823,13 @@
                 <a href="#612">612</a>
             </div>
             <div
-                class="column is-1 is-narrow p-0 has-text-centered has-text-white has-background-white"
-                role="cell" aria-label="no coverage">
+                class="column is-1 is-narrow p-0 has-text-centered has-text-danger-light has-background-danger"
+                role="cell" aria-label="0">
                 
             </div>
-            <div class="column has-background-white p-0"
+            <div class="column has-background-danger-light p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">    let list_owners = db.list_owners(list.pk)?;</pre>
+                <pre class="has-background-danger-light py-0 px-2">    ListEditSubscribersPath(id): ListEditSubscribersPath,</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -9845,7 +9845,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">    let user_address = &amp;auth.current_user.as_ref().unwrap().address;</pre>
+                <pre class="has-background-white py-0 px-2">    mut session: WritableSession,</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -9861,7 +9861,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">    if !list_owners.iter().any(|o| &amp;o.address == user_address) {</pre>
+                <pre class="has-background-white py-0 px-2">    auth: AuthContext,</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -9877,7 +9877,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">        return Err(ResponseError::new(</pre>
+                <pre class="has-background-white py-0 px-2">    State(state): State&lt;Arc&lt;AppState&gt;&gt;,</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -9887,13 +9887,13 @@
                 <a href="#616">616</a>
             </div>
             <div
-                class="column is-1 is-narrow p-0 has-text-centered has-text-white has-background-white"
-                role="cell" aria-label="no coverage">
+                class="column is-1 is-narrow p-0 has-text-centered has-text-danger-light has-background-danger"
+                role="cell" aria-label="0">
                 
             </div>
-            <div class="column has-background-white p-0"
+            <div class="column has-background-danger-light p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">            &quot;Not found&quot;.to_string(),</pre>
+                <pre class="has-background-danger-light py-0 px-2">) -&gt; Result&lt;Html&lt;String&gt;, ResponseError&gt; {</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -9909,7 +9909,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">            StatusCode::NOT_FOUND,</pre>
+                <pre class="has-background-white py-0 px-2">    let db = Connection::open_db(state.conf.clone())?;</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -9925,7 +9925,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">        ));</pre>
+                <pre class="has-background-white py-0 px-2">    let Some(list) = (match id {</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -9941,7 +9941,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">    };</pre>
+                <pre class="has-background-white py-0 px-2">        ListPathIdentifier::Pk(id) =&gt; db.list(id)?,</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -9957,7 +9957,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2"></pre>
+                <pre class="has-background-white py-0 px-2">        ListPathIdentifier::Id(id) =&gt; db.list_by_id(id)?,</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -9973,7 +9973,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">    let subs = {</pre>
+                <pre class="has-background-white py-0 px-2">    }) else {</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -9989,7 +9989,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">        let mut stmt = db</pre>
+                <pre class="has-background-white py-0 px-2">        return Err(ResponseError::new(</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -10005,7 +10005,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">            .connection</pre>
+                <pre class="has-background-white py-0 px-2">            &quot;Not found&quot;.to_string(),</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -10021,7 +10021,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">            .prepare(&quot;SELECT * FROM subscription WHERE list = ?;&quot;)?;</pre>
+                <pre class="has-background-white py-0 px-2">            StatusCode::NOT_FOUND,</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -10037,7 +10037,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">        let iter = stmt.query_map([&amp;list.pk], |row| {</pre>
+                <pre class="has-background-white py-0 px-2">        ));</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -10053,7 +10053,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">            let address: String = row.get(&quot;address&quot;)?;</pre>
+                <pre class="has-background-white py-0 px-2">    };</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -10069,7 +10069,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">            let name: Option&lt;String&gt; = row.get(&quot;name&quot;)?;</pre>
+                <pre class="has-background-white py-0 px-2">    let list_owners = db.list_owners(list.pk)?;</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -10085,7 +10085,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">            let enabled: bool = row.get(&quot;enabled&quot;)?;</pre>
+                <pre class="has-background-white py-0 px-2">    let user_address = &amp;auth.current_user.as_ref().unwrap().address;</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -10101,7 +10101,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">            let verified: bool = row.get(&quot;verified&quot;)?;</pre>
+                <pre class="has-background-white py-0 px-2">    if !list_owners.iter().any(|o| &amp;o.address == user_address) {</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -10117,7 +10117,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">            let digest: bool = row.get(&quot;digest&quot;)?;</pre>
+                <pre class="has-background-white py-0 px-2">        return Err(ResponseError::new(</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -10133,7 +10133,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">            let hide_address: bool = row.get(&quot;hide_address&quot;)?;</pre>
+                <pre class="has-background-white py-0 px-2">            &quot;Not found&quot;.to_string(),</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -10149,7 +10149,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">            let receive_duplicates: bool = row.get(&quot;receive_duplicates&quot;)?;</pre>
+                <pre class="has-background-white py-0 px-2">            StatusCode::NOT_FOUND,</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -10165,7 +10165,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">            let receive_own_posts: bool = row.get(&quot;receive_own_posts&quot;)?;</pre>
+                <pre class="has-background-white py-0 px-2">        ));</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -10181,7 +10181,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">            let receive_confirmation: bool = row.get(&quot;receive_confirmation&quot;)?;</pre>
+                <pre class="has-background-white py-0 px-2">    };</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -10197,7 +10197,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">            &#x2F;&#x2F;let last_digest: i64 = row.get(&quot;last_digest&quot;)?;</pre>
+                <pre class="has-background-white py-0 px-2"></pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -10213,7 +10213,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">            let created: i64 = row.get(&quot;created&quot;)?;</pre>
+                <pre class="has-background-white py-0 px-2">    let subs = {</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -10229,7 +10229,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">            let last_modified: i64 = row.get(&quot;last_modified&quot;)?;</pre>
+                <pre class="has-background-white py-0 px-2">        let mut stmt = db</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -10245,7 +10245,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">            Ok(minijinja::context! {</pre>
+                <pre class="has-background-white py-0 px-2">            .connection</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -10261,7 +10261,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">                address,</pre>
+                <pre class="has-background-white py-0 px-2">            .prepare(&quot;SELECT * FROM subscription WHERE list = ?;&quot;)?;</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -10277,7 +10277,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">                name,</pre>
+                <pre class="has-background-white py-0 px-2">        let iter = stmt.query_map([&amp;list.pk], |row| {</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -10293,7 +10293,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">                enabled,</pre>
+                <pre class="has-background-white py-0 px-2">            let address: String = row.get(&quot;address&quot;)?;</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -10309,7 +10309,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">                verified,</pre>
+                <pre class="has-background-white py-0 px-2">            let name: Option&lt;String&gt; = row.get(&quot;name&quot;)?;</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -10325,7 +10325,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">                digest,</pre>
+                <pre class="has-background-white py-0 px-2">            let enabled: bool = row.get(&quot;enabled&quot;)?;</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -10341,7 +10341,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">                hide_address,</pre>
+                <pre class="has-background-white py-0 px-2">            let verified: bool = row.get(&quot;verified&quot;)?;</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -10357,7 +10357,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">                receive_duplicates,</pre>
+                <pre class="has-background-white py-0 px-2">            let digest: bool = row.get(&quot;digest&quot;)?;</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -10373,7 +10373,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">                receive_own_posts,</pre>
+                <pre class="has-background-white py-0 px-2">            let hide_address: bool = row.get(&quot;hide_address&quot;)?;</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -10389,7 +10389,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">                receive_confirmation,</pre>
+                <pre class="has-background-white py-0 px-2">            let receive_duplicates: bool = row.get(&quot;receive_duplicates&quot;)?;</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -10405,7 +10405,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">                &#x2F;&#x2F;last_digest =&gt; chrono::Utc.timestamp_opt(last_digest, 0).unwrap().to_string(),</pre>
+                <pre class="has-background-white py-0 px-2">            let receive_own_posts: bool = row.get(&quot;receive_own_posts&quot;)?;</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -10421,7 +10421,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">                created =&gt; chrono::Utc.timestamp_opt(created, 0).unwrap().to_string(),</pre>
+                <pre class="has-background-white py-0 px-2">            let receive_confirmation: bool = row.get(&quot;receive_confirmation&quot;)?;</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -10437,7 +10437,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">                last_modified =&gt; chrono::Utc.timestamp_opt(last_modified, 0).unwrap().to_string(),</pre>
+                <pre class="has-background-white py-0 px-2">            &#x2F;&#x2F;let last_digest: i64 = row.get(&quot;last_digest&quot;)?;</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -10453,7 +10453,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">            })</pre>
+                <pre class="has-background-white py-0 px-2">            let created: i64 = row.get(&quot;created&quot;)?;</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -10469,7 +10469,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">        })?;</pre>
+                <pre class="has-background-white py-0 px-2">            let last_modified: i64 = row.get(&quot;last_modified&quot;)?;</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -10485,7 +10485,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">        let mut ret = vec![];</pre>
+                <pre class="has-background-white py-0 px-2">            Ok(minijinja::context! {</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -10501,7 +10501,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">        for el in iter {</pre>
+                <pre class="has-background-white py-0 px-2">                address,</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -10517,7 +10517,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">            let el = el?;</pre>
+                <pre class="has-background-white py-0 px-2">                name,</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -10533,7 +10533,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">            ret.push(el);</pre>
+                <pre class="has-background-white py-0 px-2">                enabled,</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -10549,7 +10549,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">        }</pre>
+                <pre class="has-background-white py-0 px-2">                verified,</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -10565,7 +10565,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">        ret</pre>
+                <pre class="has-background-white py-0 px-2">                digest,</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -10581,7 +10581,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">    };</pre>
+                <pre class="has-background-white py-0 px-2">                hide_address,</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -10597,7 +10597,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2"></pre>
+                <pre class="has-background-white py-0 px-2">                receive_duplicates,</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -10613,7 +10613,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">    let crumbs = vec![</pre>
+                <pre class="has-background-white py-0 px-2">                receive_own_posts,</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -10629,7 +10629,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">        Crumb {</pre>
+                <pre class="has-background-white py-0 px-2">                receive_confirmation,</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -10645,7 +10645,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">            label: &quot;Home&quot;.into(),</pre>
+                <pre class="has-background-white py-0 px-2">                &#x2F;&#x2F;last_digest =&gt; chrono::Utc.timestamp_opt(last_digest, 0).unwrap().to_string(),</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -10661,7 +10661,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">            url: &quot;&#x2F;&quot;.into(),</pre>
+                <pre class="has-background-white py-0 px-2">                created =&gt; chrono::Utc.timestamp_opt(created, 0).unwrap().to_string(),</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -10677,7 +10677,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">        },</pre>
+                <pre class="has-background-white py-0 px-2">                last_modified =&gt; chrono::Utc.timestamp_opt(last_modified, 0).unwrap().to_string(),</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -10693,7 +10693,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">        Crumb {</pre>
+                <pre class="has-background-white py-0 px-2">            })</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -10709,7 +10709,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">            label: list.name.clone().into(),</pre>
+                <pre class="has-background-white py-0 px-2">        })?;</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -10725,7 +10725,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">            url: ListPath(list.id.to_string().into()).to_crumb(),</pre>
+                <pre class="has-background-white py-0 px-2">        let mut ret = vec![];</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -10741,7 +10741,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">        },</pre>
+                <pre class="has-background-white py-0 px-2">        for el in iter {</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -10757,7 +10757,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">        Crumb {</pre>
+                <pre class="has-background-white py-0 px-2">            let el = el?;</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -10773,7 +10773,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">            label: format!(&quot;Edit {}&quot;, list.name).into(),</pre>
+                <pre class="has-background-white py-0 px-2">            ret.push(el);</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -10789,7 +10789,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">            url: ListEditPath(ListPathIdentifier::from(list.id.clone())).to_crumb(),</pre>
+                <pre class="has-background-white py-0 px-2">        }</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -10805,7 +10805,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">        },</pre>
+                <pre class="has-background-white py-0 px-2">        ret</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -10821,7 +10821,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">        Crumb {</pre>
+                <pre class="has-background-white py-0 px-2">    };</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -10837,7 +10837,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">            label: format!(&quot;Subscribers of {}&quot;, list.name).into(),</pre>
+                <pre class="has-background-white py-0 px-2"></pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -10853,7 +10853,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">            url: ListEditSubscribersPath(list.id.to_string().into()).to_crumb(),</pre>
+                <pre class="has-background-white py-0 px-2">    let crumbs = vec![</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -10869,7 +10869,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">        },</pre>
+                <pre class="has-background-white py-0 px-2">        Crumb {</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -10885,7 +10885,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">    ];</pre>
+                <pre class="has-background-white py-0 px-2">            label: &quot;Home&quot;.into(),</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -10901,7 +10901,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">    let list_owners = db.list_owners(list.pk)?;</pre>
+                <pre class="has-background-white py-0 px-2">            url: &quot;&#x2F;&quot;.into(),</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -10917,7 +10917,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">    let mut list_obj = MailingList::from(list.clone());</pre>
+                <pre class="has-background-white py-0 px-2">        },</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -10933,7 +10933,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">    list_obj.set_safety(list_owners.as_slice(), &amp;state.conf.administrators);</pre>
+                <pre class="has-background-white py-0 px-2">        Crumb {</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -10949,7 +10949,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">    let context = minijinja::context! {</pre>
+                <pre class="has-background-white py-0 px-2">            label: list.name.clone().into(),</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -10965,7 +10965,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">        canonical_url =&gt; ListEditSubscribersPath(ListPathIdentifier::from(list.id.clone())).to_crumb(),</pre>
+                <pre class="has-background-white py-0 px-2">            url: ListPath(list.id.to_string().into()).to_crumb(),</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -10981,7 +10981,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">        page_title =&gt; format!(&quot;Subscribers of {}&quot;, list.name),</pre>
+                <pre class="has-background-white py-0 px-2">        },</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -10997,7 +10997,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">        subs,</pre>
+                <pre class="has-background-white py-0 px-2">        Crumb {</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -11013,7 +11013,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">        list =&gt; Value::from_object(list_obj),</pre>
+                <pre class="has-background-white py-0 px-2">            label: format!(&quot;Edit {}&quot;, list.name).into(),</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -11029,7 +11029,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">        current_user =&gt; auth.current_user,</pre>
+                <pre class="has-background-white py-0 px-2">            url: ListEditPath(ListPathIdentifier::from(list.id.clone())).to_crumb(),</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -11045,7 +11045,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">        messages =&gt; session.drain_messages(),</pre>
+                <pre class="has-background-white py-0 px-2">        },</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -11061,7 +11061,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">        crumbs,</pre>
+                <pre class="has-background-white py-0 px-2">        Crumb {</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -11077,7 +11077,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">    };</pre>
+                <pre class="has-background-white py-0 px-2">            label: format!(&quot;Subscribers of {}&quot;, list.name).into(),</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -11093,7 +11093,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">    Ok(Html(</pre>
+                <pre class="has-background-white py-0 px-2">            url: ListEditSubscribersPath(list.id.to_string().into()).to_crumb(),</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -11109,7 +11109,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">        TEMPLATES.get_template(&quot;lists&#x2F;subs.html&quot;)?.render(context)?,</pre>
+                <pre class="has-background-white py-0 px-2">        },</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -11125,7 +11125,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">    ))</pre>
+                <pre class="has-background-white py-0 px-2">    ];</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -11135,13 +11135,13 @@
                 <a href="#694">694</a>
             </div>
             <div
-                class="column is-1 is-narrow p-0 has-text-centered has-text-danger-light has-background-danger"
-                role="cell" aria-label="0">
+                class="column is-1 is-narrow p-0 has-text-centered has-text-white has-background-white"
+                role="cell" aria-label="no coverage">
                 
             </div>
-            <div class="column has-background-danger-light p-0"
+            <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-danger-light py-0 px-2">}</pre>
+                <pre class="has-background-white py-0 px-2">    let list_owners = db.list_owners(list.pk)?;</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -11157,7 +11157,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2"></pre>
+                <pre class="has-background-white py-0 px-2">    let mut list_obj = MailingList::from(list.clone());</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -11167,13 +11167,13 @@
                 <a href="#696">696</a>
             </div>
             <div
-                class="column is-1 is-narrow p-0 has-text-centered has-text-danger-light has-background-danger"
-                role="cell" aria-label="0">
+                class="column is-1 is-narrow p-0 has-text-centered has-text-white has-background-white"
+                role="cell" aria-label="no coverage">
                 
             </div>
-            <div class="column has-background-danger-light p-0"
+            <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-danger-light py-0 px-2">pub async fn list_candidates(</pre>
+                <pre class="has-background-white py-0 px-2">    list_obj.set_safety(list_owners.as_slice(), &amp;state.conf.administrators);</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -11183,13 +11183,13 @@
                 <a href="#697">697</a>
             </div>
             <div
-                class="column is-1 is-narrow p-0 has-text-centered has-text-danger-light has-background-danger"
-                role="cell" aria-label="0">
+                class="column is-1 is-narrow p-0 has-text-centered has-text-white has-background-white"
+                role="cell" aria-label="no coverage">
                 
             </div>
-            <div class="column has-background-danger-light p-0"
+            <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-danger-light py-0 px-2">    ListEditCandidatesPath(id): ListEditCandidatesPath,</pre>
+                <pre class="has-background-white py-0 px-2">    let context = minijinja::context! {</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -11205,7 +11205,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">    mut session: WritableSession,</pre>
+                <pre class="has-background-white py-0 px-2">        canonical_url =&gt; ListEditSubscribersPath(ListPathIdentifier::from(list.id.clone())).to_crumb(),</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -11221,7 +11221,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">    auth: AuthContext,</pre>
+                <pre class="has-background-white py-0 px-2">        page_title =&gt; format!(&quot;Subscribers of {}&quot;, list.name),</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -11237,7 +11237,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">    State(state): State&lt;Arc&lt;AppState&gt;&gt;,</pre>
+                <pre class="has-background-white py-0 px-2">        subs,</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -11247,13 +11247,13 @@
                 <a href="#701">701</a>
             </div>
             <div
-                class="column is-1 is-narrow p-0 has-text-centered has-text-danger-light has-background-danger"
-                role="cell" aria-label="0">
+                class="column is-1 is-narrow p-0 has-text-centered has-text-white has-background-white"
+                role="cell" aria-label="no coverage">
                 
             </div>
-            <div class="column has-background-danger-light p-0"
+            <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-danger-light py-0 px-2">) -&gt; Result&lt;Html&lt;String&gt;, ResponseError&gt; {</pre>
+                <pre class="has-background-white py-0 px-2">        list =&gt; Value::from_object(list_obj),</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -11269,7 +11269,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">    let db = Connection::open_db(state.conf.clone())?;</pre>
+                <pre class="has-background-white py-0 px-2">        current_user =&gt; auth.current_user,</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -11285,7 +11285,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">    let Some(list) = (match id {</pre>
+                <pre class="has-background-white py-0 px-2">        messages =&gt; session.drain_messages(),</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -11301,7 +11301,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">        ListPathIdentifier::Pk(id) =&gt; db.list(id)?,</pre>
+                <pre class="has-background-white py-0 px-2">        crumbs,</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -11317,7 +11317,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">        ListPathIdentifier::Id(id) =&gt; db.list_by_id(id)?,</pre>
+                <pre class="has-background-white py-0 px-2">    };</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -11333,7 +11333,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">    }) else {</pre>
+                <pre class="has-background-white py-0 px-2">    Ok(Html(</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -11349,7 +11349,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">        return Err(ResponseError::new(</pre>
+                <pre class="has-background-white py-0 px-2">        TEMPLATES.get_template(&quot;lists&#x2F;subs.html&quot;)?.render(context)?,</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -11365,7 +11365,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">            &quot;Not found&quot;.to_string(),</pre>
+                <pre class="has-background-white py-0 px-2">    ))</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -11375,13 +11375,13 @@
                 <a href="#709">709</a>
             </div>
             <div
-                class="column is-1 is-narrow p-0 has-text-centered has-text-white has-background-white"
-                role="cell" aria-label="no coverage">
+                class="column is-1 is-narrow p-0 has-text-centered has-text-danger-light has-background-danger"
+                role="cell" aria-label="0">
                 
             </div>
-            <div class="column has-background-white p-0"
+            <div class="column has-background-danger-light p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">            StatusCode::NOT_FOUND,</pre>
+                <pre class="has-background-danger-light py-0 px-2">}</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -11397,7 +11397,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">        ));</pre>
+                <pre class="has-background-white py-0 px-2"></pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -11407,13 +11407,13 @@
                 <a href="#711">711</a>
             </div>
             <div
-                class="column is-1 is-narrow p-0 has-text-centered has-text-white has-background-white"
-                role="cell" aria-label="no coverage">
+                class="column is-1 is-narrow p-0 has-text-centered has-text-danger-light has-background-danger"
+                role="cell" aria-label="0">
                 
             </div>
-            <div class="column has-background-white p-0"
+            <div class="column has-background-danger-light p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">    };</pre>
+                <pre class="has-background-danger-light py-0 px-2">pub async fn list_candidates(</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -11423,13 +11423,13 @@
                 <a href="#712">712</a>
             </div>
             <div
-                class="column is-1 is-narrow p-0 has-text-centered has-text-white has-background-white"
-                role="cell" aria-label="no coverage">
+                class="column is-1 is-narrow p-0 has-text-centered has-text-danger-light has-background-danger"
+                role="cell" aria-label="0">
                 
             </div>
-            <div class="column has-background-white p-0"
+            <div class="column has-background-danger-light p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">    let list_owners = db.list_owners(list.pk)?;</pre>
+                <pre class="has-background-danger-light py-0 px-2">    ListEditCandidatesPath(id): ListEditCandidatesPath,</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -11445,7 +11445,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">    let user_address = &amp;auth.current_user.as_ref().unwrap().address;</pre>
+                <pre class="has-background-white py-0 px-2">    mut session: WritableSession,</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -11461,7 +11461,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">    if !list_owners.iter().any(|o| &amp;o.address == user_address) {</pre>
+                <pre class="has-background-white py-0 px-2">    auth: AuthContext,</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -11477,7 +11477,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">        return Err(ResponseError::new(</pre>
+                <pre class="has-background-white py-0 px-2">    State(state): State&lt;Arc&lt;AppState&gt;&gt;,</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -11487,13 +11487,13 @@
                 <a href="#716">716</a>
             </div>
             <div
-                class="column is-1 is-narrow p-0 has-text-centered has-text-white has-background-white"
-                role="cell" aria-label="no coverage">
+                class="column is-1 is-narrow p-0 has-text-centered has-text-danger-light has-background-danger"
+                role="cell" aria-label="0">
                 
             </div>
-            <div class="column has-background-white p-0"
+            <div class="column has-background-danger-light p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">            &quot;Not found&quot;.to_string(),</pre>
+                <pre class="has-background-danger-light py-0 px-2">) -&gt; Result&lt;Html&lt;String&gt;, ResponseError&gt; {</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -11509,7 +11509,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">            StatusCode::NOT_FOUND,</pre>
+                <pre class="has-background-white py-0 px-2">    let db = Connection::open_db(state.conf.clone())?;</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -11525,7 +11525,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">        ));</pre>
+                <pre class="has-background-white py-0 px-2">    let Some(list) = (match id {</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -11541,7 +11541,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">    };</pre>
+                <pre class="has-background-white py-0 px-2">        ListPathIdentifier::Pk(id) =&gt; db.list(id)?,</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -11557,7 +11557,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2"></pre>
+                <pre class="has-background-white py-0 px-2">        ListPathIdentifier::Id(id) =&gt; db.list_by_id(id)?,</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -11573,7 +11573,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">    let subs = {</pre>
+                <pre class="has-background-white py-0 px-2">    }) else {</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -11589,7 +11589,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">        let mut stmt = db</pre>
+                <pre class="has-background-white py-0 px-2">        return Err(ResponseError::new(</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -11605,7 +11605,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">            .connection</pre>
+                <pre class="has-background-white py-0 px-2">            &quot;Not found&quot;.to_string(),</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -11621,7 +11621,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">            .prepare(&quot;SELECT * FROM candidate_subscription WHERE list = ?;&quot;)?;</pre>
+                <pre class="has-background-white py-0 px-2">            StatusCode::NOT_FOUND,</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -11637,7 +11637,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">        let iter = stmt.query_map([&amp;list.pk], |row| {</pre>
+                <pre class="has-background-white py-0 px-2">        ));</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -11653,7 +11653,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">            let address: String = row.get(&quot;address&quot;)?;</pre>
+                <pre class="has-background-white py-0 px-2">    };</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -11669,7 +11669,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">            let name: Option&lt;String&gt; = row.get(&quot;name&quot;)?;</pre>
+                <pre class="has-background-white py-0 px-2">    let list_owners = db.list_owners(list.pk)?;</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -11685,7 +11685,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">            let accepted: Option&lt;i64&gt; = row.get(&quot;enabled&quot;)?;</pre>
+                <pre class="has-background-white py-0 px-2">    let user_address = &amp;auth.current_user.as_ref().unwrap().address;</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -11701,7 +11701,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">            let created: i64 = row.get(&quot;created&quot;)?;</pre>
+                <pre class="has-background-white py-0 px-2">    if !list_owners.iter().any(|o| &amp;o.address == user_address) {</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -11717,7 +11717,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">            let last_modified: i64 = row.get(&quot;last_modified&quot;)?;</pre>
+                <pre class="has-background-white py-0 px-2">        return Err(ResponseError::new(</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -11733,7 +11733,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">            Ok(minijinja::context! {</pre>
+                <pre class="has-background-white py-0 px-2">            &quot;Not found&quot;.to_string(),</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -11749,7 +11749,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">                address,</pre>
+                <pre class="has-background-white py-0 px-2">            StatusCode::NOT_FOUND,</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -11765,7 +11765,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">                name,</pre>
+                <pre class="has-background-white py-0 px-2">        ));</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -11781,7 +11781,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">                accepted =&gt; accepted.is_some(),</pre>
+                <pre class="has-background-white py-0 px-2">    };</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -11797,7 +11797,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">                created =&gt; chrono::Utc.timestamp_opt(created, 0).unwrap().to_string(),</pre>
+                <pre class="has-background-white py-0 px-2"></pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -11813,7 +11813,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">                last_modified =&gt; chrono::Utc.timestamp_opt(last_modified, 0).unwrap().to_string(),</pre>
+                <pre class="has-background-white py-0 px-2">    let subs = {</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -11829,7 +11829,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">            })</pre>
+                <pre class="has-background-white py-0 px-2">        let mut stmt = db</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -11845,7 +11845,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">        })?;</pre>
+                <pre class="has-background-white py-0 px-2">            .connection</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -11861,7 +11861,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">        let mut ret = vec![];</pre>
+                <pre class="has-background-white py-0 px-2">            .prepare(&quot;SELECT * FROM candidate_subscription WHERE list = ?;&quot;)?;</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -11877,7 +11877,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">        for el in iter {</pre>
+                <pre class="has-background-white py-0 px-2">        let iter = stmt.query_map([&amp;list.pk], |row| {</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -11893,7 +11893,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">            let el = el?;</pre>
+                <pre class="has-background-white py-0 px-2">            let pk: i64 = row.get(&quot;pk&quot;)?;</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -11909,7 +11909,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">            ret.push(el);</pre>
+                <pre class="has-background-white py-0 px-2">            let address: String = row.get(&quot;address&quot;)?;</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -11925,7 +11925,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">        }</pre>
+                <pre class="has-background-white py-0 px-2">            let name: Option&lt;String&gt; = row.get(&quot;name&quot;)?;</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -11941,7 +11941,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">        ret</pre>
+                <pre class="has-background-white py-0 px-2">            let accepted: Option&lt;i64&gt; = row.get(&quot;accepted&quot;)?;</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -11957,7 +11957,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">    };</pre>
+                <pre class="has-background-white py-0 px-2">            let created: i64 = row.get(&quot;created&quot;)?;</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -11973,7 +11973,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2"></pre>
+                <pre class="has-background-white py-0 px-2">            let last_modified: i64 = row.get(&quot;last_modified&quot;)?;</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -11989,7 +11989,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">    let crumbs = vec![</pre>
+                <pre class="has-background-white py-0 px-2">            Ok(minijinja::context! {</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -12005,7 +12005,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">        Crumb {</pre>
+                <pre class="has-background-white py-0 px-2">                pk,</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -12021,7 +12021,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">            label: &quot;Home&quot;.into(),</pre>
+                <pre class="has-background-white py-0 px-2">                address,</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -12037,7 +12037,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">            url: &quot;&#x2F;&quot;.into(),</pre>
+                <pre class="has-background-white py-0 px-2">                name,</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -12053,7 +12053,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">        },</pre>
+                <pre class="has-background-white py-0 px-2">                accepted =&gt; accepted.is_some(),</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -12069,7 +12069,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">        Crumb {</pre>
+                <pre class="has-background-white py-0 px-2">                created =&gt; chrono::Utc.timestamp_opt(created, 0).unwrap().to_string(),</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -12085,7 +12085,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">            label: list.name.clone().into(),</pre>
+                <pre class="has-background-white py-0 px-2">                last_modified =&gt; chrono::Utc.timestamp_opt(last_modified, 0).unwrap().to_string(),</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -12101,7 +12101,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">            url: ListPath(list.id.to_string().into()).to_crumb(),</pre>
+                <pre class="has-background-white py-0 px-2">            })</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -12117,7 +12117,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">        },</pre>
+                <pre class="has-background-white py-0 px-2">        })?;</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -12133,7 +12133,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">        Crumb {</pre>
+                <pre class="has-background-white py-0 px-2">        let mut ret = vec![];</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -12149,7 +12149,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">            label: format!(&quot;Edit {}&quot;, list.name).into(),</pre>
+                <pre class="has-background-white py-0 px-2">        for el in iter {</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -12165,7 +12165,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">            url: ListEditPath(ListPathIdentifier::from(list.id.clone())).to_crumb(),</pre>
+                <pre class="has-background-white py-0 px-2">            let el = el?;</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -12181,7 +12181,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">        },</pre>
+                <pre class="has-background-white py-0 px-2">            ret.push(el);</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -12197,7 +12197,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">        Crumb {</pre>
+                <pre class="has-background-white py-0 px-2">        }</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -12213,7 +12213,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">            label: format!(&quot;Requests of {}&quot;, list.name).into(),</pre>
+                <pre class="has-background-white py-0 px-2">        ret</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -12229,7 +12229,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">            url: ListEditCandidatesPath(list.id.to_string().into()).to_crumb(),</pre>
+                <pre class="has-background-white py-0 px-2">    };</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -12245,7 +12245,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">        },</pre>
+                <pre class="has-background-white py-0 px-2"></pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -12261,7 +12261,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">    ];</pre>
+                <pre class="has-background-white py-0 px-2">    let crumbs = vec![</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -12277,7 +12277,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">    let mut list_obj: MailingList = MailingList::from(list.clone());</pre>
+                <pre class="has-background-white py-0 px-2">        Crumb {</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -12293,7 +12293,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">    list_obj.set_safety(list_owners.as_slice(), &amp;state.conf.administrators);</pre>
+                <pre class="has-background-white py-0 px-2">            label: &quot;Home&quot;.into(),</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -12309,7 +12309,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">    let context = minijinja::context! {</pre>
+                <pre class="has-background-white py-0 px-2">            url: &quot;&#x2F;&quot;.into(),</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -12325,7 +12325,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">        canonical_url =&gt; ListEditCandidatesPath(ListPathIdentifier::from(list.id.clone())).to_crumb(),</pre>
+                <pre class="has-background-white py-0 px-2">        },</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -12341,7 +12341,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">        page_title =&gt; format!(&quot;Requests of {}&quot;, list.name),</pre>
+                <pre class="has-background-white py-0 px-2">        Crumb {</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -12357,7 +12357,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">        subs,</pre>
+                <pre class="has-background-white py-0 px-2">            label: list.name.clone().into(),</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -12373,7 +12373,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">        list =&gt; Value::from_object(list_obj),</pre>
+                <pre class="has-background-white py-0 px-2">            url: ListPath(list.id.to_string().into()).to_crumb(),</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -12389,7 +12389,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">        current_user =&gt; auth.current_user,</pre>
+                <pre class="has-background-white py-0 px-2">        },</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -12405,7 +12405,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">        messages =&gt; session.drain_messages(),</pre>
+                <pre class="has-background-white py-0 px-2">        Crumb {</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -12421,7 +12421,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">        crumbs,</pre>
+                <pre class="has-background-white py-0 px-2">            label: format!(&quot;Edit {}&quot;, list.name).into(),</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -12437,7 +12437,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">    };</pre>
+                <pre class="has-background-white py-0 px-2">            url: ListEditPath(ListPathIdentifier::from(list.id.clone())).to_crumb(),</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -12453,7 +12453,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">    Ok(Html(</pre>
+                <pre class="has-background-white py-0 px-2">        },</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -12469,7 +12469,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">        TEMPLATES.get_template(&quot;lists&#x2F;subs.html&quot;)?.render(context)?,</pre>
+                <pre class="has-background-white py-0 px-2">        Crumb {</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -12485,7 +12485,7 @@
             </div>
             <div class="column has-background-white p-0"
                  role="cell">
-                <pre class="has-background-white py-0 px-2">    ))</pre>
+                <pre class="has-background-white py-0 px-2">            label: format!(&quot;Requests of {}&quot;, list.name).into(),</pre>
             </div>
         </div><div class="columns p-0 m-0" role="row">
             <div
@@ -12493,6 +12493,278 @@
                 id="779"
                 role="cell">
                 <a href="#779">779</a>
+            </div>
+            <div
+                class="column is-1 is-narrow p-0 has-text-centered has-text-white has-background-white"
+                role="cell" aria-label="no coverage">
+                
+            </div>
+            <div class="column has-background-white p-0"
+                 role="cell">
+                <pre class="has-background-white py-0 px-2">            url: ListEditCandidatesPath(list.id.to_string().into()).to_crumb(),</pre>
+            </div>
+        </div><div class="columns p-0 m-0" role="row">
+            <div
+                class="column is-1 is-narrow p-0 has-text-centered"
+                id="780"
+                role="cell">
+                <a href="#780">780</a>
+            </div>
+            <div
+                class="column is-1 is-narrow p-0 has-text-centered has-text-white has-background-white"
+                role="cell" aria-label="no coverage">
+                
+            </div>
+            <div class="column has-background-white p-0"
+                 role="cell">
+                <pre class="has-background-white py-0 px-2">        },</pre>
+            </div>
+        </div><div class="columns p-0 m-0" role="row">
+            <div
+                class="column is-1 is-narrow p-0 has-text-centered"
+                id="781"
+                role="cell">
+                <a href="#781">781</a>
+            </div>
+            <div
+                class="column is-1 is-narrow p-0 has-text-centered has-text-white has-background-white"
+                role="cell" aria-label="no coverage">
+                
+            </div>
+            <div class="column has-background-white p-0"
+                 role="cell">
+                <pre class="has-background-white py-0 px-2">    ];</pre>
+            </div>
+        </div><div class="columns p-0 m-0" role="row">
+            <div
+                class="column is-1 is-narrow p-0 has-text-centered"
+                id="782"
+                role="cell">
+                <a href="#782">782</a>
+            </div>
+            <div
+                class="column is-1 is-narrow p-0 has-text-centered has-text-white has-background-white"
+                role="cell" aria-label="no coverage">
+                
+            </div>
+            <div class="column has-background-white p-0"
+                 role="cell">
+                <pre class="has-background-white py-0 px-2">    let mut list_obj: MailingList = MailingList::from(list.clone());</pre>
+            </div>
+        </div><div class="columns p-0 m-0" role="row">
+            <div
+                class="column is-1 is-narrow p-0 has-text-centered"
+                id="783"
+                role="cell">
+                <a href="#783">783</a>
+            </div>
+            <div
+                class="column is-1 is-narrow p-0 has-text-centered has-text-white has-background-white"
+                role="cell" aria-label="no coverage">
+                
+            </div>
+            <div class="column has-background-white p-0"
+                 role="cell">
+                <pre class="has-background-white py-0 px-2">    list_obj.set_safety(list_owners.as_slice(), &amp;state.conf.administrators);</pre>
+            </div>
+        </div><div class="columns p-0 m-0" role="row">
+            <div
+                class="column is-1 is-narrow p-0 has-text-centered"
+                id="784"
+                role="cell">
+                <a href="#784">784</a>
+            </div>
+            <div
+                class="column is-1 is-narrow p-0 has-text-centered has-text-white has-background-white"
+                role="cell" aria-label="no coverage">
+                
+            </div>
+            <div class="column has-background-white p-0"
+                 role="cell">
+                <pre class="has-background-white py-0 px-2">    let context = minijinja::context! {</pre>
+            </div>
+        </div><div class="columns p-0 m-0" role="row">
+            <div
+                class="column is-1 is-narrow p-0 has-text-centered"
+                id="785"
+                role="cell">
+                <a href="#785">785</a>
+            </div>
+            <div
+                class="column is-1 is-narrow p-0 has-text-centered has-text-white has-background-white"
+                role="cell" aria-label="no coverage">
+                
+            </div>
+            <div class="column has-background-white p-0"
+                 role="cell">
+                <pre class="has-background-white py-0 px-2">        canonical_url =&gt; ListEditCandidatesPath(ListPathIdentifier::from(list.id.clone())).to_crumb(),</pre>
+            </div>
+        </div><div class="columns p-0 m-0" role="row">
+            <div
+                class="column is-1 is-narrow p-0 has-text-centered"
+                id="786"
+                role="cell">
+                <a href="#786">786</a>
+            </div>
+            <div
+                class="column is-1 is-narrow p-0 has-text-centered has-text-white has-background-white"
+                role="cell" aria-label="no coverage">
+                
+            </div>
+            <div class="column has-background-white p-0"
+                 role="cell">
+                <pre class="has-background-white py-0 px-2">        page_title =&gt; format!(&quot;Requests of {}&quot;, list.name),</pre>
+            </div>
+        </div><div class="columns p-0 m-0" role="row">
+            <div
+                class="column is-1 is-narrow p-0 has-text-centered"
+                id="787"
+                role="cell">
+                <a href="#787">787</a>
+            </div>
+            <div
+                class="column is-1 is-narrow p-0 has-text-centered has-text-white has-background-white"
+                role="cell" aria-label="no coverage">
+                
+            </div>
+            <div class="column has-background-white p-0"
+                 role="cell">
+                <pre class="has-background-white py-0 px-2">        subs,</pre>
+            </div>
+        </div><div class="columns p-0 m-0" role="row">
+            <div
+                class="column is-1 is-narrow p-0 has-text-centered"
+                id="788"
+                role="cell">
+                <a href="#788">788</a>
+            </div>
+            <div
+                class="column is-1 is-narrow p-0 has-text-centered has-text-white has-background-white"
+                role="cell" aria-label="no coverage">
+                
+            </div>
+            <div class="column has-background-white p-0"
+                 role="cell">
+                <pre class="has-background-white py-0 px-2">        list =&gt; Value::from_object(list_obj),</pre>
+            </div>
+        </div><div class="columns p-0 m-0" role="row">
+            <div
+                class="column is-1 is-narrow p-0 has-text-centered"
+                id="789"
+                role="cell">
+                <a href="#789">789</a>
+            </div>
+            <div
+                class="column is-1 is-narrow p-0 has-text-centered has-text-white has-background-white"
+                role="cell" aria-label="no coverage">
+                
+            </div>
+            <div class="column has-background-white p-0"
+                 role="cell">
+                <pre class="has-background-white py-0 px-2">        current_user =&gt; auth.current_user,</pre>
+            </div>
+        </div><div class="columns p-0 m-0" role="row">
+            <div
+                class="column is-1 is-narrow p-0 has-text-centered"
+                id="790"
+                role="cell">
+                <a href="#790">790</a>
+            </div>
+            <div
+                class="column is-1 is-narrow p-0 has-text-centered has-text-white has-background-white"
+                role="cell" aria-label="no coverage">
+                
+            </div>
+            <div class="column has-background-white p-0"
+                 role="cell">
+                <pre class="has-background-white py-0 px-2">        messages =&gt; session.drain_messages(),</pre>
+            </div>
+        </div><div class="columns p-0 m-0" role="row">
+            <div
+                class="column is-1 is-narrow p-0 has-text-centered"
+                id="791"
+                role="cell">
+                <a href="#791">791</a>
+            </div>
+            <div
+                class="column is-1 is-narrow p-0 has-text-centered has-text-white has-background-white"
+                role="cell" aria-label="no coverage">
+                
+            </div>
+            <div class="column has-background-white p-0"
+                 role="cell">
+                <pre class="has-background-white py-0 px-2">        crumbs,</pre>
+            </div>
+        </div><div class="columns p-0 m-0" role="row">
+            <div
+                class="column is-1 is-narrow p-0 has-text-centered"
+                id="792"
+                role="cell">
+                <a href="#792">792</a>
+            </div>
+            <div
+                class="column is-1 is-narrow p-0 has-text-centered has-text-white has-background-white"
+                role="cell" aria-label="no coverage">
+                
+            </div>
+            <div class="column has-background-white p-0"
+                 role="cell">
+                <pre class="has-background-white py-0 px-2">    };</pre>
+            </div>
+        </div><div class="columns p-0 m-0" role="row">
+            <div
+                class="column is-1 is-narrow p-0 has-text-centered"
+                id="793"
+                role="cell">
+                <a href="#793">793</a>
+            </div>
+            <div
+                class="column is-1 is-narrow p-0 has-text-centered has-text-white has-background-white"
+                role="cell" aria-label="no coverage">
+                
+            </div>
+            <div class="column has-background-white p-0"
+                 role="cell">
+                <pre class="has-background-white py-0 px-2">    Ok(Html(</pre>
+            </div>
+        </div><div class="columns p-0 m-0" role="row">
+            <div
+                class="column is-1 is-narrow p-0 has-text-centered"
+                id="794"
+                role="cell">
+                <a href="#794">794</a>
+            </div>
+            <div
+                class="column is-1 is-narrow p-0 has-text-centered has-text-white has-background-white"
+                role="cell" aria-label="no coverage">
+                
+            </div>
+            <div class="column has-background-white p-0"
+                 role="cell">
+                <pre class="has-background-white py-0 px-2">        TEMPLATES.get_template(&quot;lists&#x2F;sub-requests.html&quot;)?.render(context)?,</pre>
+            </div>
+        </div><div class="columns p-0 m-0" role="row">
+            <div
+                class="column is-1 is-narrow p-0 has-text-centered"
+                id="795"
+                role="cell">
+                <a href="#795">795</a>
+            </div>
+            <div
+                class="column is-1 is-narrow p-0 has-text-centered has-text-white has-background-white"
+                role="cell" aria-label="no coverage">
+                
+            </div>
+            <div class="column has-background-white p-0"
+                 role="cell">
+                <pre class="has-background-white py-0 px-2">    ))</pre>
+            </div>
+        </div><div class="columns p-0 m-0" role="row">
+            <div
+                class="column is-1 is-narrow p-0 has-text-centered"
+                id="796"
+                role="cell">
+                <a href="#796">796</a>
             </div>
             <div
                 class="column is-1 is-narrow p-0 has-text-centered has-text-danger-light has-background-danger"
@@ -12507,7 +12779,7 @@
 </div>
         <footer class="footer">
             <div class="content has-text-centered">
-                <p class="heading">Date: 2023-06-18 16:47</p>
+                <p class="heading">Date: 2023-10-29 11:37</p>
             </div>
         </footer>
     </body>
