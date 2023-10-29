@@ -305,7 +305,6 @@ impl Connection {
         env: &Envelope,
         raw: &[u8],
     ) -> Result<()> {
-        let post_policy = self.list_post_policy(list.pk)?;
         match request {
             ListRequest::Help => {
                 trace!(
@@ -314,6 +313,7 @@ impl Connection {
                     list
                 );
                 let subscription_policy = self.list_subscription_policy(list.pk)?;
+                let post_policy = self.list_post_policy(list.pk)?;
                 let subject = format!("Help for {}", list.name);
                 let details = list
                     .generate_help_email(post_policy.as_deref(), subscription_policy.as_deref());
@@ -341,9 +341,10 @@ impl Connection {
                     env.from(),
                     list
                 );
-                let approval_needed = post_policy
+                let subscription_policy = self.list_subscription_policy(list.pk)?;
+                let approval_needed = subscription_policy
                     .as_ref()
-                    .map(|p| p.approval_needed)
+                    .map(|p| !p.open)
                     .unwrap_or(false);
                 for f in env.from() {
                     let email_from = f.get_email();
