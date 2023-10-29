@@ -23,7 +23,7 @@ use mailpot::{Configuration, Connection, SendMail};
 use mailpot_tests::init_stderr_logging;
 use tempfile::TempDir;
 
-include!("../make_migrations.rs");
+include!("../build/make_migrations.rs");
 
 #[test]
 fn test_init_empty() {
