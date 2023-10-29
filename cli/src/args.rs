@@ -329,6 +329,8 @@ pub struct AccountOptions {
 pub enum ListCommand {
     /// List subscriptions of list.
     Subscriptions,
+    /// List subscription requests.
+    SubscriptionRequests,
     /// Add subscription to list.
     AddSubscription {
         /// E-mail address.
@@ -349,6 +351,11 @@ pub enum ListCommand {
         address: String,
         #[clap(flatten)]
         subscription_options: SubscriptionOptions,
+    },
+    /// Accept a subscription request by its primary key.
+    AcceptSubscriptionRequest {
+        /// The primary key of the request.
+        pk: i64,
     },
     /// Add a new post policy.
     AddPostPolicy {

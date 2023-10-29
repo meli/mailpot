@@ -33,11 +33,11 @@ use crate::{
 
 impl Connection {
     /// Fetch all subscriptions of a mailing list.
-    pub fn list_subscriptions(&self, pk: i64) -> Result<Vec<DbVal<ListSubscription>>> {
+    pub fn list_subscriptions(&self, list_pk: i64) -> Result<Vec<DbVal<ListSubscription>>> {
         let mut stmt = self
             .connection
             .prepare("SELECT * FROM subscription WHERE list = ?;")?;
-        let list_iter = stmt.query_map([&pk], |row| {
+        let list_iter = stmt.query_map([&list_pk], |row| {
             let pk = row.get("pk")?;
             Ok(DbVal(
                 ListSubscription {
@@ -184,6 +184,36 @@ impl Connection {
         trace!("add_subscription {:?}.", &val);
         // table entry might be modified by triggers, so don't rely on RETURNING value.
         self.list_subscription(list_pk, val.pk())
+    }
+
+    /// Fetch all candidate subscriptions of a mailing list.
+    pub fn list_subscription_requests(
+        &self,
+        list_pk: i64,
+    ) -> Result<Vec<DbVal<ListCandidateSubscription>>> {
+        let mut stmt = self
+            .connection
+            .prepare("SELECT * FROM candidate_subscription WHERE list = ?;")?;
+        let list_iter = stmt.query_map([&list_pk], |row| {
+            let pk = row.get("pk")?;
+            Ok(DbVal(
+                ListCandidateSubscription {
+                    pk: row.get("pk")?,
+                    list: row.get("list")?,
+                    address: row.get("address")?,
+                    name: row.get("name")?,
+                    accepted: row.get("accepted")?,
+                },
+                pk,
+            ))
+        })?;
+
+        let mut ret = vec![];
+        for list in list_iter {
+            let list = list?;
+            ret.push(list);
+        }
+        Ok(ret)
     }
 
     /// Create subscription candidate.

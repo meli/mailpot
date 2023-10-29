@@ -482,6 +482,26 @@ fn run_app(opt: Opt) -> Result<()> {
                         tx.commit()?;
                     }
                 }
+                SubscriptionRequests => {
+                    let subscriptions = db.list_subscription_requests(list.pk)?;
+                    if subscriptions.is_empty() {
+                        println!("No subscription requests found.");
+                    } else {
+                        println!("Subscription requests of list {}", list.id);
+                        for l in subscriptions {
+                            println!("- {}", &l);
+                        }
+                    }
+                }
+                AcceptSubscriptionRequest { pk } => match db.accept_candidate_subscription(pk) {
+                    Ok(subscription) => {
+                        println!("Added: {subscription:#?}");
+                    }
+                    Err(err) => {
+                        eprintln!("Could not accept subscription request!");
+                        return Err(err);
+                    }
+                },
             }
         }
         CreateList {
