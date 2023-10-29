@@ -440,7 +440,7 @@ pub fn thread(
 
 pub fn thread_roots(
     envelopes: &Arc<std::sync::RwLock<HashMap<melib::EnvelopeHash, melib::Envelope>>>,
-    threads: &mut melib::Threads,
+    threads: &melib::Threads,
 ) -> Vec<(ThreadEntry, usize, u64)> {
     let items = threads.roots();
     let env_lock = envelopes.read().unwrap();

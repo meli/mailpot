@@ -68,7 +68,7 @@ pub async fn list(
     let mut threads: melib::Threads = melib::Threads::new(posts.len());
     drop(env_lock);
     threads.amend(&envelopes);
-    let roots = thread_roots(&envelopes, &mut threads);
+    let roots = thread_roots(&envelopes, &threads);
     let posts_ctx = roots
         .into_iter()
         .map(|(thread, length, _timestamp)| {
