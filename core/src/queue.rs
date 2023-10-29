@@ -69,7 +69,7 @@ impl std::str::FromStr for Queue {
 
 impl Queue {
     /// Returns the name of the queue used in the database schema.
-    pub fn as_str(&self) -> &'static str {
+    pub const fn as_str(&self) -> &'static str {
         match self {
             Self::Maildrop => "maildrop",
             Self::Hold => "hold",
@@ -78,6 +78,19 @@ impl Queue {
             Self::Out => "out",
             Self::Error => "error",
         }
+    }
+
+    /// Returns all possible variants as `&'static str`
+    pub const fn possible_values() -> &'static [&'static str] {
+        const VALUES: &[&str] = &[
+            Queue::Maildrop.as_str(),
+            Queue::Hold.as_str(),
+            Queue::Deferred.as_str(),
+            Queue::Corrupt.as_str(),
+            Queue::Out.as_str(),
+            Queue::Error.as_str(),
+        ];
+        VALUES
     }
 }
 

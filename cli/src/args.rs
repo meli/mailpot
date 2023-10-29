@@ -554,6 +554,14 @@ impl TypedValueParser for QueueValueParser {
         })?)
         .map_err(|err| cmd.clone().error(ErrorKind::InvalidValue, err))
     }
+
+    fn possible_values(&self) -> Option<Box<dyn Iterator<Item = clap::builder::PossibleValue>>> {
+        Some(Box::new(
+            mailpot::queue::Queue::possible_values()
+                .iter()
+                .map(clap::builder::PossibleValue::new),
+        ))
+    }
 }
 
 impl Default for QueueValueParser {
