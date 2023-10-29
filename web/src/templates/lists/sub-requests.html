@@ -1,0 +1,57 @@
+{% include "header.html" %}
+<div class="body body-grid">
+    <style>
+        table {
+            border-collapse: collapse;
+            border: 2px solid rgb(200,200,200);
+            letter-spacing: 1px;
+        }
+
+        td, th {
+            border: 1px solid rgb(190,190,190);
+            padding: 0.1rem 1rem;
+        }
+
+        th {
+            background-color: var(--background-tertiary);
+        }
+
+        td {
+            text-align: center;
+        }
+
+        caption {
+            padding: 10px;
+        }
+    </style>
+    <p>{{ subs|length }} entr{{ subs|length|pluralize("y","ies") }}.</a></p>
+{% if subs %}
+    <div style="overflow: scroll;">
+        <table>
+            <tr>
+                {% for key,val in subs|first|items %}
+                    <th>{{ key }}</th>
+                {% endfor %}
+                <th></th>
+            </tr>
+            {% for s in subs %}
+                <tr>
+                    {% for key,val in s|items %}
+                        <td>{{ val }}</td>
+                    {% endfor %}
+                    <td>
+                        {% if not s.accepted %}
+                            <form method="post" action="{{ list_edit_path(list.id) }}" class="settings-form">
+                                <input type="hidden" name="type" value="accept-subscription-request">
+                                <input type="hidden" name="pk" value="{{ s.pk }}">
+                                <input type="submit" value="Accept">
+                            </form>
+                        {% endif %}
+                    </td>
+                </tr>
+            {% endfor %}
+        </table>
+    </div>
+{% endif %}
+</div>
+{% include "footer.html" %}

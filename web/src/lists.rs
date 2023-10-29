@@ -463,6 +463,18 @@ pub async fn list_edit_POST(
                 },
             )?;
         }
+        ChangeSetting::AcceptSubscriptionRequest { pk: IntPOST(pk) } => {
+            session.add_message(match db.accept_candidate_subscription(pk) {
+                Ok(subscription) => Message {
+                    message: format!("Added: {subscription:#?}").into(),
+                    level: Level::Success,
+                },
+                Err(err) => Message {
+                    message: format!("Could not accept subscription request! Reason: {err}").into(),
+                    level: Level::Error,
+                },
+            })?;
+        }
     }
 
     Ok(Redirect::to(&format!(
@@ -503,6 +515,9 @@ pub enum ChangeSetting {
         #[serde(rename = "archive-url")]
         #[serde(default)]
         archive_url: Option<String>,
+    },
+    AcceptSubscriptionRequest {
+        pk: IntPOST,
     },
 }
 
@@ -723,12 +738,14 @@ pub async fn list_candidates(
             .connection
             .prepare("SELECT * FROM candidate_subscription WHERE list = ?;")?;
         let iter = stmt.query_map([&list.pk], |row| {
+            let pk: i64 = row.get("pk")?;
             let address: String = row.get("address")?;
             let name: Option<String> = row.get("name")?;
             let accepted: Option<i64> = row.get("accepted")?;
             let created: i64 = row.get("created")?;
             let last_modified: i64 = row.get("last_modified")?;
             Ok(minijinja::context! {
+                pk,
                 address,
                 name,
                 accepted => accepted.is_some(),
@@ -774,6 +791,8 @@ pub async fn list_candidates(
         crumbs,
     };
     Ok(Html(
-        TEMPLATES.get_template("lists/subs.html")?.render(context)?,
+        TEMPLATES
+            .get_template("lists/sub-requests.html")?
+            .render(context)?,
     ))
 }
