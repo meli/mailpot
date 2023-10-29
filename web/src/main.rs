@@ -41,10 +41,10 @@ fn new_state(conf: Configuration) -> Arc<AppState> {
     })
 }
 
-fn create_app(shared_state: Arc<AppState>) -> Router {
+fn create_app(shared_state: Arc<AppState>, secret: Option<[u8; 128]>) -> Router {
     let store = MemoryStore::new();
-    let secret = rand::thread_rng().gen::<[u8; 128]>();
-    let session_layer = SessionLayer::new(store, &secret).with_secure(false);
+    let secret = secret.unwrap_or_else(|| rand::thread_rng().gen::<[u8; 128]>());
+    let session_layer = SessionLayer::new(store, &secret).with_secure(true);
 
     let auth_layer = AuthLayer::new(shared_state.clone(), &secret);
 
@@ -157,6 +157,22 @@ async fn main() {
 
         return;
     }
+    let secret = if let Ok(var) = std::env::var("SECRET") {
+        if var.as_bytes().len() != 128 {
+            eprintln!("Environment variable SECRET must be 128 bytes long.");
+            return;
+        }
+        match var.as_bytes().try_into() {
+            Err(err) => {
+                eprintln!("Environment variable SECRET must be 128 bytes long. Error: {err}");
+                return;
+            }
+            Ok(v) => Some(v),
+        }
+    } else {
+        None
+    };
+    std::env::remove_var("SECRET");
     #[cfg(test)]
     let verbosity = log::LevelFilter::Trace;
     #[cfg(not(test))]
@@ -169,7 +185,7 @@ async fn main() {
         .init()
         .unwrap();
     let conf = Configuration::from_file(config_path).unwrap();
-    let app = create_app(new_state(conf));
+    let app = create_app(new_state(conf), secret);
 
     let hostname = std::env::var("HOSTNAME").unwrap_or_else(|_| "0.0.0.0".to_string());
     let port = std::env::var("PORT").unwrap_or_else(|_| "3000".to_string());
@@ -292,7 +308,10 @@ mod tests {
         // list()
 
         let cl = |url, state| async move {
-            let response = create_app(state).oneshot(req!(get & url)).await.unwrap();
+            let response = create_app(state, None)
+                .oneshot(req!(get & url))
+                .await
+                .unwrap();
 
             assert_eq!(response.status(), StatusCode::OK);
 
@@ -308,7 +327,7 @@ mod tests {
 
         {
             let msg_id = "<abcdefgh@sator.example.com>";
-            let res = create_app(state.clone())
+            let res = create_app(state.clone(), None)
                 .oneshot(req!(
                     get & format!(
                         "/list/{id}/posts/{msgid}/",
@@ -324,7 +343,7 @@ mod tests {
                 res.headers().get(http::header::CONTENT_TYPE),
                 Some(&http::HeaderValue::from_static("text/html; charset=utf-8"))
             );
-            let res = create_app(state.clone())
+            let res = create_app(state.clone(), None)
                 .oneshot(req!(
                     get & format!(
                         "/list/{id}/posts/{msgid}/raw/",
@@ -340,7 +359,7 @@ mod tests {
                 res.headers().get(http::header::CONTENT_TYPE),
                 Some(&http::HeaderValue::from_static("text/plain; charset=utf-8"))
             );
-            let res = create_app(state.clone())
+            let res = create_app(state.clone(), None)
                 .oneshot(req!(
                     get & format!(
                         "/list/{id}/posts/{msgid}/eml/",
@@ -367,7 +386,7 @@ mod tests {
         // help(), ssh_signin(), root()
 
         for path in ["/help/", "/"] {
-            let response = create_app(state.clone())
+            let response = create_app(state.clone(), None)
                 .oneshot(req!(get path))
                 .await
                 .unwrap();
@@ -378,7 +397,7 @@ mod tests {
         // ------------------------------------------------------------
         // auth.rs...
 
-        let login_app = create_app(state.clone());
+        let login_app = create_app(state.clone(), None);
         let session_cookie = {
             let response = login_app
                 .clone()
