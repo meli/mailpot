@@ -725,7 +725,7 @@ pub async fn list_candidates(
         let iter = stmt.query_map([&list.pk], |row| {
             let address: String = row.get("address")?;
             let name: Option<String> = row.get("name")?;
-            let accepted: Option<i64> = row.get("enabled")?;
+            let accepted: Option<i64> = row.get("accepted")?;
             let created: i64 = row.get("created")?;
             let last_modified: i64 = row.get("last_modified")?;
             Ok(minijinja::context! {
