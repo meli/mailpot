@@ -356,6 +356,14 @@ pub enum ListCommand {
     AcceptSubscriptionRequest {
         /// The primary key of the request.
         pk: i64,
+        /// Do not send confirmation e-mail.
+        #[arg(long, default_value = "false")]
+        do_not_send_confirmation: bool,
+    },
+    /// Send subscription confirmation manually.
+    SendConfirmationForSubscription {
+        /// The primary key of the subscription.
+        pk: i64,
     },
     /// Add a new post policy.
     AddPostPolicy {

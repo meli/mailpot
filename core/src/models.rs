@@ -728,6 +728,13 @@ pub struct ListCandidateSubscription {
     pub accepted: Option<i64>,
 }
 
+impl ListCandidateSubscription {
+    /// Subscription request address as a [`melib::Address`]
+    pub fn address(&self) -> Address {
+        Address::new(self.name.clone(), self.address.clone())
+    }
+}
+
 impl std::fmt::Display for ListCandidateSubscription {
     fn fmt(&self, fmt: &mut std::fmt::Formatter) -> std::fmt::Result {
         write!(

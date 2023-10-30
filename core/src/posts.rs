@@ -491,23 +491,7 @@ impl Connection {
                             list_owners.iter().map(|owner| Cow::Owned(owner.address())),
                         )?;
                     } else {
-                        log::trace!(
-                            "Added subscription to list {list:?} for address {f:?}, sending \
-                             confirmation."
-                        );
-                        self.send_reply_with_list_template(
-                            TemplateRenderContext {
-                                template: Template::SUBSCRIPTION_CONFIRMATION,
-                                default_fn: Some(Template::default_subscription_confirmation),
-                                list,
-                                context: minijinja::context! {
-                                    list => &list,
-                                },
-                                queue: Queue::Out,
-                                comment: Template::SUBSCRIPTION_CONFIRMATION.into(),
-                            },
-                            std::iter::once(Cow::Borrowed(f)),
-                        )?;
+                        self.send_subscription_confirmation(list, f)?;
                     }
                 }
             }
@@ -554,19 +538,7 @@ impl Connection {
                             list_owners.iter().map(|owner| Cow::Owned(owner.address())),
                         )?;
                     } else {
-                        self.send_reply_with_list_template(
-                            TemplateRenderContext {
-                                template: Template::UNSUBSCRIPTION_CONFIRMATION,
-                                default_fn: Some(Template::default_unsubscription_confirmation),
-                                list,
-                                context: minijinja::context! {
-                                    list => &list,
-                                },
-                                queue: Queue::Out,
-                                comment: Template::UNSUBSCRIPTION_CONFIRMATION.into(),
-                            },
-                            std::iter::once(Cow::Borrowed(f)),
-                        )?;
+                        self.send_unsubscription_confirmation(list, f)?;
                     }
                 }
             }
@@ -764,6 +736,54 @@ impl Connection {
             )?)?;
         }
         Ok(())
+    }
+
+    /// Send subscription confirmation.
+    pub fn send_subscription_confirmation(
+        &self,
+        list: &DbVal<MailingList>,
+        address: &melib::Address,
+    ) -> Result<()> {
+        log::trace!(
+            "Added subscription to list {list:?} for address {address:?}, sending confirmation."
+        );
+        self.send_reply_with_list_template(
+            TemplateRenderContext {
+                template: Template::SUBSCRIPTION_CONFIRMATION,
+                default_fn: Some(Template::default_subscription_confirmation),
+                list,
+                context: minijinja::context! {
+                    list => &list,
+                },
+                queue: Queue::Out,
+                comment: Template::SUBSCRIPTION_CONFIRMATION.into(),
+            },
+            std::iter::once(Cow::Borrowed(address)),
+        )
+    }
+
+    /// Send unsubscription confirmation.
+    pub fn send_unsubscription_confirmation(
+        &self,
+        list: &DbVal<MailingList>,
+        address: &melib::Address,
+    ) -> Result<()> {
+        log::trace!(
+            "Removed subscription to list {list:?} for address {address:?}, sending confirmation."
+        );
+        self.send_reply_with_list_template(
+            TemplateRenderContext {
+                template: Template::UNSUBSCRIPTION_CONFIRMATION,
+                default_fn: Some(Template::default_unsubscription_confirmation),
+                list,
+                context: minijinja::context! {
+                    list => &list,
+                },
+                queue: Queue::Out,
+                comment: Template::UNSUBSCRIPTION_CONFIRMATION.into(),
+            },
+            std::iter::once(Cow::Borrowed(address)),
+        )
     }
 }
 

@@ -346,13 +346,32 @@ Is subscription enabled.
 
 .br
 
-mpot list accept\-subscription\-request \fIPK\fR 
+mpot list accept\-subscription\-request [\-\-do\-not\-send\-confirmation \fIDO_NOT_SEND_CONFIRMATION\fR] \fIPK\fR 
 .br
 
 Accept a subscription request by its primary key.
 .TP
 \fIPK\fR
 The primary key of the request.
+.TP
+\-\-do\-not\-send\-confirmation
+Do not send confirmation e\-mail.
+.ie \n(.g .ds Aq \(aq
+.el .ds Aq '
+.\fB
+.SS mpot list send-confirmation-for-subscription
+.\fR
+.br
+
+.br
+
+mpot list send\-confirmation\-for\-subscription \fIPK\fR 
+.br
+
+Send subscription confirmation manually.
+.TP
+\fIPK\fR
+The primary key of the subscription.
 .ie \n(.g .ds Aq \(aq
 .el .ds Aq '
 .\fB

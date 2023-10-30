@@ -493,15 +493,76 @@ fn run_app(opt: Opt) -> Result<()> {
                         }
                     }
                 }
-                AcceptSubscriptionRequest { pk } => match db.accept_candidate_subscription(pk) {
+                AcceptSubscriptionRequest {
+                    pk,
+                    do_not_send_confirmation,
+                } => match db.accept_candidate_subscription(pk) {
                     Ok(subscription) => {
                         println!("Added: {subscription:#?}");
+                        if !do_not_send_confirmation {
+                            if let Err(err) = db
+                                .list(subscription.list)
+                                .and_then(|v| match v {
+                                    Some(v) => Ok(v),
+                                    None => Err(format!(
+                                        "No list with id or pk {} was found",
+                                        subscription.list
+                                    )
+                                    .into()),
+                                })
+                                .and_then(|list| {
+                                    db.send_subscription_confirmation(
+                                        &list,
+                                        &subscription.address(),
+                                    )
+                                })
+                            {
+                                eprintln!("Could not send subscription confirmation!");
+                                return Err(err);
+                            }
+                            println!("Sent confirmation e-mail to {}", subscription.address());
+                        } else {
+                            println!(
+                                "Did not sent confirmation e-mail to {}. You can do it manually \
+                                 with the appropriate command.",
+                                subscription.address()
+                            );
+                        }
                     }
                     Err(err) => {
                         eprintln!("Could not accept subscription request!");
                         return Err(err);
                     }
                 },
+                SendConfirmationForSubscription { pk } => {
+                    let req = match db.candidate_subscription(pk) {
+                        Ok(req) => req,
+                        Err(err) => {
+                            eprintln!("Could not find subscription request by that pk!");
+
+                            return Err(err);
+                        }
+                    };
+                    log::info!("Found {:#?}", req);
+                    if req.accepted.is_none() {
+                        return Err("Request has not been accepted!".into());
+                    }
+                    if let Err(err) = db
+                        .list(req.list)
+                        .and_then(|v| match v {
+                            Some(v) => Ok(v),
+                            None => {
+                                Err(format!("No list with id or pk {} was found", req.list).into())
+                            }
+                        })
+                        .and_then(|list| db.send_subscription_confirmation(&list, &req.address()))
+                    {
+                        eprintln!("Could not send subscription request confirmation!");
+                        return Err(err);
+                    }
+
+                    println!("Sent confirmation e-mail to {}", req.address());
+                }
             }
         }
         CreateList {
