@@ -705,61 +705,6 @@ Show e\-mail processing result without actually consuming it.
 .ie \n(.g .ds Aq \(aq
 .el .ds Aq '
 .\fB
-.SS mpot error-queue
-.\fR
-.br
-
-.br
-
-Mail that has not been handled properly end up in the error queue.
-.ie \n(.g .ds Aq \(aq
-.el .ds Aq '
-.\fB
-.SS mpot error-queue list
-.\fR
-.br
-
-.br
-
-List.
-.ie \n(.g .ds Aq \(aq
-.el .ds Aq '
-.\fB
-.SS mpot error-queue print
-.\fR
-.br
-
-.br
-
-mpot error\-queue print [\-\-index \fIINDEX\fR] 
-.br
-
-Print entry in RFC5322 or JSON format.
-.TP
-\-\-index \fIINDEX\fR
-index of entry.
-.ie \n(.g .ds Aq \(aq
-.el .ds Aq '
-.\fB
-.SS mpot error-queue delete
-.\fR
-.br
-
-.br
-
-mpot error\-queue delete [\-\-index \fIINDEX\fR] [\-\-quiet \fIQUIET\fR] 
-.br
-
-Delete entry and print it in stdout.
-.TP
-\-\-index \fIINDEX\fR
-index of entry.
-.TP
-\-\-quiet
-Do not print in stdout.
-.ie \n(.g .ds Aq \(aq
-.el .ds Aq '
-.\fB
 .SS mpot queue
 .\fR
 .br
@@ -769,7 +714,7 @@ Do not print in stdout.
 mpot queue \-\-queue \fIQUEUE\fR 
 .br
 
-Mail that has not been handled properly end up in the error queue.
+Processed mail is stored in queues.
 .TP
 \-\-queue \fIQUEUE\fR
 
@@ -810,16 +755,13 @@ index of entry.
 
 .br
 
-mpot queue delete [\-\-index \fIINDEX\fR] [\-\-quiet \fIQUIET\fR] 
+mpot queue delete [\-\-index \fIINDEX\fR] 
 .br
 
 Delete entry and print it in stdout.
 .TP
 \-\-index \fIINDEX\fR
 index of entry.
-.TP
-\-\-quiet
-Do not print in stdout.
 .ie \n(.g .ds Aq \(aq
 .el .ds Aq '
 .\fB

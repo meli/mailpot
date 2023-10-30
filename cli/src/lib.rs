@@ -22,6 +22,8 @@ extern crate ureq;
 pub use std::path::PathBuf;
 
 mod args;
+pub mod commands;
 pub mod import;
+pub mod lints;
 pub use args::*;
 pub use clap::{Args, CommandFactory, Parser, Subcommand};

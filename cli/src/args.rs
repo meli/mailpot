@@ -102,12 +102,7 @@ pub enum Command {
         #[arg(long)]
         dry_run: bool,
     },
-    /// Mail that has not been handled properly end up in the error queue.
-    ErrorQueue {
-        #[command(subcommand)]
-        cmd: QueueCommand,
-    },
-    /// Mail that has not been handled properly end up in the error queue.
+    /// Processed mail is stored in queues.
     Queue {
         #[arg(long, value_parser = QueueValueParser)]
         queue: mailpot::queue::Queue,
@@ -275,9 +270,6 @@ pub enum QueueCommand {
         /// index of entry.
         #[arg(long)]
         index: Vec<i64>,
-        /// Do not print in stdout.
-        #[arg(long)]
-        quiet: bool,
     },
 }
 

@@ -23,8 +23,6 @@ use std::sync::Arc;
 
 use thiserror::Error;
 
-pub use crate::anyhow::Context;
-
 /// Mailpot library error.
 #[derive(Error, Debug)]
 pub struct Error {
@@ -53,39 +51,36 @@ pub enum ErrorKind {
 
     /// Error returned from an external user initiated operation such as
     /// deserialization or I/O.
-    #[error(
-        "Error returned from an external user initiated operation such as deserialization or I/O. \
-         {0}"
-    )]
+    #[error("Error: {0}")]
     External(#[from] anyhow::Error),
     /// Generic
     #[error("{0}")]
     Generic(anyhow::Error),
     /// Error returned from sqlite3.
-    #[error("Error returned from sqlite3 {0}.")]
+    #[error("Error returned from sqlite3: {0}.")]
     Sql(
         #[from]
         #[source]
         rusqlite::Error,
     ),
     /// Error returned from sqlite3.
-    #[error("Error returned from sqlite3. {0}")]
+    #[error("Error returned from sqlite3: {0}")]
     SqlLib(
         #[from]
         #[source]
         rusqlite::ffi::Error,
     ),
     /// Error returned from internal I/O operations.
-    #[error("Error returned from internal I/O operations. {0}")]
+    #[error("Error returned from internal I/O operation: {0}")]
     Io(#[from] ::std::io::Error),
     /// Error returned from e-mail protocol operations from `melib` crate.
-    #[error("Error returned from e-mail protocol operations from `melib` crate. {0}")]
+    #[error("Error returned from e-mail protocol operations from `melib` crate: {0}")]
     Melib(#[from] melib::error::Error),
     /// Error from deserializing JSON values.
-    #[error("Error from deserializing JSON values. {0}")]
+    #[error("Error from deserializing JSON values: {0}")]
     SerdeJson(#[from] serde_json::Error),
     /// Error returned from minijinja template engine.
-    #[error("Error returned from minijinja template engine. {0}")]
+    #[error("Error returned from minijinja template engine: {0}")]
     Template(#[from] minijinja::Error),
 }
 
@@ -188,7 +183,7 @@ struct ErrorChainDisplay<'e> {
 impl std::fmt::Display for ErrorChainDisplay<'_> {
     fn fmt(&self, fmt: &mut std::fmt::Formatter) -> std::fmt::Result {
         if let Some(ref source) = self.current.source {
-            writeln!(fmt, "[{}] {}, caused by:", self.counter, self.current.kind)?;
+            writeln!(fmt, "[{}] {} Caused by:", self.counter, self.current.kind)?;
             Self {
                 current: source,
                 counter: self.counter + 1,
@@ -198,5 +193,40 @@ impl std::fmt::Display for ErrorChainDisplay<'_> {
             writeln!(fmt, "[{}] {}", self.counter, self.current.kind)?;
             Ok(())
         }
+    }
+}
+
+/// adfsa
+pub trait Context<T> {
+    /// Wrap the error value with additional context.
+    fn context<C>(self, context: C) -> Result<T>
+    where
+        C: Into<Error>;
+
+    /// Wrap the error value with additional context that is evaluated lazily
+    /// only once an error does occur.
+    fn with_context<C, F>(self, f: F) -> Result<T>
+    where
+        C: Into<Error>,
+        F: FnOnce() -> C;
+}
+
+impl<T, E> Context<T> for std::result::Result<T, E>
+where
+    Error: From<E>,
+{
+    fn context<C>(self, context: C) -> Result<T>
+    where
+        C: Into<Error>,
+    {
+        self.map_err(|err| Error::from(err).chain_err(|| context.into()))
+    }
+
+    fn with_context<C, F>(self, f: F) -> Result<T>
+    where
+        C: Into<Error>,
+        F: FnOnce() -> C,
+    {
+        self.map_err(|err| Error::from(err).chain_err(|| f().into()))
     }
 }

@@ -78,10 +78,12 @@ impl Configuration {
         let mut s = String::new();
         let mut file = std::fs::File::open(path)?;
         file.read_to_string(&mut s)?;
-        let config: Self = toml::from_str(&s).context(format!(
-            "Could not parse configuration file `{}` succesfully: ",
-            path.display()
-        ))?;
+        let config: Self = toml::from_str(&s)
+            .map_err(anyhow::Error::from)
+            .context(format!(
+                "Could not parse configuration file `{}` successfully: ",
+                path.display()
+            ))?;
 
         Ok(config)
     }
@@ -125,5 +127,31 @@ impl Configuration {
         toml::Value::try_from(self)
             .expect("Could not serialize config to TOML")
             .to_string()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use tempfile::TempDir;
+
+    use super::*;
+
+    #[test]
+    fn test_config_parse_error() {
+        let tmp_dir = TempDir::new().unwrap();
+        let conf_path = tmp_dir.path().join("conf.toml");
+        std::fs::write(&conf_path, b"afjsad skas as a as\n\n\n\n\t\x11\n").unwrap();
+
+        assert_eq!(
+            Configuration::from_file(&conf_path)
+                .unwrap_err()
+                .display_chain()
+                .to_string(),
+            format!(
+                "[1] Could not parse configuration file `{}` successfully:  Caused by:\n[2] \
+                 Error: expected an equals, found an identifier at line 1 column 8\n",
+                conf_path.display()
+            ),
+        );
     }
 }

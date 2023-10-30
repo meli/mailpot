@@ -617,7 +617,7 @@ impl Connection {
                 if matches!(err, rusqlite::Error::QueryReturnedNoRows) {
                     Error::from(err).chain_err(|| NotFound("list or list owner not found!"))
                 } else {
-                    err.into()
+                    Error::from(err)
                 }
             })?;
         Ok(())

@@ -17,7 +17,12 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-use super::*;
+use mailpot::{
+    chrono,
+    melib::{self, Envelope},
+    models::{Account, DbVal, ListSubscription, MailingList},
+    rusqlite, Connection, Result,
+};
 
 pub fn datetime_header_value_lint(db: &mut Connection, dry_run: bool) -> Result<()> {
     let mut col = vec![];

@@ -104,6 +104,31 @@ For more information, try '--help'."#,
 
     let config_str = config.to_toml();
 
+    fn config_not_exists(conf: &Path) {
+        let mut cmd = Command::cargo_bin("mpot").unwrap();
+        let output = cmd
+            .arg("-c")
+            .arg(conf)
+            .arg("list-lists")
+            .output()
+            .unwrap()
+            .assert();
+        output.code(255).stderr(predicates::str::is_empty()).stdout(
+            predicate::eq(
+                format!(
+                    "[1] Could not read configuration file from path: {} Caused by:\n[2] Error \
+                     returned from internal I/O operation: No such file or directory (os error 2)",
+                    conf.display()
+                )
+                .as_str(),
+            )
+            .trim()
+            .normalize(),
+        );
+    }
+
+    config_not_exists(&conf_path);
+
     std::fs::write(&conf_path, config_str.as_bytes()).unwrap();
 
     fn list_lists(conf: &Path, eq: &str) {
@@ -169,6 +194,67 @@ For more information, try '--help'."#,
         );
     }
     create_list(&conf_path);
+    list_lists(
+        &conf_path,
+        "- foo-chat DbVal(MailingList { pk: 1, name: \"foobar chat\", id: \"foo-chat\", address: \
+         \"foo-chat@example.com\", topics: [], description: None, archive_url: None }, 1)\n\tList \
+         owners: None\n\tPost policy: None\n\tSubscription policy: None\n\n- twobar-chat \
+         DbVal(MailingList { pk: 2, name: \"twobar\", id: \"twobar-chat\", address: \
+         \"twobar-chat@example.com\", topics: [], description: None, archive_url: None }, \
+         2)\n\tList owners: None\n\tPost policy: None\n\tSubscription policy: None",
+    );
+
+    fn add_list_owner(conf: &Path) {
+        let mut cmd = Command::cargo_bin("mpot").unwrap();
+        let output = cmd
+            .arg("-c")
+            .arg(conf)
+            .arg("list")
+            .arg("twobar-chat")
+            .arg("add-list-owner")
+            .arg("--address")
+            .arg("list-owner@example.com")
+            .output()
+            .unwrap()
+            .assert();
+        output.code(0).stderr(predicates::str::is_empty()).stdout(
+            predicate::eq("Added new list owner [#1 2] list-owner@example.com")
+                .trim()
+                .normalize(),
+        );
+    }
+    add_list_owner(&conf_path);
+    list_lists(
+        &conf_path,
+        "- foo-chat DbVal(MailingList { pk: 1, name: \"foobar chat\", id: \"foo-chat\", address: \
+         \"foo-chat@example.com\", topics: [], description: None, archive_url: None }, 1)\n\tList \
+         owners: None\n\tPost policy: None\n\tSubscription policy: None\n\n- twobar-chat \
+         DbVal(MailingList { pk: 2, name: \"twobar\", id: \"twobar-chat\", address: \
+         \"twobar-chat@example.com\", topics: [], description: None, archive_url: None }, \
+         2)\n\tList owners:\n\t- [#1 2] list-owner@example.com\n\tPost policy: \
+         None\n\tSubscription policy: None",
+    );
+
+    fn remove_list_owner(conf: &Path) {
+        let mut cmd = Command::cargo_bin("mpot").unwrap();
+        let output = cmd
+            .arg("-c")
+            .arg(conf)
+            .arg("list")
+            .arg("twobar-chat")
+            .arg("remove-list-owner")
+            .arg("--pk")
+            .arg("1")
+            .output()
+            .unwrap()
+            .assert();
+        output.code(0).stderr(predicates::str::is_empty()).stdout(
+            predicate::eq("Removed list owner with pk = 1")
+                .trim()
+                .normalize(),
+        );
+    }
+    remove_list_owner(&conf_path);
     list_lists(
         &conf_path,
         "- foo-chat DbVal(MailingList { pk: 1, name: \"foobar chat\", id: \"foo-chat\", address: \
