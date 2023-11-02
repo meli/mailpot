@@ -255,21 +255,30 @@ pub async fn ssh_signin_POST(
         token: _prev_token,
     };
     #[cfg(not(debug_assertions))]
-    if let Err(err) = ssh_keygen(sig).await {
-        session.add_message(Message {
-            message: format!("Could not verify signature: {err}").into(),
-            level: Level::Error,
-        })?;
-        return Ok(Redirect::to(&format!(
-            "{}{}{}",
-            state.root_url_prefix,
-            LoginPath.to_uri(),
-            next.next.as_ref().map_or(Cow::Borrowed(""), |next| format!(
-                "?next={}",
-                percent_encoding::utf8_percent_encode(next.as_str(), percent_encoding::CONTROLS)
-            )
-            .into())
-        )));
+    {
+        #[cfg(not(feature = "ssh-key"))]
+        let ssh_verify_fn = ssh_verify;
+        #[cfg(feature = "ssh-key")]
+        let ssh_verify_fn = ssh_verify_in_memory;
+        if let Err(err) = ssh_verify_fn(sig).await {
+            session.add_message(Message {
+                message: format!("Could not verify signature: {err}").into(),
+                level: Level::Error,
+            })?;
+            return Ok(Redirect::to(&format!(
+                "{}{}{}",
+                state.root_url_prefix,
+                LoginPath.to_uri(),
+                next.next.as_ref().map_or(Cow::Borrowed(""), |next| format!(
+                    "?next={}",
+                    percent_encoding::utf8_percent_encode(
+                        next.as_str(),
+                        percent_encoding::CONTROLS
+                    )
+                )
+                .into())
+            )));
+        }
     }
 
     let user = User {
@@ -311,13 +320,13 @@ pub struct SshSignature {
 /// Run ssh signature validation with `ssh-keygen` binary.
 ///
 /// ```no_run
-/// use mailpot_web::{ssh_keygen, SshSignature};
+/// use mailpot_web::{ssh_verify, SshSignature};
 ///
-/// async fn key_gen(
+/// async fn verify_signature(
 ///     ssh_public_key: String,
 ///     ssh_signature: String,
 /// ) -> std::result::Result<(), Box<dyn std::error::Error>> {
-///     let mut sig = SshSignature {
+///     let sig = SshSignature {
 ///         email: "user@example.com".to_string(),
 ///         ssh_public_key,
 ///         ssh_signature,
@@ -325,11 +334,11 @@ pub struct SshSignature {
 ///         token: "d074a61990".to_string(),
 ///     };
 ///
-///     ssh_keygen(sig.clone()).await?;
+///     ssh_verify(sig).await?;
 ///     Ok(())
 /// }
 /// ```
-pub async fn ssh_keygen(sig: SshSignature) -> Result<(), Box<dyn std::error::Error>> {
+pub async fn ssh_verify(sig: SshSignature) -> Result<(), Box<dyn std::error::Error>> {
     let SshSignature {
         email,
         ssh_public_key,
@@ -430,6 +439,83 @@ pub async fn ssh_keygen(sig: SshSignature) -> Result<(), Box<dyn std::error::Err
             String::from_utf8_lossy(&op.stderr)
         )
         .into());
+    }
+
+    Ok(())
+}
+
+/// Run ssh signature validation.
+///
+/// ```no_run
+/// use mailpot_web::{ssh_verify_in_memory, SshSignature};
+///
+/// async fn ssh_verify(
+///     ssh_public_key: String,
+///     ssh_signature: String,
+/// ) -> std::result::Result<(), Box<dyn std::error::Error>> {
+///     let sig = SshSignature {
+///         email: "user@example.com".to_string(),
+///         ssh_public_key,
+///         ssh_signature,
+///         namespace: "doc-test@example.com".into(),
+///         token: "d074a61990".to_string(),
+///     };
+///
+///     ssh_verify_in_memory(sig).await?;
+///     Ok(())
+/// }
+/// ```
+#[cfg(feature = "ssh-key")]
+pub async fn ssh_verify_in_memory(sig: SshSignature) -> Result<(), Box<dyn std::error::Error>> {
+    use ssh_key::{PublicKey, SshSig};
+
+    let SshSignature {
+        email: _,
+        ref ssh_public_key,
+        ref ssh_signature,
+        ref namespace,
+        ref token,
+    } = sig;
+
+    let public_key = ssh_public_key.parse::<PublicKey>().map_err(|err| {
+        format!("Could not parse user's SSH public key. Is it valid? Reason given: {err}")
+    })?;
+    let signature = if ssh_signature.contains("\r\n") {
+        ssh_signature.trim().replace("\r\n", "\n").parse::<SshSig>()
+    } else {
+        ssh_signature.parse::<SshSig>()
+    }
+    .map_err(|err| format!("Invalid SSH signature. Reason given: {err}"))?;
+
+    if let Err(err) = public_key.verify(namespace, token.as_bytes(), &signature) {
+        use ssh_key::Error;
+
+        #[allow(clippy::wildcard_in_or_patterns)]
+        return match err {
+            Error::Io(err_kind) => {
+                log::error!(
+                    "ssh signature could not be verified because of internal error:\nSignature \
+                     was {sig:#?}\nError was {err_kind}."
+                );
+                Err("SSH signature could not be verified because of internal error.".into())
+            }
+            Error::Crypto => Err("SSH signature is invalid.".into()),
+            Error::AlgorithmUnknown
+            | Error::AlgorithmUnsupported { .. }
+            | Error::CertificateFieldInvalid(_)
+            | Error::CertificateValidation
+            | Error::Decrypted
+            | Error::Ecdsa(_)
+            | Error::Encoding(_)
+            | Error::Encrypted
+            | Error::FormatEncoding
+            | Error::Namespace
+            | Error::PublicKey
+            | Error::Time
+            | Error::TrailingData { .. }
+            | Error::Version { .. }
+            | _ => Err(format!("SSH signature could not be verified: Reason given: {err}").into()),
+        };
     }
 
     Ok(())
@@ -657,10 +743,8 @@ pub mod auth_request {
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[tokio::test]
-    async fn test_ssh_keygen() {
-        const PKEY: &str = concat!("ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQCzXp8nLJL8GPNw7S+Dqt0m3Dw/",
+    const PKEY: &str = concat!(
+        "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQCzXp8nLJL8GPNw7S+Dqt0m3Dw/",
             "xFOAdwKXcekTFI9cLDEUII2rNPf0uUZTpv57OgU+",
             "QOEEIvWMjz+5KSWBX8qdP8OtV0QNvynlZkEKZN0cUqGKaNXo5a+PUDyiJ2rHroPe1aMo6mUBL9kLR6J2U1CYD/dLfL8ywXsAGmOL0bsK0GRPVBJAjpUNRjpGU/",
             "2FFIlU6s6GawdbDXEHDox/UoOVAKIlhKabaTrFBA0ACFLRX2/GCBmHqqt5d4ZZjefYzReLs/beOjafYImoyhHC428wZDcUjvLrpSJbIOE/",
@@ -668,53 +752,93 @@ mod tests {
             "lyjxeWIUYyj7rjlqKJ9tzygek7QNxCtuqH5xsZAZqzQCN8wfrPAlwDykvWityKOw+Bt2DWjimITqyKgsBsOaA+",
             "eVCllFvooJxoYvAjODASjAUoOdgVzyBDpFnOhLFYiIIyL3F6NROS9i7z086paX7mrzcQzvLr4ckF9qT7DrI88ikISCR9bFR4vPq3aH",
             "zJdjDDpWxACa5b11NG8KdCJPe/L0kDw82Q00U13CpW9FI9sZjvk+",
-            "lyw8bTFvVsIl6A0ueboFvrNvznAqHrtfWu75fXRh5sKj2TGk8rhm3vyNgrBSr5zAfFVM8LgqBxbAAYw==");
+            "lyw8bTFvVsIl6A0ueboFvrNvznAqHrtfWu75fXRh5sKj2TGk8rhm3vyNgrBSr5zAfFVM8LgqBxbAAYw=="
+            );
 
-        const SIG: &str = concat!(
-            "-----BEGIN SSH SIGNATURE-----\n",
-            "U1NIU0lHAAAAAQAAAhcAAAAHc3NoLXJzYQAAAAMBAAEAAAIBALNenycskvwY83DtL4Oq3S\n",
-            "bcPD/EU4B3Apdx6RMUj1wsMRQgjas09/S5RlOm/ns6BT5A4QQi9YyPP7kpJYFfyp0/w61X\n",
-            "RA2/KeVmQQpk3RxSoYpo1ejlr49QPKInaseug97VoyjqZQEv2QtHonZTUJgP90t8vzLBew\n",
-            "AaY4vRuwrQZE9UEkCOlQ1GOkZT/YUUiVTqzoZrB1sNcQcOjH9Sg5UAoiWEpptpOsUEDQAI\n",
-            "UtFfb8YIGYeqq3l3hlmN59jNF4uz9t46Np9giajKEcLjbzBkNxSO8uulIlsg4T+BI8JaVF\n",
-            "tyzGDgkZwo60AtS6sT6iT5q/L0zt4WMaEsZKVMot2yEhVCv/dbrrsztth85PrE/+XKPF5Y\n",
-            "hRjKPuuOWoon23PKB6TtA3EK26ofnGxkBmrNAI3zB+s8CXAPKS9aK3Io7D4G3YNaOKYhOr\n",
-            "IqCwGw5oD55UKWUW+ignGhi8CM4MBKMBSg52BXPIEOkWc6EsViIgjIvcXo1E5L2LvPTzql\n",
-            "pfuavNxDO8uvhyQX2pPsOsjzyKQhIJH1sVHi8+rdofMl2MMOlbEAJrlvXU0bwp0Ik978vS\n",
-            "QPDzZDTRTXcKlb0Uj2xmO+T6XLDxtMW9WwiXoDS55ugW+s2/OcCoeu19a7vl9dGHmwqPZM\n",
-            "aTyuGbe/I2CsFKvnMB8VUzwuCoHFsABjAAAAFGRvYy10ZXN0QGV4YW1wbGUuY29tAAAAAA\n",
-            "AAAAZzaGE1MTIAAAIUAAAADHJzYS1zaGEyLTUxMgAAAgBxaMqIfeapKTrhQzggDssD+76s\n",
-            "jZxv3XxzgsuAjlIdtw+/nyxU6skTnrGoam2shpmQvx0HuqSQ7HyS2USBK7T4LZNoE53zR/\n",
-            "ZmHLGoyQAoexiHSEW9Lk53kyRNPhpXQedTvm8REHPGM3zw6WO6mAXVVxvebvawf81LTbBb\n",
-            "p9ubNRcHgktVeywMO/sD6zWSyShq1gjVv1PdRBOjUgqkwjImL8dFKi1QUeoffCxyk3JhTO\n",
-            "siTy79HZSz/kOvkvL1vQuqaP2R8lE9P1uaD19dGOMTPRod3u+QmpYX47ri5KM3Fmkfxdwq\n",
-            "p8JVmfAA9nme7bmNS1hWgmF2Nbh9qjh1zOZvCimIpuNtz5eEl9K+1DxG6w5tX86wSGvBMO\n",
-            "znx0k1gGfkiAULqgrkdul7mqMPRvPN9J6QlNJ7SLFChRhzlJIJc6tOvCs7qkVD43Zcb+I5\n",
-            "Z+K4NiFf5jf8kVX/pjjeW/ucbrctJIkGsZ58OkHKi1EDRcq7NtCF6SKlcv8g3fMLd9wW6K\n",
-            "aaed0TBDC+s+f6naNIGvWqfWCwDuK5xGyDTTmJGcrsMwWuT9K6uLk8cGdv7t5mOFuWi5jl\n",
-            "E+IKZKVABMuWqSj96ErMIiBjtsAZfNSezpsK49wQztoSPhdwLhD6fHrSAyPCqN2xRkcsIb\n",
-            "6PxWKC/OELf3gyEBRPouxsF7xSZQ==\n",
-            "-----END SSH SIGNATURE-----\n"
-        );
+    const ARMOR_SIG: &str = concat!(
+        "-----BEGIN SSH SIGNATURE-----\n",
+        "U1NIU0lHAAAAAQAAAhcAAAAHc3NoLXJzYQAAAAMBAAEAAAIBALNenycskvwY83DtL4Oq3S\n",
+        "bcPD/EU4B3Apdx6RMUj1wsMRQgjas09/S5RlOm/ns6BT5A4QQi9YyPP7kpJYFfyp0/w61X\n",
+        "RA2/KeVmQQpk3RxSoYpo1ejlr49QPKInaseug97VoyjqZQEv2QtHonZTUJgP90t8vzLBew\n",
+        "AaY4vRuwrQZE9UEkCOlQ1GOkZT/YUUiVTqzoZrB1sNcQcOjH9Sg5UAoiWEpptpOsUEDQAI\n",
+        "UtFfb8YIGYeqq3l3hlmN59jNF4uz9t46Np9giajKEcLjbzBkNxSO8uulIlsg4T+BI8JaVF\n",
+        "tyzGDgkZwo60AtS6sT6iT5q/L0zt4WMaEsZKVMot2yEhVCv/dbrrsztth85PrE/+XKPF5Y\n",
+        "hRjKPuuOWoon23PKB6TtA3EK26ofnGxkBmrNAI3zB+s8CXAPKS9aK3Io7D4G3YNaOKYhOr\n",
+        "IqCwGw5oD55UKWUW+ignGhi8CM4MBKMBSg52BXPIEOkWc6EsViIgjIvcXo1E5L2LvPTzql\n",
+        "pfuavNxDO8uvhyQX2pPsOsjzyKQhIJH1sVHi8+rdofMl2MMOlbEAJrlvXU0bwp0Ik978vS\n",
+        "QPDzZDTRTXcKlb0Uj2xmO+T6XLDxtMW9WwiXoDS55ugW+s2/OcCoeu19a7vl9dGHmwqPZM\n",
+        "aTyuGbe/I2CsFKvnMB8VUzwuCoHFsABjAAAAFGRvYy10ZXN0QGV4YW1wbGUuY29tAAAAAA\n",
+        "AAAAZzaGE1MTIAAAIUAAAADHJzYS1zaGEyLTUxMgAAAgBxaMqIfeapKTrhQzggDssD+76s\n",
+        "jZxv3XxzgsuAjlIdtw+/nyxU6skTnrGoam2shpmQvx0HuqSQ7HyS2USBK7T4LZNoE53zR/\n",
+        "ZmHLGoyQAoexiHSEW9Lk53kyRNPhpXQedTvm8REHPGM3zw6WO6mAXVVxvebvawf81LTbBb\n",
+        "p9ubNRcHgktVeywMO/sD6zWSyShq1gjVv1PdRBOjUgqkwjImL8dFKi1QUeoffCxyk3JhTO\n",
+        "siTy79HZSz/kOvkvL1vQuqaP2R8lE9P1uaD19dGOMTPRod3u+QmpYX47ri5KM3Fmkfxdwq\n",
+        "p8JVmfAA9nme7bmNS1hWgmF2Nbh9qjh1zOZvCimIpuNtz5eEl9K+1DxG6w5tX86wSGvBMO\n",
+        "znx0k1gGfkiAULqgrkdul7mqMPRvPN9J6QlNJ7SLFChRhzlJIJc6tOvCs7qkVD43Zcb+I5\n",
+        "Z+K4NiFf5jf8kVX/pjjeW/ucbrctJIkGsZ58OkHKi1EDRcq7NtCF6SKlcv8g3fMLd9wW6K\n",
+        "aaed0TBDC+s+f6naNIGvWqfWCwDuK5xGyDTTmJGcrsMwWuT9K6uLk8cGdv7t5mOFuWi5jl\n",
+        "E+IKZKVABMuWqSj96ErMIiBjtsAZfNSezpsK49wQztoSPhdwLhD6fHrSAyPCqN2xRkcsIb\n",
+        "6PxWKC/OELf3gyEBRPouxsF7xSZQ==\n",
+        "-----END SSH SIGNATURE-----\n"
+    );
 
-        let mut sig = SshSignature {
+    fn create_sig() -> SshSignature {
+        SshSignature {
             email: "user@example.com".to_string(),
             ssh_public_key: PKEY.to_string(),
-            ssh_signature: SIG.to_string(),
+            ssh_signature: ARMOR_SIG.to_string(),
             namespace: "doc-test@example.com".into(),
             token: "d074a61990".to_string(),
-        };
+        }
+    }
 
-        ssh_keygen(sig.clone()).await.unwrap();
+    #[tokio::test]
+    async fn test_ssh_verify() {
+        let mut sig = create_sig();
+        ssh_verify(sig.clone()).await.unwrap();
 
         sig.ssh_signature = sig.ssh_signature.replace('J', "0");
 
-        let err = ssh_keygen(sig).await.unwrap_err();
+        let err = ssh_verify(sig).await.unwrap_err();
 
         assert!(
             err.to_string().starts_with("ssh-keygen exited with"),
             "{}",
             err
         );
+    }
+
+    #[cfg(feature = "ssh-key")]
+    #[tokio::test]
+    async fn test_ssh_verify_in_memory() {
+        let mut sig = create_sig();
+        ssh_verify_in_memory(sig.clone()).await.unwrap();
+
+        sig.ssh_signature = sig.ssh_signature.replace('J', "0");
+
+        let err = ssh_verify_in_memory(sig.clone()).await.unwrap_err();
+
+        assert_eq!(
+            &err.to_string(),
+            "Invalid SSH signature. Reason given: invalid label: 'ssh-}3a'",
+            "{}",
+            err
+        );
+
+        sig.ssh_public_key = sig.ssh_public_key.replace(' ', "0");
+
+        let err = ssh_verify_in_memory(sig).await.unwrap_err();
+        assert_eq!(
+            &err.to_string(),
+            "Could not parse user's SSH public key. Is it valid? Reason given: length invalid",
+            "{}",
+            err
+        );
+
+        let mut sig = create_sig();
+        sig.token = sig.token.replace('d', "0");
+
+        let err = ssh_verify_in_memory(sig).await.unwrap_err();
+        assert_eq!(&err.to_string(), "SSH signature is invalid.", "{}", err);
     }
 }

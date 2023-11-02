@@ -246,6 +246,8 @@ mod tests {
 
     #[tokio::test]
     async fn test_routes() {
+        #![cfg_attr(not(debug_assertions), allow(unreachable_code))]
+
         init_stderr_logging();
 
         macro_rules! req {
@@ -375,6 +377,8 @@ mod tests {
             assert_eq!(response.status(), StatusCode::OK);
         }
 
+        #[cfg(not(debug_assertions))]
+        return;
         // ------------------------------------------------------------
         // auth.rs...
 

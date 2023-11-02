@@ -15,6 +15,10 @@ name = "mpot-web"
 path = "src/main.rs"
 doc-scrape-examples = true
 
+[features]
+default = ["ssh-key"]
+ssh-key = ["dep:ssh-key"]
+
 [dependencies]
 axum = { version = "^0.6" }
 axum-extra = { version = "^0.7", features = ["typed-routing"] }
@@ -35,6 +39,7 @@ percent-encoding = { version = "^2.1" }
 rand = { version = "^0.8", features = ["min_const_gen"] }
 serde = { version = "^1", features = ["derive", ] }
 serde_json = "^1"
+ssh-key = { version = "0.6.2", optional = true, features = ["crypto"] }
 stderrlog = "^0.5"
 tempfile =  { version = "^3.5" }
 tokio = { version = "1", features = ["full"] }
