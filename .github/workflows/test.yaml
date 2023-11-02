@@ -3,7 +3,7 @@ name: Tests
 env:
   RUST_BACKTRACE: 1
   CARGO_REGISTRIES_CRATES_IO_PROTOCOL: sparse
-  SQLITE_BIN: ~/.sqlite3/sqlite3
+  SQLITE_BIN: /home/runner/.sqlite3/sqlite3
 
 on:
   workflow_dispatch:
@@ -35,15 +35,15 @@ jobs:
         name: Cache sqlite3 binary
         uses: actions/cache@v3
         with:
-          path: ~/.sqlite3
+          path: /home/runner/.sqlite3
           key: toolchain-sqlite3
       - if: ${{ steps.cache-sqlite3-bin.outputs.cache-hit != 'true' }}
         name: Download sqlite3 binary
         run: |
           set -ex
           sudo apt-get install -y --quiet wget unzip
-          mkdir -p ~/.sqlite3
-          cd ~/.sqlite3
+          mkdir -p /home/runner/.sqlite3
+          cd /home/runner/.sqlite3
           wget "https://sqlite.org/2023/sqlite-tools-linux-x86-3420000.zip"
           unzip sqlite-tools-linux-x86-3420000.zip
           mv sqlite-tools-linux-x86-3420000/* .
