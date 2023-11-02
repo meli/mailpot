@@ -116,9 +116,10 @@ For more information, try '--help'."#,
         output.code(255).stderr(predicates::str::is_empty()).stdout(
             predicate::eq(
                 format!(
-                    "[1] Could not read configuration file from path: {} Caused by:\n[2] Error \
-                     returned from internal I/O operation: No such file or directory (os error 2)",
-                    conf.display()
+                    "[1] Could not read configuration file from path: {path} Caused by:\n[2] \
+                     Configuration file {path} not found. Caused by:\n[3] Error returned from \
+                     internal I/O operation: No such file or directory (os error 2)",
+                    path = conf.display()
                 )
                 .as_str(),
             )

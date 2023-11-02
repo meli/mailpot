@@ -187,7 +187,9 @@ impl Connection {
         INIT_SQLITE_LOGGING.call_once(|| {
             _ = unsafe { rusqlite::trace::config_log(Some(log_callback)) };
         });
-        let conn = DbConnection::open(conf.db_path.to_str().unwrap())?;
+        let conn = DbConnection::open(conf.db_path.to_str().unwrap()).with_context(|| {
+            format!("sqlite3 library could not open {}.", conf.db_path.display())
+        })?;
         rusqlite::vtab::array::load_module(&conn)?;
         conn.pragma_update(None, "journal_mode", "WAL")?;
         conn.pragma_update(None, "foreign_keys", "on")?;
@@ -346,7 +348,14 @@ impl Connection {
                     .stdin(Stdio::piped())
                     .stdout(Stdio::piped())
                     .stderr(Stdio::piped())
-                    .spawn()?;
+                    .spawn()
+                    .with_context(|| {
+                        format!(
+                            "Could not launch {} {}.",
+                            std::env::var("SQLITE_BIN").unwrap_or_else(|_| "sqlite3".into()),
+                            db_path.display()
+                        )
+                    })?;
             let mut stdin = child.stdin.take().unwrap();
             std::thread::spawn(move || {
                 stdin
@@ -381,12 +390,16 @@ impl Connection {
                 .into());
             }
 
-            let file = std::fs::File::open(db_path)?;
-            let metadata = file.metadata()?;
+            let file = std::fs::File::open(db_path)
+                .with_context(|| format!("Could not open database {}.", db_path.display()))?;
+            let metadata = file
+                .metadata()
+                .with_context(|| format!("Could not fstat database {}.", db_path.display()))?;
             let mut permissions = metadata.permissions();
 
             permissions.set_mode(0o600); // Read/write for owner only.
-            file.set_permissions(permissions)?;
+            file.set_permissions(permissions)
+                .with_context(|| format!("Could not chmod 600 database {}.", db_path.display()))?;
         }
         Self::open_db(conf)
     }

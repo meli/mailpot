@@ -76,14 +76,18 @@ impl Configuration {
     pub fn from_file<P: AsRef<Path>>(path: P) -> Result<Self> {
         let path = path.as_ref();
         let mut s = String::new();
-        let mut file = std::fs::File::open(path)?;
-        file.read_to_string(&mut s)?;
+        let mut file = std::fs::File::open(path)
+            .with_context(|| format!("Configuration file {} not found.", path.display()))?;
+        file.read_to_string(&mut s)
+            .with_context(|| format!("Could not read from file {}.", path.display()))?;
         let config: Self = toml::from_str(&s)
             .map_err(anyhow::Error::from)
-            .context(format!(
-                "Could not parse configuration file `{}` successfully: ",
-                path.display()
-            ))?;
+            .with_context(|| {
+                format!(
+                    "Could not parse configuration file `{}` successfully: ",
+                    path.display()
+                )
+            })?;
 
         Ok(config)
     }
@@ -106,14 +110,20 @@ impl Configuration {
         }
 
         debug_assert!(path != self.db_path());
-        let mut file = std::fs::File::create(&path)?;
-        let metadata = file.metadata()?;
+        let mut file = std::fs::File::create(&path)
+            .with_context(|| format!("Could not create file {}.", path.display()))?;
+        let metadata = file
+            .metadata()
+            .with_context(|| format!("Could not fstat file {}.", path.display()))?;
         let mut permissions = metadata.permissions();
 
         permissions.set_mode(0o600); // Read/write for owner only.
-        file.set_permissions(permissions)?;
-        file.write_all(msg.as_bytes())?;
-        file.flush()?;
+        file.set_permissions(permissions)
+            .with_context(|| format!("Could not chmod 600 file {}.", path.display()))?;
+        file.write_all(msg.as_bytes())
+            .with_context(|| format!("Could not write message to file {}.", path.display()))?;
+        file.flush()
+            .with_context(|| format!("Could not flush message I/O to file {}.", path.display()))?;
         Ok(path)
     }
 
