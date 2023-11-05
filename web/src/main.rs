@@ -197,7 +197,7 @@ async fn root(
                 chrono::Utc
                     .timestamp_opt(p.timestamp as i64, 0)
                     .earliest()
-                    .map(|d| d.to_string())
+                    .map(|d| d.to_rfc3339())
             });
             let list_owners = db.list_owners(list.pk)?;
             let mut list_obj = MailingList::from(list.clone());
