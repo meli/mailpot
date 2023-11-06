@@ -585,9 +585,8 @@ pub fn heading(level: Value, text: Value, id: Option<Value>) -> std::result::Res
 /// ]))
 /// .unwrap();
 /// assert_eq!(
-///     "<ul class=\"tags inline\"><li class=\"tag\" \
-///      style=\"--red:110;--green:120;--blue:180;\"><span class=\"tag-name\"><a \
-///      href=\"/topics/?query=a\">a</a></span></li><li class=\"tag\" \
+///     "<ul class=\"tags\"><li class=\"tag\" style=\"--red:110;--green:120;--blue:180;\"><span \
+///      class=\"tag-name\"><a href=\"/topics/?query=a\">a</a></span></li><li class=\"tag\" \
 ///      style=\"--red:110;--green:120;--blue:180;\"><span class=\"tag-name\"><a \
 ///      href=\"/topics/?query=aab\">aab</a></span></li><li class=\"tag\" \
 ///      style=\"--red:110;--green:120;--blue:180;\"><span class=\"tag-name\"><a \
@@ -606,7 +605,7 @@ pub fn topics(topics: Value) -> std::result::Result<Value, Error> {
 
 pub(crate) fn topics_common(topics: &[String]) -> std::result::Result<Value, Error> {
     let mut ul = String::new();
-    write!(&mut ul, r#"<ul class="tags inline">"#)?;
+    write!(&mut ul, r#"<ul class="tags">"#)?;
     for topic in topics {
         write!(
             &mut ul,
