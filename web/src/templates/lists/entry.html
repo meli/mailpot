@@ -1,6 +1,10 @@
-<div class="post">
+<div class="post" id="{{ strip_carets(post.message_id)|safe }}">
     <table class="headers" title="E-mail headers">
         <caption class="screen-reader-only">E-mail headers</caption>
+        <tr>
+            <th scope="row"></th>
+            <td><a href="#{{ strip_carets(post.message_id) }}"></a></td>
+        </tr>
         <tr>
             <th scope="row">From:</th>
             <td>{{ post.address }}</td>

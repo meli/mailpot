@@ -10,7 +10,7 @@
         <p title="mailing list description">No list description.</p>
     {% endif %}
     <br aria-hidden="true">
-    {% if current_user and not post_policy.no_subscriptions and subscription_policy.open %}
+    {% if current_user and subscription_policy and subscription_policy.open %}
         {% if user_context %}
             <form method="post" action="{{ settings_path() }}" class="settings-form">
                 <input type="hidden" name="type", value="unsubscribe">
@@ -32,53 +32,57 @@
             {% if preamble.custom %}
                 {{ preamble.custom|safe }}
             {% else %}
-                {% if not post_policy.no_subscriptions %}
-                    {{ heading(3, "Subscribe") }}
-                    {% set subscription_mailto=list.subscription_mailto() %}
-                    {% if subscription_mailto %}
-                        {% if subscription_mailto.subject %}
-                            <p>
-                                <a href="mailto:{{ subscription_mailto.address|safe }}?subject={{ subscription_mailto.subject|safe }}"><code>{{ subscription_mailto.address }}</code></a> with the following subject: <code>{{ subscription_mailto.subject}}</code>
-                            </p>
+                {% if subscription_policy %}
+                    {% if subscription_policy.open or subscription_policy.request %}
+                        {{ heading(3, "Subscribe") }}
+                        {% set subscription_mailto=list.subscription_mailto() %}
+                        {% if subscription_mailto %}
+                            {% if subscription_mailto.subject %}
+                                <p>
+                                    <a href="mailto:{{ subscription_mailto.address|safe }}?subject={{ subscription_mailto.subject|safe }}"><code>{{ subscription_mailto.address }}</code></a> with the following subject: <code>{{ subscription_mailto.subject}}</code>
+                                </p>
+                            {% else %}
+                                <p>
+                                    <a href="mailto:{{ subscription_mailto.address|safe }}"><code>{{ subscription_mailto.address }}</code></a>
+                                </p>
+                            {% endif %}
                         {% else %}
-                            <p>
-                                <a href="mailto:{{ subscription_mailto.address|safe }}"><code>{{ subscription_mailto.address }}</code></a>
-                            </p>
+                            <p>List is not open for subscriptions.</p>
                         {% endif %}
-                    {% else %}
-                        <p>List is not open for subscriptions.</p>
-                    {% endif %}
 
-                    {% set unsubscription_mailto=list.unsubscription_mailto() %}
-                    {% if unsubscription_mailto %}
-                        {{ heading(3, "Unsubscribe") }}
-                        {% if unsubscription_mailto.subject %}
-                            <p>
-                                <a href="mailto:{{ unsubscription_mailto.address|safe }}?subject={{ unsubscription_mailto.subject|safe }}"><code>{{ unsubscription_mailto.address }}</code></a> with the following subject: <code>{{unsubscription_mailto.subject}}</code>
-                            </p>
-                        {% else %}
-                            <p>
-                                <a href="mailto:{{ unsubscription_mailto.address|safe }}"><code>{{ unsubscription_mailto.address }}</code></a>
-                            </p>
+                        {% set unsubscription_mailto=list.unsubscription_mailto() %}
+                        {% if unsubscription_mailto %}
+                            {{ heading(3, "Unsubscribe") }}
+                            {% if unsubscription_mailto.subject %}
+                                <p>
+                                    <a href="mailto:{{ unsubscription_mailto.address|safe }}?subject={{ unsubscription_mailto.subject|safe }}"><code>{{ unsubscription_mailto.address }}</code></a> with the following subject: <code>{{unsubscription_mailto.subject}}</code>
+                                </p>
+                            {% else %}
+                                <p>
+                                    <a href="mailto:{{ unsubscription_mailto.address|safe }}"><code>{{ unsubscription_mailto.address }}</code></a>
+                                </p>
+                            {% endif %}
                         {% endif %}
                     {% endif %}
                 {% endif %}
 
-                {{ heading(3, "Post") }}
-                {% if post_policy.announce_only %}
-                    <p>List is <em>announce-only</em>, i.e. you can only subscribe to receive announcements.</p>
-                {% elif post_policy.subscription_only %}
-                    <p>List is <em>subscription-only</em>, i.e. you can only post if you are subscribed.</p>
-                    <p>If you are subscribed, you can send new posts to:
-                        <a href="mailto:{{ list.address| safe }}"><code>{{ list.address }}</code></a>
-                    </p>
-                {% elif post_policy.approval_needed or post_policy.no_subscriptions %}
-                    <p>List is open to all posts <em>after approval</em> by the list owners.</p>
-                    <p>You can send new posts to:
-                        <a href="mailto:{{ list.address| safe }}"><code>{{ list.address }}</code></a>
-                    </p>
-                {% else %}
-                    <p>List is not open for submissions.</p>
+                {% if post_policy %}
+                    {{ heading(3, "Post") }}
+                    {% if post_policy.announce_only %}
+                        <p>List is <em>announce-only</em>, i.e. you can only subscribe to receive announcements.</p>
+                    {% elif post_policy.subscription_only %}
+                        <p>List is <em>subscription-only</em>, i.e. you can only post if you are subscribed.</p>
+                        <p>If you are subscribed, you can send new posts to:
+                            <a href="mailto:{{ list.address| safe }}"><code>{{ list.address }}</code></a>
+                        </p>
+                    {% elif post_policy.approval_needed or post_policy.no_subscriptions %}
+                        <p>List is open to all posts <em>after approval</em> by the list owners.</p>
+                        <p>You can send new posts to:
+                            <a href="mailto:{{ list.address| safe }}"><code>{{ list.address }}</code></a>
+                        </p>
+                    {% else %}
+                        <p>List is not open for submissions.</p>
+                    {% endif %}
                 {% endif %}
             {% endif %}
         </section>
