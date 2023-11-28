@@ -54,22 +54,23 @@ impl std::fmt::Display for Template {
 
 impl Template {
     /// Template name for generic list help e-mail.
-    pub const GENERIC_HELP: &str = "generic-help";
+    pub const GENERIC_HELP: &'static str = "generic-help";
     /// Template name for generic failure e-mail.
-    pub const GENERIC_FAILURE: &str = "generic-failure";
+    pub const GENERIC_FAILURE: &'static str = "generic-failure";
     /// Template name for generic success e-mail.
-    pub const GENERIC_SUCCESS: &str = "generic-success";
+    pub const GENERIC_SUCCESS: &'static str = "generic-success";
     /// Template name for subscription confirmation e-mail.
-    pub const SUBSCRIPTION_CONFIRMATION: &str = "subscription-confirmation";
+    pub const SUBSCRIPTION_CONFIRMATION: &'static str = "subscription-confirmation";
     /// Template name for unsubscription confirmation e-mail.
-    pub const UNSUBSCRIPTION_CONFIRMATION: &str = "unsubscription-confirmation";
+    pub const UNSUBSCRIPTION_CONFIRMATION: &'static str = "unsubscription-confirmation";
     /// Template name for subscription request notice e-mail (for list owners).
-    pub const SUBSCRIPTION_REQUEST_NOTICE_OWNER: &str = "subscription-notice-owner";
+    pub const SUBSCRIPTION_REQUEST_NOTICE_OWNER: &'static str = "subscription-notice-owner";
     /// Template name for subscription request acceptance e-mail (for the
     /// candidates).
-    pub const SUBSCRIPTION_REQUEST_CANDIDATE_ACCEPT: &str = "subscription-notice-candidate-accept";
+    pub const SUBSCRIPTION_REQUEST_CANDIDATE_ACCEPT: &'static str =
+        "subscription-notice-candidate-accept";
     /// Template name for admin notices.
-    pub const ADMIN_NOTICE: &str = "admin-notice";
+    pub const ADMIN_NOTICE: &'static str = "admin-notice";
 
     /// Render a message body from a saved named template.
     pub fn render(&self, context: minijinja::value::Value) -> Result<melib::Draft> {

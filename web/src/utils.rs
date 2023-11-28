@@ -59,7 +59,7 @@ pub struct Message {
 }
 
 impl Message {
-    const MESSAGE_KEY: &str = "session-message";
+    const MESSAGE_KEY: &'static str = "session-message";
 }
 
 /// Drain messages from session.

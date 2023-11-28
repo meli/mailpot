@@ -128,7 +128,7 @@ impl Connection {
     /// ```sql
     #[doc = include_str!("./schema.sql")]
     /// ```
-    pub const SCHEMA: &str = include_str!("./schema.sql");
+    pub const SCHEMA: &'static str = include_str!("./schema.sql");
 
     /// Database migrations.
     pub const MIGRATIONS: &'static [(u32, &'static str, &'static str)] =
