@@ -43,7 +43,7 @@ impl Connection {
         } else {
             from_[0].get_email()
         };
-        let datetime: std::borrow::Cow<'_, str> = if !env.date.as_str().is_empty() {
+        let datetime: std::borrow::Cow<'_, str> = if !env.date.is_empty() {
             env.date.as_str().into()
         } else {
             melib::datetime::timestamp_to_string(

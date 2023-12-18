@@ -38,8 +38,8 @@ fn run_app() -> std::result::Result<(), Box<dyn std::error::Error>> {
         return Err("Output path is not a directory.".into());
     }
 
-    std::fs::create_dir_all(&output_path.join("lists"))?;
-    std::fs::create_dir_all(&output_path.join("list"))?;
+    std::fs::create_dir_all(output_path.join("lists"))?;
+    std::fs::create_dir_all(output_path.join("list"))?;
     let conf = Configuration::from_file(config_path)
         .map_err(|err| format!("Could not load config {config_path}: {err}"))?;
 
@@ -67,7 +67,7 @@ fn run_app() -> std::result::Result<(), Box<dyn std::error::Error>> {
             .write(true)
             .create(true)
             .truncate(true)
-            .open(&output_path.join("index.html"))?;
+            .open(output_path.join("index.html"))?;
         let crumbs = vec![Crumb {
             label: "Lists".into(),
             url: format!("{root_url_prefix}/").into(),
