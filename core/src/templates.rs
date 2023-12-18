@@ -179,10 +179,11 @@ impl Template {
             pk: -1,
             name: Self::SUBSCRIPTION_REQUEST_NOTICE_OWNER.to_string(),
             list: None,
-            subject: Some("Subscription request for {{ list.id }} by {{ candidate }}".to_string()),
+            subject: Some("Subscription request for {{ list.id }}".to_string()),
             headers_json: None,
-            body: "Candidate primary key: {{ candidate.pk }}\n\n{{ details|safe if details else \
-                   \"\" }}"
+            body: "Candidate {{ candidate.name if candidate.name else \"\" }} <{{ \
+                   candidate.address }}> Primary key: {{ candidate.pk }}\n\n{{ details|safe if \
+                   details else \"\" }}"
                 .to_string(),
         }
     }
