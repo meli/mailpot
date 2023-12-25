@@ -29,7 +29,7 @@ use crate::{errors::*, models::DbVal, Connection, DateTime};
 #[derive(Copy, Clone, Eq, PartialEq, Debug, serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub enum Queue {
-    /// Messages that have been submitted but not yet processed, await
+    /// Messages that have been received but not yet processed, await
     /// processing in the `maildrop` queue. Messages can be added to the
     /// `maildrop` queue even when mailpot is not running.
     Maildrop,

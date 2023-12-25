@@ -129,9 +129,6 @@ impl Connection {
             return Err("Envelope From: field is empty!".into());
         }
         let mut lists = self.lists()?;
-        if lists.is_empty() {
-            return Err("No active mailing lists found.".into());
-        }
         let prev_list_len = lists.len();
         for t in &tos {
             if let Some((addr, subaddr)) = t.subaddress("+") {
