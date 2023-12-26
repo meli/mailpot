@@ -1,6 +1,6 @@
 {% include "header.html" %}
 <div class="body">
-  <p style="margin-block-end: 1rem;">Results for <em>{{ term }}</em></p>
+  {% if term %}<p style="margin-block-end: 1rem;">Results for <em>{{ term }}</em></p>{% endif %}
   <div class="entry">
     <dl class="lists" aria-label="list of mailing lists">
       {% for list in results %}

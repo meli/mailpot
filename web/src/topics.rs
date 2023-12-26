@@ -127,21 +127,20 @@ pub async fn list_topics(
         }
     };
 
-    let crumbs = vec![
-        Crumb {
-            label: "Home".into(),
-            url: "/".into(),
-        },
-        Crumb {
-            label: "Search for topics".into(),
-            url: TopicsPath.to_crumb(),
-        },
-    ];
+    let crumbs = crumbs![Crumb {
+        label: if term.is_some() {
+            "Search for topics"
+        } else {
+            "Topics"
+        }
+        .into(),
+        url: TopicsPath.to_crumb(),
+    },];
     let context = minijinja::context! {
         canonical_url => TopicsPath.to_crumb(),
         term,
         results,
-        page_title => "Topic Search Results",
+        page_title => if term.is_some() { "Topic Search Results" } else { "Topics" },
         description => "",
         current_user => auth.current_user,
         messages => session.drain_messages(),

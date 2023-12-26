@@ -96,7 +96,7 @@ pub use cal::{calendarize, *};
 pub use help::*;
 pub use lists::{
     list, list_candidates, list_edit, list_edit_POST, list_post, list_post_eml, list_post_raw,
-    list_subscribers, PostPolicySettings, SubscriptionPolicySettings,
+    list_search_query_GET, list_subscribers, PostPolicySettings, SubscriptionPolicySettings,
 };
 pub use minijinja_utils::*;
 pub use settings::{

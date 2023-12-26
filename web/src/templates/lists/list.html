@@ -91,6 +91,9 @@
         {{ heading(3, "Calendar") }}
         <div class="calendar">
             {%- from "calendar.html" import cal %}
+            {% if has_more_months %}
+                <a href="{{ list_calendar_path(list.id) }}">See all history..&mldr;</a>
+            {% endif %}
             {% for date in months %}
                 {{ cal(date, hists) }}
             {% endfor %}

@@ -3,9 +3,12 @@
     {% if c.sum > 0 %}
         <table>
             <caption align="top">
-                <!--<a href="{{ root_url_prefix|safe }}/list/{{pk}}/{{ c.month }}">-->
-                <a href="#" style="color: GrayText;">
-                    {{ c.month_name }} {{ c.year }}
+                <a href="{{ list_search_query(list.id) }}?month={{ year_month_to_query(date) }}" style="color: GrayText;">
+                    {% if c.unknown %}
+                        Unknown
+                    {% else %}
+                        {{ c.month_name }} {{ c.year }}
+                    {% endif %}
                 </a>
             </caption>
             <thead>

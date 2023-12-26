@@ -49,13 +49,16 @@ lazy_static::lazy_static! {
             settings_path,
             help_path,
             list_path,
+            list_calendar_path,
+            list_search_query,
             list_settings_path,
             list_edit_path,
             list_subscribers_path,
             list_candidates_path,
             list_post_path,
             post_raw_path,
-            post_eml_path
+            post_eml_path,
+            year_month_to_query,
         );
         add!(filter pluralize);
         // Load compressed templates. They are constructed in build.rs. See
@@ -243,31 +246,33 @@ pub fn calendarize(
             }
         }};
     }
-    let month = args.as_str().unwrap();
+    let year_month = args.as_str().unwrap();
     let hist = hists
-        .get_item(&Value::from(month))?
+        .get_item(&Value::from(year_month))?
         .as_seq()
         .unwrap()
         .iter()
         .map(|v| usize::try_from(v).unwrap())
         .collect::<Vec<usize>>();
     let sum: usize = hists
-        .get_item(&Value::from(month))?
+        .get_item(&Value::from(year_month))?
         .as_seq()
         .unwrap()
         .iter()
         .map(|v| usize::try_from(v).unwrap())
         .sum();
-    let date = chrono::NaiveDate::parse_from_str(&format!("{}-01", month), "%F").unwrap();
+    let date = chrono::NaiveDate::parse_from_str(&format!("{}-01", year_month), "%F").unwrap();
     // Week = [Mon, Tue, Wed, Thu, Fri, Sat, Sun]
     Ok(minijinja::context! {
+        date,
         month_name => month!(date.month()),
-        month => month,
+        month => year_month,
         month_int => date.month() as usize,
         year => date.year(),
         weeks => cal::calendarize_with_offset(date, 1),
         hist => hist,
         sum,
+        unknown => date.year() == 1970,
     })
 }
 

@@ -83,6 +83,29 @@ impl From<&DbVal<mailpot::models::MailingList>> for ListPath {
 }
 
 #[derive(Debug, PartialEq, Eq, Clone, serde::Deserialize, serde::Serialize, TypedPath)]
+#[typed_path("/list/:id/calendar/")]
+pub struct ListCalendarPath(pub ListPathIdentifier);
+
+impl From<&DbVal<mailpot::models::MailingList>> for ListCalendarPath {
+    fn from(val: &DbVal<mailpot::models::MailingList>) -> Self {
+        Self(ListPathIdentifier::Id(val.id.clone()))
+    }
+}
+
+#[derive(Debug, PartialEq, Eq, Clone, serde::Deserialize, serde::Serialize)]
+pub struct YearMonth(pub chrono::NaiveDate);
+
+impl std::fmt::Display for YearMonth {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}-{}", self.0.year(), self.0.month())
+    }
+}
+
+#[derive(Debug, PartialEq, Eq, Clone, serde::Deserialize, serde::Serialize, TypedPath)]
+#[typed_path("/list/:id/search")]
+pub struct ListSearchPath(pub ListPathIdentifier);
+
+#[derive(Debug, PartialEq, Eq, Clone, serde::Deserialize, serde::Serialize, TypedPath)]
 #[typed_path("/list/:id/posts/:msgid/")]
 pub struct ListPostPath(pub ListPathIdentifier, pub String);
 
@@ -161,6 +184,38 @@ macro_rules! list_id_impl {
             )
         }
     };
+    ($ident:ident, $ty:tt, $arg:path, $($arg_fn:tt)*) => {
+        pub fn $ident(state: &minijinja::State, id: Value, arg: Value) -> std::result::Result<Value, Error> {
+                let arg: $arg = if let Some(arg) = arg.as_str() {
+                    #[allow(clippy::redundant_closure_call)]
+                    ($($arg_fn)*)(arg)
+                        .map_err(|err| {
+                            Error::new(
+                                minijinja::ErrorKind::InvalidOperation,
+                                err.to_string()
+                            )
+                        })?
+                } else {
+                    return Err(Error::new(
+                        minijinja::ErrorKind::UnknownMethod,
+                        "Second argument of list_post_path must be a string.",
+                    ));
+                };
+            urlize(
+                state,
+                if let Some(id) = id.as_str() {
+                    Value::from(
+                        $ty(ListPathIdentifier::Id(id.to_string()), arg)
+                            .to_crumb()
+                            .to_string(),
+                    )
+                } else {
+                    let pk = id.try_into()?;
+                    Value::from($ty(ListPathIdentifier::Pk(pk), arg).to_crumb().to_string())
+                },
+            )
+        }
+    };
 }
 
 list_id_impl!(list_path, ListPath);
@@ -168,6 +223,32 @@ list_id_impl!(list_settings_path, ListSettingsPath);
 list_id_impl!(list_edit_path, ListEditPath);
 list_id_impl!(list_subscribers_path, ListEditSubscribersPath);
 list_id_impl!(list_candidates_path, ListEditCandidatesPath);
+list_id_impl!(list_calendar_path, ListCalendarPath);
+list_id_impl!(list_search_query, ListSearchPath);
+
+pub fn year_month_to_query(
+    _state: &minijinja::State,
+    arg: Value,
+) -> std::result::Result<Value, Error> {
+    if let Some(arg) = arg.as_str() {
+        Ok(Value::from_safe_string(
+            utf8_percent_encode(
+                chrono::NaiveDate::parse_from_str(&format!("{}-01", arg), "%F")
+                    .map_err(|err| {
+                        Error::new(minijinja::ErrorKind::InvalidOperation, err.to_string())
+                    })
+                    .map(|_| arg)?,
+                crate::typed_paths::PATH_SEGMENT,
+            )
+            .to_string(),
+        ))
+    } else {
+        Err(Error::new(
+            minijinja::ErrorKind::UnknownMethod,
+            "Second argument of list_post_path must be a string.",
+        ))
+    }
+}
 
 macro_rules! list_post_impl {
     ($ident:ident, $ty:tt) => {

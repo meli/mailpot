@@ -38,6 +38,19 @@ pub struct Crumb {
     pub url: Cow<'static, str>,
 }
 
+#[macro_export]
+macro_rules! crumbs {
+    ($($var:expr),*$(,)?) => {
+        vec![
+        Crumb {
+            label: "Home".into(),
+            url: "/".into(),
+        },
+        $($var),*
+        ]
+    }
+ }
+
 /// Message urgency level or info.
 #[derive(
     Debug, Default, Hash, Copy, Clone, serde::Deserialize, serde::Serialize, PartialEq, Eq,
@@ -236,6 +249,122 @@ impl<'de> serde::Deserialize<'de> for BoolPOST {
     }
 }
 
+#[derive(Debug, Eq, PartialEq, Clone)]
+pub enum DateQueryParameter {
+    Month {
+        month: String,
+    },
+    Date {
+        date: String,
+    },
+    /// A (half-open) range bounded inclusively below and exclusively above
+    /// (start..end).
+    Range {
+        start: String,
+        end: String,
+    },
+    //
+    //    /// A range only bounded inclusively below (start..).
+    //    RangeFrom {
+    //        start: String,
+    //    },
+    //    /// A range bounded inclusively below and above (start..=end).
+    //    RangeInclusive {
+    //        start: String,
+    //        end: String,
+    //    },
+    //    /// A range only bounded exclusively above (..end).
+    //    RangeTo {
+    //        end: String,
+    //    },
+    //    /// A range only bounded inclusively above (..=end).
+    //    RangeToInclusive {
+    //        end: String,
+    //    },
+}
+
+impl serde::Serialize for DateQueryParameter {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        match self {
+            Self::Month { month: v } | Self::Date { date: v } => serializer.serialize_str(v),
+            Self::Range { start, end } => serializer.serialize_str(&format!("{start}..{end}")),
+            //Self::RangeFrom { start } => serializer.serialize_str(&format!("{start}..")),
+            //Self::RangeInclusive { start, end } => {
+            //    serializer.serialize_str(&format!("{start}..={end}"))
+            //}
+            //Self::RangeTo { end } => serializer.serialize_str(&format!("..{end}")),
+            //Self::RangeToInclusive { end } => serializer.serialize_str(&format!("..={end}")),
+        }
+    }
+}
+
+impl<'de> serde::Deserialize<'de> for DateQueryParameter {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        struct DateVisitor;
+
+        impl<'de> serde::de::Visitor<'de> for DateVisitor {
+            type Value = DateQueryParameter;
+
+            fn expecting(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+                f.write_str("Date as YYYY-MM or YYYY-MM-DD or YYYY-MM..YYYY-MM.")
+            }
+
+            fn visit_str<E>(self, s: &str) -> Result<Self::Value, E>
+            where
+                E: serde::de::Error,
+            {
+                let is_month = |m: &str| {
+                    chrono::NaiveDate::parse_from_str(&format!("{}-01", m), "%F")
+                        .map(|_| ())
+                        .map_err(|err| serde::de::Error::custom(format!("Invalid date: {err}.")))
+                };
+                const RANGE: &str = r"..";
+                if s.contains(RANGE) && !s.starts_with(RANGE) && !s.ends_with(RANGE) {
+                    let mut v: Vec<&str> = s.splitn(2, RANGE).collect();
+                    if v.len() != 2 || (v.len() > 2 && v[2].contains(RANGE)) {
+                        return Err(serde::de::Error::custom("Invalid date range."));
+                    }
+                    is_month(v[0])?;
+                    is_month(v[1])?;
+                    return Ok(DateQueryParameter::Range {
+                        end: v.pop().unwrap().to_string(),
+                        start: v.pop().unwrap().to_string(),
+                    });
+                } else if is_month(s).is_ok() {
+                    return Ok(DateQueryParameter::Month {
+                        month: s.to_string(),
+                    });
+                } else if chrono::NaiveDate::parse_from_str(s, "%F").is_ok() {
+                    return Ok(DateQueryParameter::Date {
+                        date: s.to_string(),
+                    });
+                }
+
+                Err(serde::de::Error::custom("invalid"))
+            }
+        }
+        deserializer.deserialize_any(DateVisitor)
+    }
+}
+
+#[derive(Debug, Clone, serde::Deserialize)]
+pub struct ListPostQuery {
+    #[serde(default, deserialize_with = "empty_string_as_none")]
+    pub month: Option<String>,
+    #[serde(default, deserialize_with = "empty_string_as_none")]
+    pub from: Option<String>,
+    #[serde(default, deserialize_with = "empty_string_as_none")]
+    pub cc: Option<String>,
+    #[serde(default, deserialize_with = "empty_string_as_none")]
+    pub msg_id: Option<String>,
+}
+
 #[derive(Debug, Clone, serde::Deserialize)]
 pub struct Next {
     #[serde(default, deserialize_with = "empty_string_as_none")]
@@ -251,7 +380,7 @@ impl Next {
 }
 
 /// Serde deserialization decorator to map empty Strings to None,
-fn empty_string_as_none<'de, D, T>(de: D) -> Result<Option<T>, D::Error>
+pub fn empty_string_as_none<'de, D, T>(de: D) -> Result<Option<T>, D::Error>
 where
     D: serde::Deserializer<'de>,
     T: std::str::FromStr,
@@ -557,6 +686,29 @@ mod tests {
             serde_json::from_str::<BoolPOST>("\"true\"").unwrap()
         );
         assert_eq!(&json! { BoolPOST(false) }.to_string(), "false");
+
+        assert_eq!(
+            DateQueryParameter::Month {
+                month: "2023-12".into()
+            },
+            serde_json::from_str::<DateQueryParameter>("\"2023-12\"").unwrap()
+        );
+        assert_eq!(
+            DateQueryParameter::Range {
+                start: "2023-12".into(),
+                end: "2023-12".into()
+            },
+            serde_json::from_str::<DateQueryParameter>("\"2023-12..2023-12\"").unwrap()
+        );
+        assert_eq!(
+            &json! { DateQueryParameter::Month{ month: "2023-12".into()} }.to_string(),
+            "\"2023-12\""
+        );
+        assert_eq!(
+            &json! { DateQueryParameter::Range{ start: "2023-12".into(), end: "2023-12".into() } }
+                .to_string(),
+            "\"2023-12..2023-12\""
+        );
     }
 
     #[test]

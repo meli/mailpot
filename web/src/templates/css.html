@@ -129,6 +129,11 @@
     code {
         font-family: var(--monospace-system-stack);
         overflow-wrap: anywhere;
+        background: var(--color-tan);
+        color: black;
+        border-radius: 4px;
+        padding-left: 4px;
+        padding-right: 4px;
     }
 
     pre {
@@ -162,6 +167,7 @@
         --code-background: #8fbcbb;
         --a-visited-text: var(--a-normal-text);
         --tag-border-color: black;
+        --color-tan: #fef6e9;
     }
 
     @media (prefers-color-scheme: light) {
@@ -445,18 +451,6 @@
         font-size: small;
     }
 
-    /* If only the root crumb is visible, hide it to avoid unnecessary visual clutter */
-    li.crumb:only-child>span[aria-current="page"] {
-        --secs: 150ms;
-        transition: all var(--secs) linear;
-        color: transparent;
-    }
-
-    li.crumb:only-child>span[aria-current="page"]:hover {
-        transition: all var(--secs) linear;
-        color: revert;
-    }
-
     .crumb, .crumb>a {
         display: inline;
     }
@@ -593,6 +587,10 @@
     div.calendar td:empty {
         background: var(--text-faded);
         opacity: 0.2;
+    }
+
+    div.calendar a {
+        place-self: center;
     }
 
     div.calendar {

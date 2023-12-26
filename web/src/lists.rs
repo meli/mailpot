@@ -41,7 +41,8 @@ pub async fn list(
     };
     let post_policy = db.list_post_policy(list.pk)?;
     let subscription_policy = db.list_subscription_policy(list.pk)?;
-    let months = db.months(list.pk)?;
+    let mut months = db.months(list.pk)?;
+    months.sort();
     let user_context = auth
         .current_user
         .as_ref()
@@ -52,7 +53,7 @@ pub async fn list(
         .iter()
         .map(|p| (p.message_id.as_str(), p))
         .collect::<IndexMap<&str, &mailpot::models::DbVal<mailpot::models::Post>>>();
-    let mut hist = months
+    let mut hists = months
         .iter()
         .map(|m| (m.to_string(), [0usize; 31]))
         .collect::<HashMap<String, [usize; 31]>>();
@@ -79,7 +80,7 @@ pub async fn list(
                     .ok()
                     .map(|d| d.day())
             {
-                hist.get_mut(&post.month_year).unwrap()[day.saturating_sub(1) as usize] += 1;
+                hists.get_mut(&post.month_year).unwrap()[day.saturating_sub(1) as usize] += 1;
             }
             let envelope = melib::Envelope::from_bytes(post.message.as_slice(), None)
                 .expect("Could not parse mail");
@@ -108,19 +109,21 @@ pub async fn list(
             ret
         })
         .collect::<Vec<_>>();
-    let crumbs = vec![
-        Crumb {
-            label: "Home".into(),
-            url: "/".into(),
-        },
-        Crumb {
-            label: list.name.clone().into(),
-            url: ListPath(list.id.to_string().into()).to_crumb(),
-        },
-    ];
+
+    let crumbs = crumbs![Crumb {
+        label: list.name.clone().into(),
+        url: ListPath(list.id.to_string().into()).to_crumb(),
+    },];
     let list_owners = db.list_owners(list.pk)?;
     let mut list_obj = MailingList::from(list.clone());
     list_obj.set_safety(list_owners.as_slice(), &state.conf.administrators);
+    let has_more_months = if months.len() > 2 {
+        let len = months.len();
+        months.drain(0..(len - 2));
+        true
+    } else {
+        false
+    };
     let context = minijinja::context! {
         canonical_url => ListPath::from(&list).to_crumb(),
         page_title => &list.name,
@@ -129,7 +132,8 @@ pub async fn list(
         subscription_policy,
         preamble => true,
         months,
-        hists => &hist,
+        has_more_months,
+        hists,
         posts => posts_ctx,
         list => Value::from_object(list_obj),
         current_user => auth.current_user,
@@ -185,11 +189,7 @@ pub async fn list_post(
     {
         subject_ref = subject_ref[2 + list.id.len()..].trim();
     }
-    let crumbs = vec![
-        Crumb {
-            label: "Home".into(),
-            url: "/".into(),
-        },
+    let crumbs = crumbs![
         Crumb {
             label: list.name.clone().into(),
             url: ListPath(list.id.to_string().into()).to_crumb(),
@@ -294,11 +294,7 @@ pub async fn list_edit(
         .unwrap_or(0)
     };
 
-    let crumbs = vec![
-        Crumb {
-            label: "Home".into(),
-            url: "/".into(),
-        },
+    let crumbs = crumbs![
         Crumb {
             label: list.name.clone().into(),
             url: ListPath(list.id.to_string().into()).to_crumb(),
@@ -673,11 +669,7 @@ pub async fn list_subscribers(
         ret
     };
 
-    let crumbs = vec![
-        Crumb {
-            label: "Home".into(),
-            url: "/".into(),
-        },
+    let crumbs = crumbs![
         Crumb {
             label: list.name.clone().into(),
             url: ListPath(list.id.to_string().into()).to_crumb(),
@@ -761,11 +753,7 @@ pub async fn list_candidates(
         ret
     };
 
-    let crumbs = vec![
-        Crumb {
-            label: "Home".into(),
-            url: "/".into(),
-        },
+    let crumbs = crumbs![
         Crumb {
             label: list.name.clone().into(),
             url: ListPath(list.id.to_string().into()).to_crumb(),
@@ -794,5 +782,30 @@ pub async fn list_candidates(
         TEMPLATES
             .get_template("lists/sub-requests.html")?
             .render(context)?,
+    ))
+}
+
+/// Mailing list post search.
+#[allow(non_snake_case)]
+pub async fn list_search_query_GET(
+    ListSearchPath(id): ListSearchPath,
+    //mut session: WritableSession,
+    Query(query): Query<DateQueryParameter>,
+    //auth: AuthContext,
+    State(state): State<Arc<AppState>>,
+) -> Result<Html<String>, ResponseError> {
+    let db = Connection::open_db(state.conf.clone())?.trusted();
+    let Some(_list) = (match id {
+        ListPathIdentifier::Pk(id) => db.list(id)?,
+        ListPathIdentifier::Id(id) => db.list_by_id(id)?,
+    }) else {
+        return Err(ResponseError::new(
+            "List not found".to_string(),
+            StatusCode::NOT_FOUND,
+        ));
+    };
+    Err(ResponseError::new(
+        format!("{:#?}", query),
+        StatusCode::NOT_IMPLEMENTED,
     ))
 }
