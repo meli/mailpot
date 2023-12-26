@@ -743,45 +743,33 @@ pub mod auth_request {
 #[cfg(test)]
 mod tests {
     use super::*;
-    const PKEY: &str = concat!(
-        "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQCzXp8nLJL8GPNw7S+Dqt0m3Dw/",
-            "xFOAdwKXcekTFI9cLDEUII2rNPf0uUZTpv57OgU+",
-            "QOEEIvWMjz+5KSWBX8qdP8OtV0QNvynlZkEKZN0cUqGKaNXo5a+PUDyiJ2rHroPe1aMo6mUBL9kLR6J2U1CYD/dLfL8ywXsAGmOL0bsK0GRPVBJAjpUNRjpGU/",
-            "2FFIlU6s6GawdbDXEHDox/UoOVAKIlhKabaTrFBA0ACFLRX2/GCBmHqqt5d4ZZjefYzReLs/beOjafYImoyhHC428wZDcUjvLrpSJbIOE/",
-            "gSPCWlRbcsxg4JGcKOtALUurE+ok+avy9M7eFjGhLGSlTKLdshIVQr/3W667M7bYfOT6xP/",
-            "lyjxeWIUYyj7rjlqKJ9tzygek7QNxCtuqH5xsZAZqzQCN8wfrPAlwDykvWityKOw+Bt2DWjimITqyKgsBsOaA+",
-            "eVCllFvooJxoYvAjODASjAUoOdgVzyBDpFnOhLFYiIIyL3F6NROS9i7z086paX7mrzcQzvLr4ckF9qT7DrI88ikISCR9bFR4vPq3aH",
-            "zJdjDDpWxACa5b11NG8KdCJPe/L0kDw82Q00U13CpW9FI9sZjvk+",
-            "lyw8bTFvVsIl6A0ueboFvrNvznAqHrtfWu75fXRh5sKj2TGk8rhm3vyNgrBSr5zAfFVM8LgqBxbAAYw=="
-            );
 
+    /// This is the public key of RSA-1024 key "testRSA1024" of [RFC9500 **Standard Public Key Cryptography (PKC) Test Keys**](https://www.rfc-editor.org/rfc/rfc9500.html#section-2.1-2) in OpenSSH format, calculated with the script `testRSA1024_to_ssh.py` included in the source repository and here for reference.
+    ///
+    /// <details>
+    /// <summary>The source code of the script.</summary>
+    ///
+    /// ```python3
+    #[doc = include_str!("testRSA1024_to_ssh.py")]
+    /// ```
+    ///
+    /// </details>
+    const PKEY: &str = r#"ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAAAgQCw0YNSqI9T1VFvRsIOejZ9feiKz1SgGfbe9Xq5tEzt2yJCsbyg+xtcuCswNhdqY5A1ZN7G60HbL4/Hh/TlLhFJ4zNHVylz9mDDx3yp4IIcK2lb566dfTD0B5EQ9Iqub4twLUdLKQCBfyhmJJvsEqKxm4J4QWgI+Brh/Pm3d4piPw=="#;
+
+    /// The expected SSH signature for test `test_ssh_verify`
     const ARMOR_SIG: &str = concat!(
         "-----BEGIN SSH SIGNATURE-----\n",
-        "U1NIU0lHAAAAAQAAAhcAAAAHc3NoLXJzYQAAAAMBAAEAAAIBALNenycskvwY83DtL4Oq3S\n",
-        "bcPD/EU4B3Apdx6RMUj1wsMRQgjas09/S5RlOm/ns6BT5A4QQi9YyPP7kpJYFfyp0/w61X\n",
-        "RA2/KeVmQQpk3RxSoYpo1ejlr49QPKInaseug97VoyjqZQEv2QtHonZTUJgP90t8vzLBew\n",
-        "AaY4vRuwrQZE9UEkCOlQ1GOkZT/YUUiVTqzoZrB1sNcQcOjH9Sg5UAoiWEpptpOsUEDQAI\n",
-        "UtFfb8YIGYeqq3l3hlmN59jNF4uz9t46Np9giajKEcLjbzBkNxSO8uulIlsg4T+BI8JaVF\n",
-        "tyzGDgkZwo60AtS6sT6iT5q/L0zt4WMaEsZKVMot2yEhVCv/dbrrsztth85PrE/+XKPF5Y\n",
-        "hRjKPuuOWoon23PKB6TtA3EK26ofnGxkBmrNAI3zB+s8CXAPKS9aK3Io7D4G3YNaOKYhOr\n",
-        "IqCwGw5oD55UKWUW+ignGhi8CM4MBKMBSg52BXPIEOkWc6EsViIgjIvcXo1E5L2LvPTzql\n",
-        "pfuavNxDO8uvhyQX2pPsOsjzyKQhIJH1sVHi8+rdofMl2MMOlbEAJrlvXU0bwp0Ik978vS\n",
-        "QPDzZDTRTXcKlb0Uj2xmO+T6XLDxtMW9WwiXoDS55ugW+s2/OcCoeu19a7vl9dGHmwqPZM\n",
-        "aTyuGbe/I2CsFKvnMB8VUzwuCoHFsABjAAAAFGRvYy10ZXN0QGV4YW1wbGUuY29tAAAAAA\n",
-        "AAAAZzaGE1MTIAAAIUAAAADHJzYS1zaGEyLTUxMgAAAgBxaMqIfeapKTrhQzggDssD+76s\n",
-        "jZxv3XxzgsuAjlIdtw+/nyxU6skTnrGoam2shpmQvx0HuqSQ7HyS2USBK7T4LZNoE53zR/\n",
-        "ZmHLGoyQAoexiHSEW9Lk53kyRNPhpXQedTvm8REHPGM3zw6WO6mAXVVxvebvawf81LTbBb\n",
-        "p9ubNRcHgktVeywMO/sD6zWSyShq1gjVv1PdRBOjUgqkwjImL8dFKi1QUeoffCxyk3JhTO\n",
-        "siTy79HZSz/kOvkvL1vQuqaP2R8lE9P1uaD19dGOMTPRod3u+QmpYX47ri5KM3Fmkfxdwq\n",
-        "p8JVmfAA9nme7bmNS1hWgmF2Nbh9qjh1zOZvCimIpuNtz5eEl9K+1DxG6w5tX86wSGvBMO\n",
-        "znx0k1gGfkiAULqgrkdul7mqMPRvPN9J6QlNJ7SLFChRhzlJIJc6tOvCs7qkVD43Zcb+I5\n",
-        "Z+K4NiFf5jf8kVX/pjjeW/ucbrctJIkGsZ58OkHKi1EDRcq7NtCF6SKlcv8g3fMLd9wW6K\n",
-        "aaed0TBDC+s+f6naNIGvWqfWCwDuK5xGyDTTmJGcrsMwWuT9K6uLk8cGdv7t5mOFuWi5jl\n",
-        "E+IKZKVABMuWqSj96ErMIiBjtsAZfNSezpsK49wQztoSPhdwLhD6fHrSAyPCqN2xRkcsIb\n",
-        "6PxWKC/OELf3gyEBRPouxsF7xSZQ==\n",
-        "-----END SSH SIGNATURE-----\n"
+        "U1NIU0lHAAAAAQAAAJcAAAAHc3NoLXJzYQAAAAMBAAEAAACBALDRg1Koj1PVUW9Gwg56Nn\n",
+        "196IrPVKAZ9t71erm0TO3bIkKxvKD7G1y4KzA2F2pjkDVk3sbrQdsvj8eH9OUuEUnjM0dX\n",
+        "KXP2YMPHfKngghwraVvnrp19MPQHkRD0iq5vi3AtR0spAIF/KGYkm+wSorGbgnhBaAj4Gu\n",
+        "H8+bd3imI/AAAAFGRvYy10ZXN0QGV4YW1wbGUuY29tAAAAAAAAAAZzaGE1MTIAAACUAAAA\n",
+        "DHJzYS1zaGEyLTUxMgAAAIBPAklSrJp00Y0j+kN5UaD9YnWvYHfC8f3DWajVx8xJS634xz\n",
+        "zjI3E8UC8GNoMu9eljeZqMhKa5HucIDLv9PLLGxkR7wfZd5Wr/X3rd5Xnf3xthEOMFvYIs\n",
+        "tGr8Np8X+39FB2NtICLWLeiReT7fvc7Pw648tJSBaYW9mDCysaOidQ==\n",
+        "-----END SSH SIGNATURE-----\n",
     );
 
+    /// Utility function to create the same signature in every test.
     fn create_sig() -> SshSignature {
         SshSignature {
             email: "user@example.com".to_string(),
