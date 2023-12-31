@@ -32,6 +32,7 @@ use crate::{
     config::Configuration,
     errors::{ErrorKind::*, *},
     models::{changesets::MailingListChangeset, DbVal, ListOwner, MailingList, Post},
+    StripCarets,
 };
 
 /// A connection to a `mailpot` database.
@@ -589,6 +590,111 @@ impl Connection {
         }
 
         trace!("list_posts {:?}.", &ret);
+        Ok(ret)
+    }
+
+    /// Fetch the contents of a single thread in the form of `(depth, post)`
+    /// where `depth` is the reply distance between a message and the thread
+    /// root message.
+    pub fn list_thread(&self, list_pk: i64, root: &str) -> Result<Vec<(i64, DbVal<Post>)>> {
+        let mut stmt = self
+            .connection
+            .prepare(
+                "WITH RECURSIVE cte_replies AS MATERIALIZED
+            (
+                SELECT
+                pk,
+                message_id,
+                REPLACE(
+                    TRIM(
+                        SUBSTR(
+                            CAST(message AS TEXT),
+                            INSTR(
+                                CAST(message AS TEXT),
+                                'In-Reply-To: '
+                            )
+                            +
+                            LENGTH('in-reply-to: '),
+                            INSTR(
+                                SUBSTR(
+                                    CAST(message AS TEXT),
+                                    INSTR(
+                                        CAST(message AS TEXT),
+                                        'In-Reply-To: ')
+                                        +
+                                        LENGTH('in-reply-to: ')
+                                ),
+                                '>'
+                            )
+                        )
+                    ),
+                    ' ',
+                    ''
+                ) AS in_reply_to,
+                INSTR(
+                    CAST(message AS TEXT),
+                    'In-Reply-To: '
+                ) AS offset
+                FROM post
+                WHERE
+                    offset > 0
+                UNION
+                SELECT
+                pk,
+                message_id,
+                NULL AS in_reply_to,
+                INSTR(
+                    CAST(message AS TEXT),
+                    'In-Reply-To: '
+                ) AS offset
+                FROM post
+                WHERE
+                offset = 0
+            ),
+            cte_thread(parent, root, depth) AS (
+              SELECT DISTINCT
+                message_id AS parent,
+                message_id AS root,
+                0 AS depth
+              FROM cte_replies
+              WHERE
+                in_reply_to IS NULL
+              UNION ALL
+              SELECT
+                t.message_id AS parent,
+                cte_thread.root AS root,
+                (cte_thread.depth + 1) AS depth
+              FROM cte_replies
+              AS t
+              JOIN
+              cte_thread
+              ON cte_thread.parent = t.in_reply_to
+              WHERE t.in_reply_to IS NOT NULL
+)
+SELECT * FROM cte_thread WHERE root = ? ORDER BY root, depth;",
+            )
+            .unwrap();
+        let iter = stmt
+            .query_map(rusqlite::params![root], |row| {
+                let parent: String = row.get("parent")?;
+                let root: String = row.get("root")?;
+                let depth: i64 = row.get("depth")?;
+                Ok((parent, root, depth))
+            })?;
+        let mut ret = vec![];
+        for post in iter {
+            ret.push(post?);
+        }
+        let posts = self.list_posts(list_pk, None).unwrap();
+        let ret = ret.into_iter()
+            .filter_map(|(m, _, depth)| {
+                posts
+                    .iter()
+                    .find(|p| m.as_str().strip_carets() == p.message_id.as_str().strip_carets())
+                    .map(|p| (depth, p.clone()))
+            })
+            .skip(1)
+            .collect();
         Ok(ret)
     }
 

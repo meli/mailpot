@@ -19,6 +19,7 @@
 
 use chrono::TimeZone;
 use indexmap::IndexMap;
+use mailpot::models::Post;
 
 use super::*;
 
@@ -172,7 +173,20 @@ pub async fn list_post(
             StatusCode::NOT_FOUND,
         ));
     };
-    let thread = super::utils::thread_db(&db, list.pk, &post.message_id);
+    let thread: Vec<(i64, DbVal<Post>, String, String)> = {
+        let thread: Vec<(i64, DbVal<Post>)> = db.list_thread(list.pk, &post.message_id)?;
+
+        thread
+            .into_iter()
+            .map(|(depth, p)| {
+                let envelope = melib::Envelope::from_bytes(p.message.as_slice(), None).unwrap();
+                let body = envelope.body_bytes(p.message.as_slice());
+                let body_text = body.text();
+                let date = envelope.date_as_str().to_string();
+                (depth, p, body_text, date)
+            })
+            .collect()
+    };
     let envelope = melib::Envelope::from_bytes(post.message.as_slice(), None)
         .with_status(StatusCode::BAD_REQUEST)?;
     let body = envelope.body_bytes(post.message.as_slice());
