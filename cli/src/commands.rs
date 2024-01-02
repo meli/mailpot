@@ -637,6 +637,7 @@ pub fn flush_queue(db: &mut Connection, dry_run: bool, verbose: u8, debug: bool)
                 let mut child = std::process::Command::new("sh")
                     .arg("-c")
                     .arg(cmd)
+                    .env("TO_ADDRESS", msg.to_addresses.clone())
                     .stdout(Stdio::piped())
                     .stdin(Stdio::piped())
                     .stderr(Stdio::piped())
@@ -667,6 +668,15 @@ pub fn flush_queue(db: &mut Connection, dry_run: bool, verbose: u8, debug: bool)
                              process"
                         ))
                     })?;
+                    let result = child.wait_with_output()?;
+                    if !result.status.success() {
+                        return Err(Error::new_external(format!(
+                            "{} proccess failed with exit code: {:?}\n{}",
+                            cmd,
+                            result.status.code(),
+                            String::from_utf8(result.stderr).unwrap()
+                        )));
+                    }
                     Ok::<(), Error>(())
                 })?;
                 Ok(())
