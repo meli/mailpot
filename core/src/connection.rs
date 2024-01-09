@@ -674,19 +674,19 @@ impl Connection {
 SELECT * FROM cte_thread WHERE root = ? ORDER BY root, depth;",
             )
             .unwrap();
-        let iter = stmt
-            .query_map(rusqlite::params![root], |row| {
-                let parent: String = row.get("parent")?;
-                let root: String = row.get("root")?;
-                let depth: i64 = row.get("depth")?;
-                Ok((parent, root, depth))
-            })?;
+        let iter = stmt.query_map(rusqlite::params![root], |row| {
+            let parent: String = row.get("parent")?;
+            let root: String = row.get("root")?;
+            let depth: i64 = row.get("depth")?;
+            Ok((parent, root, depth))
+        })?;
         let mut ret = vec![];
         for post in iter {
             ret.push(post?);
         }
-        let posts = self.list_posts(list_pk, None).unwrap();
-        let ret = ret.into_iter()
+        let posts = self.list_posts(list_pk, None)?;
+        let ret = ret
+            .into_iter()
             .filter_map(|(m, _, depth)| {
                 posts
                     .iter()
@@ -696,6 +696,59 @@ SELECT * FROM cte_thread WHERE root = ? ORDER BY root, depth;",
             .skip(1)
             .collect();
         Ok(ret)
+    }
+
+    /// Export a list, message, or thread in mbox format
+    pub fn export_mbox(
+        &self,
+        pk: i64,
+        message_id: Option<&str>,
+        as_thread: bool,
+    ) -> Result<Vec<u8>> {
+        let posts: Result<Vec<DbVal<Post>>> = {
+            if let Some(message_id) = message_id {
+                if as_thread {
+                    // export a thread
+                    let thread = self.list_thread(pk, message_id)?;
+                    Ok(thread.iter().map(|item| item.1.clone()).collect())
+                } else {
+                    // export a single message
+                    let message =
+                        self.list_post_by_message_id(pk, message_id)?
+                            .ok_or_else(|| {
+                                Error::from(format!("no message with id: {}", message_id))
+                            })?;
+                    Ok(vec![message])
+                }
+            } else {
+                // export the entire mailing list
+                let posts = self.list_posts(pk, None)?;
+                Ok(posts)
+            }
+        };
+        let mut buf: Vec<u8> = Vec::new();
+        let mailbox = melib::mbox::MboxFormat::default();
+        for post in posts? {
+            let envelope_from = if let Some(address) = post.0.envelope_from {
+                let address = melib::Address::try_from(address.as_str())?;
+                Some(address)
+            } else {
+                None
+            };
+            let envelope = melib::Envelope::from_bytes(&post.0.message, None)?;
+            mailbox.append(
+                &mut buf,
+                &post.0.message.to_vec(),
+                envelope_from.as_ref(),
+                Some(envelope.timestamp),
+                (melib::Flag::PASSED, vec![]),
+                melib::mbox::MboxMetadata::None,
+                false,
+                false,
+            )?;
+        }
+        buf.flush()?;
+        Ok(buf)
     }
 
     /// Fetch the owners of a mailing list.
@@ -1261,5 +1314,68 @@ mod tests {
         sv.commit().unwrap();
         tx.commit().unwrap();
         assert_eq!(&db.lists().unwrap(), &[new, new2, new3]);
+    }
+
+    #[test]
+    fn test_mbox_export() {
+        use tempfile::TempDir;
+
+        use crate::SendMail;
+
+        let tmp_dir = TempDir::new().unwrap();
+        let db_path = tmp_dir.path().join("mpot.db");
+        let data_path = tmp_dir.path().to_path_buf();
+        let config = Configuration {
+            send_mail: SendMail::ShellCommand("/usr/bin/false".to_string()),
+            db_path,
+            data_path,
+            administrators: vec![],
+        };
+        let list = MailingList {
+            pk: 0,
+            name: "test".into(),
+            id: "test".into(),
+            description: None,
+            topics: vec![],
+            address: "test@example.com".into(),
+            archive_url: None,
+        };
+
+        let test_emails = vec![
+            r#"From: "User Name" <user@example.com>
+To: "test" <test@example.com>
+Subject: Hello World
+
+Hello, this is a message.
+
+Goodbye!
+
+"#,
+            r#"From: "User Name" <user@example.com>
+To: "test" <test@example.com>
+Subject: Fuu Bar
+
+Baz,
+
+Qux!
+
+"#,
+        ];
+        let db = Connection::open_or_create_db(config).unwrap().trusted();
+        db.create_list(list).unwrap();
+        for email in test_emails {
+            let envelope = melib::Envelope::from_bytes(email.as_bytes(), None).unwrap();
+            db.post(&envelope, email.as_bytes(), false).unwrap();
+        }
+        let mbox = String::from_utf8(db.export_mbox(1, None, false).unwrap()).unwrap();
+        assert!(
+            mbox.split('\n').fold(0, |accm, line| {
+                if line.starts_with("From MAILER-DAEMON") {
+                    accm + 1
+                } else {
+                    accm
+                }
+            }) == 2
+        )
     }
 }
