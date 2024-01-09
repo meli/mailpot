@@ -27,7 +27,7 @@ use std::{
 
 use mailpot::{
     melib,
-    melib::{backends::maildir::MaildirPathTrait, smol, Envelope, EnvelopeHash},
+    melib::{maildir::MaildirPathTrait, smol, Envelope, EnvelopeHash},
     models::{changesets::*, *},
     queue::{Queue, QueueEntry},
     transaction::TransactionBehavior,
@@ -802,7 +802,7 @@ pub fn import_maildir(
         EnvelopeHash(hasher.finish())
     }
     let mut buf = Vec::with_capacity(4096);
-    let files = melib::backends::maildir::MaildirType::list_mail_in_maildir_fs(maildir_path, true)
+    let files = melib::maildir::MaildirType::list_mail_in_maildir_fs(maildir_path, true)
         .context("Could not parse files in maildir path")?;
     let mut ctr = 0;
     for file in files {

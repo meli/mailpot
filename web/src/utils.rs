@@ -309,7 +309,7 @@ pub fn thread(
     let env_lock = envelopes.read().unwrap();
     let thread = threads.envelope_to_thread[&root_env_hash];
     let mut ret = vec![];
-    for (depth, t) in threads.thread_group_iter(thread) {
+    for (depth, t) in threads.thread_iter(thread) {
         let hash = threads.thread_nodes[&t].message.unwrap();
         ret.push(ThreadEntry {
             hash,

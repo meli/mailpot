@@ -371,7 +371,7 @@ impl MailingList {
             if let Some(val) = val {
                 draft
                     .headers
-                    .insert(melib::HeaderName::new_unchecked(hdr), val);
+                    .insert(melib::HeaderName::try_from(hdr).unwrap(), val);
             }
         }
     }

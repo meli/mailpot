@@ -31,7 +31,7 @@ pub fn datetime_header_value_lint(db: &mut Connection, dry_run: bool) -> Result<
         let iter = stmt.query_map([], |row| {
             let pk: i64 = row.get("pk")?;
             let date_s: String = row.get("datetime")?;
-            match melib::datetime::rfc822_to_timestamp(date_s.trim()) {
+            match melib::utils::datetime::rfc822_to_timestamp(date_s.trim()) {
                 Err(_) | Ok(0) => {
                     let mut timestamp: i64 = row.get("timestamp")?;
                     let created: i64 = row.get("created")?;
@@ -75,7 +75,11 @@ pub fn datetime_header_value_lint(db: &mut Connection, dry_run: bool) -> Result<
             {
                 v.to_rfc2822()
             } else if let Some(v) = timestamp.map(|t| {
-                melib::datetime::timestamp_to_string(t, Some(melib::datetime::RFC822_DATE), true)
+                melib::utils::datetime::timestamp_to_string(
+                    t,
+                    Some(melib::utils::datetime::formats::RFC822_DATE),
+                    true,
+                )
             }) {
                 v
             } else if let Ok(v) =

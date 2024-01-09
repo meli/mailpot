@@ -46,9 +46,9 @@ impl Connection {
         let datetime: std::borrow::Cow<'_, str> = if !env.date.is_empty() {
             env.date.as_str().into()
         } else {
-            melib::datetime::timestamp_to_string(
+            melib::utils::datetime::timestamp_to_string(
                 env.timestamp,
-                Some(melib::datetime::RFC822_DATE),
+                Some(melib::utils::datetime::formats::RFC822_DATE),
                 true,
             )
             .into()
@@ -710,15 +710,14 @@ impl Connection {
             })?;
 
         let mut draft = templ.render(context)?;
-        draft.headers.insert(
-            melib::HeaderName::new_unchecked("From"),
-            list.request_subaddr(),
-        );
+        draft
+            .headers
+            .insert(melib::HeaderName::FROM, list.request_subaddr());
         for addr in recipients {
             let mut draft = draft.clone();
             draft
                 .headers
-                .insert(melib::HeaderName::new_unchecked("To"), addr.to_string());
+                .insert(melib::HeaderName::TO, addr.to_string());
             list.insert_headers(
                 &mut draft,
                 post_policy.as_deref(),

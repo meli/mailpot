@@ -83,7 +83,7 @@ impl Template {
         };
         if let Some(ref subject) = self.subject {
             draft.headers.insert(
-                HeaderName::new_unchecked("Subject"),
+                HeaderName::SUBJECT,
                 env.render_named_str("subject", subject, &context)?,
             );
         }

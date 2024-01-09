@@ -109,11 +109,23 @@ fn test_out_queue_flush() {
         assert!(env.subject().starts_with(&format!("[{}] ", foo_chat.id)));
         let headers = env.other_headers();
 
-        assert_eq!(headers.get("List-Id"), Some(&foo_chat.id_header()));
-        assert_eq!(headers.get("List-Help"), foo_chat.help_header().as_ref());
         assert_eq!(
-            headers.get("List-Post"),
-            foo_chat.post_header(Some(&post_policy)).as_ref()
+            headers
+                .get(melib::HeaderName::LIST_ID)
+                .map(|header| header.to_string()),
+            Some(foo_chat.id_header())
+        );
+        assert_eq!(
+            headers
+                .get(melib::HeaderName::LIST_HELP)
+                .map(|header| header.to_string()),
+            foo_chat.help_header()
+        );
+        assert_eq!(
+            headers
+                .get(melib::HeaderName::LIST_POST)
+                .map(|header| header.to_string()),
+            foo_chat.post_header(Some(&post_policy))
         );
     };
 
@@ -306,11 +318,21 @@ fn test_list_requests_submission() {
     let headers_fn = |env: &melib::Envelope| {
         let headers = env.other_headers();
 
-        assert_eq!(headers.get("List-Id"), Some(&foo_chat.id_header()));
-        assert_eq!(headers.get("List-Help"), foo_chat.help_header().as_ref());
         assert_eq!(
-            headers.get("List-Post"),
-            foo_chat.post_header(Some(&post_policy)).as_ref()
+            headers.get(melib::HeaderName::LIST_ID),
+            Some(foo_chat.id_header().as_str())
+        );
+        assert_eq!(
+            headers
+                .get(melib::HeaderName::LIST_HELP)
+                .map(|header| header.to_string()),
+            foo_chat.help_header()
+        );
+        assert_eq!(
+            headers
+                .get(melib::HeaderName::LIST_POST)
+                .map(|header| header.to_string()),
+            foo_chat.post_header(Some(&post_policy))
         );
     };
 

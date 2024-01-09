@@ -40,7 +40,7 @@
 
 mod settings;
 use log::trace;
-use melib::Address;
+use melib::{Address, HeaderName};
 use percent_encoding::utf8_percent_encode;
 pub use settings::*;
 
@@ -168,7 +168,7 @@ impl PostFilter for AddListHeaders {
         trace!("Running AddListHeaders filter");
         let (mut headers, body) = melib::email::parser::mail(&post.bytes).unwrap();
         let sender = format!("<{}>", ctx.list.address);
-        headers.push((&b"Sender"[..], sender.as_bytes()));
+        headers.push((HeaderName::SENDER, sender.as_bytes()));
 
         let list_id = Some(ctx.list.id_header());
         let list_help = ctx.list.help_header();
@@ -182,12 +182,12 @@ impl PostFilter for AddListHeaders {
         let list_archive = ctx.list.archive_header();
 
         for (hdr, val) in [
-            (b"List-Id".as_slice(), &list_id),
-            (b"List-Help".as_slice(), &list_help),
-            (b"List-Post".as_slice(), &list_post),
-            (b"List-Unsubscribe".as_slice(), &list_unsubscribe),
-            (b"List-Subscribe".as_slice(), &list_subscribe),
-            (b"List-Archive".as_slice(), &list_archive),
+            (HeaderName::LIST_ID, &list_id),
+            (HeaderName::LIST_HELP, &list_help),
+            (HeaderName::LIST_POST, &list_post),
+            (HeaderName::LIST_UNSUBSCRIBE, &list_unsubscribe),
+            (HeaderName::LIST_SUBSCRIBE, &list_subscribe),
+            (HeaderName::LIST_ARCHIVE, &list_archive),
         ] {
             if let Some(val) = val {
                 headers.push((hdr, val.as_bytes()));
@@ -197,13 +197,13 @@ impl PostFilter for AddListHeaders {
         let mut new_vec = Vec::with_capacity(
             headers
                 .iter()
-                .map(|(h, v)| h.len() + v.len() + ": \r\n".len())
+                .map(|(h, v)| h.as_str().as_bytes().len() + v.len() + ": \r\n".len())
                 .sum::<usize>()
                 + "\r\n\r\n".len()
                 + body.len(),
         );
         for (h, v) in headers {
-            new_vec.extend_from_slice(h);
+            new_vec.extend_from_slice(h.as_str().as_bytes());
             new_vec.extend_from_slice(b": ");
             new_vec.extend_from_slice(v);
             new_vec.extend_from_slice(b"\r\n");
@@ -239,28 +239,25 @@ impl PostFilter for AddSubjectTagPrefix {
         trace!("Running AddSubjectTagPrefix filter");
         let (mut headers, body) = melib::email::parser::mail(&post.bytes).unwrap();
         let mut subject;
-        if let Some((_, subj_val)) = headers
-            .iter_mut()
-            .find(|(k, _)| k.eq_ignore_ascii_case(b"Subject"))
-        {
+        if let Some((_, subj_val)) = headers.iter_mut().find(|(k, _)| k == HeaderName::SUBJECT) {
             subject = format!("[{}] ", ctx.list.id).into_bytes();
             subject.extend(subj_val.iter().cloned());
             *subj_val = subject.as_slice();
         } else {
             subject = format!("[{}] (no subject)", ctx.list.id).into_bytes();
-            headers.push((&b"Subject"[..], subject.as_slice()));
+            headers.push((HeaderName::SUBJECT, subject.as_slice()));
         }
 
         let mut new_vec = Vec::with_capacity(
             headers
                 .iter()
-                .map(|(h, v)| h.len() + v.len() + ": \r\n".len())
+                .map(|(h, v)| h.as_str().as_bytes().len() + v.len() + ": \r\n".len())
                 .sum::<usize>()
                 + "\r\n\r\n".len()
                 + body.len(),
         );
         for (h, v) in headers {
-            new_vec.extend_from_slice(h);
+            new_vec.extend_from_slice(h.as_str().as_bytes());
             new_vec.extend_from_slice(b": ");
             new_vec.extend_from_slice(v);
             new_vec.extend_from_slice(b"\r\n");
@@ -315,18 +312,18 @@ impl PostFilter for ArchivedAtLink {
                 log::error!("ArchivedAtLink: {}", err);
             })?;
         let (mut headers, body) = melib::email::parser::mail(&post.bytes).unwrap();
-        headers.push((&b"Archived-At"[..], header_val.as_bytes()));
+        headers.push((HeaderName::ARCHIVED_AT, header_val.as_bytes()));
 
         let mut new_vec = Vec::with_capacity(
             headers
                 .iter()
-                .map(|(h, v)| h.len() + v.len() + ": \r\n".len())
+                .map(|(h, v)| h.as_str().as_bytes().len() + v.len() + ": \r\n".len())
                 .sum::<usize>()
                 + "\r\n\r\n".len()
                 + body.len(),
         );
         for (h, v) in headers {
-            new_vec.extend_from_slice(h);
+            new_vec.extend_from_slice(h.as_str().as_bytes());
             new_vec.extend_from_slice(b": ");
             new_vec.extend_from_slice(v);
             new_vec.extend_from_slice(b"\r\n");
