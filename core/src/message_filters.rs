@@ -42,7 +42,6 @@ mod settings;
 use log::trace;
 use melib::{Address, HeaderName};
 use percent_encoding::utf8_percent_encode;
-pub use settings::*;
 
 use crate::{
     mail::{ListContext, MailJob, PostAction, PostEntry},

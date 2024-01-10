@@ -276,7 +276,7 @@ pub async fn user_list_subscription(
         .list_subscription(
             list.pk(),
             subscriptions
-                .get(0)
+                .first()
                 .ok_or_else(|| {
                     ResponseError::new(
                         "Subscription not found".to_string(),

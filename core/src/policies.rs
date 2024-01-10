@@ -19,9 +19,6 @@
 
 //! How each list handles new posts and new subscriptions.
 
-pub use post_policy::*;
-pub use subscription_policy::*;
-
 mod post_policy {
     use log::trace;
     use rusqlite::OptionalExtension;

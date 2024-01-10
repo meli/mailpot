@@ -320,7 +320,7 @@ impl MailingList {
         Address::new(Some(self.name.clone()), self.address.clone())
     }
 
-    /// List unsubscribe action as a [`MailtoAddress`](super::MailtoAddress).
+    /// List unsubscribe action as a [`MailtoAddress`].
     pub fn unsubscription_mailto(&self) -> MailtoAddress {
         MailtoAddress {
             address: self.request_subaddr(),
@@ -328,7 +328,7 @@ impl MailingList {
         }
     }
 
-    /// List subscribe action as a [`MailtoAddress`](super::MailtoAddress).
+    /// List subscribe action as a [`MailtoAddress`].
     pub fn subscription_mailto(&self) -> MailtoAddress {
         MailtoAddress {
             address: self.request_subaddr(),
@@ -336,7 +336,7 @@ impl MailingList {
         }
     }
 
-    /// List owner as a [`MailtoAddress`](super::MailtoAddress).
+    /// List owner as a [`MailtoAddress`].
     pub fn owner_mailto(&self) -> MailtoAddress {
         let p = self.address.split('@').collect::<Vec<&str>>();
         MailtoAddress {

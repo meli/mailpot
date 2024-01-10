@@ -23,7 +23,7 @@ use std::{
     io::Write,
 };
 
-use clap::ArgAction;
+use clap::{ArgAction, CommandFactory};
 use clap_mangen::{roff, Man};
 use roff::{bold, italic, roman, Inline, Roff};
 

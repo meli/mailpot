@@ -67,7 +67,7 @@ pub struct PostfixConfiguration {
     #[serde(default)]
     pub process_limit: Option<u64>,
     /// The directory in which the map files are saved.
-    /// Default is `data_path` from [`Configuration`](crate::Configuration).
+    /// Default is `data_path` from [`Configuration`].
     #[serde(default)]
     pub map_output_path: Option<PathBuf>,
     /// The name of the Postfix service name to use.

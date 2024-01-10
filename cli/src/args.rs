@@ -19,7 +19,7 @@
 
 pub use std::path::PathBuf;
 
-pub use clap::{builder::TypedValueParser, Args, CommandFactory, Parser, Subcommand};
+pub use clap::{builder::TypedValueParser, Args, Parser, Subcommand};
 
 #[derive(Debug, Parser)]
 #[command(
