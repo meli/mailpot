@@ -59,20 +59,30 @@ pub async fn list(
         .collect::<HashMap<String, [usize; 31]>>();
     let envelopes: Arc<std::sync::RwLock<HashMap<melib::EnvelopeHash, melib::Envelope>>> =
         Default::default();
-    let mut env_lock = envelopes.write().unwrap();
+    {
+        let mut env_lock = envelopes.write().unwrap();
 
-    for post in &posts {
-        let envelope = melib::Envelope::from_bytes(post.message.as_slice(), None)
-            .expect("Could not parse mail");
-        env_lock.insert(envelope.hash(), envelope);
+        for post in &posts {
+            let Ok(mut envelope) = melib::Envelope::from_bytes(post.message.as_slice(), None)
+            else {
+                continue;
+            };
+            if envelope.message_id != post.message_id.as_str() {
+                // If they don't match, the raw envelope doesn't contain a Message-ID and it was
+                // randomly generated. So set the envelope's Message-ID to match the
+                // post's, which is the "permanent" one since our source of truth is
+                // the database.
+                envelope.set_message_id(post.message_id.as_bytes());
+            }
+            env_lock.insert(envelope.hash(), envelope);
+        }
     }
     let mut threads: melib::Threads = melib::Threads::new(posts.len());
-    drop(env_lock);
     threads.amend(&envelopes);
     let roots = thread_roots(&envelopes, &threads);
     let posts_ctx = roots
         .into_iter()
-        .map(|(thread, length, _timestamp)| {
+        .filter_map(|(thread, length, _timestamp)| {
             let post = &post_map[&thread.message_id.as_str()];
             //2019-07-14T14:21:02
             if let Some(day) =
@@ -82,8 +92,7 @@ pub async fn list(
             {
                 hist.get_mut(&post.month_year).unwrap()[day.saturating_sub(1) as usize] += 1;
             }
-            let envelope = melib::Envelope::from_bytes(post.message.as_slice(), None)
-                .expect("Could not parse mail");
+            let envelope = melib::Envelope::from_bytes(post.message.as_slice(), None).ok()?;
             let mut msg_id = &post.message_id[1..];
             msg_id = &msg_id[..msg_id.len().saturating_sub(1)];
             let subject = envelope.subject();
@@ -106,7 +115,7 @@ pub async fn list(
                 replies => length.saturating_sub(1),
                 last_active => thread.datetime,
             };
-            ret
+            Some(ret)
         })
         .collect::<Vec<_>>();
     let crumbs = vec![

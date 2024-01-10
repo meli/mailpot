@@ -290,6 +290,7 @@ where
         .serialize(ser)
 }
 
+#[derive(Debug, Clone)]
 pub struct ThreadEntry {
     pub hash: melib::EnvelopeHash,
     pub depth: usize,
