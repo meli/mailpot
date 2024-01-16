@@ -18,12 +18,24 @@ Tool for mailpot mailing list management.
 .TP
 \-d, \-\-debug
 Print logs.
+.br
+
+.br
+
+.br
+[\fIpossible values: \fRtrue, false]
 .TP
 \-c, \-\-config \fICONFIG\fR
 Configuration file to use.
 .TP
 \-q, \-\-quiet
 Silence all output.
+.br
+
+.br
+
+.br
+[\fIpossible values: \fRtrue, false]
 .TP
 \-v, \-\-verbose
 Verbose mode (\-v, \-vv, \-vvv, etc).
@@ -101,6 +113,12 @@ Prints a sample config file to STDOUT.
 .TP
 \-\-with\-smtp
 Use an SMTP connection instead of a shell process.
+.br
+
+.br
+
+.br
+[\fIpossible values: \fRtrue, false]
 .ie \n(.g .ds Aq \(aq
 .el .ds Aq '
 .\fB
@@ -356,6 +374,12 @@ The primary key of the request.
 .TP
 \-\-do\-not\-send\-confirmation
 Do not send confirmation e\-mail.
+.br
+
+.br
+
+.br
+[\fIpossible values: \fRtrue, false]
 .ie \n(.g .ds Aq \(aq
 .el .ds Aq '
 .\fB
@@ -388,18 +412,48 @@ Add a new post policy.
 .TP
 \-\-announce\-only
 Only list owners can post.
+.br
+
+.br
+
+.br
+[\fIpossible values: \fRtrue, false]
 .TP
 \-\-subscription\-only
 Only subscriptions can post.
+.br
+
+.br
+
+.br
+[\fIpossible values: \fRtrue, false]
 .TP
 \-\-approval\-needed
 Subscriptions can post. Other posts must be approved by list owners.
+.br
+
+.br
+
+.br
+[\fIpossible values: \fRtrue, false]
 .TP
 \-\-open
 Anyone can post without restrictions.
+.br
+
+.br
+
+.br
+[\fIpossible values: \fRtrue, false]
 .TP
 \-\-custom
 Allow posts, but handle it manually.
+.br
+
+.br
+
+.br
+[\fIpossible values: \fRtrue, false]
 .ie \n(.g .ds Aq \(aq
 .el .ds Aq '
 .\fB
@@ -431,18 +485,48 @@ Add subscription policy to list.
 .TP
 \-\-send\-confirmation
 Send confirmation e\-mail when subscription is finalized.
+.br
+
+.br
+
+.br
+[\fIpossible values: \fRtrue, false]
 .TP
 \-\-open
 Anyone can subscribe without restrictions.
+.br
+
+.br
+
+.br
+[\fIpossible values: \fRtrue, false]
 .TP
 \-\-manual
 Only list owners can manually add subscriptions.
+.br
+
+.br
+
+.br
+[\fIpossible values: \fRtrue, false]
 .TP
 \-\-request
 Anyone can request to subscribe.
+.br
+
+.br
+
+.br
+[\fIpossible values: \fRtrue, false]
 .TP
 \-\-custom
 Allow subscriptions, but handle it manually.
+.br
+
+.br
+
+.br
+[\fIpossible values: \fRtrue, false]
 .ie \n(.g .ds Aq \(aq
 .el .ds Aq '
 .\fB
@@ -639,9 +723,21 @@ List ID of remote list to query.
 .TP
 \-\-dry\-run
 Show what would be inserted without performing any changes.
+.br
+
+.br
+
+.br
+[\fIpossible values: \fRtrue, false]
 .TP
 \-\-skip\-owners
 Don\*(Aqt import list owners.
+.br
+
+.br
+
+.br
+[\fIpossible values: \fRtrue, false]
 .ie \n(.g .ds Aq \(aq
 .el .ds Aq '
 .\fB
@@ -686,6 +782,12 @@ Post message from STDIN to list.
 .TP
 \-\-dry\-run
 Show e\-mail processing result without actually consuming it.
+.br
+
+.br
+
+.br
+[\fIpossible values: \fRtrue, false]
 .ie \n(.g .ds Aq \(aq
 .el .ds Aq '
 .\fB
@@ -702,6 +804,12 @@ Flush outgoing e\-mail queue.
 .TP
 \-\-dry\-run
 Show e\-mail processing result without actually consuming it.
+.br
+
+.br
+
+.br
+[\fIpossible values: \fRtrue, false]
 .ie \n(.g .ds Aq \(aq
 .el .ds Aq '
 .\fB
@@ -992,21 +1100,57 @@ Show and fix possible data mistakes or inconsistencies.
 .TP
 \-\-fix
 Fix errors (default: false).
+.br
+
+.br
+
+.br
+[\fIpossible values: \fRtrue, false]
 .TP
 \-\-all
 Select all tests (default: false).
+.br
+
+.br
+
+.br
+[\fIpossible values: \fRtrue, false]
 .TP
 \-\-datetime\-header\-value
 Post `datetime` column must have the Date: header value, in RFC2822 format.
+.br
+
+.br
+
+.br
+[\fIpossible values: \fRtrue, false]
 .TP
 \-\-remove\-empty\-accounts
 Remove accounts that have no matching subscriptions.
+.br
+
+.br
+
+.br
+[\fIpossible values: \fRtrue, false]
 .TP
 \-\-remove\-accepted\-subscription\-requests
 Remove subscription requests that have been accepted.
+.br
+
+.br
+
+.br
+[\fIpossible values: \fRtrue, false]
 .TP
 \-\-warn\-list\-no\-owner
 Warn if a list has no owners.
+.br
+
+.br
+
+.br
+[\fIpossible values: \fRtrue, false]
 .ie \n(.g .ds Aq \(aq
 .el .ds Aq '
 .SH AUTHORS
