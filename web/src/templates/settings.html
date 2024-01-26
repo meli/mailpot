@@ -3,7 +3,7 @@
     {{ heading(3,"Your account","account") }}
     <div class="entries">
         <div class="entry">
-            <span>Display name: <span class="value{% if not user.name %} empty{% endif %}">{{ user.name if user.name else "None" }}</span></span>
+            <span>Display name: <span class="value{% if not user.name %} empty{% endif %}"><bdi>{{ user.name if user.name else "None" }}</bdi></span></span>
         </div>
         <div class="entry">
             <span>Address: <span class="value">{{ user.address }}</span></span>

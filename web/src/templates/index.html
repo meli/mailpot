@@ -3,7 +3,7 @@
     <div class="body">
         <ul>
             {% for l in lists %}
-                <li><a href="{{ list_path(l.list.id) }}">{{ l.list.name }}</a></li>
+                <li><a href="{{ list_path(l.list.id) }}"><bdi>{{ l.list.name }}</bdi></a></li>
             {% endfor %}
         </ul>
     </div>

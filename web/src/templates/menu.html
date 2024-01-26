@@ -3,7 +3,7 @@
         <li><a role="menuitem" href="{{ urlize("") }}/">Index</a></li>
         <li><a role="menuitem" href="{{ help_path() }}">Help&nbsp;&amp; Documentation</a></li>
         {% if current_user %}
-            <li class="push">Settings: <a role="menuitem" href="{{ settings_path() }}" title="User settings">{{ current_user.address }}</a></li>
+            <li class="push">Settings: <a role="menuitem" href="{{ settings_path() }}" title="User settings"><bdi>{{ current_user.address }}</bdi></a></li>
         {% else %}
             <li class="push"><a role="menuitem" href="{{ login_path() }}" title="login with one time password using your SSH key">Login with SSH OTP</a></li>
         {% endif %}

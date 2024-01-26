@@ -10,9 +10,9 @@
     <body>
         <main class="layout">
             <div class="header">
-                <h1>{{ site_title }}</h1>
+                <h1><bdi>{{ site_title }}</bdi></h1>
                 {% if site_subtitle %}
-                    <p class="site-subtitle">{{ site_subtitle|safe }}</p>
+                    <p class="site-subtitle"><bdi>{{ site_subtitle|safe }}</bdi></p>
                 {% endif %}
                 {% include "menu.html" %}
                 <div class="page-header">
@@ -20,7 +20,7 @@
                         <ol id="breadcrumb-menu" role="menu" aria-label="Breadcrumb menu">{% for crumb in crumbs %}<li class="crumb" aria-describedby="bread_{{ loop.index }}">{% if loop.last %}<span role="menuitem" id="bread_{{ loop.index }}" aria-current="page" title="current page">{{ crumb.label }}</span>{% else %}<a role="menuitem" id="bread_{{ loop.index }}" href="{{ urlize(crumb.url) }}" tabindex="0">{{ crumb.label }}</a>{% endif %}</li>{% endfor %}</ol>
                     </nav>{% endif %}
                     {% if page_title %}
-                        <h2 class="page-title">{{ page_title }}</h2>
+                        <h2 class="page-title"><bdi>{{ page_title }}</bdi></h2>
                     {% endif %}
                     {% if messages %}
                         <ul class="messagelist">

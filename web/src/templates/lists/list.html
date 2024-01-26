@@ -103,7 +103,7 @@
             {% for post in posts %}
                 <div class="entry" role="listitem" aria-labelledby="post_link_{{ loop.index }}">
                     <span class="subject"><a id="post_link_{{ loop.index }}" href="{{ list_post_path(list.id, post.message_id) }}">{{ post.subject }}</a>&nbsp;<span class="metadata replies" title="reply count">{{ post.replies }} repl{{ post.replies|pluralize("y","ies") }}</span></span>
-                    <span class="metadata"><span aria-hidden="true">👤&nbsp;</span><span class="from" title="post author">{{ post.address }}</span><span aria-hidden="true"> 📆&nbsp;</span><span class="date" title="post date">{{ post.datetime }}</span></span>
+                    <span class="metadata"><span aria-hidden="true">👤&nbsp;</span><span class="from" title="post author"><bdi>{{ post.address }}</bdi></span><span aria-hidden="true"> 📆&nbsp;</span><span class="date" title="post date">{{ post.datetime }}</span></span>
                     {% if post.replies > 0 %}<span class="metadata"><span aria-hidden="true">&#x1F493;&nbsp;</span><span class="last-active" title="latest thread activity">{{ post.last_active }}</span></span>{% endif %}
                     <span class="metadata"><span aria-hidden="true">🪪 </span><span class="message-id" title="e-mail Message-ID">{{ post.message_id }}</span></span>
                 </div>

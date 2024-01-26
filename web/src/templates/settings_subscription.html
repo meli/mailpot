@@ -2,12 +2,12 @@
 <div class="body body-grid">
     {{ heading(3, "Your subscription to <a href=\"" ~ list_path(list.id) ~ "\">" ~ list.id ~ "</a>.","subscription") }}
     <address>
-        {{ list.name }} <a href="mailto:{{ list.address | safe }}"><code>{{ list.address }}</code></a>
+        <bdi>{{ list.name }}</bdi> <a href="mailto:{{ list.address | safe }}"><code>{{ list.address }}</code></a>
     </address>
     {% if list.is_description_html_safe %}
         {{ list.description|safe}}
     {% else %}
-        <p>{{ list.description }}</p>
+        <p><bdi>{{ list.description }}</bdi></p>
     {% endif %}
     {% if list.archive_url %}
         <p><a href="{{ list.archive_url }}">{{ list.archive_url }}</a></p>
