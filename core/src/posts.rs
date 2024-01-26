@@ -658,7 +658,7 @@ impl Connection {
     ) -> Result<Option<DbVal<Post>>> {
         let mut stmt = self.connection.prepare(
             "SELECT *, strftime('%Y-%m', CAST(timestamp AS INTEGER), 'unixepoch') AS month_year \
-             FROM post WHERE list = ? AND message_id = ?;",
+             FROM post WHERE list = ?1 AND (message_id = ?2 OR concat('<', ?2, '>') = message_id);",
         )?;
         let ret = stmt
             .query_row(rusqlite::params![&list_pk, &message_id], |row| {

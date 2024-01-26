@@ -221,6 +221,33 @@ impl StripCarets for &str {
     }
 }
 
+/// Trait for stripping carets ('<','>') from Message IDs inplace.
+pub trait StripCaretsInplace {
+    /// If `self` is surrounded by carets, strip them.
+    fn strip_carets_inplace(self) -> Self;
+}
+
+impl StripCaretsInplace for &str {
+    fn strip_carets_inplace(self) -> Self {
+        let mut self_ref = self.trim();
+        if self_ref.starts_with('<') && self_ref.ends_with('>') {
+            self_ref = &self_ref[1..self_ref.len().saturating_sub(1)];
+        }
+        self_ref
+    }
+}
+
+impl StripCaretsInplace for String {
+    fn strip_carets_inplace(mut self) -> Self {
+        if self.starts_with('<') && self.ends_with('>') {
+            self.drain(0..1);
+            let len = self.len();
+            self.drain(len.saturating_sub(1)..len);
+        }
+        self
+    }
+}
+
 use percent_encoding::CONTROLS;
 pub use percent_encoding::{utf8_percent_encode, AsciiSet};
 

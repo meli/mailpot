@@ -19,7 +19,7 @@
 
 use chrono::TimeZone;
 use indexmap::IndexMap;
-use mailpot::models::Post;
+use mailpot::{models::Post, StripCarets, StripCaretsInplace};
 
 use super::*;
 
@@ -228,7 +228,7 @@ pub async fn list_post(
     list_obj.set_safety(list_owners.as_slice(), &state.conf.administrators);
 
     let context = minijinja::context! {
-        canonical_url => ListPostPath(ListPathIdentifier::from(list.id.clone()), msg_id.to_string()).to_crumb(),
+        canonical_url => ListPostPath(ListPathIdentifier::from(list.id.clone()), msg_id.to_string().strip_carets_inplace()).to_crumb(),
         page_title => subject_ref,
         description => &list.description,
         list => Value::from_object(list_obj),
@@ -239,8 +239,8 @@ pub async fn list_post(
         to => &envelope.field_to_to_string(),
         subject => &envelope.subject(),
         trimmed_subject => subject_ref,
-        in_reply_to => &envelope.in_reply_to_display().map(|r| r.to_string().as_str().strip_carets().to_string()),
-        references => &envelope.references().into_iter().map(|m| m.to_string().as_str().strip_carets().to_string()).collect::<Vec<String>>(),
+        in_reply_to => &envelope.in_reply_to_display().map(|r| r.to_string().strip_carets_inplace()),
+        references => &envelope.references().into_iter().map(|m| m.to_string().strip_carets_inplace()).collect::<Vec<String>>(),
         message_id => msg_id,
         message => post.message,
         timestamp => post.timestamp,

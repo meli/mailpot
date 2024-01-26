@@ -177,13 +177,10 @@ macro_rules! list_post_impl {
             msg_id: Value,
         ) -> std::result::Result<Value, Error> {
             urlize(state, {
-                let Some(msg_id) = msg_id.as_str().map(|s| {
-                    if s.starts_with('<') && s.ends_with('>') {
-                        s.to_string()
-                    } else {
-                        format!("<{s}>")
-                    }
-                }) else {
+                let Some(msg_id) = msg_id
+                    .as_str()
+                    .map(|s| s.to_string().strip_carets_inplace())
+                else {
                     return Err(Error::new(
                         minijinja::ErrorKind::UnknownMethod,
                         "Second argument of list_post_path must be a string.",
