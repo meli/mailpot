@@ -40,8 +40,8 @@ rand = { version = "^0.8", features = ["min_const_gen"] }
 serde = { version = "^1", features = ["derive", ] }
 serde_json = "^1"
 ssh-key = { version = "0.6.2", optional = true, features = ["crypto"] }
-stderrlog = "^0.5"
-tempfile =  { version = "^3.5" }
+stderrlog = { version = "^0.6" }
+tempfile = { version = "3.9" }
 tokio = { version = "1", features = ["full"] }
 tower-http = { version = "^0.3" }
 tower-service = { version = "^0.3" }
@@ -51,7 +51,7 @@ zstd = { version = "0.12", default-features = false }
 hyper = { version = "0.14" }
 mailpot-tests = { version = "^0.1", path = "../mailpot-tests" }
 serde_urlencoded = { version = "^0.7" }
-tempfile = { version = "3.3" }
+tempfile = { version = "3.9" }
 tower = { version = "^0.4" }
 
 [build-dependencies]
