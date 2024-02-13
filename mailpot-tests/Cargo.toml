@@ -13,7 +13,7 @@ publish = false
 assert_cmd = "2"
 log = "0.4"
 mailin-embedded = { version = "0.7", features = ["rtls"] }
-mailpot = { version = "^0.1", path = "../core" }
+mailpot = { version = "^0.1", path = "../mailpot" }
 predicates = "3"
 stderrlog = { version = "^0.6" }
 tempfile = { version = "3.9" }

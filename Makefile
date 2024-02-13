@@ -6,7 +6,7 @@ DJHTMLBIN    = djhtml
 BLACKBIN     = black
 PRINTF       = /usr/bin/printf
 
-HTML_FILES   := $(shell find web/src/templates -type f -print0 | tr '\0' ' ')
+HTML_FILES   := $(shell find mailpot-web/src/templates -type f -print0 | tr '\0' ' ')
 PY_FILES     := $(shell find . -type f -name '*.py' -print0 | tr '\0' ' ')
 
 .PHONY: check

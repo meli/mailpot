@@ -18,7 +18,7 @@ path = "src/main.rs"
 [dependencies]
 chrono = { version = "^0.4" }
 lazy_static = "^1.4"
-mailpot = { version = "^0.1", path = "../core" }
+mailpot = { version = "^0.1", path = "../mailpot" }
 minijinja = { version = "0.31.0", features = ["source", ] }
 percent-encoding = { version = "^2.1", optional = true }
 serde = { version = "^1", features = ["derive", ] }

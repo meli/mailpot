@@ -1,12 +1,13 @@
 [workspace]
 resolver = "2"
+
 members = [
-  "archive-http",
-  "cli",
-  "core",
+  "mailpot",
+  "mailpot-archives",
+  "mailpot-cli",
+  "mailpot-http",
   "mailpot-tests",
-  "rest-http",
-  "web",
+  "mailpot-web",
 ]
 
 [profile.release]
