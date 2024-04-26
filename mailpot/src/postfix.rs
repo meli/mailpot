@@ -412,6 +412,7 @@ fn test_postfix_generation() -> Result<()> {
         let mut conf = OpenOptions::new()
             .write(true)
             .create(true)
+            .truncate(true)
             .open(&config_path)?;
         conf.write_all(config.to_toml().as_bytes())?;
         conf.flush()?;
@@ -575,7 +576,11 @@ mailman   unix  -       n       n       -       -       pipe
 
     let path = tmp_dir.path().join("master.cf");
     {
-        let mut mastercf = OpenOptions::new().write(true).create(true).open(&path)?;
+        let mut mastercf = OpenOptions::new()
+            .write(true)
+            .create(true)
+            .truncate(true)
+            .open(&path)?;
         mastercf.write_all(master_edit_value.as_bytes())?;
         mastercf.flush()?;
     }

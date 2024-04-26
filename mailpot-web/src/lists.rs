@@ -218,7 +218,7 @@ pub async fn list_post(
             url: ListPath(list.id.to_string().into()).to_crumb(),
         },
         Crumb {
-            label: format!("{} {msg_id}", subject_ref).into(),
+            label: format!("{} <{}>", subject_ref, msg_id.as_str().strip_carets()).into(),
             url: ListPostPath(list.id.to_string().into(), msg_id.to_string()).to_crumb(),
         },
     ];

@@ -231,7 +231,7 @@ pub async fn settings_POST(
                 level: Level::Success,
             })?;
             let mut user = user.clone();
-            user.name = new.clone();
+            user.name.clone_from(&new);
             state.insert_user(acc.pk(), user).await;
         }
     }

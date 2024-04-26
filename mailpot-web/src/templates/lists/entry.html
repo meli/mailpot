@@ -10,12 +10,24 @@
             <td><bdi>{{ post.address }}</bdi></td>
         </tr>
         <tr>
+            <th scope="row">To:</th>
+            <td><bdi>{% if post.to %}{{ post.to }}{% else %}{{ list.address }}{% endif %}</bdi></td>
+        </tr>
+        {% if post.cc %}
+            <tr>
+                <th scope="row">Cc:</th>
+                <td><bdi>{{ post.cc }}</bdi></td>
+            </tr>
+        {% endif %}
+        <tr>
             <th scope="row">Date:</th>
             <td class="faded">{{ post.datetime }}</td>
         </tr>
         <tr>
             <th scope="row">Message-ID:</th>
-            <td class="faded message-id"><a href="{{ list_post_path(list.id, post.message_id) }}">{{ strip_carets(post.message_id) }}</a></td>
+            <td class="faded"><span class="message-id">{{ strip_carets(post.message_id) }}</span>
+                <a href="{{ list_post_path(list.id, post.message_id) }}">permalink</a> / <a href="{{ post_raw_path(list.id, post.message_id) }}" title="View raw content" type="text/plain">raw</a> / <a href="{{ post_eml_path(list.id, post.message_id) }}" title="Download as RFC 5322 format" type="message/rfc822" download>eml</a> / <a href="{{ post_mbox_path(list.id, post.message_id) }}" title="Download as an MBOX" type="application/mbox" download>mbox</a>
+            </td>
         </tr>
         {% if in_reply_to %}
             <tr>
@@ -29,11 +41,11 @@
                 <td>{% for r in references %}<span class="faded message-id"><a href="{{ list_post_path(list.id, r) }}">{{ r }}</a></span>{% endfor %}</td>
             </tr>
         {% endif %}
-        <tr>
-            <td colspan="2"><details class="reply-details"><summary>more …</summary><a href="{{ post_raw_path(list.id, post.message_id) }}">View raw</a>  <a href="{{ post_eml_path(list.id, post.message_id) }}">Download as <code>eml</code> (RFC 5322 format)</a></details></td>
-        </tr>
     </table>
     <div class="post-body">
         <pre {% if odd %}style="--background-secondary: var(--background-critical);" {% endif %}title="E-mail text content">{{ body|trim }}</pre>
+    </div>
+    <div class="post-reply-link">{# [ref:TODO] also reply to list email. #}
+        <a href="mailto:{{ url_encode(post.address) }}?In-Reply-To={{ url_encode(ensure_carets(post.message_id)) }}&amp;{% if post.cc %}Cc={{ url_encode(post.cc) }}&amp;{% endif %}Subject=Re%3A{{ url_encode(subject) }}">Reply</a>
     </div>
 </div>

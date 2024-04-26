@@ -17,4 +17,8 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
+//[tag:embed_templates]
+/// This is an array of all templates compressed for smaller binary size.
+///
+/// Compression happens at compile-time in the `build.rs` script.
 pub const COMPRESSED: &[(&str, &[u8])] = include!("compressed.data");

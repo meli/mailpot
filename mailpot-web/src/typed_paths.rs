@@ -95,6 +95,10 @@ pub struct ListPostRawPath(pub ListPathIdentifier, pub String);
 pub struct ListPostEmlPath(pub ListPathIdentifier, pub String);
 
 #[derive(Debug, PartialEq, Eq, Clone, serde::Deserialize, serde::Serialize, TypedPath)]
+#[typed_path("/list/:id/posts/:msgid/mbox/")]
+pub struct ListPostMboxPath(pub ListPathIdentifier, pub String);
+
+#[derive(Debug, PartialEq, Eq, Clone, serde::Deserialize, serde::Serialize, TypedPath)]
 #[typed_path("/list/:id/edit/")]
 pub struct ListEditPath(pub ListPathIdentifier);
 
@@ -209,6 +213,7 @@ macro_rules! list_post_impl {
 list_post_impl!(list_post_path, ListPostPath);
 list_post_impl!(post_raw_path, ListPostRawPath);
 list_post_impl!(post_eml_path, ListPostEmlPath);
+list_post_impl!(post_mbox_path, ListPostMboxPath);
 
 pub mod tsr {
     use std::{borrow::Cow, convert::Infallible};

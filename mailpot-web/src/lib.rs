@@ -92,7 +92,6 @@ pub mod typed_paths;
 pub mod utils;
 
 pub use auth::*;
-pub use cal::{calendarize, *};
 pub use help::*;
 pub use lists::{
     list, list_candidates, list_edit, list_edit_POST, list_post, list_post_eml, list_post_raw,
