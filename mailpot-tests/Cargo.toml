@@ -12,7 +12,7 @@ publish = false
 [dependencies]
 assert_cmd = "2"
 log = "0.4"
-mailin-embedded = { version = "0.7", features = ["rtls"] }
+mailin-embedded = { version = "0.8", features = ["rtls"] }
 mailpot = { version = "^0.1", path = "../mailpot" }
 predicates = "3"
 stderrlog = { version = "^0.6" }

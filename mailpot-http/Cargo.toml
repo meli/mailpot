@@ -21,7 +21,7 @@ axum = { version = "0.6", features = ["headers"] }
 axum-extra = { version = "^0.7", features = ["typed-routing"] }
 #jsonwebtoken = "8.3"
 bcrypt = "0.14"
-config = "0.13"
+config = { version = "0.14", default-features = false, features = ["toml"] }
 http = "0.2"
 lazy_static = "1.4"
 log = "0.4"

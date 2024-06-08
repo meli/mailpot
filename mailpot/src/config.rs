@@ -134,9 +134,7 @@ impl Configuration {
 
     /// Serialize configuration to a TOML string.
     pub fn to_toml(&self) -> String {
-        toml::Value::try_from(self)
-            .expect("Could not serialize config to TOML")
-            .to_string()
+        toml::ser::to_string(self).expect("Could not serialize config to TOML")
     }
 }
 
@@ -158,8 +156,7 @@ mod tests {
                 .display_chain()
                 .to_string(),
             format!(
-                "[1] Could not parse configuration file `{}` successfully:  Caused by:\n[2] \
-                 Error: expected an equals, found an identifier at line 1 column 8\n",
+                "[1] Could not parse configuration file `{}` successfully:  Caused by:\n[2] Error: TOML parse error at line 1, column 8\n  |\n1 | afjsad skas as a as\n  |        ^\nexpected `.`, `=`\n\n",
                 conf_path.display()
             ),
         );

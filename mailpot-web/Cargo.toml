@@ -24,12 +24,12 @@ axum = { version = "^0.6" }
 axum-extra = { version = "^0.7", features = ["typed-routing"] }
 axum-login = { version = "^0.5" }
 axum-sessions = { version = "^0.5" }
-build-info = { version = "0.0.31" }
+build-info = { version = "0.0.36" }
 cfg-if = { version = "1" }
 chrono = { version = "^0.4" }
 convert_case = { version = "^0.4" }
 dyn-clone = { version = "^1" }
-eyre = { version = "0.6" }
+eyre = { version = "0.6.12" }
 http = "0.2"
 indexmap = { version = "1.9" }
 lazy_static = "^1.4"
@@ -45,7 +45,7 @@ tempfile = { version = "3.9" }
 tokio = { version = "1", features = ["full"] }
 tower-http = { version = "^0.3" }
 tower-service = { version = "^0.3" }
-zstd = { version = "0.12", default-features = false }
+zstd = { version = "0.13.1", default-features = false }
 
 [dev-dependencies]
 hyper = { version = "0.14" }
@@ -55,5 +55,5 @@ tempfile = { version = "3.9" }
 tower = { version = "^0.4" }
 
 [build-dependencies]
-build-info-build = { version = "0.0.31" }
-zstd = { version = "0.12", default-features = false }
+build-info-build = { version = "0.0.36" }
+zstd = { version = "0.13.1", default-features = false }
