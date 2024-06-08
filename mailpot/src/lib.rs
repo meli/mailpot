@@ -257,3 +257,117 @@ const PATH: &AsciiSet = &FRAGMENT.add(b'#').add(b'?').add(b'{').add(b'}');
 
 /// Set for percent encoding URL components.
 pub const PATH_SEGMENT: &AsciiSet = &PATH.add(b'/').add(b'%');
+
+mod helpers {
+    use std::borrow::Cow;
+
+    use data_encoding::Encoding;
+
+    fn base64_encoding() -> Encoding {
+        let mut spec = data_encoding::BASE64_MIME.specification();
+        spec.ignore.clear();
+        spec.wrap.width = 0;
+        spec.wrap.separator.clear();
+        spec.encoding().unwrap()
+    }
+
+    /// Ensure `value` is in appropriate representation to be a header value.
+    pub fn encode_header(value: &'_ [u8]) -> Cow<'_, [u8]> {
+        if value.iter().all(|&b| b.is_ascii_graphic() || b == b' ') {
+            return Cow::Borrowed(value);
+        }
+        Cow::Owned(_encode_header(value))
+    }
+
+    /// Same as [`encode_header`] but for owned bytes.
+    pub fn encode_header_owned(value: Vec<u8>) -> Vec<u8> {
+        if value.iter().all(|&b| b.is_ascii_graphic() || b == b' ') {
+            return value;
+        }
+        _encode_header(&value)
+    }
+
+    fn _encode_header(value: &[u8]) -> Vec<u8> {
+        let mut ret = Vec::with_capacity(value.len());
+        let base64_mime = base64_encoding();
+        let mut is_current_window_ascii = true;
+        let mut current_window_start = 0;
+        {
+            for (idx, g) in value.iter().copied().enumerate() {
+                match (g.is_ascii(), is_current_window_ascii) {
+                    (true, true) => {
+                        if g.is_ascii_graphic() || g == b' ' {
+                            ret.push(g);
+                        } else {
+                            current_window_start = idx;
+                            is_current_window_ascii = false;
+                        }
+                    }
+                    (true, false) => {
+                        /* If !g.is_whitespace()
+                         *
+                         * Whitespaces inside encoded tokens must be greedily taken,
+                         * instead of splitting each non-ascii word into separate encoded tokens. */
+                        if g != b' ' && !g.is_ascii_control() {
+                            ret.extend_from_slice(
+                                format!(
+                                    "=?UTF-8?B?{}?=",
+                                    base64_mime.encode(&value[current_window_start..idx]).trim()
+                                )
+                                .as_bytes(),
+                            );
+                            if idx != value.len() - 1
+                                && ((idx == 0)
+                                    ^ (!value[idx - 1].is_ascii_control()
+                                        && !value[idx - 1] != b' '))
+                            {
+                                ret.push(b' ');
+                            }
+                            is_current_window_ascii = true;
+                            current_window_start = idx;
+                            ret.push(g);
+                        }
+                    }
+                    (false, true) => {
+                        current_window_start = idx;
+                        is_current_window_ascii = false;
+                    }
+                    /* RFC2047 recommends:
+                     * 'While there is no limit to the length of a multiple-line header field,
+                     * each line of a header field that contains one or more
+                     * 'encoded-word's is limited to 76 characters.'
+                     * This is a rough compliance.
+                     */
+                    (false, false) if (((4 * (idx - current_window_start) / 3) + 3) & !3) > 33 => {
+                        ret.extend_from_slice(
+                            format!(
+                                "=?UTF-8?B?{}?=",
+                                base64_mime.encode(&value[current_window_start..idx]).trim()
+                            )
+                            .as_bytes(),
+                        );
+                        if idx != value.len() - 1 {
+                            ret.push(b' ');
+                        }
+                        current_window_start = idx;
+                    }
+                    (false, false) => {}
+                }
+            }
+        }
+        /* If the last part of the header value is encoded, it won't be pushed inside
+         * the previous for block */
+        if !is_current_window_ascii {
+            ret.extend_from_slice(
+                format!(
+                    "=?UTF-8?B?{}?=",
+                    base64_mime.encode(&value[current_window_start..]).trim()
+                )
+                .as_bytes(),
+            );
+        }
+        ret
+    }
+}
+
+pub use helpers::*;

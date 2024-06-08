@@ -166,21 +166,26 @@ impl PostFilter for AddListHeaders {
     ) -> std::result::Result<(&'p mut PostEntry, &'p mut ListContext<'list>), ()> {
         trace!("Running AddListHeaders filter");
         let (mut headers, body) = melib::email::parser::mail(&post.bytes).unwrap();
-        let sender = format!("<{}>", ctx.list.address);
-        headers.push((HeaderName::SENDER, sender.as_bytes()));
 
-        let list_id = Some(ctx.list.id_header());
-        let list_help = ctx.list.help_header();
-        let list_post = ctx.list.post_header(ctx.post_policy.as_deref());
+        let map_fn = |x| crate::encode_header_owned(String::into_bytes(x));
+
+        let sender = Some(format!("<{}>", ctx.list.address)).map(map_fn);
+
+        let list_id = Some(map_fn(ctx.list.id_header()));
+        let list_help = ctx.list.help_header().map(map_fn);
+        let list_post = ctx.list.post_header(ctx.post_policy.as_deref()).map(map_fn);
         let list_unsubscribe = ctx
             .list
-            .unsubscribe_header(ctx.subscription_policy.as_deref());
+            .unsubscribe_header(ctx.subscription_policy.as_deref())
+            .map(map_fn);
         let list_subscribe = ctx
             .list
-            .subscribe_header(ctx.subscription_policy.as_deref());
-        let list_archive = ctx.list.archive_header();
+            .subscribe_header(ctx.subscription_policy.as_deref())
+            .map(map_fn);
+        let list_archive = ctx.list.archive_header().map(map_fn);
 
         for (hdr, val) in [
+            (HeaderName::SENDER, &sender),
             (HeaderName::LIST_ID, &list_id),
             (HeaderName::LIST_HELP, &list_help),
             (HeaderName::LIST_POST, &list_post),
@@ -189,7 +194,7 @@ impl PostFilter for AddListHeaders {
             (HeaderName::LIST_ARCHIVE, &list_archive),
         ] {
             if let Some(val) = val {
-                headers.push((hdr, val.as_bytes()));
+                headers.push((hdr, val.as_slice()));
             }
         }
 
@@ -239,11 +244,12 @@ impl PostFilter for AddSubjectTagPrefix {
         let (mut headers, body) = melib::email::parser::mail(&post.bytes).unwrap();
         let mut subject;
         if let Some((_, subj_val)) = headers.iter_mut().find(|(k, _)| k == HeaderName::SUBJECT) {
-            subject = format!("[{}] ", ctx.list.id).into_bytes();
+            subject = crate::encode_header_owned(format!("[{}] ", ctx.list.id).into_bytes());
             subject.extend(subj_val.iter().cloned());
             *subj_val = subject.as_slice();
         } else {
-            subject = format!("[{}] (no subject)", ctx.list.id).into_bytes();
+            subject =
+                crate::encode_header_owned(format!("[{}] (no subject)", ctx.list.id).into_bytes());
             headers.push((HeaderName::SUBJECT, subject.as_slice()));
         }
 
@@ -293,7 +299,7 @@ impl PostFilter for ArchivedAtLink {
 
         let env = minijinja::Environment::new();
         let message_id = post.message_id.to_string();
-        let header_val = env
+        let header_val = crate::encode_header_owned(env
             .render_named_str(
                 "ArchivedAtLinkSettings.template",
                 &template,
@@ -309,9 +315,9 @@ impl PostFilter for ArchivedAtLink {
             )
             .map_err(|err| {
                 log::error!("ArchivedAtLink: {}", err);
-            })?;
+            })?.into_bytes());
         let (mut headers, body) = melib::email::parser::mail(&post.bytes).unwrap();
-        headers.push((HeaderName::ARCHIVED_AT, header_val.as_bytes()));
+        headers.push((HeaderName::ARCHIVED_AT, header_val.as_slice()));
 
         let mut new_vec = Vec::with_capacity(
             headers

@@ -16,6 +16,7 @@ doc-scrape-examples = true
 [dependencies]
 anyhow = "1.0.58"
 chrono = { version = "^0.4", features = ["serde", ] }
+data-encoding = { version = "2.1.1" }
 jsonschema = { version = "0.17", default-features = false }
 log = "0.4"
 melib = { version = "0.8.6", default-features = false, features = ["mbox", "smtp", "maildir"] }
