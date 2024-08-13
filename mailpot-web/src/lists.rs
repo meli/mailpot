@@ -190,7 +190,7 @@ pub async fn list_post(
             .map(|(depth, p)| {
                 let envelope = melib::Envelope::from_bytes(p.message.as_slice(), None).unwrap();
                 let body = envelope.body_bytes(p.message.as_slice());
-                let body_text = body.text();
+                let body_text = body.text(melib::attachment_types::Text::Rfc822);
                 let date = envelope.date_as_str().to_string();
                 (depth, p, body_text, date)
             })
@@ -199,7 +199,7 @@ pub async fn list_post(
     let envelope = melib::Envelope::from_bytes(post.message.as_slice(), None)
         .with_status(StatusCode::BAD_REQUEST)?;
     let body = envelope.body_bytes(post.message.as_slice());
-    let body_text = body.text();
+    let body_text = body.text(melib::attachment_types::Text::Rfc822);
     let subject = envelope.subject();
     let mut subject_ref = subject.trim();
     if subject_ref.starts_with('[')

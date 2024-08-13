@@ -186,7 +186,7 @@ fn run_app() -> std::result::Result<(), Box<dyn std::error::Error>> {
             let envelope = melib::Envelope::from_bytes(post.message.as_slice(), None)
                 .map_err(|err| format!("Could not parse mail {}: {err}", post.message_id))?;
             let body = envelope.body_bytes(post.message.as_slice());
-            let body_text = body.text();
+            let body_text = body.text(melib::attachment_types::Text::Rfc822);
             let subject = envelope.subject();
             let mut subject_ref = subject.trim();
             if subject_ref.starts_with('[')

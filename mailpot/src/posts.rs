@@ -565,7 +565,7 @@ impl Connection {
                     env.from(),
                 );
                 let body = env.body_bytes(raw);
-                let password = body.text();
+                let password = body.text(melib::attachment_types::Text::Rfc822);
                 // TODO: validate SSH public key with `ssh-keygen`.
                 for f in env.from() {
                     let email_from = f.get_email();

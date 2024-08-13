@@ -2092,12 +2092,12 @@ dependencies = [
 
 [[package]]
 name = "libloading"
-version = "0.7.4"
+version = "0.8.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b67380fd3b2fbe7527a606e18729d21c6f3951633d0500574c4dc22d2d638b9f"
+checksum = "4979f22fdb869068da03c9f7528f8297c6fd2606bc3a4affe42e6a823fdb8da4"
 dependencies = [
  "cfg-if 1.0.0",
- "winapi",
+ "windows-targets 0.52.5",
 ]
 
 [[package]]
@@ -2327,9 +2327,9 @@ checksum = "0e7465ac9959cc2b1404e8e2367b43684a6d13790fe23056cc8c6c5a6b7bcb94"
 
 [[package]]
 name = "melib"
-version = "0.8.6"
+version = "0.8.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4f233699ab6a71d41529624e3d9600c8a3a208874fcf4ec4a05778314afdd2e7"
+checksum = "7162bc6ee87dbd5c2b5b1b1cad725cbaef87722cd69b1c98a404226b72060027"
 dependencies = [
  "async-stream",
  "base64 0.13.1",
