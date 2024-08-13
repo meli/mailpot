@@ -168,7 +168,7 @@ fn test_migration_gen() {
             .write(true)
             .create(true)
             .truncate(true)
-            .open(&in_path.join(&format!("{num:03}.sql")))
+            .open(in_path.join(&format!("{num:03}.sql")))
             .unwrap();
         redo_file.write_all(redo.as_bytes()).unwrap();
         redo_file.flush().unwrap();
@@ -177,7 +177,7 @@ fn test_migration_gen() {
             .write(true)
             .create(true)
             .truncate(true)
-            .open(&in_path.join(&format!("{num:03}.undo.sql")))
+            .open(in_path.join(&format!("{num:03}.undo.sql")))
             .unwrap();
         undo_file.write_all(undo.as_bytes()).unwrap();
         undo_file.flush().unwrap();
@@ -202,7 +202,7 @@ fn test_migration_gen_panic() {
             .write(true)
             .create(true)
             .truncate(true)
-            .open(&in_path.join(&format!("{num:03}.sql")))
+            .open(in_path.join(&format!("{num:03}.sql")))
             .unwrap();
         redo_file.write_all(redo.as_bytes()).unwrap();
         redo_file.flush().unwrap();
@@ -211,7 +211,7 @@ fn test_migration_gen_panic() {
             .write(true)
             .create(true)
             .truncate(true)
-            .open(&in_path.join(&format!("{num:03}.undo.sql")))
+            .open(in_path.join(&format!("{num:03}.undo.sql")))
             .unwrap();
         undo_file.write_all(undo.as_bytes()).unwrap();
         undo_file.flush().unwrap();

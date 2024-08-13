@@ -362,6 +362,7 @@ impl Connection {
                 stdin
                     .write_all(Self::SCHEMA.as_bytes())
                     .expect("failed to write to stdin");
+                #[allow(clippy::const_is_empty)]
                 if !Self::MIGRATIONS.is_empty() {
                     stdin
                         .write_all(b"\nPRAGMA user_version = ")
@@ -962,11 +963,11 @@ pub mod transaction {
 
     impl Transaction<'_> {
         /// Commit and consume transaction.
-        pub fn commit(mut self) -> Result<()> {
+        pub fn commit(self) -> Result<()> {
             self.commit_()
         }
 
-        fn commit_(&mut self) -> Result<()> {
+        fn commit_(&self) -> Result<()> {
             self.conn.connection.execute_batch("COMMIT")?;
             Ok(())
         }
@@ -980,11 +981,11 @@ pub mod transaction {
 
         /// A convenience method which consumes and rolls back a transaction.
         #[inline]
-        pub fn rollback(mut self) -> Result<()> {
+        pub fn rollback(self) -> Result<()> {
             self.rollback_()
         }
 
-        fn rollback_(&mut self) -> Result<()> {
+        fn rollback_(&self) -> Result<()> {
             self.conn.connection.execute_batch("ROLLBACK")?;
             Ok(())
         }
@@ -995,12 +996,12 @@ pub mod transaction {
         /// Functionally equivalent to the `Drop` implementation, but allows
         /// callers to see any errors that occur.
         #[inline]
-        pub fn finish(mut self) -> Result<()> {
+        pub fn finish(self) -> Result<()> {
             self.finish_()
         }
 
         #[inline]
-        fn finish_(&mut self) -> Result<()> {
+        fn finish_(&self) -> Result<()> {
             if self.conn.connection.is_autocommit() {
                 return Ok(());
             }
@@ -1106,11 +1107,11 @@ pub mod transaction {
 
         /// A convenience method which consumes and rolls back a savepoint.
         #[inline]
-        pub fn rollback(mut self) -> Result<()> {
+        pub fn rollback(self) -> Result<()> {
             self.rollback_()
         }
 
-        fn rollback_(&mut self) -> Result<()> {
+        fn rollback_(&self) -> Result<()> {
             if !self.committed {
                 match self.name {
                     Ok(ref n) => self

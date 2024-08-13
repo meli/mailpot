@@ -434,11 +434,7 @@ pub fn list(db: &mut Connection, list_id: &str, cmd: ListCommand, quiet: bool) -
                 for e in entries {
                     println!(
                         "{}{}<{}>",
-                        if let Some(n) = e.display_name() {
-                            n
-                        } else {
-                            ""
-                        },
+                        e.display_name().unwrap_or_default(),
                         if e.display_name().is_none() { "" } else { " " },
                         e.email()
                     );
@@ -449,11 +445,7 @@ pub fn list(db: &mut Connection, list_id: &str, cmd: ListCommand, quiet: bool) -
                     for e in entries {
                         println!(
                             "{}{}<{}>",
-                            if let Some(n) = e.display_name() {
-                                n
-                            } else {
-                                ""
-                            },
+                            e.display_name().unwrap_or_default(),
                             if e.display_name().is_none() { "" } else { " " },
                             e.email()
                         );
