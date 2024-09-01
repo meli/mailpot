@@ -17,9 +17,7 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-//! Named templates, for generated e-mail like confirmations, alerts etc.
-//!
-//! Template database model: [`Template`](crate::Template).
+//! Message filter settings.
 
 use std::collections::HashMap;
 
@@ -28,7 +26,7 @@ use serde_json::Value;
 use crate::{errors::*, Connection, DbVal};
 
 impl Connection {
-    /// Get json settings.
+    /// Get message filter settings values for a specific list.
     pub fn get_settings(&self, list_pk: i64) -> Result<HashMap<String, DbVal<Value>>> {
         let mut stmt = self.connection.prepare(
             "SELECT pk, name, value FROM list_settings_json WHERE list = ? AND is_valid = 1;",
@@ -40,5 +38,18 @@ impl Connection {
             Ok((name, DbVal(value, pk)))
         })?;
         Ok(iter.collect::<std::result::Result<HashMap<String, DbVal<Value>>, rusqlite::Error>>()?)
+    }
+
+    /// Set message filter settings value for a specific list.
+    pub fn set_settings(&self, list_pk: i64, name: &str, value: Value) -> Result<()> {
+        let mut stmt = self.connection.prepare(
+            "INSERT OR REPLACE INTO list_settings_json(name, list, value) VALUES(?, ?, ?) \
+             RETURNING pk, value;",
+        )?;
+        stmt.query_row(rusqlite::params![name, &list_pk, &value], |row| {
+            let _pk: i64 = row.get("pk")?;
+            Ok(())
+        })?;
+        Ok(())
     }
 }

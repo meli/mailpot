@@ -20,18 +20,18 @@
 
 ## crates:
 
-- `core` the library
-- `cli` a command line tool to manage lists
-- `web` an `axum` based web server capable of serving archives and authenticating list owners and members
-- `archive-http` static web archive generation or with a dynamic http server
-- `rest-http` a REST http server to manage lists
+- `mailpot` the core library
+- `mailpot-cli` a command line tool to manage lists
+- `mailpot-web` an `axum` based web server capable of serving archives and authenticating list owners and members
+- `mailpot-archives` static web archive generation or with a dynamic http server
+- `mailpot-http` a REST http server to manage lists
 
 ## Features
 
 - easy setup
 - extensible through Rust API as a [library](./core)
 - basic management through [CLI tool](./cli/)
-- optional lightweight web archiver ([static](./archive-http/) and [dynamic](./web/))
+- optional lightweight web archiver ([static](./mailpot-archives/) and [dynamic](./mailpot-web/))
 - useful for both **newsletters**, **communities** and for static **article comments**
 
 ## Roadmap

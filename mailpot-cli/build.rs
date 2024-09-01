@@ -1,21 +1,20 @@
-/*
- * This file is part of mailpot
- *
- * Copyright 2020 - Manos Pitsidianakis
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
- * published by the Free Software Foundation, either version 3 of the
- * License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <https://www.gnu.org/licenses/>.
- */
+//
+// This file is part of mailpot
+//
+// Copyright 2020 - Manos Pitsidianakis
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as
+// published by the Free Software Foundation, either version 3 of the
+// License, or (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use std::{
     collections::{hash_map::RandomState, HashSet, VecDeque},
@@ -27,13 +26,20 @@ use clap::{ArgAction, CommandFactory};
 use clap_mangen::{roff, Man};
 use roff::{bold, italic, roman, Inline, Roff};
 
+mod message_filter_settings {
+    include!("src/message_filter_settings.rs");
+}
 include!("src/args.rs");
 
 fn main() -> std::io::Result<()> {
     println!("cargo:rerun-if-changed=./src/lib.rs");
     println!("cargo:rerun-if-changed=./build.rs");
     std::env::set_current_dir("..").expect("could not chdir('..')");
+    make_manpage()?;
+    Ok(())
+}
 
+fn make_manpage() -> std::io::Result<()> {
     let out_dir = PathBuf::from("./docs/");
 
     let cmd = Opt::command();

@@ -741,6 +741,56 @@ Don\*(Aqt import list owners.
 .ie \n(.g .ds Aq \(aq
 .el .ds Aq '
 .\fB
+.SS mpot list print-message-filter-settings
+.\fR
+.br
+
+.br
+
+mpot list print\-message\-filter\-settings [\-\-show\-available \fISHOW_AVAILABLE\fR] [\-\-filter \fIFILTER\fR] 
+.br
+
+Print message filter settings.
+.TP
+\-\-show\-available
+Show available schemas instead of stored settings.
+.br
+
+.br
+
+.br
+[\fIpossible values: \fRtrue, false]
+.TP
+\-\-filter \fIFILTER\fR
+Filter results, case\-insensitive.
+.ie \n(.g .ds Aq \(aq
+.el .ds Aq '
+.\fB
+.SS mpot list set-message-filter-setting
+.\fR
+.br
+
+.br
+
+mpot list set\-message\-filter\-setting \-\-name \fINAME\fR \-\-value \fIVALUE\fR 
+.br
+
+Print message filter settings.
+.TP
+\-\-name \fINAME\fR
+Setting name.
+.br
+
+.br
+
+.br
+[\fIpossible values: \fRAddSubjectTagPrefixSettings, MimeRejectSettings, ArchivedAtLinkSettings]
+.TP
+\-\-value \fIVALUE\fR
+Json value.
+.ie \n(.g .ds Aq \(aq
+.el .ds Aq '
+.\fB
 .SS mpot create-list
 .\fR
 .br

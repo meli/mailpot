@@ -2198,6 +2198,7 @@ dependencies = [
  "melib",
  "minijinja",
  "percent-encoding",
+ "quote",
  "reqwest",
  "rusqlite",
  "serde",

@@ -542,6 +542,65 @@ pub fn list(db: &mut Connection, list_id: &str, cmd: ListCommand, quiet: bool) -
 
             println!("Sent confirmation e-mail to {}", req.address());
         }
+        PrintMessageFilterSettings {
+            show_available: true,
+            ref filter,
+        } => {
+            use crate::message_filter_settings::MessageFilterSettingNameValueParser;
+            let value_parser = MessageFilterSettingNameValueParser;
+            let Some(possible_values) =
+                <MessageFilterSettingNameValueParser as TypedValueParser>::possible_values(
+                    &value_parser,
+                )
+            else {
+                println!("No settings available.");
+                return Ok(());
+            };
+            let mut possible_values = possible_values.into_iter().collect::<Vec<_>>();
+            possible_values.sort_by(|a, b| a.get_name().partial_cmp(b.get_name()).unwrap());
+            for val in possible_values.into_iter().filter(|val| {
+                let Some(filter) = filter.as_ref() else {
+                    return true;
+                };
+                val.matches(filter, true)
+            }) {
+                println!("{}", val.get_name());
+            }
+        }
+        PrintMessageFilterSettings {
+            show_available: false,
+            filter,
+        } => {
+            let mut settings = db
+                .get_settings(list.pk())?
+                .into_iter()
+                .collect::<Vec<(_, _)>>();
+            settings.sort_by(|(a, _), (b, _)| a.partial_cmp(b).unwrap());
+            for (name, value) in settings.iter().filter(|(name, _)| {
+                let Some(filter) = filter.as_ref() else {
+                    return true;
+                };
+                name.to_ascii_lowercase()
+                    .contains(&filter.to_ascii_lowercase())
+            }) {
+                println!("{}: {}", name, value);
+            }
+        }
+        SetMessageFilterSetting { name, value } => {
+            let value = serde_json::from_str(&value).map_err(|err| {
+                ErrorKind::External(mailpot::anyhow::anyhow!(format!(
+                    "Provided value is not valid json: {}",
+                    err
+                )))
+            })?;
+            db.set_settings(list.pk(), &name.to_string(), value)?;
+            if !quiet {
+                println!(
+                    "Successfully updated {} value for list {}.",
+                    name, list.name
+                );
+            }
+        }
     }
     Ok(())
 }

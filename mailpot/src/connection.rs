@@ -24,7 +24,7 @@ use std::{
     process::{Command, Stdio},
 };
 
-use jsonschema::JSONSchema;
+pub use jsonschema::JSONSchema;
 use log::{info, trace};
 use rusqlite::{functions::FunctionFlags, Connection as DbConnection, OptionalExtension};
 
