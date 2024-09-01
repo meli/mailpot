@@ -17,8 +17,6 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-use std::{fs::read_dir, io::Write, path::Path};
-
 /// Scans migrations directory for file entries, and creates a rust file with an array containing
 /// the migration slices.
 ///

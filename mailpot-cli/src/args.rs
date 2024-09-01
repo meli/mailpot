@@ -21,6 +21,10 @@ pub use std::path::PathBuf;
 
 pub use clap::{builder::TypedValueParser, Args, Parser, Subcommand};
 
+use crate::message_filter_settings::{
+    MessageFilterSettingName, MessageFilterSettingNameValueParser,
+};
+
 #[derive(Debug, Parser)]
 #[command(
     name = "mpot",
@@ -506,6 +510,24 @@ pub enum ListCommand {
         /// Don't import list owners.
         #[arg(long)]
         skip_owners: bool,
+    },
+    /// Print message filter settings.
+    PrintMessageFilterSettings {
+        /// Show available schemas instead of stored settings.
+        #[arg(long)]
+        show_available: bool,
+        /// Filter results, case-insensitive.
+        #[arg(long)]
+        filter: Option<String>,
+    },
+    /// Print message filter settings.
+    SetMessageFilterSetting {
+        /// Setting name.
+        #[arg(long, value_parser = MessageFilterSettingNameValueParser)]
+        name: MessageFilterSettingName,
+        /// Json value.
+        #[arg(long)]
+        value: String,
     },
 }
 
