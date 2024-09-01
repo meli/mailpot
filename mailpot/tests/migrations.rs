@@ -17,7 +17,7 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-use std::fs::{File, OpenOptions};
+use std::{fs::File, io::Write};
 
 use mailpot::{Configuration, Connection, SendMail};
 use mailpot_tests::init_stderr_logging;

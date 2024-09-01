@@ -94,7 +94,7 @@ fn main() {
     let mut file = std::fs::File::create("./src/schema.sql").unwrap();
     file.write_all(&output.stdout).unwrap();
     file.write_all(
-        &format!("\n\n-- Set current schema version.\n\nPRAGMA user_version = {user_version};\n")
+        format!("\n\n-- Set current schema version.\n\nPRAGMA user_version = {user_version};\n")
             .as_bytes(),
     )
     .unwrap();

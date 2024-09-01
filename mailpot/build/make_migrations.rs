@@ -25,17 +25,19 @@
 /// the schema file.
 ///
 /// Returns the current `user_version` PRAGMA value.
-pub fn make_migrations<M: AsRef<Path>, O: AsRef<Path>>(
+pub fn make_migrations<M: AsRef<::std::path::Path>, O: AsRef<::std::path::Path>>(
     migrations_path: M,
     output_file: O,
     schema_file: &mut Vec<u8>,
 ) -> i32 {
+    use std::io::Write;
+
     let migrations_folder_path = migrations_path.as_ref();
     let output_file_path = output_file.as_ref();
 
     let mut paths = vec![];
     let mut undo_paths = vec![];
-    for entry in read_dir(migrations_folder_path).unwrap() {
+    for entry in ::std::fs::read_dir(migrations_folder_path).unwrap() {
         let entry = entry.unwrap();
         let path = entry.path();
         if path.is_dir() || path.extension().map(|os| os.to_str().unwrap()) != Some("sql") {
@@ -56,7 +58,7 @@ pub fn make_migrations<M: AsRef<Path>, O: AsRef<Path>>(
 
     paths.sort();
     undo_paths.sort();
-    let mut migr_rs = OpenOptions::new()
+    let mut migr_rs = ::std::fs::OpenOptions::new()
         .write(true)
         .create(true)
         .truncate(true)
