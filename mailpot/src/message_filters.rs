@@ -151,6 +151,10 @@ impl PostFilter for FixCRLF {
             new_vec.extend_from_slice(line.unwrap().as_bytes());
             new_vec.extend_from_slice(b"\r\n");
         }
+        if !post.bytes.ends_with(b"\n") && new_vec.ends_with(b"\r\n") {
+            new_vec.pop();
+            new_vec.pop();
+        }
         post.bytes = new_vec;
         Ok((post, ctx))
     }
@@ -212,7 +216,7 @@ impl PostFilter for AddListHeaders {
             new_vec.extend_from_slice(v);
             new_vec.extend_from_slice(b"\r\n");
         }
-        new_vec.extend_from_slice(b"\r\n\r\n");
+        new_vec.extend_from_slice(b"\r\n");
         new_vec.extend_from_slice(body);
 
         post.bytes = new_vec;
@@ -267,7 +271,7 @@ impl PostFilter for AddSubjectTagPrefix {
             new_vec.extend_from_slice(v);
             new_vec.extend_from_slice(b"\r\n");
         }
-        new_vec.extend_from_slice(b"\r\n\r\n");
+        new_vec.extend_from_slice(b"\r\n");
         new_vec.extend_from_slice(body);
 
         post.bytes = new_vec;
@@ -333,7 +337,7 @@ impl PostFilter for ArchivedAtLink {
             new_vec.extend_from_slice(v);
             new_vec.extend_from_slice(b"\r\n");
         }
-        new_vec.extend_from_slice(b"\r\n\r\n");
+        new_vec.extend_from_slice(b"\r\n");
         new_vec.extend_from_slice(body);
 
         post.bytes = new_vec;
