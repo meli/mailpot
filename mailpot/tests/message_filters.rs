@@ -78,25 +78,30 @@ fn test_post_filters() {
     db.set_list_post_policy(post_policy).unwrap();
 
     println!("Check that List subject prefix is inserted and can be optionally disabled…");
-    let post_bytes = b"From: Name <user@example.com>
-To: <foo-chat@example.com>
-Subject: This is a post
-Date: Thu, 29 Oct 2020 13:58:16 +0000
-Message-ID: <abcdefgh@sator.example.com>
-Content-Language: en-US
-Content-Type: text/html
-Content-Transfer-Encoding: base64
-MIME-Version: 1.0
-
-PCFET0NUWVBFPjxodG1sPjxoZWFkPjx0aXRsZT5mb288L3RpdGxlPjwvaGVhZD48Ym9k
-eT48dGFibGUgY2xhc3M9ImZvbyI+PHRoZWFkPjx0cj48dGQ+Zm9vPC90ZD48L3RoZWFk
-Pjx0Ym9keT48dHI+PHRkPmZvbzE8L3RkPjwvdHI+PC90Ym9keT48L3RhYmxlPjwvYm9k
-eT48L2h0bWw+
-";
+    let post_bytes = b"From: Name <user@example.com>\x0D
+To: <foo-chat@example.com>\x0D
+Subject: This is a post\x0D
+Date: Thu, 29 Oct 2020 13:58:16 +0000\x0D
+Message-ID: <abcdefgh@sator.example.com>\x0D
+Content-Language: en-US\x0D
+Content-Type: text/html\x0D
+Content-Transfer-Encoding: base64\x0D
+MIME-Version: 1.0\x0D
+\x0D
+PCFET0NUWVBFPjxodG1sPjxoZWFkPjx0aXRsZT5mb288L3RpdGxlPjwvaGVhZD48Ym9k\x0D
+eT48dGFibGUgY2xhc3M9ImZvbyI+PHRoZWFkPjx0cj48dGQ+Zm9vPC90ZD48L3RoZWFk\x0D
+Pjx0Ym9keT48dHI+PHRkPmZvbzE8L3RkPjwvdHI+PC90Ym9keT48L3RhYmxlPjwvYm9k\x0D
+eT48L2h0bWw+";
     let envelope = melib::Envelope::from_bytes(post_bytes, None).expect("Could not parse message");
     db.post(&envelope, post_bytes, /* dry_run */ false).unwrap();
     let q = db.queue(Queue::Out).unwrap();
     assert_eq!(&q[0].subject, "[foo-chat] This is a post");
+    let q_env = melib::Envelope::from_bytes(&q[0].message, None).expect("Could not parse message");
+    assert_eq!(
+        String::from_utf8_lossy(envelope.body_bytes(post_bytes).body()),
+        String::from_utf8_lossy(q_env.body_bytes(&q[0].message).body()),
+        "Post body was malformed by message filters!"
+    );
 
     db.delete_from_queue(Queue::Out, vec![]).unwrap();
     {
@@ -138,6 +143,11 @@ eT48L2h0bWw+
     let q = db.queue(Queue::Out).unwrap();
     let q_env = melib::Envelope::from_bytes(&q[0].message, None).expect("Could not parse message");
     assert_eq!(
+        String::from_utf8_lossy(envelope.body_bytes(post_bytes).body()),
+        String::from_utf8_lossy(q_env.body_bytes(&q[0].message).body()),
+        "Post body was malformed by message filters!"
+    );
+    assert_eq!(
         &q_env.other_headers[melib::HeaderName::LIST_ID],
         "Why, I, in this weak piping time of peace,\nHave no delight to pass away the \
          time,\nUnless to spy my shadow in the sun. <foo-chat.example.com>"
@@ -162,6 +172,11 @@ eT48L2h0bWw+
     db.post(&envelope, post_bytes, /* dry_run */ false).unwrap();
     let q = db.queue(Queue::Out).unwrap();
     let q_env = melib::Envelope::from_bytes(&q[0].message, None).expect("Could not parse message");
+    assert_eq!(
+        String::from_utf8_lossy(envelope.body_bytes(post_bytes).body()),
+        String::from_utf8_lossy(q_env.body_bytes(&q[0].message).body()),
+        "Post body was malformed by message filters!"
+    );
     assert_eq!(
         &q_env.other_headers[melib::HeaderName::LIST_ID],
         "<p>Discussion about mailpot, a mailing list manager software.</p>\n\n\n<ul>\n<li>Main git repository: <a href=\"https://git.meli-email.org/meli/mailpot\">https://git.meli-email.org/meli/mailpot</a></li>\n<li>Mirror: <a href=\"https://github.com/meli/mailpot/\">https://github.com/meli/mailpot/</a></li>\n</ul> <foo-chat.example.com>"
