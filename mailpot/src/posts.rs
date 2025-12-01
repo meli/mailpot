@@ -31,7 +31,7 @@ use crate::{
     models::{changesets::AccountChangeset, Account, DbVal, ListSubscription, MailingList, Post},
     queue::{Queue, QueueEntry},
     templates::Template,
-    Connection,
+    Connection, StripCarets,
 };
 
 impl Connection {
@@ -658,26 +658,30 @@ impl Connection {
     ) -> Result<Option<DbVal<Post>>> {
         let mut stmt = self.connection.prepare(
             "SELECT *, strftime('%Y-%m', CAST(timestamp AS INTEGER), 'unixepoch') AS month_year \
-             FROM post WHERE list = ?1 AND (message_id = ?2 OR concat('<', ?2, '>') = message_id);",
+             FROM post WHERE list = ?1 AND (message_id = ?2 OR message_id = ?3 OR concat('<', \
+             message_id, '>') = ?2 OR concat('<', ?3, '>') = message_id);",
         )?;
         let ret = stmt
-            .query_row(rusqlite::params![&list_pk, &message_id], |row| {
-                let pk = row.get("pk")?;
-                Ok(DbVal(
-                    Post {
+            .query_row(
+                rusqlite::params![&list_pk, &message_id, message_id.strip_carets()],
+                |row| {
+                    let pk = row.get("pk")?;
+                    Ok(DbVal(
+                        Post {
+                            pk,
+                            list: row.get("list")?,
+                            envelope_from: row.get("envelope_from")?,
+                            address: row.get("address")?,
+                            message_id: row.get("message_id")?,
+                            message: row.get("message")?,
+                            timestamp: row.get("timestamp")?,
+                            datetime: row.get("datetime")?,
+                            month_year: row.get("month_year")?,
+                        },
                         pk,
-                        list: row.get("list")?,
-                        envelope_from: row.get("envelope_from")?,
-                        address: row.get("address")?,
-                        message_id: row.get("message_id")?,
-                        message: row.get("message")?,
-                        timestamp: row.get("timestamp")?,
-                        datetime: row.get("datetime")?,
-                        month_year: row.get("month_year")?,
-                    },
-                    pk,
-                ))
-            })
+                    ))
+                },
+            )
             .optional()?;
 
         Ok(ret)
