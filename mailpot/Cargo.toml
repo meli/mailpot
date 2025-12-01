@@ -20,7 +20,7 @@ chrono = { version = "^0.4", features = ["serde", ] }
 data-encoding = { version = "2.1.1" }
 jsonschema = { version = "0.17", default-features = false }
 log = "0.4"
-melib = { version = "0.8.7", default-features = false, features = ["mbox", "smtp", "maildir"] }
+melib = { version = "0.8.12", default-features = false, features = ["smtp", "maildir"] }
 minijinja = { version = "0.31.0", features = ["source", ] }
 percent-encoding = { version = "^2.1" }
 rusqlite = { version = "^0.30", features = ["bundled", "functions", "trace", "hooks", "serde_json", "array", "chrono", "unlock_notify"] }

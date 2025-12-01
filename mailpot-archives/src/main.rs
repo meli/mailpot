@@ -222,8 +222,8 @@ fn run_app() -> std::result::Result<(), Box<dyn std::error::Error>> {
                 to => &envelope.field_to_to_string(),
                 subject => &envelope.subject(),
                 trimmed_subject => subject_ref,
-                in_reply_to => &envelope.in_reply_to_display().map(|r| r.to_string().as_str().strip_carets().to_string()),
-                references => &envelope .references() .into_iter() .map(|m| m.to_string().as_str().strip_carets().to_string()) .collect::<Vec<String>>(),
+                in_reply_to => &envelope.in_reply_to().map(|r| r.refs().iter().map(|m| m.to_string().as_str().strip_carets().to_string()).collect::<Vec<String>>()),
+                references => &envelope.references().iter().map(|m| m.to_string().as_str().strip_carets().to_string()).collect::<Vec<String>>(),
                 root_prefix => &root_url_prefix,
                 crumbs => crumbs,
             };

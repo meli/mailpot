@@ -32,7 +32,7 @@
         {% if in_reply_to %}
             <tr>
                 <th scope="row">In-Reply-To:</th>
-                <td class="faded message-id"><a href="{{ list_post_path(list.id, in_reply_to) }}">{{ in_reply_to }}</a></td>
+                <td>{% for r in in_reply_to %}<span class="faded message-id"><a href="{{ list_post_path(list.id, r) }}">{{ r }}</a></span>{% endfor %}</td>
             </tr>
         {% endif %}
         {% if references %}

@@ -32,7 +32,7 @@ use crate::{
     config::Configuration,
     errors::{ErrorKind::*, *},
     models::{changesets::MailingListChangeset, DbVal, ListOwner, MailingList, Post},
-    StripCarets,
+    StripCarets, StripCaretsInplace,
 };
 
 /// A connection to a `mailpot` database.
@@ -575,7 +575,7 @@ impl Connection {
                     list: row.get("list")?,
                     envelope_from: row.get("envelope_from")?,
                     address: row.get("address")?,
-                    message_id: row.get("message_id")?,
+                    message_id: row.get::<_, String>("message_id")?.strip_carets_inplace(),
                     message: row.get("message")?,
                     timestamp: row.get("timestamp")?,
                     datetime: row.get("datetime")?,
@@ -586,8 +586,7 @@ impl Connection {
         })?;
         let mut ret = vec![];
         for post in iter {
-            let post = post?;
-            ret.push(post);
+            ret.push(post?);
         }
 
         trace!("list_posts {:?}.", &ret);
@@ -1371,7 +1370,7 @@ Qux!
         let mbox = String::from_utf8(db.export_mbox(1, None, false).unwrap()).unwrap();
         assert!(
             mbox.split('\n').fold(0, |accm, line| {
-                if line.starts_with("From MAILER-DAEMON") {
+                if line.starts_with("From 00000000000000000000000000000000 ") {
                     accm + 1
                 } else {
                     accm

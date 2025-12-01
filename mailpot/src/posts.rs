@@ -53,7 +53,7 @@ impl Connection {
             )
             .into()
         };
-        let message_id = env.message_id_display();
+        let message_id = env.message_id().to_string();
         let mut stmt = self.connection.prepare(
             "INSERT OR REPLACE INTO post(list, address, message_id, message, datetime, timestamp) \
              VALUES(?, ?, ?, ?, ?, ?) RETURNING pk;",
