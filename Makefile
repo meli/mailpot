@@ -11,6 +11,7 @@ PY_FILES     := $(shell find . -type f -name '*.py' -print0 | tr '\0' ' ')
 
 .PHONY: check
 check:
+	@echo $(CARGOBIN) check --all-features --all --tests --examples --benches --bins
 	@$(CARGOBIN) check --all-features --all --tests --examples --benches --bins
 
 .PHONY: fmt
@@ -22,25 +23,31 @@ fmt:
 
 .PHONY: lint
 lint:
+	@echo $(CARGOBIN) clippy --no-deps --all-features --all --tests --examples --benches --bins
 	@$(CARGOBIN) clippy --no-deps --all-features --all --tests --examples --benches --bins
 
 
 .PHONY: test
 test: check lint
+	@echo $(CARGOBIN) nextest run --all --no-fail-fast --all-features
 	@$(CARGOBIN) nextest run --all --no-fail-fast --all-features
 
 .PHONY: rustdoc
 rustdoc:
+	@echo RUSTDOCFLAGS=\"--html-before-content ./.github/doc_extra.html\" $(CARGOBIN) doc --workspace --all-features --no-deps --document-private-items
 	@RUSTDOCFLAGS="--html-before-content ./.github/doc_extra.html" $(CARGOBIN) doc --workspace --all-features --no-deps --document-private-items
 
 .PHONY: rustdoc-open
 rustdoc-open:
+	@echo RUSTDOCFLAGS=\"--html-before-content ./.github/doc_extra.html\" $(CARGOBIN) doc --workspace --all-features --no-deps --document-private-items --open
 	@RUSTDOCFLAGS="--html-before-content ./.github/doc_extra.html" $(CARGOBIN) doc --workspace --all-features --no-deps --document-private-items --open
 
 .PHONY: rustdoc-nightly
 rustdoc-nightly:
+	@echo RUSTDOCFLAGS=\"--html-before-content ./.github/doc_extra.html\" $(CARGOBIN) +nightly doc -Zrustdoc-map -Z rustdoc-scrape-examples --workspace --all-features --no-deps --document-private-items
 	@RUSTDOCFLAGS="--html-before-content ./.github/doc_extra.html" $(CARGOBIN) +nightly doc -Zrustdoc-map -Z rustdoc-scrape-examples --workspace --all-features --no-deps --document-private-items
 
 .PHONY: rustdoc-nightly-open
 rustdoc-nightly-open:
+	@echo RUSTDOCFLAGS=\"--html-before-content ./.github/doc_extra.html\" $(CARGOBIN) +nightly doc -Zrustdoc-map -Z rustdoc-scrape-examples --workspace --all-features --no-deps --document-private-items --open
 	@RUSTDOCFLAGS="--html-before-content ./.github/doc_extra.html" $(CARGOBIN) +nightly doc -Zrustdoc-map -Z rustdoc-scrape-examples --workspace --all-features --no-deps --document-private-items --open
