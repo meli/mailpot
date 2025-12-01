@@ -60,7 +60,8 @@ lazy_static::lazy_static! {
             list_post_path,
             post_raw_path,
             post_eml_path,
-            post_mbox_path
+            post_mbox_path,
+            time_dur,
         );
         add!(filter pluralize);
         // Load compressed templates. They are constructed in build.rs. See

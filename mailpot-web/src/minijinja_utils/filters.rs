@@ -474,6 +474,48 @@ pub fn topics_common(topics: &[String]) -> std::result::Result<Value, Error> {
     Ok(Value::from_safe_string(ul))
 }
 
+/// `time_dur` filter for [`minijinja`].
+///
+/// Returns a duration string valid for `<time>` HTML elements.
+///
+/// # Examples
+///
+/// ```rust,no_run
+/// # use mailpot_web::time_dur;
+/// # use minijinja::Environment;
+/// # use minijinja::value::Value;
+///
+/// let mut env = Environment::new();
+/// env.add_function("time_dur", time_dur);
+/// assert_eq!(
+///     &env.render_str(
+///         "<time datetime=\"{{ time_dur(dur) }}\">{{ dur }} minutes</a>",
+///         minijinja::context! {
+///             dur => 6.0_f64
+///         }
+///     )
+///     .unwrap(),
+///     "<time datetime=\"6m\">6.0 minutes</a>",
+/// );
+/// ```
+pub fn time_dur(_: &minijinja::State, arg: Value) -> std::result::Result<Value, Error> {
+    let value: f64 = <f32>::try_from(arg.clone())
+        .ok()
+        .map(f64::from)
+        .or_else(|| <f64>::try_from(arg.clone()).ok())
+        .ok_or_else(|| {
+            Error::new(
+                minijinja::ErrorKind::InvalidOperation,
+                format!(
+                    "time_dur argument is not a float but of type {}",
+                    arg.kind()
+                ),
+            )
+        })?;
+    let value = value as i64;
+    Ok(Value::from_safe_string(format!("{value}m")))
+}
+
 #[cfg(test)]
 mod tests {
     use mailpot::models::ListOwner;
@@ -739,5 +781,21 @@ mod tests {
         list_owners[0].address = "user@example.com".to_string();
         list.set_safety(&list_owners, &administrators);
         assert!(!list.is_description_html_safe);
+    }
+
+    #[test]
+    fn test_time_dur() {
+        let mut env = Environment::new();
+        env.add_function("time_dur", time_dur);
+        assert_eq!(
+            &env.render_str(
+                "<time datetime=\"{{ time_dur(dur) }}\">{{ dur }} minutes</a>",
+                minijinja::context! {
+                    dur => 6.0_f64
+                }
+            )
+            .unwrap(),
+            "<time datetime=\"6m\">6.0 minutes</a>",
+        );
     }
 }
