@@ -87,8 +87,9 @@ fn main() {
     let exit = verify.wait_with_output().unwrap();
     if !exit.status.success() {
         panic!(
-            "sqlite3 could not read SQL schema: {}",
-            String::from_utf8_lossy(&exit.stdout)
+            "sqlite3 could not read SQL schema: {} {}",
+            String::from_utf8_lossy(&exit.stdout),
+            String::from_utf8_lossy(&exit.stderr)
         );
     }
     let mut file = std::fs::File::create("./src/schema.sql").unwrap();
