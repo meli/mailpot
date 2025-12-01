@@ -260,7 +260,7 @@ const FRAGMENT: &AsciiSet = &CONTROLS.add(b' ').add(b'"').add(b'<').add(b'>').ad
 const PATH: &AsciiSet = &FRAGMENT.add(b'#').add(b'?').add(b'{').add(b'}');
 
 /// Set for percent encoding URL components.
-pub const PATH_SEGMENT: &AsciiSet = &PATH.add(b'/').add(b'%');
+pub const PATH_SEGMENT: &AsciiSet = &PATH.add(b'/').add(b'%').add(b'[').add(b']');
 
 mod helpers {
     use std::borrow::Cow;
