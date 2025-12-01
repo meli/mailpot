@@ -192,7 +192,7 @@ pub fn calendarize(
 ///     )
 ///     .unwrap_err()
 ///     .to_string(),
-///     "invalid operation: Pluralize argument is not an integer, or a sequence / object with a \
+///     "invalid operation: pluralize argument is not an integer, or a sequence / object with a \
 ///      length but of type number (in <string>:1)",
 /// );
 /// ```
@@ -219,7 +219,7 @@ pub fn pluralize(
             minijinja::Error::new(
                 minijinja::ErrorKind::InvalidOperation,
                 format!(
-                    "Pluralize argument is not an integer, or a sequence / object with a length \
+                    "pluralize argument is not an integer, or a sequence / object with a length \
                      but of type {}",
                     v.kind()
                 ),
@@ -308,7 +308,7 @@ pub fn url_encode(_state: &minijinja::State, arg: Value) -> std::result::Result<
                 minijinja::Error::new(
                     minijinja::ErrorKind::InvalidOperation,
                     format!(
-                        "url_decode() argument is not a string but of type {}",
+                        "url_encode() argument is not a string but of type {}",
                         arg.kind()
                     ),
                 )
@@ -617,7 +617,7 @@ mod tests {
             )
             .unwrap_err()
             .to_string(),
-            "invalid operation: Pluralize argument is not an integer, or a sequence / object with \
+            "invalid operation: pluralize argument is not an integer, or a sequence / object with \
              a length but of type number (in <string>:1)",
         );
     }
