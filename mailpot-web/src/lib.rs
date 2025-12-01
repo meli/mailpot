@@ -175,7 +175,8 @@ pub struct AppState {
     pub public_url: String,
     pub site_title: Cow<'static, str>,
     pub site_subtitle: Option<Cow<'static, str>>,
-    pub user_store: Arc<RwLock<HashMap<i64, User>>>,
+    pub user_store: Arc<RwLock<HashMap<i64, auth::User>>>,
+    pub ssh_namespace: Cow<'static, str>,
     // ...
 }
 

@@ -17,7 +17,7 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-use std::{collections::HashMap, sync::Arc};
+use std::{borrow::Cow, collections::HashMap, sync::Arc};
 
 use chrono::TimeZone;
 use mailpot::{log, Configuration, Connection};
@@ -32,12 +32,15 @@ fn new_state(conf: Configuration) -> Arc<AppState> {
         root_url_prefix: Value::from_safe_string(
             std::env::var("ROOT_URL_PREFIX").unwrap_or_default(),
         ),
-        public_url: std::env::var("PUBLIC_URL").unwrap_or_else(|_| "lists.mailpot.rs".to_string()),
+        public_url: std::env::var("PUBLIC_URL").unwrap_or_else(|_| "localhost".to_string()),
         site_title: std::env::var("SITE_TITLE")
-            .unwrap_or_else(|_| "mailing list archive".to_string())
-            .into(),
+            .map(Cow::Owned)
+            .unwrap_or_else(|_| Cow::Borrowed("mailing list archive")),
         site_subtitle: std::env::var("SITE_SUBTITLE").ok().map(Into::into),
         user_store: Arc::new(RwLock::new(HashMap::default())),
+        ssh_namespace: std::env::var("SSH_NAMESPACE")
+            .map(Cow::Owned)
+            .unwrap_or_else(|_| Cow::Borrowed("mailpot")),
     })
 }
 

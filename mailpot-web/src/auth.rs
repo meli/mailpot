@@ -250,9 +250,7 @@ pub async fn ssh_signin_POST(
             email: payload.address.clone(),
             ssh_public_key: acc.password.clone(),
             ssh_signature: payload.password.clone(),
-            namespace: std::env::var("SSH_NAMESPACE")
-                .unwrap_or_else(|_| "lists.mailpot.rs".to_string())
-                .into(),
+            namespace: state.ssh_namespace.clone(),
             token: _prev_token,
         };
         #[cfg(not(feature = "ssh-key"))]

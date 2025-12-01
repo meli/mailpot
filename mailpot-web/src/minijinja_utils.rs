@@ -74,8 +74,8 @@ lazy_static::lazy_static! {
         }
         env.set_source(source);
 
-        env.add_global("root_url_prefix", Value::from_safe_string( std::env::var("ROOT_URL_PREFIX").unwrap_or_default()));
-        env.add_global("public_url",Value::from_safe_string(std::env::var("PUBLIC_URL").unwrap_or_default()));
+        env.add_global("root_url_prefix", Value::from_safe_string(std::env::var("ROOT_URL_PREFIX").unwrap_or_default()));
+        env.add_global("public_url", Value::from_safe_string(std::env::var("PUBLIC_URL").unwrap_or_else(|_| "localhost".to_string())));
         env.add_global("site_title", Value::from_safe_string(std::env::var("SITE_TITLE").unwrap_or_else(|_| "mailing list archive".to_string())));
         env.add_global("site_subtitle", std::env::var("SITE_SUBTITLE").ok().map(Value::from_safe_string).unwrap_or_default());
 

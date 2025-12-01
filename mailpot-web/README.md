@@ -13,8 +13,8 @@ The following environment variables can be defined to configure various settings
 
 - `HOSTNAME`, default `0.0.0.0`.
 - `PORT`, default `3000`.
-- `PUBLIC_URL`, default `lists.mailpot.rs`.
+- `PUBLIC_URL`, default `localhost`.
 - `SITE_TITLE`, default `mailing list archive`.
 - `SITE_SUBTITLE`, default empty.
 - `ROOT_URL_PREFIX`, default empty.
-- `SSH_NAMESPACE`, default `lists.mailpot.rs`.
+- `SSH_NAMESPACE`, default `mailpot`.
