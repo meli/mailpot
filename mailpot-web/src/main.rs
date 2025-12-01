@@ -303,6 +303,58 @@ mod tests {
             cl(format!("/list/{}/", list.pk), state.clone()).await
         );
 
+        let vnu = |res: Response<_>| async move {
+            use std::process::Stdio;
+
+            use tokio::{io::AsyncWriteExt, process::Command};
+
+            // Change value to run vnu validator tests
+            // [ref:TODO]: do vnu in standalone test?
+            const RUN_VNU: bool = false;
+
+            let body = hyper::body::to_bytes(res.into_body()).await.unwrap();
+
+            if !RUN_VNU {
+                return;
+            }
+
+            let mut child = Command::new("vnu")
+                .arg("--Werror")
+                .arg("--also-check-css")
+                .arg("--filterpattern")
+                .arg(".*Possible misuse of .aria-label..*")
+                .arg("-")
+                .stdout(Stdio::piped())
+                .stderr(Stdio::piped())
+                .stdin(Stdio::piped())
+                .spawn()
+                .expect("failed to spawn command");
+
+            let mut stdin = child
+                .stdin
+                .take()
+                .expect("child did not have a handle to stdin");
+
+            stdin
+                .write_all(&body)
+                .await
+                .expect("could not write to stdin");
+
+            drop(stdin);
+
+            let op = child.wait_with_output().await.unwrap();
+
+            if !op.status.success() {
+                std::fs::write("/tmp/failure.html", &body).unwrap();
+                panic!(
+                    "vnu exited with {}:\nstdout: {}\n\nstderr: {}",
+                    op.status.code().unwrap_or(-1),
+                    String::from_utf8_lossy(&op.stdout),
+                    String::from_utf8_lossy(&op.stderr)
+                );
+            }
+        };
+
         // ------------------------------------------------------------
         // list_post(), list_post_eml(), list_post_raw()
 
@@ -324,6 +376,7 @@ mod tests {
                 res.headers().get(http::header::CONTENT_TYPE),
                 Some(&http::HeaderValue::from_static("text/html; charset=utf-8"))
             );
+            vnu(res).await;
             let res = create_app(state.clone())
                 .oneshot(req!(
                     get & format!(
@@ -367,12 +420,17 @@ mod tests {
         // help(), ssh_signin(), root()
 
         for path in ["/help/", "/"] {
-            let response = create_app(state.clone())
+            let res = create_app(state.clone())
                 .oneshot(req!(get path))
                 .await
                 .unwrap();
 
-            assert_eq!(response.status(), StatusCode::OK);
+            assert_eq!(res.status(), StatusCode::OK);
+            assert_eq!(
+                res.headers().get(http::header::CONTENT_TYPE),
+                Some(&http::HeaderValue::from_static("text/html; charset=utf-8"))
+            );
+            vnu(res).await;
         }
 
         if cfg!(not(debug_assertions)) {
@@ -383,14 +441,20 @@ mod tests {
 
         let login_app = create_app(state.clone());
         let session_cookie = {
-            let response = login_app
+            let res = login_app
                 .clone()
                 .oneshot(req!(get "/login/"))
                 .await
                 .unwrap();
-            assert_eq!(response.status(), StatusCode::OK);
+            assert_eq!(res.status(), StatusCode::OK);
+            assert_eq!(
+                res.headers().get(http::header::CONTENT_TYPE),
+                Some(&http::HeaderValue::from_static("text/html; charset=utf-8"))
+            );
 
-            response.headers().get(SET_COOKIE).unwrap().clone()
+            let cookie = res.headers().get(SET_COOKIE).unwrap().clone();
+            vnu(res).await;
+            cookie
         };
         let user = User {
             pk: 1,
@@ -437,9 +501,14 @@ mod tests {
             request
                 .headers_mut()
                 .insert(COOKIE, session_cookie.to_owned());
-            let response = login_app.clone().oneshot(request).await.unwrap();
+            let res = login_app.clone().oneshot(request).await.unwrap();
 
-            assert_eq!(response.status(), StatusCode::OK);
+            assert_eq!(res.status(), StatusCode::OK);
+            assert_eq!(
+                res.headers().get(http::header::CONTENT_TYPE),
+                Some(&http::HeaderValue::from_static("text/html; charset=utf-8"))
+            );
+            vnu(res).await;
         }
 
         // ------------------------------------------------------------
@@ -482,9 +551,14 @@ mod tests {
             request
                 .headers_mut()
                 .insert(COOKIE, session_cookie.to_owned());
-            let response = login_app.clone().oneshot(request).await.unwrap();
+            let res = login_app.clone().oneshot(request).await.unwrap();
 
-            assert_eq!(response.status(), StatusCode::OK);
+            assert_eq!(res.status(), StatusCode::OK);
+            assert_eq!(
+                res.headers().get(http::header::CONTENT_TYPE),
+                Some(&http::HeaderValue::from_static("text/html; charset=utf-8"))
+            );
+            vnu(res).await;
         }
 
         // ------------------------------------------------------------
