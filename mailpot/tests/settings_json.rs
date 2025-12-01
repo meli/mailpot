@@ -18,7 +18,7 @@
  */
 
 use jsonschema::JSONSchema;
-use mailpot::{Configuration, Connection, SendMail};
+use mailpot::{rusqlite, Configuration, Connection, SendMail};
 use mailpot_tests::init_stderr_logging;
 use serde_json::{json, Value};
 use tempfile::TempDir;
@@ -29,12 +29,12 @@ fn test_settings_json_schemas_are_valid() {
     let tmp_dir = TempDir::new().unwrap();
 
     let db_path = tmp_dir.path().join("mpot.db");
-    std::fs::copy("../mailpot-tests/for_testing.db", &db_path).unwrap();
-    let mut perms = std::fs::metadata(&db_path).unwrap().permissions();
-    #[allow(clippy::permissions_set_readonly_false)]
-    perms.set_readonly(false);
-    std::fs::set_permissions(&db_path, perms).unwrap();
-
+    {
+        let conn = rusqlite::Connection::open(&db_path).unwrap();
+        conn.execute_batch(include_str!("../../mailpot-tests/for_testing.sql"))
+            .unwrap();
+        conn.close().unwrap();
+    }
     let config = Configuration {
         send_mail: SendMail::ShellCommand("/usr/bin/false".to_string()),
         db_path,
@@ -73,12 +73,12 @@ fn test_settings_json_triggers() {
     let tmp_dir = TempDir::new().unwrap();
 
     let db_path = tmp_dir.path().join("mpot.db");
-    std::fs::copy("../mailpot-tests/for_testing.db", &db_path).unwrap();
-    let mut perms = std::fs::metadata(&db_path).unwrap().permissions();
-    #[allow(clippy::permissions_set_readonly_false)]
-    perms.set_readonly(false);
-    std::fs::set_permissions(&db_path, perms).unwrap();
-
+    {
+        let conn = rusqlite::Connection::open(&db_path).unwrap();
+        conn.execute_batch(include_str!("../../mailpot-tests/for_testing.sql"))
+            .unwrap();
+        conn.close().unwrap();
+    }
     let config = Configuration {
         send_mail: SendMail::ShellCommand("/usr/bin/false".to_string()),
         db_path,

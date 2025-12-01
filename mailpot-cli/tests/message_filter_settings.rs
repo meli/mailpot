@@ -30,12 +30,12 @@ fn test_message_filter_settings_command() {
 
     let conf_path = tmp_dir.path().join("conf.toml");
     let db_path = tmp_dir.path().join("mpot.db");
-    std::fs::copy("../mailpot-tests/for_testing.db", &db_path).unwrap();
-    let mut perms = std::fs::metadata(&db_path).unwrap().permissions();
-    #[allow(clippy::permissions_set_readonly_false)]
-    perms.set_readonly(false);
-    std::fs::set_permissions(&db_path, perms).unwrap();
-
+    {
+        let conn = mailpot::rusqlite::Connection::open(&db_path).unwrap();
+        conn.execute_batch(include_str!("../../mailpot-tests/for_testing.sql"))
+            .unwrap();
+        conn.close().unwrap();
+    }
     let config = Configuration {
         send_mail: SendMail::ShellCommand("/usr/bin/false".to_string()),
         db_path,
