@@ -413,12 +413,13 @@ impl MailingList {
             post = post_policy.map_or(Cow::Borrowed("This list does not allow posting."), |p| {
                 if p.announce_only {
                     Cow::Borrowed(
-                        "This list is announce only, which means that you can only receive posts \
+                        "This list is announce-only, which means that you can only receive posts \
                          from the list owners.",
                     )
                 } else if p.subscription_only {
                     Cow::Owned(format!(
-                        "Only list subscriptions can post to this list. Send your post to {}",
+                        "Only list subscribers can post to this list. Subscribe and send your \
+                         post to {}",
                         self.address
                     ))
                 } else if p.approval_needed {
@@ -554,7 +555,7 @@ pub struct PostPolicy {
     /// Whether the policy is announce only (Only list owners can submit posts,
     /// and everyone will receive them).
     pub announce_only: bool,
-    /// Whether the policy is "subscription only" (Only list subscriptions can
+    /// Whether the policy is "subscription only" (Only list subscribers can
     /// post).
     pub subscription_only: bool,
     /// Whether the policy is "approval needed" (Anyone can post, but approval
