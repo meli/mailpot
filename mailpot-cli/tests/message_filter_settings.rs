@@ -16,7 +16,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use assert_cmd::assert::OutputAssertExt;
+use assert_cmd::{assert::OutputAssertExt, cargo};
 use mailpot::{Configuration, Connection, SendMail};
 use mailpot_tests::*;
 use predicates::prelude::*;
@@ -52,8 +52,7 @@ fn test_message_filter_settings_command() {
     std::fs::write(&conf_path, config_str.as_bytes()).unwrap();
 
     println!("Test print-message-filter-settings --show-available");
-    let mut cmd = Command::cargo_bin("mpot").unwrap();
-    let output = cmd
+    let output = Command::new(cargo::cargo_bin!("mpot"))
         .arg("-vv")
         .arg("-c")
         .arg(&conf_path)
@@ -71,8 +70,7 @@ fn test_message_filter_settings_command() {
     );
 
     println!("Testing that inserting settings works…");
-    let mut cmd = Command::cargo_bin("mpot").unwrap();
-    let output = cmd
+    let output = Command::new(cargo::cargo_bin!("mpot"))
         .arg("-vv")
         .arg("-c")
         .arg(&conf_path)
@@ -99,8 +97,7 @@ fn test_message_filter_settings_command() {
     );
 
     println!("Test print-message-filter-settings returns values");
-    let mut cmd = Command::cargo_bin("mpot").unwrap();
-    let output = cmd
+    let output = Command::new(cargo::cargo_bin!("mpot"))
         .arg("-vv")
         .arg("-c")
         .arg(&conf_path)
@@ -117,8 +114,7 @@ fn test_message_filter_settings_command() {
     );
 
     println!("Test print-message-filter-settings returns filtered values");
-    let mut cmd = Command::cargo_bin("mpot").unwrap();
-    let output = cmd
+    let output = Command::new(cargo::cargo_bin!("mpot"))
         .arg("-vv")
         .arg("-c")
         .arg(&conf_path)
@@ -135,8 +131,7 @@ fn test_message_filter_settings_command() {
             .trim()
             .normalize(),
     );
-    let mut cmd = Command::cargo_bin("mpot").unwrap();
-    let output = cmd
+    let output = Command::new(cargo::cargo_bin!("mpot"))
         .arg("-vv")
         .arg("-c")
         .arg(&conf_path)

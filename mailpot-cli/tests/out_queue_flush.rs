@@ -16,7 +16,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use assert_cmd::assert::OutputAssertExt;
+use assert_cmd::{assert::OutputAssertExt, cargo};
 use mailpot::{
     melib,
     models::{changesets::ListSubscriptionChangeset, *},
@@ -127,8 +127,7 @@ fn test_out_queue_flush() {
     };
 
     log::info!("Running mpot flush-queue on empty out queue.");
-    let mut cmd = Command::cargo_bin("mpot").unwrap();
-    let output = cmd
+    let output = Command::new(cargo::cargo_bin!("mpot"))
         .arg("-vv")
         .arg("-c")
         .arg(&conf_path)
@@ -172,8 +171,7 @@ fn test_out_queue_flush() {
     }
 
     log::info!("Flush out queue, subscription confirmations should be sent to the new users.");
-    let mut cmd = Command::cargo_bin("mpot").unwrap();
-    let output = cmd
+    let output = Command::new(cargo::cargo_bin!("mpot"))
         .arg("-vv")
         .arg("-c")
         .arg(&conf_path)
@@ -226,8 +224,7 @@ fn test_out_queue_flush() {
         assert_eq!(out_queue.len(), 2);
     }
 
-    let mut cmd = Command::cargo_bin("mpot").unwrap();
-    let output = cmd
+    let output = Command::new(cargo::cargo_bin!("mpot"))
         .arg("-vv")
         .arg("-c")
         .arg(&conf_path)
@@ -334,8 +331,7 @@ fn test_list_requests_submission() {
     };
 
     log::info!("Running mpot flush-queue on empty out queue.");
-    let mut cmd = Command::cargo_bin("mpot").unwrap();
-    let output = cmd
+    let output = Command::new(cargo::cargo_bin!("mpot"))
         .arg("-vv")
         .arg("-c")
         .arg(&conf_path)
@@ -367,8 +363,7 @@ fn test_list_requests_submission() {
     }
 
     log::info!("Flush out queue, help reply should go to Αλίκη.");
-    let mut cmd = Command::cargo_bin("mpot").unwrap();
-    let output = cmd
+    let output = Command::new(cargo::cargo_bin!("mpot"))
         .arg("-vv")
         .arg("-c")
         .arg(&conf_path)

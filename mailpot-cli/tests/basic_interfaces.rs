@@ -20,7 +20,7 @@
 
 use std::path::Path;
 
-use assert_cmd::{assert::OutputAssertExt, Command};
+use assert_cmd::{assert::OutputAssertExt, cargo, Command};
 use mailpot::{models::*, Configuration, Connection, SendMail};
 use predicates::prelude::*;
 use tempfile::TempDir;
@@ -28,16 +28,18 @@ use tempfile::TempDir;
 #[test]
 fn test_cli_basic_interfaces() {
     fn no_args() {
-        let mut cmd = Command::cargo_bin("mpot").unwrap();
         // 2 -> incorrect usage
-        cmd.assert().code(2);
+        Command::new(cargo::cargo_bin!("mpot")).assert().code(2);
     }
 
     fn version() {
         // --version is successful
         for arg in ["--version", "-V"] {
-            let mut cmd = Command::cargo_bin("mpot").unwrap();
-            let output = cmd.arg(arg).output().unwrap().assert();
+            let output = Command::new(cargo::cargo_bin!("mpot"))
+                .arg(arg)
+                .output()
+                .unwrap()
+                .assert();
             output.code(0).stdout(predicates::str::starts_with("mpot "));
         }
     }
@@ -48,8 +50,11 @@ fn test_cli_basic_interfaces() {
             ("--help", "GNU Affero version 3 or later"),
             ("-h", "mailing list manager"),
         ] {
-            let mut cmd = Command::cargo_bin("mpot").unwrap();
-            let output = cmd.arg(arg).output().unwrap().assert();
+            let output = Command::new(cargo::cargo_bin!("mpot"))
+                .arg(arg)
+                .output()
+                .unwrap()
+                .assert();
             output
                 .code(0)
                 .stdout(predicates::str::starts_with(starts_with))
@@ -58,16 +63,22 @@ fn test_cli_basic_interfaces() {
     }
 
     fn sample_config() {
-        let mut cmd = Command::cargo_bin("mpot").unwrap();
         // sample-config does not require a configuration file as an argument (but other
         // commands do)
-        let output = cmd.arg("sample-config").output().unwrap().assert();
+        let output = Command::new(cargo::cargo_bin!("mpot"))
+            .arg("sample-config")
+            .output()
+            .unwrap()
+            .assert();
         output.code(0).stdout(predicates::str::is_empty().not());
     }
 
     fn config_required() {
-        let mut cmd = Command::cargo_bin("mpot").unwrap();
-        let output = cmd.arg("list-lists").output().unwrap().assert();
+        let output = Command::new(cargo::cargo_bin!("mpot"))
+            .arg("list-lists")
+            .output()
+            .unwrap()
+            .assert();
         output.code(2).stdout(predicates::str::is_empty()).stderr(
             predicate::eq(
                 r#"error: --config is required for mailing list operations
@@ -102,8 +113,7 @@ For more information, try '--help'."#,
     let config_str = config.to_toml();
 
     fn config_not_exists(conf: &Path) {
-        let mut cmd = Command::cargo_bin("mpot").unwrap();
-        let output = cmd
+        let output = Command::new(cargo::cargo_bin!("mpot"))
             .arg("-c")
             .arg(conf)
             .arg("list-lists")
@@ -130,8 +140,7 @@ For more information, try '--help'."#,
     std::fs::write(&conf_path, config_str.as_bytes()).unwrap();
 
     fn list_lists(conf: &Path, eq: &str) {
-        let mut cmd = Command::cargo_bin("mpot").unwrap();
-        let output = cmd
+        let output = Command::new(cargo::cargo_bin!("mpot"))
             .arg("-c")
             .arg(conf)
             .arg("list-lists")
@@ -171,8 +180,7 @@ For more information, try '--help'."#,
     );
 
     fn create_list(conf: &Path) {
-        let mut cmd = Command::cargo_bin("mpot").unwrap();
-        let output = cmd
+        let output = Command::new(cargo::cargo_bin!("mpot"))
             .arg("-c")
             .arg(conf)
             .arg("create-list")
@@ -203,8 +211,7 @@ For more information, try '--help'."#,
     );
 
     fn add_list_owner(conf: &Path) {
-        let mut cmd = Command::cargo_bin("mpot").unwrap();
-        let output = cmd
+        let output = Command::new(cargo::cargo_bin!("mpot"))
             .arg("-c")
             .arg(conf)
             .arg("list")
@@ -234,8 +241,7 @@ For more information, try '--help'."#,
     );
 
     fn remove_list_owner(conf: &Path) {
-        let mut cmd = Command::cargo_bin("mpot").unwrap();
-        let output = cmd
+        let output = Command::new(cargo::cargo_bin!("mpot"))
             .arg("-c")
             .arg(conf)
             .arg("list")
