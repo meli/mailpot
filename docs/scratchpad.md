@@ -70,7 +70,7 @@ Useful projects:
 
 See <https://github.com/dtolnay/mailingset/tree/master>
 
-> A mailing list server that treates mailing lists as sets and allows mail to
+> A mailing list server that treats mailing lists as sets and allows mail to
 > be sent to the result of set-algebraic expressions on those sets. The union,
 > intersection, and difference operators are supported. Sending mail to a set
 > operation involves specifying a set expression in the local part of the

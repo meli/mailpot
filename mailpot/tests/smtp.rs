@@ -232,7 +232,7 @@ fn test_smtp_mailcrab() {
                 .kind()
             {
                 mailpot::ErrorKind::PostRejected(reason) => {
-                    trace!("Non-subscription post succesfully rejected: '{reason}'");
+                    trace!("Non-subscription post successfully rejected: '{reason}'");
                 }
                 other => panic!("Got unexpected error: {}", other),
             }

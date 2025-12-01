@@ -164,8 +164,8 @@ impl Template {
             name: Self::ADMIN_NOTICE.to_string(),
             list: None,
             subject: Some(
-                "{% if list %}An error occured with list {{ list.id }}{% else %}An error \
-                 occured{% endif %}"
+                "{% if list %}An error occurred with list {{ list.id }}{% else %}An error \
+                 occurred{% endif %}"
                     .to_string(),
             ),
             headers_json: None,

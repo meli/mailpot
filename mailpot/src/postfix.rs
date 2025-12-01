@@ -235,7 +235,7 @@ flags=RX user={username}{group_sep}{groupname} directory={{{data_dir}}} argv={{{
 
         if let Some(line) = lines.iter().find(|l| l.starts_with(transport_name)) {
             let pos = previous_content.find(line).ok_or_else(|| {
-                Error::from(ErrorKind::Bug("Unepected logical error.".to_string()))
+                Error::from(ErrorKind::Bug("Unexpected logical error.".to_string()))
             })?;
             let end_needle = " argv=";
             let end_pos = previous_content[pos..]
@@ -246,7 +246,7 @@ flags=RX user={username}{group_sep}{groupname} directory={{{data_dir}}} argv={{{
                         .map(|p| p + pos + pos2 + end_needle.len())
                 })
                 .ok_or_else(|| {
-                    Error::from(ErrorKind::Bug("Unepected logical error.".to_string()))
+                    Error::from(ErrorKind::Bug("Unexpected logical error.".to_string()))
                 })?;
             previous_content.replace_range(pos..end_pos, &new_entry);
         } else {

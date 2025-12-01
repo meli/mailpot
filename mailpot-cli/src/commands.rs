@@ -722,7 +722,7 @@ pub fn flush_queue(db: &mut Connection, dry_run: bool, verbose: u8, debug: bool)
                     let result = child.wait_with_output()?;
                     if !result.status.success() {
                         return Err(Error::new_external(format!(
-                            "{} proccess failed with exit code: {:?}\n{}",
+                            "{} process failed with exit code: {:?}\n{}",
                             cmd,
                             result.status.code(),
                             String::from_utf8(result.stderr).unwrap()
