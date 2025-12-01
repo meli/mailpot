@@ -17,6 +17,8 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
+#![allow(clippy::result_large_err)]
+
 extern crate base64;
 extern crate ureq;
 pub use std::path::PathBuf;

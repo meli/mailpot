@@ -317,7 +317,7 @@ flags=RX user={username}{group_sep}{groupname} directory={{{data_dir}}} argv={{{
 
         let output = std::process::Command::new("sh")
             .arg("-c")
-            .arg(&format!("{} {}", postmap.display(), path.display()))
+            .arg(format!("{} {}", postmap.display(), path.display()))
             .output()
             .with_context(|| {
                 format!(

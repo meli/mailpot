@@ -281,7 +281,7 @@ mod tests {
         let body = hyper::body::to_bytes(response.into_body()).await.unwrap();
         let r: GetResponse = serde_json::from_slice(&body).unwrap();
 
-        assert_eq!(&r.entries, &[foo_chat.clone()]);
+        assert_eq!(&r.entries, std::slice::from_ref(&foo_chat));
         assert_eq!(r.total, 1);
         assert_eq!(r.start, 0);
 

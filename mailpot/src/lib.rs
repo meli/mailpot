@@ -40,11 +40,15 @@
     clippy::bool_to_int_with_if,
     clippy::borrow_as_ptr,
     clippy::case_sensitive_file_extension_comparisons,
-    clippy::cast_lossless,
     clippy::cast_ptr_alignment,
-    clippy::naive_bytecount
+    clippy::naive_bytecount,
+    clippy::large_enum_variant,
 )]
-#![allow(clippy::multiple_crate_versions, clippy::missing_const_for_fn)]
+#![allow(
+    clippy::multiple_crate_versions,
+    clippy::result_large_err,
+    clippy::missing_const_for_fn
+)]
 
 //! Mailing list manager library.
 //!

@@ -97,7 +97,7 @@ impl PostFilter for PostRightsCheck {
                     .collect::<Vec<Address>>();
                 trace!("Owner addresses are: {:#?}", &owner_addresses);
                 trace!("Envelope from is: {:?}", &post.from);
-                if !owner_addresses.iter().any(|addr| *addr == post.from) {
+                if !owner_addresses.contains(&post.from) {
                     trace!("Envelope From does not include any owner");
                     post.action = PostAction::Reject {
                         reason: "You are not allowed to post on this list.".to_string(),
@@ -205,7 +205,7 @@ impl PostFilter for AddListHeaders {
         let mut new_vec = Vec::with_capacity(
             headers
                 .iter()
-                .map(|(h, v)| h.as_str().as_bytes().len() + v.len() + ": \r\n".len())
+                .map(|(h, v)| h.as_str().len() + v.len() + ": \r\n".len())
                 .sum::<usize>()
                 + "\r\n\r\n".len()
                 + body.len(),
@@ -260,7 +260,7 @@ impl PostFilter for AddSubjectTagPrefix {
         let mut new_vec = Vec::with_capacity(
             headers
                 .iter()
-                .map(|(h, v)| h.as_str().as_bytes().len() + v.len() + ": \r\n".len())
+                .map(|(h, v)| h.as_str().len() + v.len() + ": \r\n".len())
                 .sum::<usize>()
                 + "\r\n\r\n".len()
                 + body.len(),
@@ -326,7 +326,7 @@ impl PostFilter for ArchivedAtLink {
         let mut new_vec = Vec::with_capacity(
             headers
                 .iter()
-                .map(|(h, v)| h.as_str().as_bytes().len() + v.len() + ": \r\n".len())
+                .map(|(h, v)| h.as_str().len() + v.len() + ": \r\n".len())
                 .sum::<usize>()
                 + "\r\n\r\n".len()
                 + body.len(),

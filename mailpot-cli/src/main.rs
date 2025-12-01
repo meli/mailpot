@@ -17,6 +17,8 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
+#![allow(clippy::result_large_err)]
+
 use mailpot::{melib::smtp, Configuration, Connection, Context, Result};
 use mailpot_cli::{commands::*, *};
 

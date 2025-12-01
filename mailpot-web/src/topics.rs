@@ -39,7 +39,7 @@ impl std::fmt::Display for SearchResult {
 }
 
 impl Object for SearchResult {
-    fn kind(&self) -> minijinja::value::ObjectKind {
+    fn kind(&self) -> minijinja::value::ObjectKind<'_> {
         minijinja::value::ObjectKind::Struct(self)
     }
 

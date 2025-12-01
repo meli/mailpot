@@ -1243,7 +1243,7 @@ mod tests {
         tx.set_drop_behavior(DropBehavior::Commit);
         let new = tx.create_list(list.clone()).unwrap();
         drop(tx);
-        assert_eq!(&db.lists().unwrap(), &[new.clone()]);
+        assert_eq!(&db.lists().unwrap(), std::slice::from_ref(&new));
 
         /* rollback with drop commit */
         let mut tx = db.transaction(Default::default()).unwrap();
@@ -1256,7 +1256,7 @@ mod tests {
             })
             .unwrap();
         tx.rollback().unwrap();
-        assert_eq!(&db.lists().unwrap(), &[new.clone()]);
+        assert_eq!(&db.lists().unwrap(), std::slice::from_ref(&new));
 
         /* tx and then savepoint */
         let tx = db.transaction(Default::default()).unwrap();

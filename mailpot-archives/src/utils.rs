@@ -97,7 +97,7 @@ impl std::fmt::Display for MailingList {
 }
 
 impl Object for MailingList {
-    fn kind(&self) -> minijinja::value::ObjectKind {
+    fn kind(&self) -> minijinja::value::ObjectKind<'_> {
         minijinja::value::ObjectKind::Struct(self)
     }
 
