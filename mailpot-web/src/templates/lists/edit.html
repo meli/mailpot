@@ -19,8 +19,8 @@
     <p>{{ post_count }} post{{ post_count|pluralize }}.</p>
     <form method="post" class="settings-form">
         <fieldset>
-            <input type="hidden" name="type" value="metadata">
             <legend>List Metadata</legend>
+            <input type="hidden" name="type" value="metadata">
 
             <table>
                 <tr>
@@ -86,8 +86,8 @@
     </form>
     <form method="post" action="{{ list_edit_path(list.id) }}" class="settings-form">
         <fieldset>
-            <input type="hidden" name="type" value="post-policy">
             <legend>Post Policy <input type="submit" name="delete-post-policy" value="Delete" disabled></legend>
+            <input type="hidden" name="type" value="post-policy">
             {% if not post_policy %}
                 <ul class="messagelist">
                     <li class="info">
@@ -120,8 +120,8 @@
     </form>
     <form method="post" action="{{ list_edit_path(list.id) }}" class="settings-form">
         <fieldset>
-            <input type="hidden" name="type" value="subscription-policy">
             <legend>Subscription Policy <input type="submit" name="delete-post-policy" value="Delete" disabled></legend>
+            <input type="hidden" name="type" value="subscription-policy">
             {% if not subscription_policy %}
                 <ul class="messagelist">
                     <li class="info">

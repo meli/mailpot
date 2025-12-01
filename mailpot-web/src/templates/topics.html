@@ -5,7 +5,7 @@
     <dl class="lists" aria-label="list of mailing lists">
       {% for list in results %}
         <dt aria-label="mailing list name"><a href="{{ list_path(list.id) }}">{{ list.id }}</a></dt>
-        <dd><span aria-label="mailing list description"{% if not list.description %} class="no-description"{% endif %}>{{ list.description if list.description else "<p>no description</p>"|safe }}</span>{% if list.topics|length > 0 %}<span class="list-topics"><span>Topics:</span>&nbsp;{{ list.topics_html() }}</span>{% endif %}</dd>
+        <dd><span aria-label="mailing list description"{% if not list.description %} class="no-description"{% endif %}>{{ list.description if list.description else "<span>no description</span>"|safe }}</span>{% if list.topics|length > 0 %}<span class="list-topics"><span>Topics:</span>&nbsp;{{ list.topics_html() }}</span>{% endif %}</dd>
       {% endfor %}
     </dl>
   </div>

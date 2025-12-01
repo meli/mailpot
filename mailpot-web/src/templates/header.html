@@ -4,7 +4,7 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <title>{{ title if title else page_title if page_title else site_title }}</title>{% if canonical_url %}
-            <link href="{{ urlize(canonical_url) }}" rel="canonical" />{% endif %}
+            <link href="{{ urlize(canonical_url) }}" rel="canonical">{% endif %}
         {% include "css.html" %}
     </head>
     <body>
