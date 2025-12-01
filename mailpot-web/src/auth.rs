@@ -244,18 +244,17 @@ pub async fn ssh_signin_POST(
             )));
         }
     };
-    #[cfg(not(debug_assertions))]
-    let sig = SshSignature {
-        email: payload.address.clone(),
-        ssh_public_key: acc.password.clone(),
-        ssh_signature: payload.password.clone(),
-        namespace: std::env::var("SSH_NAMESPACE")
-            .unwrap_or_else(|_| "lists.mailpot.rs".to_string())
-            .into(),
-        token: _prev_token,
-    };
-    #[cfg(not(debug_assertions))]
-    {
+    // [ref:TODO]: put a verify_signatures boolean in app state
+    if cfg!(not(debug_assertions)) {
+        let sig = SshSignature {
+            email: payload.address.clone(),
+            ssh_public_key: acc.password.clone(),
+            ssh_signature: payload.password.clone(),
+            namespace: std::env::var("SSH_NAMESPACE")
+                .unwrap_or_else(|_| "lists.mailpot.rs".to_string())
+                .into(),
+            token: _prev_token,
+        };
         #[cfg(not(feature = "ssh-key"))]
         let ssh_verify_fn = ssh_verify;
         #[cfg(feature = "ssh-key")]
