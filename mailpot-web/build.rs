@@ -60,7 +60,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .truncate(true)
         .open("./src/minijinja_utils/compressed.data")?;
 
-    println!("cargo:rerun-if-changed=./src/templates");
     println!("cargo:rerun-if-changed=./src/minijinja_utils/compressed.rs");
 
     let mut templates: Vec<(String, PathBuf)> = vec![];
@@ -73,6 +72,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             if path.is_dir() {
                 dirs.push(path);
             } else if path.extension().map(|s| s == "html").unwrap_or(false) {
+                println!("cargo:rerun-if-changed={}", path.display());
                 templates.push((path.strip_prefix(&root_prefix)?.display().to_string(), path));
             }
         }
