@@ -17,6 +17,7 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
+#![doc = include_str!("../README.md")]
 #![deny(
     //missing_docs,
     rustdoc::broken_intra_doc_links,

@@ -17,6 +17,9 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
+//! Import members in a local list from a remote mailman3 REST API instance with
+//! `mpot list import-members ...`.
+
 use std::{borrow::Cow, time::Duration};
 
 use base64::{engine::general_purpose, Engine as _};

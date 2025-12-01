@@ -17,6 +17,7 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
+//! CLI argument, subcommand types.
 pub use std::path::PathBuf;
 
 pub use clap::{builder::TypedValueParser, Args, Parser, Subcommand};

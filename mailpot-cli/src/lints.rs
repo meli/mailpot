@@ -17,6 +17,8 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
+//! Lints that run with `mpot repair ...` command.
+
 use mailpot::{
     chrono,
     melib::{self, Envelope},

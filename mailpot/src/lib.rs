@@ -57,8 +57,9 @@
 //!
 //! # Usage
 //!
-//! `mailpot` can be used with the CLI tool in [`mailpot-cli`](mailpot-cli),
-//! and/or in the web interface of the [`mailpot-web`](mailpot-web) crate.
+//! `mailpot` can be used with the CLI tool in
+//! [`mailpot-cli`](../mailpot_cli/index.html), and/or in the web interface of
+//! the [`mailpot-web`](../mailpot_web/index.html) crate.
 //!
 //! You can also directly use this crate as a library.
 //!

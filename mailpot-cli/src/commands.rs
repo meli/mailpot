@@ -17,6 +17,8 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
+//! Implementations of CLI subcommands
+
 use std::{
     collections::hash_map::DefaultHasher,
     hash::{Hash, Hasher},
