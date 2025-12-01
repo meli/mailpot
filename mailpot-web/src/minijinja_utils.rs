@@ -19,9 +19,13 @@
 
 //! Utils for templates with the [`minijinja`] crate.
 
-pub use mailpot::StripCarets;
+use minijinja::{value::Value, Environment};
 
-use super::*;
+use crate::typed_paths::{
+    help_path, list_candidates_path, list_edit_path, list_path, list_post_path, list_settings_path,
+    list_subscribers_path, login_path, logout_path, post_eml_path, post_mbox_path, post_raw_path,
+    settings_path,
+};
 
 mod compressed;
 mod filters;

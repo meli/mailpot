@@ -46,39 +46,20 @@
 )]
 #![allow(clippy::multiple_crate_versions, clippy::missing_const_for_fn)]
 
-pub use axum::{
-    extract::{Path, Query, State},
-    handler::Handler,
-    response::{Html, IntoResponse, Redirect},
-    routing::{get, post},
-    Extension, Form, Router,
-};
-pub use axum_extra::routing::TypedPath;
-pub use axum_login::{
-    memory_store::MemoryStore as AuthMemoryStore, secrecy::SecretVec, AuthLayer, AuthUser,
-    RequireAuthorizationLayer,
-};
-pub use axum_sessions::{
-    async_session::MemoryStore,
-    extractors::{ReadableSession, WritableSession},
-    SessionLayer,
-};
+use axum::response::{IntoResponse, Redirect};
+use axum_extra::routing::TypedPath;
+use axum_sessions::extractors::WritableSession;
 
 pub type AuthContext =
     axum_login::extractors::AuthContext<i64, auth::User, Arc<AppState>, auth::Role>;
 
 pub type RequireAuth = auth::auth_request::RequireAuthorizationLayer<i64, auth::User, auth::Role>;
 
-pub use std::result::Result;
 use std::{borrow::Cow, collections::HashMap, sync::Arc};
 
-use chrono::Datelike;
-pub use http::{Request, Response, StatusCode};
-use mailpot::{models::DbVal, rusqlite::OptionalExtension, *};
-use minijinja::{
-    value::{Object, Value},
-    Environment, Error,
-};
+use http::StatusCode;
+use mailpot::{melib, models::DbVal, Configuration, Connection, StripCaretsInplace};
+use minijinja::{value::Value, Error};
 use tokio::sync::RwLock;
 
 pub mod auth;
@@ -90,21 +71,6 @@ pub mod settings;
 pub mod topics;
 pub mod typed_paths;
 pub mod utils;
-
-pub use auth::*;
-pub use help::*;
-pub use lists::{
-    list, list_candidates, list_edit, list_edit_POST, list_post, list_post_eml, list_post_raw,
-    list_subscribers, PostPolicySettings, SubscriptionPolicySettings,
-};
-pub use minijinja_utils::*;
-pub use settings::{
-    settings, settings_POST, user_list_subscription, user_list_subscription_POST,
-    SubscriptionFormPayload,
-};
-pub use topics::*;
-pub use typed_paths::{tsr::RouterExt, *};
-pub use utils::*;
 
 #[derive(Debug)]
 pub struct ResponseError {

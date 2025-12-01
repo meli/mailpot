@@ -1,8 +1,15 @@
 use std::sync::Arc;
 
-pub use axum::extract::{Path, Query, State};
-use axum::{http::StatusCode, Json, Router};
-use mailpot_web::{typed_paths::*, ResponseError, RouterExt, TypedPath};
+use axum::{
+    extract::{Query, State},
+    Json, Router,
+};
+use axum_extra::routing::TypedPath;
+use http::StatusCode;
+use mailpot_web::{
+    typed_paths::{tsr::RouterExt, *},
+    ResponseError,
+};
 use serde::{Deserialize, Serialize};
 
 use crate::*;

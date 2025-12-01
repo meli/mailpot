@@ -21,9 +21,11 @@
 
 use std::fmt::Write;
 
-pub use mailpot::StripCarets;
+use chrono::Datelike;
+use mailpot::StripCarets;
+use minijinja::{value::Value, Error};
 
-use super::*;
+use crate::{cal, typed_paths::TopicsPath};
 
 /// Return a vector of weeks, with each week being a vector of 7 days and
 /// corresponding sum of posts per day.
@@ -94,10 +96,9 @@ pub fn calendarize(
 ///
 /// # Examples
 ///
-/// ```rust,no_run
-/// # use mailpot_web::pluralize;
+/// ```rust
+/// # use mailpot_web::minijinja_utils::pluralize;
 /// # use minijinja::Environment;
-///
 /// let mut env = Environment::new();
 /// env.add_filter("pluralize", pluralize);
 /// for (num, s) in [
@@ -274,11 +275,9 @@ pub fn ensure_carets(_state: &minijinja::State, arg: Value) -> std::result::Resu
 ///
 /// # Examples
 ///
-/// ```rust,no_run
-/// # use mailpot_web::urlize;
-/// # use minijinja::Environment;
-/// # use minijinja::value::Value;
-///
+/// ```rust
+/// # use mailpot_web::minijinja_utils::urlize;
+/// # use minijinja::{Environment, value::Value};
 /// let mut env = Environment::new();
 /// env.add_function("urlize", urlize);
 /// env.add_global(
@@ -303,7 +302,7 @@ pub fn urlize(state: &minijinja::State, arg: Value) -> std::result::Result<Value
 
 pub fn url_encode(_state: &minijinja::State, arg: Value) -> std::result::Result<Value, Error> {
     Ok(Value::from_safe_string(
-        utf8_percent_encode(
+        percent_encoding::utf8_percent_encode(
             arg.as_str().ok_or_else(|| {
                 minijinja::Error::new(
                     minijinja::ErrorKind::InvalidOperation,
@@ -313,7 +312,7 @@ pub fn url_encode(_state: &minijinja::State, arg: Value) -> std::result::Result<
                     ),
                 )
             })?,
-            crate::typed_paths::PATH_SEGMENT,
+            mailpot::PATH_SEGMENT,
         )
         .to_string(),
     ))
@@ -322,10 +321,9 @@ pub fn url_encode(_state: &minijinja::State, arg: Value) -> std::result::Result<
 /// Make an html heading: `h1, h2, h3` etc.
 ///
 /// # Example
-/// ```rust,no_run
-/// use mailpot_web::minijinja_utils::heading;
-/// use minijinja::value::Value;
-///
+/// ```rust
+/// # use mailpot_web::minijinja_utils::heading;
+/// # use minijinja::value::Value;
 /// assert_eq!(
 ///   "<h1 id=\"bl-bfa-b-ah-b-asdb-hadas-d\">bl bfa B AH bAsdb hadas d<a class=\"self-link\" href=\"#bl-bfa-b-ah-b-asdb-hadas-d\"></a></h1>",
 ///   &heading(1.into(), "bl bfa B AH bAsdb hadas d".into(), None).unwrap().to_string()
@@ -410,8 +408,7 @@ pub fn heading(level: Value, text: Value, id: Option<Value>) -> std::result::Res
         )))
     } else {
         let kebab_v = text.to_case(Case::Kebab);
-        let kebab =
-            percent_encoding::utf8_percent_encode(&kebab_v, crate::typed_paths::PATH_SEGMENT);
+        let kebab = percent_encoding::utf8_percent_encode(&kebab_v, mailpot::PATH_SEGMENT);
         Ok(Value::from_safe_string(format!(
             "<h{level} id=\"{kebab}\">{text}<a class=\"self-link\" \
              href=\"#{kebab}\"></a></h{level}>"
@@ -423,9 +420,8 @@ pub fn heading(level: Value, text: Value, id: Option<Value>) -> std::result::Res
 ///
 /// # Example
 /// ```rust
-/// use mailpot_web::minijinja_utils::topics;
-/// use minijinja::value::Value;
-///
+/// # use mailpot_web::minijinja_utils::topics;
+/// # use minijinja::value::Value;
 /// let v: Value = topics(Value::from_serializable(&vec![
 ///     "a".to_string(),
 ///     "aab".to_string(),
@@ -464,7 +460,7 @@ pub fn topics_common(topics: &[String]) -> std::result::Result<Value, Error> {
         write!(
             &mut ul,
             "{}",
-            utf8_percent_encode(topic, crate::typed_paths::PATH_SEGMENT)
+            percent_encoding::utf8_percent_encode(topic, mailpot::PATH_SEGMENT)
         )?;
         write!(&mut ul, r#"">"#)?;
         write!(&mut ul, "{}", topic)?;
@@ -480,11 +476,9 @@ pub fn topics_common(topics: &[String]) -> std::result::Result<Value, Error> {
 ///
 /// # Examples
 ///
-/// ```rust,no_run
-/// # use mailpot_web::time_dur;
-/// # use minijinja::Environment;
-/// # use minijinja::value::Value;
-///
+/// ```rust
+/// # use mailpot_web::minijinja_utils::time_dur;
+/// # use minijinja::{value::Value, Environment};
 /// let mut env = Environment::new();
 /// env.add_function("time_dur", time_dur);
 /// assert_eq!(
@@ -518,9 +512,11 @@ pub fn time_dur(_: &minijinja::State, arg: Value) -> std::result::Result<Value, 
 
 #[cfg(test)]
 mod tests {
-    use mailpot::models::ListOwner;
+    use mailpot::models::{DbVal, ListOwner};
+    use minijinja::{value::Value, Environment};
 
     use super::*;
+    use crate::minijinja_utils::MailingList;
 
     #[test]
     fn test_pluralize() {

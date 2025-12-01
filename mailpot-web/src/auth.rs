@@ -17,12 +17,26 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-use std::{borrow::Cow, process::Stdio};
+use std::{borrow::Cow, process::Stdio, sync::Arc};
 
+use axum::{
+    extract::{Query, State},
+    response::{Html, IntoResponse, Redirect},
+    Form,
+};
+use axum_extra::routing::TypedPath;
+use axum_login::{secrecy::SecretVec, AuthUser};
+use axum_sessions::extractors::WritableSession;
+use http::{Request, Response, StatusCode};
 use tempfile::NamedTempFile;
 use tokio::{fs::File, io::AsyncWriteExt, process::Command};
 
-use super::*;
+use crate::{
+    minijinja_utils::TEMPLATES,
+    typed_paths::{IntoCrumb, LoginPath, LogoutPath, SettingsPath},
+    utils::{Crumb, Level, Message, Next, SessionMessages},
+    AppState, AuthContext, Connection, IntoResponseErrorResult, ResponseError,
+};
 
 const TOKEN_KEY: &str = "ssh_challenge";
 const EXPIRY_IN_SECS: i64 = 6 * 60;
@@ -317,7 +331,7 @@ pub struct SshSignature {
 /// Run ssh signature validation with `ssh-keygen` binary.
 ///
 /// ```no_run
-/// use mailpot_web::{ssh_verify, SshSignature};
+/// use mailpot_web::auth::{ssh_verify, SshSignature};
 ///
 /// async fn verify_signature(
 ///     ssh_public_key: String,
@@ -444,7 +458,7 @@ pub async fn ssh_verify(sig: SshSignature) -> Result<(), Box<dyn std::error::Err
 /// Run ssh signature validation.
 ///
 /// ```no_run
-/// use mailpot_web::{ssh_verify_in_memory, SshSignature};
+/// use mailpot_web::auth::{ssh_verify_in_memory, SshSignature};
 ///
 /// async fn ssh_verify(
 ///     ssh_public_key: String,

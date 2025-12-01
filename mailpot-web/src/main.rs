@@ -19,9 +19,25 @@
 
 use std::{borrow::Cow, collections::HashMap, sync::Arc};
 
+use axum::{extract::State, handler::Handler, response::Html, routing::get, Router};
+use axum_login::AuthLayer;
+use axum_sessions::{async_session::MemoryStore, extractors::WritableSession, SessionLayer};
 use chrono::TimeZone;
 use mailpot::{log, Configuration, Connection};
-use mailpot_web::*;
+use mailpot_web::{
+    auth::{logout_handler, Role},
+    help::help,
+    lists::{
+        list, list_candidates, list_edit, list_edit_POST, list_post, list_post_eml, list_post_raw,
+        list_subscribers,
+    },
+    minijinja_utils::{MailingList, TEMPLATES},
+    settings::{settings, settings_POST, user_list_subscription, user_list_subscription_POST},
+    topics::list_topics,
+    typed_paths::{tsr::RouterExt, IntoCrumb, LoginPath},
+    utils::{Crumb, SessionMessages},
+    *,
+};
 use minijinja::value::Value;
 use rand::Rng;
 use tokio::sync::RwLock;
@@ -236,11 +252,17 @@ mod tests {
         http::{
             header::{COOKIE, SET_COOKIE},
             method::Method,
-            Request, StatusCode,
+            Request, Response, StatusCode,
         },
     };
+    use axum_extra::routing::TypedPath;
     use mailpot::{Configuration, Connection, SendMail};
     use mailpot_tests::init_stderr_logging;
+    use mailpot_web::{
+        auth::{AuthFormPayload, User},
+        typed_paths::*,
+        utils::*,
+    };
     use percent_encoding::utf8_percent_encode;
     use tempfile::TempDir;
     use tower::ServiceExt;
@@ -368,7 +390,7 @@ mod tests {
                     get & format!(
                         "/list/{id}/posts/{msgid}/",
                         id = list.id,
-                        msgid = utf8_percent_encode(msg_id, PATH_SEGMENT)
+                        msgid = utf8_percent_encode(msg_id, mailpot::PATH_SEGMENT)
                     )
                 ))
                 .await
@@ -385,7 +407,7 @@ mod tests {
                     get & format!(
                         "/list/{id}/posts/{msgid}/raw/",
                         id = list.id,
-                        msgid = utf8_percent_encode(msg_id, PATH_SEGMENT)
+                        msgid = utf8_percent_encode(msg_id, mailpot::PATH_SEGMENT)
                     )
                 ))
                 .await
@@ -401,7 +423,7 @@ mod tests {
                     get & format!(
                         "/list/{id}/posts/{msgid}/eml/",
                         id = list.id,
-                        msgid = utf8_percent_encode(msg_id, PATH_SEGMENT)
+                        msgid = utf8_percent_encode(msg_id, mailpot::PATH_SEGMENT)
                     )
                 ))
                 .await

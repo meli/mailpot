@@ -20,16 +20,21 @@ use std::{
     collections::{hash_map::RandomState, HashSet, VecDeque},
     hash::{BuildHasher, Hasher},
     io::Write,
+    path::PathBuf,
 };
 
 use clap::{ArgAction, CommandFactory};
 use clap_mangen::{roff, Man};
 use roff::{bold, italic, roman, Inline, Roff};
 
-mod message_filter_settings {
-    include!("src/message_filter_settings.rs");
-}
-include!("src/args.rs");
+#[rustfmt::skip]
+#[path = "src/message_filter_settings.rs"]
+mod message_filter_settings;
+
+#[path = "src/args.rs"]
+mod args;
+
+use args::*;
 
 fn main() -> std::io::Result<()> {
     println!("cargo:rerun-if-changed=./src/lib.rs");

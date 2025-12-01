@@ -2259,6 +2259,7 @@ dependencies = [
  "hyper",
  "indexmap 1.9.3",
  "lazy_static",
+ "log",
  "mailpot",
  "mailpot-tests",
  "minijinja",

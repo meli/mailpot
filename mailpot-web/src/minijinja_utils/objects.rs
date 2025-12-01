@@ -19,9 +19,13 @@
 
 //! Utils for templates with the [`minijinja`] crate.
 
-use mailpot::models::ListOwner;
+use mailpot::models::{DbVal, ListOwner};
+use minijinja::{
+    value::{Object, Value},
+    Error,
+};
 
-use super::*;
+use crate::minijinja_utils::topics_common;
 
 #[derive(Debug, PartialEq, Eq, Clone, serde::Deserialize, serde::Serialize)]
 pub struct MailingList {
@@ -31,7 +35,7 @@ pub struct MailingList {
     pub address: String,
     pub description: Option<String>,
     pub topics: Vec<String>,
-    #[serde(serialize_with = "super::utils::to_safe_string_opt")]
+    #[serde(serialize_with = "crate::utils::to_safe_string_opt")]
     pub archive_url: Option<String>,
     pub inner: DbVal<mailpot::models::MailingList>,
     #[serde(default)]

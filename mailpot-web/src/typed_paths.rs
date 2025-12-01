@@ -17,10 +17,11 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-pub use mailpot::PATH_SEGMENT;
+use mailpot::PATH_SEGMENT;
 use percent_encoding::utf8_percent_encode;
 
 use super::*;
+use crate::minijinja_utils::urlize;
 
 pub trait IntoCrumb: TypedPath {
     fn to_crumb(&self) -> Cow<'static, str> {

@@ -19,8 +19,11 @@
 
 #![allow(clippy::result_large_err)]
 
+use std::path::PathBuf;
+
+use clap::{CommandFactory, Parser};
 use mailpot::{melib::smtp, Configuration, Connection, Context, Result};
-use mailpot_cli::{commands::*, *};
+use mailpot_cli::{args::*, commands::*};
 
 fn run_app(
     config: Option<PathBuf>,

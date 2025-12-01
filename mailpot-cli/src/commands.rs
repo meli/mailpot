@@ -27,6 +27,7 @@ use std::{
     process::Stdio,
 };
 
+use clap::builder::TypedValueParser;
 use mailpot::{
     melib,
     melib::{maildir::utilities::MaildirFilePathExt, smol, Envelope, EnvelopeHash},
@@ -36,7 +37,7 @@ use mailpot::{
     Connection, Context, Error, ErrorKind, Result,
 };
 
-use crate::{lints::*, *};
+use crate::{args::*, import, lints::*};
 
 macro_rules! list {
     ($db:ident, $list_id:expr) => {{
