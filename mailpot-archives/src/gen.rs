@@ -115,8 +115,6 @@ fn run_app() -> std::result::Result<(), Box<dyn std::error::Error>> {
                 }
                 let envelope = melib::Envelope::from_bytes(post.message.as_slice(), None)
                     .expect("Could not parse mail");
-                let mut msg_id = &post.message_id[1..];
-                msg_id = &msg_id[..msg_id.len().saturating_sub(1)];
                 let subject = envelope.subject();
                 let mut subject_ref = subject.trim();
                 if subject_ref.starts_with('[')
@@ -130,7 +128,7 @@ fn run_app() -> std::result::Result<(), Box<dyn std::error::Error>> {
                         list => post.list,
                         subject => subject_ref,
                         address=> post.address,
-                        message_id => msg_id,
+                        message_id => post.message_id.as_str().strip_carets(),
                         message => post.message,
                         timestamp => post.timestamp,
                         datetime => post.datetime,
@@ -182,8 +180,7 @@ fn run_app() -> std::result::Result<(), Box<dyn std::error::Error>> {
         std::fs::create_dir_all(&lists_path)?;
 
         for post in posts {
-            let mut msg_id = &post.message_id[1..];
-            msg_id = &msg_id[..msg_id.len().saturating_sub(1)];
+            let msg_id = post.message_id.as_str().strip_carets();
             lists_path.push(format!("{msg_id}.html"));
             let envelope = melib::Envelope::from_bytes(post.message.as_slice(), None)
                 .map_err(|err| format!("Could not parse mail {}: {err}", post.message_id))?;
@@ -197,8 +194,6 @@ fn run_app() -> std::result::Result<(), Box<dyn std::error::Error>> {
             {
                 subject_ref = subject_ref[2 + list.id.len()..].trim();
             }
-            let mut message_id = &post.message_id[1..];
-            message_id = &message_id[..message_id.len().saturating_sub(1)];
             let crumbs = vec![
                 Crumb {
                     label: "Lists".into(),
@@ -210,7 +205,7 @@ fn run_app() -> std::result::Result<(), Box<dyn std::error::Error>> {
                 },
                 Crumb {
                     label: subject_ref.to_string().into(),
-                    url: format!("{root_url_prefix}/lists/{}/{message_id}.html/", list.pk).into(),
+                    url: format!("{root_url_prefix}/lists/{}/{msg_id}.html/", list.pk).into(),
                 },
             ];
             let context = minijinja::context! {

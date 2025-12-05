@@ -118,8 +118,6 @@ pub async fn list(
                 hist.get_mut(&post.month_year).unwrap()[day.saturating_sub(1) as usize] += 1;
             }
             let envelope = melib::Envelope::from_bytes(post.message.as_slice(), None).ok()?;
-            let mut msg_id = &post.message_id[1..];
-            msg_id = &msg_id[..msg_id.len().saturating_sub(1)];
             let subject = envelope.subject();
             let mut subject_ref = subject.trim();
             if subject_ref.starts_with('[')
@@ -133,7 +131,7 @@ pub async fn list(
                 list => post.list,
                 subject => subject_ref,
                 address => post.address,
-                message_id => msg_id,
+                message_id => post.message_id.as_str().strip_carets(),
                 message => post.message,
                 timestamp => post.timestamp,
                 datetime => post.datetime,

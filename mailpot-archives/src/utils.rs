@@ -36,20 +36,6 @@ lazy_static::lazy_static! {
     };
 }
 
-pub trait StripCarets {
-    fn strip_carets(&self) -> &str;
-}
-
-impl StripCarets for &str {
-    fn strip_carets(&self) -> &str {
-        let mut self_ref = self.trim();
-        if self_ref.starts_with('<') && self_ref.ends_with('>') {
-            self_ref = &self_ref[1..self_ref.len().saturating_sub(1)];
-        }
-        self_ref
-    }
-}
-
 #[derive(Debug, PartialEq, Eq, Clone, serde::Deserialize, serde::Serialize)]
 pub struct MailingList {
     pub pk: i64,
