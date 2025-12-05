@@ -28,8 +28,8 @@ use mailpot_web::{
     auth::{logout_handler, Role},
     help::help,
     lists::{
-        list, list_candidates, list_edit, list_edit_POST, list_post, list_post_eml, list_post_raw,
-        list_subscribers,
+        list, list_candidates, list_edit, list_edit_POST, list_post, list_post_eml, list_post_mbox,
+        list_post_raw, list_subscribers,
     },
     minijinja_utils::{MailingList, TEMPLATES},
     settings::{settings, settings_POST, user_list_subscription, user_list_subscription_POST},
@@ -76,6 +76,7 @@ fn create_app(shared_state: Arc<AppState>) -> Router {
         .typed_get(list_post_raw)
         .typed_get(list_topics)
         .typed_get(list_post_eml)
+        .typed_get(list_post_mbox)
         .typed_get(list_edit.layer(RequireAuth::login_with_role_or_redirect(
             Role::User..,
             Arc::clone(&login_url),

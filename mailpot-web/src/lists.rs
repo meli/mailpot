@@ -42,7 +42,7 @@ use crate::{
     minijinja_utils::{MailingList, TEMPLATES},
     typed_paths::{
         IntoCrumb, ListEditCandidatesPath, ListEditPath, ListEditSubscribersPath, ListPath,
-        ListPathIdentifier, ListPostEmlPath, ListPostPath, ListPostRawPath,
+        ListPathIdentifier, ListPostEmlPath, ListPostMboxPath, ListPostPath, ListPostRawPath,
     },
     utils::{thread_roots, BoolPOST, Crumb, IntPOST, Level, Message, SessionMessages},
     AppState, AuthContext, Connection, IntoResponseErrorResult, ResponseError,
@@ -649,6 +649,45 @@ pub async fn list_post_eml(
             msg_id.trim().strip_carets()
         ))
         .unwrap(),
+    );
+
+    Ok(response)
+}
+
+/// .mbox post page.
+pub async fn list_post_mbox(
+    ListPostMboxPath(id, msg_id): ListPostMboxPath,
+    State(state): State<Arc<AppState>>,
+) -> Result<impl IntoResponse, ResponseError> {
+    let db = Connection::open_db(state.conf.clone())?.trusted();
+    let Some(list) = (match id {
+        ListPathIdentifier::Pk(id) => db.list(id)?,
+        ListPathIdentifier::Id(id) => db.list_by_id(id)?,
+    }) else {
+        return Err(ResponseError::new(
+            "List not found".to_string(),
+            StatusCode::NOT_FOUND,
+        ));
+    };
+
+    let post = if let Some(post) = db.list_post_by_message_id(list.pk, &msg_id)? {
+        post
+    } else {
+        return Err(ResponseError::new(
+            format!("Post with Message-ID {} not found", msg_id),
+            StatusCode::NOT_FOUND,
+        ));
+    };
+    let Ok(mail) = melib::Mail::new(post.message.clone(), None) else {
+        return Err(ResponseError::new(
+            "Invalid e-mail data".to_string(),
+            StatusCode::BAD_REQUEST,
+        ));
+    };
+    let mut response = mail.as_mbox().into_response();
+    response.headers_mut().insert(
+        http::header::CONTENT_TYPE,
+        http::HeaderValue::from_static("text/plain; charset=utf-8"),
     );
 
     Ok(response)
