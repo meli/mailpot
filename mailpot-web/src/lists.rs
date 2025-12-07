@@ -108,7 +108,8 @@ pub async fn list(
     let posts_ctx = roots
         .into_iter()
         .filter_map(|(thread, length, _timestamp)| {
-            let post = &post_map[&thread.message_id.as_str()];
+            let key = thread.message_id.as_str();
+            let post = post_map.get(key.strip_carets())?;
             //2019-07-14T14:21:02
             if let Some(day) =
                 chrono::DateTime::<chrono::FixedOffset>::parse_from_rfc2822(post.datetime.trim())

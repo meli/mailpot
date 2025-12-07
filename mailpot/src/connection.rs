@@ -668,7 +668,7 @@ impl Connection {
               AS t
               JOIN
               cte_thread
-              ON cte_thread.parent = t.in_reply_to
+              ON cte_thread.parent = trim(t.in_reply_to, '<>')
               WHERE t.in_reply_to IS NOT NULL
 )
 SELECT * FROM cte_thread WHERE root = ? ORDER BY root, depth;",
