@@ -180,15 +180,19 @@ fn run_app(
             remove_empty_accounts,
             remove_accepted_subscription_requests,
             warn_list_no_owner,
+            fix_message_ids,
         } => {
             repair(
                 &mut db,
                 fix,
                 all,
-                datetime_header_value,
-                remove_empty_accounts,
-                remove_accepted_subscription_requests,
-                warn_list_no_owner,
+                RepairConfig {
+                    datetime_header_value,
+                    remove_empty_accounts,
+                    remove_accepted_subscription_requests,
+                    warn_list_no_owner,
+                    fix_message_ids,
+                },
             )
             .context("Could not perform database repair.")?;
         }

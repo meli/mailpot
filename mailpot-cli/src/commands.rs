@@ -1099,28 +1099,30 @@ pub fn update_account(
     Ok(())
 }
 
-pub fn repair(
-    db: &mut Connection,
-    fix: bool,
-    all: bool,
-    mut datetime_header_value: bool,
-    mut remove_empty_accounts: bool,
-    mut remove_accepted_subscription_requests: bool,
-    mut warn_list_no_owner: bool,
-) -> Result<()> {
+pub struct RepairConfig {
+    pub datetime_header_value: bool,
+    pub remove_empty_accounts: bool,
+    pub remove_accepted_subscription_requests: bool,
+    pub warn_list_no_owner: bool,
+    pub fix_message_ids: bool,
+}
+
+pub fn repair(db: &mut Connection, fix: bool, all: bool, mut config: RepairConfig) -> Result<()> {
     type LintFn = fn(&'_ mut mailpot::Connection, bool) -> std::result::Result<(), mailpot::Error>;
     let dry_run = !fix;
     if all {
-        datetime_header_value = true;
-        remove_empty_accounts = true;
-        remove_accepted_subscription_requests = true;
-        warn_list_no_owner = true;
+        config.datetime_header_value = true;
+        config.remove_empty_accounts = true;
+        config.remove_accepted_subscription_requests = true;
+        config.warn_list_no_owner = true;
+        config.fix_message_ids = true;
     }
 
-    if !(datetime_header_value
-        | remove_empty_accounts
-        | remove_accepted_subscription_requests
-        | warn_list_no_owner)
+    if !(config.datetime_header_value
+        | config.remove_empty_accounts
+        | config.remove_accepted_subscription_requests
+        | config.warn_list_no_owner
+        | config.fix_message_ids)
     {
         return Err("No lints selected: specify them with flag arguments. See --help".into());
     }
@@ -1131,24 +1133,29 @@ pub fn repair(
 
     for (name, flag, lint_fn) in [
         (
-            stringify!(datetime_header_value),
-            datetime_header_value,
+            "datetime_header_value",
+            config.datetime_header_value,
             datetime_header_value_lint as LintFn,
         ),
         (
-            stringify!(remove_empty_accounts),
-            remove_empty_accounts,
+            "remove_empty_accounts",
+            config.remove_empty_accounts,
             remove_empty_accounts_lint as _,
         ),
         (
-            stringify!(remove_accepted_subscription_requests),
-            remove_accepted_subscription_requests,
+            "remove_accepted_subscription_requests",
+            config.remove_accepted_subscription_requests,
             remove_accepted_subscription_requests_lint as _,
         ),
         (
-            stringify!(warn_list_no_owner),
-            warn_list_no_owner,
+            "warn_list_no_owner",
+            config.warn_list_no_owner,
             warn_list_no_owner_lint as _,
+        ),
+        (
+            "fix_message_ids",
+            config.fix_message_ids,
+            fix_message_ids_lint as _,
         ),
     ] {
         if flag {

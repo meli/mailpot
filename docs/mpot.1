@@ -1143,7 +1143,7 @@ Is account enabled.
 
 .br
 
-mpot repair [\-\-fix \fIFIX\fR] [\-\-all \fIALL\fR] [\-\-datetime\-header\-value \fIDATETIME_HEADER_VALUE\fR] [\-\-remove\-empty\-accounts \fIREMOVE_EMPTY_ACCOUNTS\fR] [\-\-remove\-accepted\-subscription\-requests \fIREMOVE_ACCEPTED_SUBSCRIPTION_REQUESTS\fR] [\-\-warn\-list\-no\-owner \fIWARN_LIST_NO_OWNER\fR] 
+mpot repair [\-\-fix \fIFIX\fR] [\-\-all \fIALL\fR] [\-\-datetime\-header\-value \fIDATETIME_HEADER_VALUE\fR] [\-\-remove\-empty\-accounts \fIREMOVE_EMPTY_ACCOUNTS\fR] [\-\-remove\-accepted\-subscription\-requests \fIREMOVE_ACCEPTED_SUBSCRIPTION_REQUESTS\fR] [\-\-warn\-list\-no\-owner \fIWARN_LIST_NO_OWNER\fR] [\-\-fix\-message\-ids \fIFIX_MESSAGE_IDS\fR] 
 .br
 
 Show and fix possible data mistakes or inconsistencies.
@@ -1195,6 +1195,15 @@ Remove subscription requests that have been accepted.
 .TP
 \-\-warn\-list\-no\-owner
 Warn if a list has no owners.
+.br
+
+.br
+
+.br
+[\fIpossible values: \fRtrue, false]
+.TP
+\-\-fix\-message\-ids
+Remove carets from message ID column.
 .br
 
 .br

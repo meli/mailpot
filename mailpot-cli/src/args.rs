@@ -218,6 +218,9 @@ pub enum Command {
         /// Warn if a list has no owners.
         #[arg(long, default_value = "false")]
         warn_list_no_owner: bool,
+        /// Remove carets from message ID column.
+        #[arg(long, default_value = "false")]
+        fix_message_ids: bool,
     },
 }
 

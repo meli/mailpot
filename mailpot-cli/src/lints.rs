@@ -262,3 +262,53 @@ pub fn warn_list_no_owner_lint(db: &mut Connection, _: bool) -> Result<()> {
     }
     Ok(())
 }
+
+pub fn fix_message_ids_lint(db: &mut Connection, dry_run: bool) -> Result<()> {
+    let mut col = vec![];
+    {
+        let mut stmt = db.connection.prepare(
+            "SELECT pk, message_id FROM post WHERE message_id LIKE '<%' OR message_id LIKE '%>' \
+             ORDER BY pk",
+        )?;
+        let iter = stmt.query_map([], |row| {
+            let pk: i64 = row.get("pk")?;
+            let msg_id: String = row.get("message_id")?;
+            Ok((pk, msg_id))
+        })?;
+
+        for entry in iter {
+            col.push(entry?);
+        }
+    }
+    let tx = if dry_run {
+        None
+    } else {
+        Some(db.connection.transaction()?)
+    };
+    if col.is_empty() {
+        println!("fix_message_ids_lint: ok");
+    } else {
+        println!("fix_message_ids_lint: found {} entries", col.len());
+        println!("pk\tMessage-ID value\tshould be");
+        for (pk, val) in col {
+            let mut correct = val.trim();
+            if correct.starts_with('<') {
+                correct = &correct[1..];
+            }
+            if correct.ends_with('>') {
+                correct = &correct[..correct.len().saturating_sub(1)];
+            }
+            println!("{pk}\t{val}\t{correct}");
+            if let Some(tx) = tx.as_ref() {
+                tx.execute(
+                    "UPDATE post SET message_id = ? WHERE pk = ?",
+                    rusqlite::params![&correct, pk],
+                )?;
+            }
+        }
+    }
+    if let Some(tx) = tx {
+        tx.commit()?;
+    }
+    Ok(())
+}
